@@ -707,15 +707,14 @@ mod tests {
         .expect("tool return");
 
         let serialized = serde_json::to_value(tool_return).expect("serialize tool return");
-        assert_eq!(
-            serialized["__aomi_tool_value"]["stage_plan"]["steps"][0]["stage_tx_args"]["data"]["raw"],
-            "0xdeadbeef"
-        );
-        assert_eq!(
-            serialized["__aomi_tool_value"]["wallet_request"]["data"]["raw"],
-            "0xdeadbeef"
-        );
+        assert_eq!(serialized["__aomi_tool_value"]["next_wallet_step"], "stage_tx");
+        assert!(serialized["__aomi_tool_value"].get("stage_plan").is_none());
+        assert!(serialized["__aomi_tool_value"].get("wallet_request").is_none());
         assert_eq!(serialized["__aomi_tool_routes"][0]["tool"], "stage_tx");
+        assert_eq!(
+            serialized["__aomi_tool_routes"][0]["args"]["data"]["raw"],
+            "0xdeadbeef"
+        );
         assert!(
             serialized["__aomi_tool_routes"][0]["prompt"]
                 .as_str()
@@ -787,22 +786,17 @@ where
         "route_id": route_id,
         "transaction_type": transaction_type,
         "summary": summary,
-        "wallet_request": wallet_request.clone(),
+        "next_wallet_step": WalletTool::tool_name(),
     });
 
     if WalletTool::tool_name() == host::StageTx::tool_name() {
-        result["stage_plan"] = json!({
-            "steps": [
-                {
-                    "name": "main",
-                    "required": true,
-                    "stage_tx_args": wallet_request.clone(),
-                }
-            ],
-            "next_step": "Stage the provided transaction with stage_tx using the exact stage_tx_args JSON, then simulate the staged pending_tx_id list with simulate_batch, then call commit_txs using the same ids. Do not re-encode Khalani calldata."
-        });
         result["note"] = Value::String(
-            "For executable Khalani flows, copy stage_plan.steps[0].stage_tx_args directly into stage_tx. Use simulate_batch before commit_txs. Do not re-encode Khalani calldata."
+            "The exact stage_tx arguments are carried only by the host-owned next action prompt. Do not reconstruct or quote Khalani calldata from the assistant-visible tool result."
+                .to_string(),
+        );
+    } else if WalletTool::tool_name() == host::CommitEip712::tool_name() {
+        result["note"] = Value::String(
+            "The exact commit_eip712 arguments are carried only by the host-owned next action prompt."
                 .to_string(),
         );
     }
