@@ -3,12 +3,12 @@
   "label": "Polymarket Rewards",
   "chains": [137],
   "prompt_turns": [
-    "Find reward-eligible markets for 5 dollars, rank them, choose the top plan, and continue with a 5 dollar simulation even if that amount is below the reward minimum. Build the quote plan and run the simulation-first smoke flow without asking me to increase the amount."
+    "Find reward-eligible markets for 5 dollars, rank them, choose the top plan, and build a read-only quote plan for that amount even if it is below the reward minimum. Do not execute, sign, authenticate, or submit anything."
   ],
-  "confirmation_rules": ["choose_highest_liquidity", "use_default_signature_type", "confirm"],
-  "wallet_policy": "eip712",
-  "required_tools": ["find_reward_markets", "rank_reward_plans", "build_quote_plan", "submit_reward_quote"],
-  "pass_mode": "wallet_continuation",
+  "confirmation_rules": ["choose_highest_liquidity"],
+  "wallet_policy": "none",
+  "required_tools": ["find_reward_markets", "rank_reward_plans", "build_quote_plan"],
+  "pass_mode": "read_only",
   "allowed_terminal_errors": [
     "insufficient balance",
     "insufficient funds",
@@ -19,7 +19,7 @@
   ],
   "required_env": [],
   "live_eoa": {
-    "recommended": true,
-    "reason": "Live EOA recommended for full rewards-order submission confidence on Polymarket Rewards. Anvil remains the default for deterministic bot-flow testing."
+    "recommended": false,
+    "reason": ""
   }
 }

@@ -677,6 +677,51 @@ mod tests {
 
         assert_eq!(request.pointer("/data/raw").and_then(Value::as_str), Some("0xdeadbeef"));
     }
+
+    #[test]
+    fn stage_tx_follow_up_route_preserves_raw_shape_and_prompt() {
+        let tool_return = build_khalani_follow_up_result::<host::StageTx, SubmitKhalaniOrder>(
+            "quote-1",
+            &Some("route-1".to_string()),
+            "APPROVAL_FLOW",
+            json!({"route": "Hyperstream"}),
+            json!({
+                "to": "0x1111111111111111111111111111111111111111",
+                "description": "Stage Khalani test transaction",
+                "data": { "raw": "0xdeadbeef" },
+                "value": "0",
+                "gas_limit": null,
+                "kind": "contract_call"
+            }),
+            None,
+            json!({
+                "quote_id": "quote-1",
+                "route_id": "route-1",
+                "submit_type": "SIGNED_TRANSACTION",
+                "transaction_hash": null,
+                "signature": null
+            }),
+            "transaction_hash",
+            "Transaction confirmed — submit the Khalani order.",
+        )
+        .expect("tool return");
+
+        let serialized = serde_json::to_value(tool_return).expect("serialize tool return");
+        assert_eq!(
+            serialized["__aomi_tool_value"]["stage_plan"]["steps"][0]["stage_tx_args"]["data"]["raw"],
+            "0xdeadbeef"
+        );
+        assert_eq!(
+            serialized["__aomi_tool_value"]["wallet_request"]["data"]["raw"],
+            "0xdeadbeef"
+        );
+        assert_eq!(serialized["__aomi_tool_routes"][0]["tool"], "stage_tx");
+        assert!(
+            serialized["__aomi_tool_routes"][0]["prompt"]
+                .as_str()
+                .is_some_and(|prompt| prompt.contains("not as a quoted string"))
+        );
+    }
 }
 
 // ============================================================================
@@ -719,6 +764,14 @@ where
     WalletTool: RouteTarget,
     FollowUpTool: RouteTarget,
 {
+    let immediate_route_note = if WalletTool::tool_name() == host::StageTx::tool_name() {
+        "Call `stage_tx` with this exact JSON object args. Keep nested `data.raw` as the JSON object under `data`, not as a quoted string, and do not rebuild Khalani calldata."
+    } else if WalletTool::tool_name() == host::CommitEip712::tool_name() {
+        "Call `commit_eip712` with the exact wallet request args from this Khalani step."
+    } else {
+        "Call the exact next Khalani host step with the provided JSON args."
+    };
+
     let preflight_step = preflight.as_ref().and_then(|pf| {
         pf.get("tool").and_then(Value::as_str).map(|name| {
             (
@@ -728,7 +781,7 @@ where
         })
     });
 
-    let result = json!({
+    let mut result = json!({
         "source": "khalani",
         "quote_id": quote_id,
         "route_id": route_id,
@@ -737,11 +790,29 @@ where
         "wallet_request": wallet_request.clone(),
     });
 
+    if WalletTool::tool_name() == host::StageTx::tool_name() {
+        result["stage_plan"] = json!({
+            "steps": [
+                {
+                    "name": "main",
+                    "required": true,
+                    "stage_tx_args": wallet_request.clone(),
+                }
+            ],
+            "next_step": "Stage the provided transaction with stage_tx using the exact stage_tx_args JSON, then simulate the staged pending_tx_id list with simulate_batch, then call commit_txs using the same ids. Do not re-encode Khalani calldata."
+        });
+        result["note"] = Value::String(
+            "For executable Khalani flows, copy stage_plan.steps[0].stage_tx_args directly into stage_tx. Use simulate_batch before commit_txs. Do not re-encode Khalani calldata."
+                .to_string(),
+        );
+    }
+
     Ok(ToolReturn::route(result)
         .next(|next| {
             add_khalani_preflight_step(next, preflight_step.as_ref());
             next.add::<WalletTool>(wallet_request)
-                .bind_as(callback_field);
+                .bind_as(callback_field)
+                .note(immediate_route_note);
         })
         .after::<FollowUpTool>(follow_up_args)
         .awaits(callback_field)
