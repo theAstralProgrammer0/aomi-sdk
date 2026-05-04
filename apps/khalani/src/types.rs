@@ -89,7 +89,7 @@ pub(crate) struct KhalaniStageTxRequest {
 
 #[derive(Debug, Clone, Serialize)]
 pub(crate) struct KhalaniStageTxData {
-    pub(crate) raw: Value,
+    pub(crate) raw: String,
 }
 
 #[derive(Debug, Clone, Serialize)]

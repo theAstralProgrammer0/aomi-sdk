@@ -7,7 +7,7 @@
   ],
   "confirmation_rules": [],
   "wallet_policy": "tx_or_eip712",
-  "required_tools": ["get_khalani_quote", "build_khalani_order", "submit_khalani_order"],
+  "required_tools": ["build_khalani_order", "submit_khalani_order"],
   "pass_mode": "wallet_continuation",
   "allowed_terminal_errors": [],
   "required_env": [],

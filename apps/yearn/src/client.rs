@@ -1,7 +1,8 @@
 use aomi_sdk::schemars::JsonSchema;
 use aomi_sdk::*;
 use serde::Deserialize;
-use serde_json::{Value, json};
+use serde_json::{Map, Value, json};
+use std::cmp::Ordering;
 use std::time::Duration;
 
 #[derive(Clone, Default)]
@@ -68,7 +69,22 @@ impl YearnClient {
     pub(crate) fn get_all_vaults(&self, chain_id: u64) -> Result<Value, String> {
         let url = format!("{}/{chain_id}/vaults/all", self.api_endpoint);
         let value = self.get_json(&url, "get_all_vaults")?;
-        Ok(Self::with_source(value))
+        let vaults = Self::extract_data_array(value, "get_all_vaults")?;
+        let mut summaries: Vec<Value> = vaults.iter().map(Self::summarize_vault).collect();
+        summaries.sort_by(|left, right| {
+            let left_tvl = Self::value_as_f64(left.get("tvl_usd"));
+            let right_tvl = Self::value_as_f64(right.get("tvl_usd"));
+            right_tvl
+                .partial_cmp(&left_tvl)
+                .unwrap_or(Ordering::Equal)
+        });
+        Ok(json!({
+            "source": "yearn",
+            "chain_id": chain_id,
+            "count": summaries.len(),
+            "sorted_by": "tvl_usd_desc",
+            "data": summaries,
+        }))
     }
 
     pub(crate) fn get_vault_detail(&self, chain_id: u64, address: &str) -> Result<Value, String> {
@@ -80,7 +96,201 @@ impl YearnClient {
     pub(crate) fn get_blacklisted_vaults(&self) -> Result<Value, String> {
         let url = format!("{}/info/vaults/blacklisted", self.api_endpoint);
         let value = self.get_json(&url, "get_blacklisted_vaults")?;
-        Ok(Self::with_source(value))
+        let addresses = Self::extract_string_array(value);
+        Ok(json!({
+            "source": "yearn",
+            "count": addresses.len(),
+            "data": addresses,
+        }))
+    }
+
+    fn extract_data_array(value: Value, op: &str) -> Result<Vec<Value>, String> {
+        match value {
+            Value::Array(items) => Ok(items),
+            Value::Object(mut map) => match map.remove("data") {
+                Some(Value::Array(items)) => Ok(items),
+                Some(other) => Err(format!(
+                    "[yearn] {op} failed: expected `data` array, got {}",
+                    Self::value_kind(&other)
+                )),
+                None => Err(format!("[yearn] {op} failed: missing `data` array")),
+            },
+            other => Err(format!(
+                "[yearn] {op} failed: expected array response, got {}",
+                Self::value_kind(&other)
+            )),
+        }
+    }
+
+    fn extract_string_array(value: Value) -> Vec<String> {
+        match value {
+            Value::Array(items) => items
+                .into_iter()
+                .filter_map(|item| item.as_str().map(str::to_string))
+                .collect(),
+            Value::Object(mut map) => match map.remove("data") {
+                Some(Value::Array(items)) => items
+                    .into_iter()
+                    .filter_map(|item| item.as_str().map(str::to_string))
+                    .collect(),
+                _ => Vec::new(),
+            },
+            _ => Vec::new(),
+        }
+    }
+
+    fn summarize_vault(vault: &Value) -> Value {
+        let symbol = Self::first_string(
+            vault,
+            &["displaySymbol", "formatedSymbol", "symbol", "display_symbol"],
+        );
+        let name = Self::first_string(
+            vault,
+            &["displayName", "formatedName", "name", "display_name"],
+        );
+        let underlying_symbol = Self::first_nested_string(
+            vault,
+            &[&["token", "display_symbol"], &["token", "symbol"]],
+        );
+        let underlying_name = Self::first_nested_string(
+            vault,
+            &[&["token", "display_name"], &["token", "name"]],
+        );
+
+        let mut alias_set = std::collections::BTreeSet::new();
+        for value in [
+            symbol.clone(),
+            name.clone(),
+            underlying_symbol.clone(),
+            underlying_name.clone(),
+            Self::first_string(vault, &["symbol"]),
+            Self::first_string(vault, &["displayName"]),
+        ]
+        .into_iter()
+        .flatten()
+        {
+            let trimmed = value.trim();
+            if !trimmed.is_empty() {
+                alias_set.insert(trimmed.to_string());
+            }
+        }
+
+        let mut summary = Map::new();
+        summary.insert(
+            "address".to_string(),
+            vault.get("address").cloned().unwrap_or(Value::Null),
+        );
+        summary.insert(
+            "symbol".to_string(),
+            symbol.map(Value::String).unwrap_or(Value::Null),
+        );
+        summary.insert(
+            "name".to_string(),
+            name.map(Value::String).unwrap_or(Value::Null),
+        );
+        summary.insert(
+            "underlying_symbol".to_string(),
+            underlying_symbol.map(Value::String).unwrap_or(Value::Null),
+        );
+        summary.insert(
+            "underlying_name".to_string(),
+            underlying_name.map(Value::String).unwrap_or(Value::Null),
+        );
+        summary.insert(
+            "category".to_string(),
+            Self::first_string(vault, &["category"])
+                .or_else(|| Self::first_nested_string(vault, &[&["details", "category"]]))
+                .map(Value::String)
+                .unwrap_or(Value::Null),
+        );
+        summary.insert(
+            "chain_id".to_string(),
+            vault.get("chainID").cloned().unwrap_or(Value::Null),
+        );
+        summary.insert(
+            "tvl_usd".to_string(),
+            Self::number_value(Self::first_nested_value(vault, &[&["tvl", "tvl"]])),
+        );
+        summary.insert(
+            "net_apy".to_string(),
+            Self::number_value(
+                Self::first_nested_value(
+                    vault,
+                    &[
+                        &["apr", "netAPR"],
+                        &["apy", "net_apy"],
+                        &["apr", "forwardAPR", "netAPR"],
+                    ],
+                ),
+            ),
+        );
+        summary.insert(
+            "is_retired".to_string(),
+            Self::first_nested_value(vault, &[&["details", "isRetired"], &["info", "isRetired"]])
+                .cloned()
+                .unwrap_or(Value::Bool(false)),
+        );
+        summary.insert(
+            "is_hidden".to_string(),
+            Self::first_nested_value(vault, &[&["details", "isHidden"], &["info", "isHidden"]])
+                .cloned()
+                .unwrap_or(Value::Bool(false)),
+        );
+        summary.insert(
+            "aliases".to_string(),
+            Value::Array(alias_set.into_iter().map(Value::String).collect()),
+        );
+        Value::Object(summary)
+    }
+
+    fn first_string(value: &Value, keys: &[&str]) -> Option<String> {
+        keys.iter().find_map(|key| {
+            value
+                .get(*key)
+                .and_then(Value::as_str)
+                .map(str::to_string)
+        })
+    }
+
+    fn first_nested_string(value: &Value, paths: &[&[&str]]) -> Option<String> {
+        Self::first_nested_value(value, paths)
+            .and_then(Value::as_str)
+            .map(str::to_string)
+    }
+
+    fn first_nested_value<'a>(value: &'a Value, paths: &[&[&str]]) -> Option<&'a Value> {
+        paths.iter().find_map(|path| {
+            let mut current = value;
+            for key in *path {
+                current = current.get(*key)?;
+            }
+            Some(current)
+        })
+    }
+
+    fn number_value(value: Option<&Value>) -> Value {
+        Self::value_as_f64(value)
+            .map(Value::from)
+            .unwrap_or(Value::Null)
+    }
+
+    fn value_as_f64(value: Option<&Value>) -> Option<f64> {
+        match value? {
+            Value::Number(number) => number.as_f64(),
+            Value::String(text) => text.parse::<f64>().ok(),
+            _ => None,
+        }
+    }
+
+    fn value_kind(value: &Value) -> &'static str {
+        match value {
+            Value::Null => "null",
+            Value::Bool(_) => "bool",
+            Value::Number(_) => "number",
+            Value::String(_) => "string",
+            Value::Array(_) => "array",
+            Value::Object(_) => "object",
+        }
     }
 }
 
@@ -121,6 +331,38 @@ fn default_chain_id() -> u64 {
 mod tests {
     use super::*;
 
+    #[test]
+    fn summarize_vault_compacts_large_payloads() {
+        let summary = YearnClient::summarize_vault(&json!({
+            "address": "0xvault",
+            "displaySymbol": "yvUSDC",
+            "displayName": "Yearn USDC Vault",
+            "symbol": "yvUSDC-legacy",
+            "category": "Stablecoin",
+            "chainID": 1,
+            "details": { "isRetired": false, "isHidden": false },
+            "token": {
+                "symbol": "USDC",
+                "display_name": "USD Coin"
+            },
+            "tvl": { "tvl": 1234567.89 },
+            "apr": { "netAPR": 0.0456 }
+        }));
+
+        assert_eq!(summary["address"], "0xvault");
+        assert_eq!(summary["symbol"], "yvUSDC");
+        assert_eq!(summary["underlying_symbol"], "USDC");
+        assert_eq!(summary["tvl_usd"], 1234567.89);
+        assert_eq!(summary["net_apy"], 0.0456);
+        assert!(
+            summary["aliases"]
+                .as_array()
+                .expect("aliases")
+                .iter()
+                .any(|value| value == "yvUSDC")
+        );
+    }
+
     /// Story: "Deposit idle USDT into the best Yearn vault"
     /// Fetch all vaults, filter blacklisted ones, pick a vault, inspect its detail.
     #[test]
@@ -140,21 +382,27 @@ mod tests {
             "expected at least one vault on chain 1"
         );
 
-        // Verify vault entries carry APY and TVL data.
+        // Verify vault entries carry compact discovery data.
         let sample = &vaults_arr[0];
         println!(
-            "[step 1] Sample vault: address={}, has_apr={}, has_tvl={}",
+            "[step 1] Sample vault: address={}, symbol={}, has_tvl={}",
             sample["address"].as_str().unwrap_or("?"),
-            sample.get("apy").is_some() || sample.get("apr").is_some(),
-            sample.get("tvl").is_some()
+            sample["symbol"].as_str().unwrap_or("?"),
+            sample.get("tvl_usd").and_then(Value::as_f64).is_some()
         );
         assert!(
-            sample.get("apy").is_some() || sample.get("apr").is_some(),
-            "expected APY/APR data on vault entry"
+            sample["address"].as_str().is_some(),
+            "expected vault summary to include an address"
         );
         assert!(
-            sample.get("tvl").is_some(),
-            "expected TVL data on vault entry"
+            sample["symbol"].as_str().is_some(),
+            "expected vault summary to include a symbol"
+        );
+        assert!(
+            vaults_arr
+                .iter()
+                .any(|vault| vault.get("tvl_usd").and_then(Value::as_f64).is_some()),
+            "expected at least one vault summary with TVL data"
         );
 
         // Step 2: Get blacklisted vaults and filter them out.
@@ -277,7 +525,7 @@ mod tests {
         let eth_symbols: std::collections::HashSet<String> = eth_vaults
             .iter()
             .filter_map(|v| {
-                v["token"]["symbol"]
+                v["underlying_symbol"]
                     .as_str()
                     .or_else(|| v["symbol"].as_str())
                     .map(|s| s.to_uppercase())
@@ -287,7 +535,7 @@ mod tests {
         let arb_symbols: std::collections::HashSet<String> = arb_vaults
             .iter()
             .filter_map(|v| {
-                v["token"]["symbol"]
+                v["underlying_symbol"]
                     .as_str()
                     .or_else(|| v["symbol"].as_str())
                     .map(|s| s.to_uppercase())
@@ -315,22 +563,22 @@ mod tests {
             vaults
                 .iter()
                 .filter(|v| {
-                    let sym = v["token"]["symbol"]
+                    let sym = v["underlying_symbol"]
                         .as_str()
                         .or_else(|| v["symbol"].as_str())
                         .unwrap_or_default()
                         .to_uppercase();
                     sym == symbol
                 })
-                .filter_map(|v| {
-                    v["apy"]["net_apy"]
-                        .as_f64()
-                        .or_else(|| v["apr"]["netAPR"].as_f64())
-                        .or_else(|| v["apr"]["net_apy"].as_f64())
-                        .or_else(|| v["apy"]["points"]["week_ago"].as_f64())
-                })
+                .filter_map(|v| v["net_apy"].as_f64())
                 .max_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal))
         };
+
+        let target = common_symbols
+            .iter()
+            .map(|symbol| symbol.as_str())
+            .find(|symbol| best_apy(eth_vaults, symbol).is_some() || best_apy(arb_vaults, symbol).is_some())
+            .unwrap_or(target);
 
         let eth_best = best_apy(eth_vaults, target);
         let arb_best = best_apy(arb_vaults, target);

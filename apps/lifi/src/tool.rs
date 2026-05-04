@@ -1,4 +1,5 @@
 use crate::client::*;
+use crate::types::PreparedTransaction;
 use aomi_sdk::*;
 use serde::Serialize;
 use serde_json::{Value, json};
@@ -13,6 +14,27 @@ fn ok<T: Serialize>(value: T) -> Result<Value, String> {
         }
         other => serde_json::json!({ "source": "lifi", "data": other }),
     })
+}
+
+fn json_string(value: &Value) -> Option<String> {
+    match value {
+        Value::String(text) => Some(text.clone()),
+        Value::Number(number) => Some(number.to_string()),
+        _ => None,
+    }
+}
+
+fn stage_tx_args(tx: &PreparedTransaction, kind: &str) -> Option<Value> {
+    Some(json!({
+        "to": json_string(&tx.to)?,
+        "description": tx.description,
+        "data": {
+            "raw": json_string(&tx.data)?,
+        },
+        "value": json_string(&tx.value),
+        "gas_limit": json_string(&tx.gas_limit),
+        "kind": kind,
+    }))
 }
 
 impl DynAomiTool for GetLifiSwapQuote {
@@ -51,7 +73,7 @@ impl DynAomiTool for PlaceLifiOrder {
     type App = LifiApp;
     type Args = PlaceLifiOrderArgs;
     const NAME: &'static str = "place_lifi_order";
-    const DESCRIPTION: &'static str = "Get executable tx data via LI.FI. Returns approval_tx (if needed) and main_tx. Stage them with `stage_tx` using the raw-calldata path, verify them with `simulate_batch`, then finalize with `commit_tx`.";
+    const DESCRIPTION: &'static str = "Get executable tx data via LI.FI for swaps or bridges. Returns approval_tx (if needed), main_tx, and exact `stage_tx` argument templates. Stage those txs with `stage_tx`, verify them with `simulate_batch`, then finalize with `commit_txs`.";
 
     fn run(_app: &LifiApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let client = LifiClient::new()?;
@@ -83,11 +105,32 @@ impl DynAomiTool for PlaceLifiOrder {
         let main_tx = serde_json::to_value(&payload.main_tx)
             .map_err(|e| format!("[lifi] failed to serialize main_tx: {e}"))?;
 
+        let approval_stage = payload
+            .approval_tx
+            .as_ref()
+            .and_then(|tx| stage_tx_args(tx, "erc20_approve"));
+        let main_stage = stage_tx_args(&payload.main_tx, "bridge");
+
         ok(json!({
             "payload": payload,
             "approval_tx": approval_tx,
             "main_tx": main_tx,
-            "note": "If approval_tx is present, stage approval_tx with stage_tx first using data.raw, stage main_tx the same way, simulate the staged pending_tx_id list with simulate_batch, then call commit_tx once per staged tx. Do not re-encode LI.FI calldata.",
+            "stage_plan": {
+                "steps": [
+                    {
+                        "name": "approval",
+                        "required": approval_stage.is_some(),
+                        "stage_tx_args": approval_stage,
+                    },
+                    {
+                        "name": "main",
+                        "required": true,
+                        "stage_tx_args": main_stage,
+                    }
+                ],
+                "next_step": "Stage each non-null step with stage_tx, simulate the staged pending_tx_id list with simulate_batch, then call commit_txs using the staged ids. Do not re-encode LI.FI calldata."
+            },
+            "note": "For executable bridge or swap flows, copy the provided stage_plan.stage_tx_args directly into stage_tx. Use simulate_batch before commit_txs. Do not re-encode LI.FI calldata.",
         }))
     }
 }
@@ -109,6 +152,38 @@ impl DynAomiTool for GetLifiBridgeQuote {
             args.to_address.as_deref(),
             args.slippage_bps,
         )?)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn stage_tx_args_uses_raw_calldata_shape() {
+        let tx = PreparedTransaction {
+            to: Value::String("0x1111111111111111111111111111111111111111".to_string()),
+            data: Value::String("0xdeadbeef".to_string()),
+            value: Value::String("0".to_string()),
+            gas_limit: Value::String("210000".to_string()),
+            description: "LI.FI main transaction",
+        };
+
+        let args = stage_tx_args(&tx, "bridge").expect("stage args");
+
+        assert_eq!(
+            args,
+            json!({
+                "to": "0x1111111111111111111111111111111111111111",
+                "description": "LI.FI main transaction",
+                "data": {
+                    "raw": "0xdeadbeef"
+                },
+                "value": "0",
+                "gas_limit": "210000",
+                "kind": "bridge"
+            })
+        );
     }
 }
 

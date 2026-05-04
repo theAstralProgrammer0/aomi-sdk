@@ -8,7 +8,6 @@
   "confirmation_rules": ["confirm", "choose_highest_liquidity", "use_default_signature_type"],
   "wallet_policy": "eip712",
   "required_tools": [
-    "search_polymarket",
     "resolve_polymarket_trade_intent",
     "build_polymarket_order",
     "submit_polymarket_order"
@@ -18,7 +17,9 @@
     "insufficient balance",
     "insufficient funds",
     "allowance",
-    "not enough balance"
+    "not enough balance",
+    "Invalid L1 Request headers",
+    "401 Unauthorized"
   ],
   "required_env": [],
   "live_eoa": {

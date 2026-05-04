@@ -7,7 +7,7 @@ impl DynAomiTool for GetAllVaults {
     type Args = GetAllVaultsArgs;
     const NAME: &'static str = "get_all_vaults";
     const DESCRIPTION: &'static str =
-        "List all Yearn vaults on a given chain with TVL, APY, strategies, and fees.";
+        "Return a compact discovery list of Yearn vaults on a given chain, sorted by TVL, with addresses and symbols so you can pick a vault and then call get_vault_detail.";
 
     fn run(_app: &YearnApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let client = YearnClient::new()?;

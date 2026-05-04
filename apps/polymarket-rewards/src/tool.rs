@@ -244,7 +244,7 @@ impl DynAomiTool for FindRewardMarkets {
     type App = PolymarketRewardsApp;
     type Args = FindRewardMarketsArgs;
     const NAME: &'static str = "find_reward_markets";
-    const DESCRIPTION: &'static str = "Discover active Polymarket markets enrolled in the liquidity reward program. Returns markets with reward eligibility metadata (min order size, max qualifying spread, reward pool). Use this first to identify candidates before ranking.";
+    const DESCRIPTION: &'static str = "Find reward markets enrolled in the Polymarket liquidity rewards program. Returns markets with reward eligibility metadata (min order size, max qualifying spread, reward pool). Use this first to identify candidates before ranking.";
 
     fn run(
         _app: &PolymarketRewardsApp,
@@ -338,7 +338,7 @@ impl DynAomiTool for RankRewardPlans {
     type App = PolymarketRewardsApp;
     type Args = RankRewardPlansArgs;
     const NAME: &'static str = "rank_reward_plans";
-    const DESCRIPTION: &'static str = "Score and rank reward-eligible markets by a deterministic model: reward_density × spread_room × capital_efficiency × balance_score. Returns ranked deployment plans with score breakdown and estimated APY. Use this to pick the best market before resolving execution details.";
+    const DESCRIPTION: &'static str = "Rank reward plans by a deterministic model: reward_density × spread_room × capital_efficiency × balance_score. Returns ranked deployment plans with score breakdown and estimated APY. Use this to pick the best market before resolving execution details.";
 
     fn run(
         _app: &PolymarketRewardsApp,
@@ -473,7 +473,7 @@ impl DynAomiTool for ResolveRewardDeployment {
     type App = PolymarketRewardsApp;
     type Args = ResolveRewardDeploymentArgs;
     const NAME: &'static str = "resolve_reward_deployment";
-    const DESCRIPTION: &'static str = "Select a specific ranked plan and resolve live execution parameters: fetch the live orderbook, compute optimal quote prices within the reward spread, and calculate expected position size and reward APY. Returns concrete bid/ask prices for build_quote_plan.";
+    const DESCRIPTION: &'static str = "Resolve reward deployment for a specific ranked plan: fetch the live orderbook, compute optimal quote prices within the reward spread, and calculate expected position size and reward APY. Returns concrete bid/ask prices for build_quote_plan.";
 
     fn run(
         _app: &PolymarketRewardsApp,
@@ -880,7 +880,7 @@ impl DynAomiTool for SubmitRewardQuote {
     type App = PolymarketRewardsApp;
     type Args = SubmitRewardQuoteArgs;
     const NAME: &'static str = "submit_reward_quote";
-    const DESCRIPTION: &'static str = "Run the connected-wallet Polymarket rewards smoke-test flow inside one staged tool. Stages: 1) request ClobAuth, 2) queue the YES+NO bid signature batch, 3) return a signed-order simulation, 4) submit live only after the user reconfirms. Stay inside this tool until it returns `simulation_ready`, `submitted`, or `submit_failed`.";
+    const DESCRIPTION: &'static str = "Submit reward quote through one staged connected-wallet smoke-test flow. Stages: 1) request ClobAuth, 2) queue the YES+NO bid signature batch, 3) return a signed-order simulation, 4) submit live only after the user reconfirms. Stay inside this tool until it returns `simulation_ready`, `submitted`, or `submit_failed`.";
 
     fn run_with_routes(
         _app: &PolymarketRewardsApp,

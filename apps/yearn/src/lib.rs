@@ -30,10 +30,11 @@ All data comes from the Yearn yDaemon API (https://ydaemon.yearn.finance), free 
 - **Fees** -- Management and performance fees charged by the vault
 
 ## Response Guidelines
-1. Use `get_all_vaults` to list vaults on a chain, sorted by TVL
-2. Use `get_vault_detail` for a deep-dive on a single vault by address
+1. Use `get_all_vaults` to locate candidate vaults on a chain, sorted by TVL
+2. If the user asks for details on a specific vault or symbol, always follow up with `get_vault_detail` using the selected vault address
 3. Use `get_blacklisted_vaults` to check blacklisted vaults
 - Default chain is Ethereum (chain_id = 1) unless the user specifies otherwise
+4. Treat `get_all_vaults` as a discovery index, not a substitute for `get_vault_detail`
 
 ## Formatting
 - Format TVL in millions ($456M) or thousands ($12.3K)

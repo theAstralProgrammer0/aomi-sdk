@@ -546,6 +546,14 @@ pub(crate) fn extract_quote_summary(quote_entry: &Value) -> Value {
 }
 
 pub(crate) fn build_stage_tx_request(tx: &Value, description: String) -> Value {
+    let raw_data = tx
+        .get("data")
+        .and_then(|data| match data {
+            Value::String(raw) => Some(raw.clone()),
+            Value::Object(map) => map.get("raw").and_then(Value::as_str).map(str::to_string),
+            _ => None,
+        })
+        .unwrap_or_else(|| "0x".to_string());
     serde_json::to_value(KhalaniStageTxRequest {
         to: tx.get("to").cloned().unwrap_or(Value::Null),
         value: tx
@@ -554,12 +562,7 @@ pub(crate) fn build_stage_tx_request(tx: &Value, description: String) -> Value {
             .unwrap_or_else(|| Value::String("0".to_string())),
         gas_limit: tx.get("gas_limit").cloned().unwrap_or(Value::Null),
         description,
-        data: KhalaniStageTxData {
-            raw: tx
-                .get("data")
-                .cloned()
-                .unwrap_or_else(|| Value::String("0x".to_string())),
-        },
+        data: KhalaniStageTxData { raw: raw_data },
         kind: "contract_call",
     })
     .unwrap_or(Value::Null)
@@ -658,6 +661,21 @@ mod tests {
             &result.routes[2].trigger,
             RouteTrigger::OnBoundEvent { alias } if alias == "transaction_hash"
         ));
+    }
+
+    #[test]
+    fn build_stage_tx_request_unwraps_nested_raw_calldata() {
+        let request = build_stage_tx_request(
+            &json!({
+                "to": "0x1",
+                "value": "0",
+                "gas_limit": "21000",
+                "data": { "raw": "0xdeadbeef" }
+            }),
+            "demo".to_string(),
+        );
+
+        assert_eq!(request.pointer("/data/raw").and_then(Value::as_str), Some("0xdeadbeef"));
     }
 }
 
