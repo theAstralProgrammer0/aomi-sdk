@@ -1,0 +1,14 @@
+{
+  "app": "hyperliquid",
+  "label": "Hyperliquid",
+  "chains": [1],
+  "prompt_turns": [
+    "Show exchange metadata, BTC L2 book, mids, and my account and open orders on Hyperliquid."
+  ],
+  "confirmation_rules": [],
+  "wallet_policy": "none",
+  "required_tools": ["get_meta", "get_l2_book", "get_all_mids", "get_clearinghouse_state", "get_open_orders"],
+  "pass_mode": "read_only",
+  "allowed_terminal_errors": [],
+  "required_env": []
+}

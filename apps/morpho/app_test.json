@@ -1,0 +1,14 @@
+{
+  "app": "morpho",
+  "label": "Morpho",
+  "chains": [1],
+  "prompt_turns": [
+    "List a few markets and vaults, then show positions for my connected wallet."
+  ],
+  "confirmation_rules": [],
+  "wallet_policy": "none",
+  "required_tools": ["get_markets", "get_vaults", "get_user_positions"],
+  "pass_mode": "read_only",
+  "allowed_terminal_errors": [],
+  "required_env": []
+}

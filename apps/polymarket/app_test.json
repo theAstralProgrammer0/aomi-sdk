@@ -1,0 +1,28 @@
+{
+  "app": "polymarket",
+  "label": "Polymarket",
+  "chains": [137],
+  "prompt_turns": [
+    "Find a liquid active Bitcoin market, choose the highest-liquidity candidate, preview a 1 dollar YES order, then after confirmation continue the signing flow."
+  ],
+  "confirmation_rules": ["confirm", "choose_highest_liquidity", "use_default_signature_type"],
+  "wallet_policy": "eip712",
+  "required_tools": [
+    "search_polymarket",
+    "resolve_polymarket_trade_intent",
+    "build_polymarket_order",
+    "submit_polymarket_order"
+  ],
+  "pass_mode": "wallet_continuation",
+  "allowed_terminal_errors": [
+    "insufficient balance",
+    "insufficient funds",
+    "allowance",
+    "not enough balance"
+  ],
+  "required_env": [],
+  "live_eoa": {
+    "recommended": true,
+    "reason": "Live EOA recommended for full live orderbook-submission confidence on Polymarket. Anvil remains the default for deterministic bot-flow testing."
+  }
+}

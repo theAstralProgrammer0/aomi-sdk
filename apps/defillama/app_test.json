@@ -1,0 +1,14 @@
+{
+  "app": "defillama",
+  "label": "DefiLlama",
+  "chains": [1],
+  "prompt_turns": [
+    "Give me WETH price, top 3 Ethereum USDC yield pools, and Morpho TVL using DefiLlama."
+  ],
+  "confirmation_rules": [],
+  "wallet_policy": "none",
+  "required_tools": ["get_token_price", "get_yield_opportunities", "get_protocol_detail"],
+  "pass_mode": "read_only",
+  "allowed_terminal_errors": [],
+  "required_env": []
+}

@@ -1,0 +1,14 @@
+{
+  "app": "yearn",
+  "label": "Yearn",
+  "chains": [1],
+  "prompt_turns": [
+    "List top vaults for USDC and WETH, show yvUSDC details, and report blacklisted vaults."
+  ],
+  "confirmation_rules": [],
+  "wallet_policy": "none",
+  "required_tools": ["get_all_vaults", "get_vault_detail", "get_blacklisted_vaults"],
+  "pass_mode": "read_only",
+  "allowed_terminal_errors": [],
+  "required_env": []
+}

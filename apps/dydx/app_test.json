@@ -1,0 +1,19 @@
+{
+  "app": "dydx",
+  "label": "dYdX",
+  "chains": [1],
+  "prompt_turns": [
+    "Show BTC-USD perp market metadata, top of book, recent trades, and latest funding on dYdX."
+  ],
+  "confirmation_rules": [],
+  "wallet_policy": "none",
+  "required_tools": [
+    "dydx_get_markets",
+    "dydx_get_orderbook",
+    "dydx_get_trades",
+    "dydx_get_historical_funding"
+  ],
+  "pass_mode": "read_only",
+  "allowed_terminal_errors": [],
+  "required_env": []
+}

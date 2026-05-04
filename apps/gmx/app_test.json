@@ -1,0 +1,14 @@
+{
+  "app": "gmx",
+  "label": "GMX",
+  "chains": [1],
+  "prompt_turns": [
+    "Show ETH and BTC oracle prices, GMX markets, and open positions and orders for my address."
+  ],
+  "confirmation_rules": [],
+  "wallet_policy": "none",
+  "required_tools": ["get_gmx_prices", "get_gmx_markets", "get_gmx_positions", "get_gmx_orders"],
+  "pass_mode": "read_only",
+  "allowed_terminal_errors": [],
+  "required_env": []
+}

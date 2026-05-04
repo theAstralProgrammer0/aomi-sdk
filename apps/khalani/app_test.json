@@ -1,0 +1,18 @@
+{
+  "app": "khalani",
+  "label": "Khalani",
+  "chains": [8453],
+  "prompt_turns": [
+    "On Base, swap 0.01 ETH to USDC for my wallet and continue the exact wallet step."
+  ],
+  "confirmation_rules": [],
+  "wallet_policy": "tx_or_eip712",
+  "required_tools": ["get_khalani_quote", "build_khalani_order", "submit_khalani_order"],
+  "pass_mode": "wallet_continuation",
+  "allowed_terminal_errors": [],
+  "required_env": [],
+  "live_eoa": {
+    "recommended": true,
+    "reason": "Live EOA recommended for final route-and-submit confidence on live liquidity. Anvil remains the default for deterministic bot-flow regression."
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "app": "molinar",
+  "label": "Molinar",
+  "chains": [1],
+  "prompt_turns": [
+    "Look around, move north one step, send 'hello from batch smoke', then fetch new messages."
+  ],
+  "confirmation_rules": [],
+  "wallet_policy": "none",
+  "required_tools": ["molinar_look", "molinar_move", "molinar_chat", "molinar_get_new_messages"],
+  "pass_mode": "read_only",
+  "allowed_terminal_errors": [],
+  "required_env": []
+}

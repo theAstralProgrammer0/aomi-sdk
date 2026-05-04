@@ -1,0 +1,23 @@
+{
+  "app": "cow",
+  "label": "CoW Protocol",
+  "chains": [137],
+  "prompt_turns": [
+    "On Polygon, quote swapping 0.1 USDC to WETH for my connected wallet, then after one confirmation continue the exact signing flow."
+  ],
+  "confirmation_rules": ["confirm"],
+  "wallet_policy": "eip712",
+  "required_tools": ["get_cow_swap_quote", "place_cow_order"],
+  "pass_mode": "wallet_continuation",
+  "allowed_terminal_errors": [
+    "insufficient balance",
+    "insufficient funds",
+    "allowance",
+    "not enough balance"
+  ],
+  "required_env": [],
+  "live_eoa": {
+    "recommended": true,
+    "reason": "Live EOA recommended for full live order-submission confidence against the CoW orderbook. Anvil remains the default for deterministic bot-flow testing."
+  }
+}

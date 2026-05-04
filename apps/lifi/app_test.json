@@ -1,0 +1,18 @@
+{
+  "app": "lifi",
+  "label": "LI.FI",
+  "chains": [1, 8453],
+  "prompt_turns": [
+    "Bridge 1 USDC from Ethereum to Base to my own wallet using LI.FI."
+  ],
+  "confirmation_rules": [],
+  "wallet_policy": "executable_txs",
+  "required_tools": ["place_lifi_order"],
+  "pass_mode": "executable_txs",
+  "allowed_terminal_errors": [],
+  "required_env": [],
+  "live_eoa": {
+    "recommended": true,
+    "reason": "Live EOA recommended for final bridge execution confidence across live routes and approvals. Anvil remains the default for deterministic tool-and-wallet flow testing."
+  }
+}
