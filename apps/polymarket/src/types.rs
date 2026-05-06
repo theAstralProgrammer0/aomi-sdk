@@ -1,9 +1,8 @@
 use serde::Serialize;
-use serde_json::Value;
 
 #[derive(Debug, Clone, Serialize)]
 pub(crate) struct WalletEip712Request {
-    pub(crate) typed_data: Value,
+    pub(crate) typed_data: String,
     pub(crate) description: String,
 }
 

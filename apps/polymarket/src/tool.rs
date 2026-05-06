@@ -17,6 +17,14 @@ fn to_json_value<T: Serialize>(value: &T) -> Result<Value, String> {
     serde_json::to_value(value).map_err(|e| format!("failed to encode JSON payload: {e}"))
 }
 
+fn build_wallet_request(typed_data: Value, description: String) -> Result<Value, String> {
+    to_json_value(&WalletEip712Request {
+        typed_data: serde_json::to_string(&typed_data)
+            .map_err(|e| format!("failed to stringify typed_data: {e}"))?,
+        description,
+    })
+}
+
 fn build_polymarket_immediate_follow_up_result<T>(
     result: Value,
     follow_up_args: Value,
@@ -523,43 +531,23 @@ impl DynAomiTool for BuildPolymarketOrder {
                     .as_deref()
                     .ok_or_else(|| "wallet mode requires wallet_address".to_string())?,
             );
-            let wallet_request = to_json_value(&WalletEip712Request {
-                typed_data: build_clob_auth_typed_data(&clob_auth),
-                description: "Polymarket CLOB auth: sign to prepare order submission".to_string(),
+            let submit_args = to_json_value(&SubmitPolymarketOrderArgs {
+                confirmation: Some("confirm".to_string()),
+                order_plan: plan,
+                private_key: None,
+                clob_auth: Some(clob_auth),
+                clob_l1_signature: None,
+                prepared_order: None,
+                order_signature: None,
             })?;
-            let obj = result
-                .as_object_mut()
-                .ok_or_else(|| "result is not an object".to_string())?;
-            obj.insert(
-                "submit_args_template".to_string(),
-                to_json_value(&SubmitPolymarketOrderArgs {
-                    confirmation: Some("confirm".to_string()),
-                    order_plan: plan.clone(),
-                    private_key: None,
-                    clob_auth: Some(clob_auth.clone()),
-                    clob_l1_signature: None,
-                    prepared_order: None,
-                    order_signature: None,
-                })?,
-            );
-
-            return build_polymarket_follow_up_result(
+            result["submit_args_template"] = submit_args.clone();
+            return Ok(build_polymarket_immediate_follow_up_result::<
+                SubmitPolymarketOrder,
+            >(
                 result,
-                wallet_request,
-                WalletFollowUp {
-                    submit_template: to_json_value(&SubmitPolymarketOrderArgs {
-                        confirmation: Some("confirm".to_string()),
-                        order_plan: plan,
-                        private_key: None,
-                        clob_auth: Some(clob_auth),
-                        clob_l1_signature: None,
-                        prepared_order: None,
-                        order_signature: None,
-                    })?,
-                    callback_field: "clob_l1_signature",
-                    requires_user_confirmation: true,
-                },
-            );
+                submit_args,
+                true,
+            ));
         }
 
         Ok(ToolReturn::value(result))
@@ -611,10 +599,43 @@ impl DynAomiTool for SubmitPolymarketOrder {
         let clob_auth = args.clob_auth.clone().ok_or_else(|| {
             "wallet-mode submit requires clob_auth from build_polymarket_order".to_string()
         })?;
-        let clob_l1_signature = args.clob_l1_signature.clone().ok_or_else(|| {
-            "wallet-mode submit requires clob_l1_signature from the ClobAuth wallet callback"
-                .to_string()
-        })?;
+        let Some(clob_l1_signature) = args.clob_l1_signature.clone() else {
+            let result = json!({
+                "source": "polymarket",
+                "execution_mode": "WALLET",
+                "stage": "awaiting_clob_auth_signature",
+                "submit_args_template": to_json_value(&SubmitPolymarketOrderArgs {
+                    confirmation: Some("confirm".to_string()),
+                    order_plan: args.order_plan.clone(),
+                    private_key: None,
+                    clob_auth: Some(clob_auth.clone()),
+                    clob_l1_signature: None,
+                    prepared_order: None,
+                    order_signature: None,
+                })?,
+            });
+            let wallet_request = build_wallet_request(
+                build_clob_auth_typed_data(&clob_auth),
+                "Polymarket CLOB auth: sign to prepare order submission".to_string(),
+            )?;
+            return build_polymarket_follow_up_result(
+                result,
+                wallet_request,
+                WalletFollowUp {
+                    submit_template: to_json_value(&SubmitPolymarketOrderArgs {
+                        confirmation: Some("confirm".to_string()),
+                        order_plan: args.order_plan,
+                        private_key: None,
+                        clob_auth: Some(clob_auth),
+                        clob_l1_signature: None,
+                        prepared_order: None,
+                        order_signature: None,
+                    })?,
+                    callback_field: "clob_l1_signature",
+                    requires_user_confirmation: false,
+                },
+            );
+        };
 
         if let Some(prepared_order) = args.prepared_order.clone() {
             if let Some(order_signature) = args.order_signature.as_deref() {
@@ -643,10 +664,10 @@ impl DynAomiTool for SubmitPolymarketOrder {
                     order_signature: None,
                 })?,
             });
-            let wallet_request = to_json_value(&WalletEip712Request {
-                typed_data: build_order_typed_data(&prepared_order),
-                description: build_prepared_order_description(&args.order_plan),
-            })?;
+            let wallet_request = build_wallet_request(
+                build_order_typed_data(&prepared_order),
+                build_prepared_order_description(&args.order_plan),
+            )?;
             return build_polymarket_follow_up_result(
                 result,
                 wallet_request,
@@ -684,10 +705,8 @@ impl DynAomiTool for SubmitPolymarketOrder {
                 order_signature: None,
             })?,
         });
-        let wallet_request = to_json_value(&WalletEip712Request {
-            typed_data,
-            description: build_prepared_order_description(&args.order_plan),
-        })?;
+        let wallet_request =
+            build_wallet_request(typed_data, build_prepared_order_description(&args.order_plan))?;
 
         build_polymarket_follow_up_result(
             result,
@@ -740,6 +759,26 @@ mod tests {
     }
 
     #[test]
+    fn wallet_build_flow_also_uses_immediate_submit_route() {
+        let result = build_polymarket_immediate_follow_up_result::<SubmitPolymarketOrder>(
+            json!({"source": "polymarket"}),
+            json!({
+                "confirmation": "confirm",
+                "order_plan": {"execution_mode": "WALLET"},
+                "clob_auth": {"address": "0x1", "timestamp": "1", "nonce": "0"},
+            }),
+            true,
+        );
+
+        assert_eq!(result.routes.len(), 1);
+        assert_eq!(result.routes[0].tool, "submit_polymarket_order");
+        assert!(matches!(
+            result.routes[0].trigger,
+            RouteTrigger::OnSyncReturn
+        ));
+    }
+
+    #[test]
     fn wallet_signature_flow_uses_bound_artifact_route_plan() {
         let result = build_polymarket_follow_up_result(
             json!({"source": "polymarket"}),
@@ -765,5 +804,65 @@ mod tests {
             &result.routes[1].trigger,
             RouteTrigger::OnBoundEvent { alias } if alias == "clob_l1_signature"
         ));
+    }
+
+    #[test]
+    fn wallet_submit_without_clob_signature_requests_clob_auth_first() {
+        let args = SubmitPolymarketOrderArgs {
+            confirmation: Some("confirm".to_string()),
+            order_plan: PolymarketOrderPlan {
+                market_id_or_slug: "540844".to_string(),
+                market_id: Some("540844".to_string()),
+                slug: Some("will-bitcoin-hit-1m-before-gta-vi-872".to_string()),
+                condition_id: Some(
+                    "0xbb57ccf5853a85487bc3d83d04d669310d28c6c810758953b9d9b91d1aee89d2"
+                        .to_string(),
+                ),
+                question: Some("Will bitcoin hit $1m before GTA VI?".to_string()),
+                close_time: Some("2026-07-31T12:00:00Z".to_string()),
+                token_id: "105267568073659068217311993901927962476298440625043565106676088842803600775810".to_string(),
+                outcome: "YES".to_string(),
+                side: "BUY".to_string(),
+                execution_mode: "WALLET".to_string(),
+                order_kind: "MARKET".to_string(),
+                amount: Some("1".to_string()),
+                amount_kind: Some("USDC".to_string()),
+                price: None,
+                size: None,
+                reference_price: Some("0.4915".to_string()),
+                estimated_shares: Some("2.03".to_string()),
+                order_type: "FOK".to_string(),
+                post_only: false,
+                signature_type: "proxy".to_string(),
+                funder: None,
+                wallet_address: Some("0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266".to_string()),
+                warnings: vec![],
+            },
+            private_key: None,
+            clob_auth: Some(ClobAuthContext {
+                address: "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266".to_string(),
+                timestamp: "1778036582".to_string(),
+                nonce: "0".to_string(),
+            }),
+            clob_l1_signature: None,
+            prepared_order: None,
+            order_signature: None,
+        };
+
+        let result = SubmitPolymarketOrder::run_with_routes(
+            &PolymarketApp,
+            args,
+            DynToolCallCtx {
+                session_id: "test".to_string(),
+                tool_name: "submit_polymarket_order".to_string(),
+                call_id: "call".to_string(),
+                state_attributes: Default::default(),
+            },
+        )
+        .expect("submit tool should request clob auth signature");
+
+        assert_eq!(result.value["stage"].as_str(), Some("awaiting_clob_auth_signature"));
+        assert_eq!(result.routes[0].tool, "commit_eip712");
+        assert_eq!(result.routes[0].bind_as.as_deref(), Some("clob_l1_signature"));
     }
 }
