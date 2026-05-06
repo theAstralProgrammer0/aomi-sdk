@@ -1,6 +1,7 @@
 use crate::client::*;
 use aomi_sdk::*;
 use serde_json::{Value, json};
+use std::time::{SystemTime, UNIX_EPOCH};
 
 const COW_ORDER_FLOW_VERSION: &str = "cow-eip712-fee-rolled-into-sell-v1";
 const COW_WALLET_ROUTE_NOTE: &str =
@@ -8,6 +9,15 @@ const COW_WALLET_ROUTE_NOTE: &str =
 const COW_PLACE_ORDER_ROUTE_NOTE: &str = "Wallet signed — submit the exact CoW order now. Preserve submit_args_template exactly and use the matching callback signature.";
 const COW_NEXT_STEP_HINT: &str = "After the user confirms this exact quote, do not call get_cow_swap_quote again unless the quote expired or signing failed. Use wallet_signature_request exactly as returned, follow wallet_signature_step metadata, and call commit_eip712. After a successful wallet signature callback, use the next host-injected route prompt or the existing submit_args_template plus the callback signature to call place_cow_order immediately. Do not claim success until place_cow_order returns success.";
 const COW_SUBMISSION_GUARDRAIL: &str = "A CoW order is not submitted until place_cow_order returns success. Never invent an order UID or claim the order is live before that tool succeeds.";
+const COW_MIN_VALID_TO_SECS: u64 = 30 * 60;
+
+fn normalized_valid_to(requested: Option<u64>) -> Result<u64, String> {
+    let now = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map_err(|e| format!("[cow] system clock error: {e}"))?
+        .as_secs();
+    Ok(requested.unwrap_or(now + 60 * 60).max(now + COW_MIN_VALID_TO_SECS))
+}
 
 fn build_wallet_signature_step_metadata() -> Value {
     json!({
@@ -104,9 +114,7 @@ impl DynAomiTool for GetCowSwapQuote {
             "kind": order_side,
             "signingScheme": signing_scheme.clone(),
         });
-        if let Some(valid_to) = args.valid_to {
-            payload["validTo"] = json!(valid_to);
-        }
+        payload["validTo"] = json!(normalized_valid_to(args.valid_to)?);
         if let Some(partially_fillable) = args.partially_fillable {
             payload["partiallyFillable"] = json!(partially_fillable);
         }
@@ -316,6 +324,29 @@ impl DynAomiTool for DebugCowOrder {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn normalized_valid_to_defaults_an_hour_out() {
+        let valid_to = normalized_valid_to(None).expect("default valid_to should compute");
+        let now = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("system clock should be after unix epoch")
+            .as_secs();
+
+        assert!(valid_to >= now + 60 * 60);
+    }
+
+    #[test]
+    fn normalized_valid_to_clamps_short_windows() {
+        let now = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("system clock should be after unix epoch")
+            .as_secs();
+        let valid_to =
+            normalized_valid_to(Some(now + 60)).expect("short valid_to should be clamped");
+
+        assert!(valid_to >= now + COW_MIN_VALID_TO_SECS);
+    }
 
     #[test]
     fn compact_quote_response_fits_persistence_budget() {

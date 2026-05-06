@@ -427,7 +427,8 @@ pub(crate) fn build_cow_wallet_signature_request(
         return Err("[cow] typed_data for wallet signing must be an object".to_string());
     }
     Ok(json!({
-        "typed_data": typed_data.clone(),
+        "typed_data": serde_json::to_string(typed_data)
+            .map_err(|e| format!("[cow] failed to stringify typed_data: {e}"))?,
         "description": description,
     }))
 }
@@ -1170,17 +1171,18 @@ mod tests {
     }
 
     #[test]
-    fn build_wallet_signature_request_keeps_typed_data_as_object() {
+    fn build_wallet_signature_request_stringifies_typed_data() {
         let typed_data = json!({
             "domain": {"name": "Gnosis Protocol", "version": "v2", "chainId": 137, "verifyingContract": COW_SETTLEMENT_CONTRACT},
             "types": {"EIP712Domain": [], "Order": []},
             "primaryType": "Order",
             "message": {"sellToken": "0x1"}
         });
+        let expected = typed_data.to_string();
 
         let request = build_cow_wallet_signature_request(&typed_data, "Sign CoW order")
             .expect("wallet signature request should build");
-        assert_eq!(request["typed_data"], typed_data);
+        assert_eq!(request["typed_data"].as_str(), Some(expected.as_str()));
     }
 
     #[test]
