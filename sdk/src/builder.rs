@@ -3,7 +3,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use serde::Serialize;
 use serde_json::Value;
 
-use crate::route::{RouteStep, RouteTrigger, ToolReturn};
+use crate::route::{RouteStep, RouteTrigger, ToolReturn, TxExecutionPlan};
 use crate::types::DynAomiTool;
 
 /// Type-level convenience for naming a routed target tool. The blanket impl
@@ -112,6 +112,7 @@ impl RouteBuilder {
                     },
                     bind_as: None,
                     prompt: None,
+                    tx_execution_plan: None,
                 },
                 awaited_alias: None,
             });
@@ -250,6 +251,11 @@ impl<'a> NextStepBuilder<'a> {
 
     pub fn note(self, note: impl Into<String>) -> Self {
         self.route.next_steps[self.index].prompt = Some(note.into());
+        self
+    }
+
+    pub fn tx_execution_plan(self, plan: TxExecutionPlan) -> Self {
+        self.route.next_steps[self.index].tx_execution_plan = Some(plan);
         self
     }
 }
