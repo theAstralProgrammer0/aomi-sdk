@@ -677,11 +677,8 @@ mod tests {
             result.routes[0].trigger,
             RouteTrigger::OnSyncReturn
         ));
-        assert_eq!(
-            result.routes[1].bind_as.as_deref(),
-            Some("transaction_hash")
-        );
-        assert!(result.routes[1].tx_execution_plan.is_some());
+        assert_eq!(result.routes[1].bind_as, None);
+        assert!(result.routes[1].execution.is_some());
         assert!(matches!(
             result.routes[1].trigger,
             RouteTrigger::OnSyncReturn
@@ -876,16 +873,18 @@ where
     Ok(ToolReturn::route(result)
         .next(|next| {
             add_khalani_preflight_step(next, preflight_step.as_ref());
-            let step = next
-                .add::<WalletTool>(wallet_request)
-                .bind_as(callback_field)
-                .note(immediate_route_note);
+            let step = next.add::<WalletTool>(wallet_request).note(immediate_route_note);
             if WalletTool::tool_name() == host::StageTx::tool_name() {
-                step.tx_execution_plan(TxExecutionPlan {
-                    mode: TxExecutionMode::StageThenSimulateThenCommit,
-                    bind_commit_as: callback_field.to_string(),
-                    on_simulation_failure: Some(TxFailurePolicy::Stop),
-                });
+                step.execution(RoutedActionExecution::Transaction(TransactionExecutionPlan {
+                    steps: vec![
+                        TransactionExecutionStep::SimulateBatch,
+                        TransactionExecutionStep::CommitTxs {
+                            bind_as: callback_field.to_string(),
+                            aa_preference: Some("auto".to_string()),
+                        },
+                    ],
+                    on_simulation_failure: Some(TransactionFailurePolicy::Stop),
+                }));
             }
         })
         .after::<FollowUpTool>(follow_up_args)

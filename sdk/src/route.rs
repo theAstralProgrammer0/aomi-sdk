@@ -13,22 +13,58 @@ pub const TOOL_RETURN_ROUTES_KEY: &str = "__aomi_tool_routes";
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
-pub enum TxExecutionMode {
-    StageThenSimulateThenCommit,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-#[serde(rename_all = "snake_case")]
-pub enum TxFailurePolicy {
+pub enum TransactionFailurePolicy {
     Stop,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct TxExecutionPlan {
-    pub mode: TxExecutionMode,
-    pub bind_commit_as: String,
+#[serde(tag = "tool", rename_all = "snake_case")]
+pub enum TransactionExecutionStep {
+    SimulateBatch,
+    CommitTxs {
+        bind_as: String,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        aa_preference: Option<String>,
+    },
+}
+
+impl TransactionExecutionStep {
+    pub fn bound_alias(&self) -> Option<&str> {
+        match self {
+            Self::SimulateBatch => None,
+            Self::CommitTxs { bind_as, .. } => Some(bind_as.as_str()),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct TransactionExecutionPlan {
+    pub steps: Vec<TransactionExecutionStep>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub on_simulation_failure: Option<TxFailurePolicy>,
+    pub on_simulation_failure: Option<TransactionFailurePolicy>,
+}
+
+impl TransactionExecutionPlan {
+    pub fn binds_alias(&self, alias: &str) -> bool {
+        self.steps
+            .iter()
+            .filter_map(TransactionExecutionStep::bound_alias)
+            .any(|candidate| candidate == alias)
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(tag = "kind", content = "plan", rename_all = "snake_case")]
+pub enum RoutedActionExecution {
+    Transaction(TransactionExecutionPlan),
+}
+
+impl RoutedActionExecution {
+    pub fn binds_alias(&self, alias: &str) -> bool {
+        match self {
+            Self::Transaction(plan) => plan.binds_alias(alias),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -70,7 +106,7 @@ pub struct RouteStep {
     /// route envelope so the host can recover it, but not intended as part of
     /// the semantic tool args the LLM reasons about.
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub tx_execution_plan: Option<TxExecutionPlan>,
+    pub execution: Option<RoutedActionExecution>,
 }
 
 impl RouteStep {
@@ -81,7 +117,7 @@ impl RouteStep {
             trigger: RouteTrigger::OnSyncReturn,
             bind_as: None,
             prompt: None,
-            tx_execution_plan: None,
+            execution: None,
         }
     }
 
@@ -101,7 +137,7 @@ impl RouteStep {
             },
             bind_as: None,
             prompt: None,
-            tx_execution_plan: None,
+            execution: None,
         }
     }
 
@@ -117,8 +153,8 @@ impl RouteStep {
         self
     }
 
-    pub fn tx_execution_plan(mut self, plan: TxExecutionPlan) -> Self {
-        self.tx_execution_plan = Some(plan);
+    pub fn execution(mut self, execution: RoutedActionExecution) -> Self {
+        self.execution = Some(execution);
         self
     }
 
