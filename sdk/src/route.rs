@@ -12,6 +12,26 @@ pub const TOOL_RETURN_VALUE_KEY: &str = "__aomi_tool_value";
 pub const TOOL_RETURN_ROUTES_KEY: &str = "__aomi_tool_routes";
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum TxExecutionMode {
+    StageThenSimulateThenCommit,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum TxFailurePolicy {
+    Stop,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct TxExecutionPlan {
+    pub mode: TxExecutionMode,
+    pub bind_commit_as: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub on_simulation_failure: Option<TxFailurePolicy>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum RouteTrigger {
     /// Fires inline after the emitting tool's `run` returns. The host renders
@@ -46,6 +66,11 @@ pub struct RouteStep {
     /// voice (e.g. "preserve args exactly" vs "call only if still desired").
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub prompt: Option<String>,
+    /// Host-only deterministic execution metadata. Visible in the serialized
+    /// route envelope so the host can recover it, but not intended as part of
+    /// the semantic tool args the LLM reasons about.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub tx_execution_plan: Option<TxExecutionPlan>,
 }
 
 impl RouteStep {
@@ -56,6 +81,7 @@ impl RouteStep {
             trigger: RouteTrigger::OnSyncReturn,
             bind_as: None,
             prompt: None,
+            tx_execution_plan: None,
         }
     }
 
@@ -75,6 +101,7 @@ impl RouteStep {
             },
             bind_as: None,
             prompt: None,
+            tx_execution_plan: None,
         }
     }
 
@@ -87,6 +114,11 @@ impl RouteStep {
 
     pub fn prompt(mut self, prompt: impl Into<String>) -> Self {
         self.prompt = Some(prompt.into());
+        self
+    }
+
+    pub fn tx_execution_plan(mut self, plan: TxExecutionPlan) -> Self {
+        self.tx_execution_plan = Some(plan);
         self
     }
 

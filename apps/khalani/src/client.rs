@@ -447,12 +447,37 @@ pub(crate) fn hex_to_decimal_wei(s: &str) -> String {
     }
 }
 
+fn normalize_hex_calldata(data: &str) -> String {
+    let trimmed = data.trim();
+    let Some(body) = trimmed
+        .strip_prefix("0x")
+        .or_else(|| trimmed.strip_prefix("0X"))
+    else {
+        return trimmed.to_string();
+    };
+
+    if body.is_empty() {
+        return "0x".to_string();
+    }
+
+    if body.len().is_multiple_of(2) {
+        format!("0x{body}")
+    } else {
+        format!("0x0{body}")
+    }
+}
+
 pub(crate) fn normalize_tx_fields(tx: &Value) -> Option<Value> {
     let to = tx.get("to").and_then(Value::as_str)?;
     let raw_value = tx.get("value").and_then(Value::as_str).unwrap_or("0");
+    let data = tx
+        .get("data")
+        .and_then(Value::as_str)
+        .map(normalize_hex_calldata)
+        .unwrap_or_else(|| "0x".to_string());
     Some(json!({
         "to": to,
-        "data": tx.get("data").and_then(Value::as_str).unwrap_or("0x"),
+        "data": data,
         "value": hex_to_decimal_wei(raw_value),
         "gas_limit": tx.get("gasLimit").or_else(|| tx.get("gas")).cloned().unwrap_or(Value::Null),
     }))
@@ -549,8 +574,11 @@ pub(crate) fn build_stage_tx_request(tx: &Value, description: String) -> Value {
     let raw_data = tx
         .get("data")
         .and_then(|data| match data {
-            Value::String(raw) => Some(raw.clone()),
-            Value::Object(map) => map.get("raw").and_then(Value::as_str).map(str::to_string),
+            Value::String(raw) => Some(normalize_hex_calldata(raw)),
+            Value::Object(map) => map
+                .get("raw")
+                .and_then(Value::as_str)
+                .map(normalize_hex_calldata),
             _ => None,
         })
         .unwrap_or_else(|| "0x".to_string());
@@ -653,6 +681,7 @@ mod tests {
             result.routes[1].bind_as.as_deref(),
             Some("transaction_hash")
         );
+        assert!(result.routes[1].tx_execution_plan.is_some());
         assert!(matches!(
             result.routes[1].trigger,
             RouteTrigger::OnSyncReturn
@@ -675,7 +704,43 @@ mod tests {
             "demo".to_string(),
         );
 
-        assert_eq!(request.pointer("/data/raw").and_then(Value::as_str), Some("0xdeadbeef"));
+        assert_eq!(
+            request.pointer("/data/raw").and_then(Value::as_str),
+            Some("0xdeadbeef")
+        );
+    }
+
+    #[test]
+    fn build_stage_tx_request_pads_odd_length_nested_raw_calldata() {
+        let request = build_stage_tx_request(
+            &json!({
+                "to": "0x1",
+                "value": "0",
+                "gas_limit": "21000",
+                "data": { "raw": "0xabc" }
+            }),
+            "demo".to_string(),
+        );
+
+        assert_eq!(
+            request.pointer("/data/raw").and_then(Value::as_str),
+            Some("0x0abc")
+        );
+    }
+
+    #[test]
+    fn normalize_tx_fields_pads_odd_length_hex_calldata() {
+        let normalized = normalize_tx_fields(&json!({
+            "to": "0x1",
+            "value": "0",
+            "data": "0xabc"
+        }))
+        .expect("normalized tx");
+
+        assert_eq!(
+            normalized.get("data").and_then(Value::as_str),
+            Some("0x0abc")
+        );
     }
 
     #[test]
@@ -707,9 +772,16 @@ mod tests {
         .expect("tool return");
 
         let serialized = serde_json::to_value(tool_return).expect("serialize tool return");
-        assert_eq!(serialized["__aomi_tool_value"]["next_wallet_step"], "stage_tx");
+        assert_eq!(
+            serialized["__aomi_tool_value"]["next_wallet_step"],
+            "stage_tx"
+        );
         assert!(serialized["__aomi_tool_value"].get("stage_plan").is_none());
-        assert!(serialized["__aomi_tool_value"].get("wallet_request").is_none());
+        assert!(
+            serialized["__aomi_tool_value"]
+                .get("wallet_request")
+                .is_none()
+        );
         assert_eq!(serialized["__aomi_tool_routes"][0]["tool"], "stage_tx");
         assert_eq!(
             serialized["__aomi_tool_routes"][0]["args"]["data"]["raw"],
@@ -804,9 +876,17 @@ where
     Ok(ToolReturn::route(result)
         .next(|next| {
             add_khalani_preflight_step(next, preflight_step.as_ref());
-            next.add::<WalletTool>(wallet_request)
+            let step = next
+                .add::<WalletTool>(wallet_request)
                 .bind_as(callback_field)
                 .note(immediate_route_note);
+            if WalletTool::tool_name() == host::StageTx::tool_name() {
+                step.tx_execution_plan(TxExecutionPlan {
+                    mode: TxExecutionMode::StageThenSimulateThenCommit,
+                    bind_commit_as: callback_field.to_string(),
+                    on_simulation_failure: Some(TxFailurePolicy::Stop),
+                });
+            }
         })
         .after::<FollowUpTool>(follow_up_args)
         .awaits(callback_field)
