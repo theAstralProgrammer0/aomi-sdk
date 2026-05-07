@@ -10,6 +10,7 @@ exclude = [
     "apps/admin",
     "apps/binance",
     "apps/bybit",
+    "apps/byreal",
     "apps/cow",
     "apps/defi",
     "apps/defillama",
