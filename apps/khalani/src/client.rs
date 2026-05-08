@@ -873,18 +873,22 @@ where
     Ok(ToolReturn::route(result)
         .next(|next| {
             add_khalani_preflight_step(next, preflight_step.as_ref());
-            let step = next.add::<WalletTool>(wallet_request).note(immediate_route_note);
+            let step = next
+                .add::<WalletTool>(wallet_request)
+                .note(immediate_route_note);
             if WalletTool::tool_name() == host::StageTx::tool_name() {
-                step.execution(RoutedActionExecution::Transaction(TransactionExecutionPlan {
-                    steps: vec![
-                        TransactionExecutionStep::SimulateBatch,
-                        TransactionExecutionStep::CommitTxs {
-                            bind_as: callback_field.to_string(),
-                            aa_preference: Some("auto".to_string()),
-                        },
-                    ],
-                    on_simulation_failure: Some(TransactionFailurePolicy::Stop),
-                }));
+                step.execution(RoutedActionExecution::Transaction(
+                    TransactionExecutionPlan {
+                        steps: vec![
+                            TransactionExecutionStep::SimulateBatch,
+                            TransactionExecutionStep::CommitTxs {
+                                bind_as: callback_field.to_string(),
+                                aa_preference: Some("auto".to_string()),
+                            },
+                        ],
+                        on_simulation_failure: Some(TransactionFailurePolicy::Stop),
+                    },
+                ));
             }
         })
         .after::<FollowUpTool>(follow_up_args)
