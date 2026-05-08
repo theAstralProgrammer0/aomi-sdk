@@ -536,16 +536,18 @@ mod tests {
         let tool_return = ToolReturn::route(json!({"status": "ok"}))
             .next(|next| {
                 next.add::<host::StageTx>(json!({"to": "0x1", "data": {"raw": "0x"}}))
-                    .execution(RoutedActionExecution::Transaction(TransactionExecutionPlan {
-                        steps: vec![
-                            TransactionExecutionStep::SimulateBatch,
-                            TransactionExecutionStep::CommitTxs {
-                                bind_as: "transaction_hash".to_string(),
-                                aa_preference: Some("auto".to_string()),
-                            },
-                        ],
-                        on_simulation_failure: Some(TransactionFailurePolicy::Stop),
-                    }));
+                    .execution(RoutedActionExecution::Transaction(
+                        TransactionExecutionPlan {
+                            steps: vec![
+                                TransactionExecutionStep::SimulateBatch,
+                                TransactionExecutionStep::CommitTxs {
+                                    bind_as: "transaction_hash".to_string(),
+                                    aa_preference: Some("auto".to_string()),
+                                },
+                            ],
+                            on_simulation_failure: Some(TransactionFailurePolicy::Stop),
+                        },
+                    ));
             })
             .after::<SubmitOrder>(json!({"quote_id": "quote-1"}))
             .awaits("transaction_hash")
