@@ -1,66 +1,15 @@
-use crate::client::{
-    ByrealApp, OrderInputs, build_cancel_action, build_exchange_body, build_order_action,
-    build_update_leverage_action, byreal_client, parse_signature, prepare_l1_action,
+use crate::client::ByrealApp;
+use crate::client::perps::{
+    OrderInputs, build_cancel_action, build_exchange_body, build_order_action,
+    build_update_leverage_action, parse_signature, perps_client, prepare_l1_action,
 };
+use crate::tool::{build_evm_signed_routes, ok, resolve_address, validate_confirmation};
 use aomi_sdk::schemars::JsonSchema;
 use aomi_sdk::*;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 
-const SIGNATURE_ALIAS: &str = "master_signature";
 const DEFAULT_MARKET_SLIPPAGE_PCT: f64 = 5.0;
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-fn ok<T: Serialize>(value: T) -> Result<Value, String> {
-    let v = serde_json::to_value(value).map_err(|e| format!("[byreal] response serialize: {e}"))?;
-    Ok(match v {
-        Value::Object(mut map) => {
-            map.insert("source".to_string(), Value::String("byreal".to_string()));
-            Value::Object(map)
-        }
-        other => json!({ "source": "byreal", "data": other }),
-    })
-}
-
-fn validate_confirmation(token: Option<&str>) -> Result<(), String> {
-    match token {
-        Some("confirm") => Ok(()),
-        _ => Err(
-            "submit_* requires `confirmation: \"confirm\"`. Show the user the build_* preview \
-             and obtain explicit go-ahead before submitting."
-                .to_string(),
-        ),
-    }
-}
-
-fn build_commit_args(typed_data: Value, description: String) -> Value {
-    json!({
-        "typed_data": typed_data,
-        "description": description,
-    })
-}
-
-fn build_signed_routes<Submit: RouteTarget>(
-    value: Value,
-    typed_data: Value,
-    description: String,
-    submit_template: Value,
-) -> Result<ToolReturn, String> {
-    ToolReturn::route(value)
-        .next(|next| {
-            next.add::<host::CommitEip712>(build_commit_args(typed_data, description))
-                .bind_as(SIGNATURE_ALIAS)
-                .note("Wait for explicit user confirmation, then sign this Hyperliquid action with the master wallet.");
-        })
-        .after::<Submit>(submit_template)
-        .awaits(SIGNATURE_ALIAS)
-        .note("Wallet signed — submit the action to Hyperliquid.")
-        .try_build()
-        .map_err(|e| format!("[byreal] route build failed: {e}"))
-}
 
 // ---------------------------------------------------------------------------
 // build_order / submit_order
@@ -93,8 +42,8 @@ pub(crate) struct BuildOrder;
 impl DynAomiTool for BuildOrder {
     type App = ByrealApp;
     type Args = BuildOrderArgs;
-    const NAME: &'static str = "byreal_build_order";
-    const DESCRIPTION: &'static str = "Build (do not submit) a Hyperliquid perpetual order. Returns a preview and a routed `commit_eip712` step the host wallet signs. The matched `byreal_submit_order` continuation runs after the signature comes back. Always emit a confirmation summary and stop the turn before calling this.";
+    const NAME: &'static str = "byreal_perps_build_order";
+    const DESCRIPTION: &'static str = "Build (do not submit) a Hyperliquid perpetual order. Returns a preview and a routed `commit_eip712` step the host wallet signs. The matched `byreal_perps_submit_order` continuation runs after the signature comes back. Always emit a confirmation summary and stop the turn before calling this.";
 
     fn run_with_routes(
         _app: &Self::App,
@@ -104,7 +53,7 @@ impl DynAomiTool for BuildOrder {
         if args.sz <= 0.0 {
             return Err("[byreal] sz must be > 0".to_string());
         }
-        let client = byreal_client()?;
+        let client = perps_client()?;
         let asset_index = client.lookup_asset(&args.coin)?;
 
         let kind = args.order_kind.to_ascii_lowercase();
@@ -120,7 +69,7 @@ impl DynAomiTool for BuildOrder {
             }
             "market" => {
                 let mid = args.mid_price.ok_or_else(|| {
-                    "[byreal] market orders require mid_price (fetch it from `byreal_get_all_mids` first)".to_string()
+                    "[byreal] market orders require mid_price (fetch it from `byreal_perps_get_all_mids` first)".to_string()
                 })?;
                 if mid <= 0.0 {
                     return Err("[byreal] mid_price must be > 0".to_string());
@@ -196,7 +145,7 @@ impl DynAomiTool for BuildOrder {
             if reduce_only { " (reduce-only)" } else { "" },
         );
 
-        build_signed_routes::<SubmitOrder>(preview, typed_data, description, submit_template)
+        build_evm_signed_routes::<SubmitOrder>(preview, typed_data, description, submit_template)
     }
 }
 
@@ -219,8 +168,8 @@ pub(crate) struct SubmitOrder;
 impl DynAomiTool for SubmitOrder {
     type App = ByrealApp;
     type Args = SubmitOrderArgs;
-    const NAME: &'static str = "byreal_submit_order";
-    const DESCRIPTION: &'static str = "Submit a Hyperliquid order that was previously prepared by `byreal_build_order` and signed via `commit_eip712`. The `master_signature` field is filled in automatically by the runtime — never invent one.";
+    const NAME: &'static str = "byreal_perps_submit_order";
+    const DESCRIPTION: &'static str = "Submit a Hyperliquid order that was previously prepared by `byreal_perps_build_order` and signed via `commit_eip712`. The `master_signature` field is filled in automatically by the runtime — never invent one.";
 
     fn run(_app: &Self::App, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         validate_confirmation(args.confirmation.as_deref())?;
@@ -230,7 +179,7 @@ impl DynAomiTool for SubmitOrder {
         let sig = parse_signature(sig_hex)?;
         let body =
             build_exchange_body(args.action, args.nonce, &sig, args.vault_address.as_deref());
-        ok(byreal_client()?.post_exchange(body)?)
+        ok(perps_client()?.post_exchange(body)?)
     }
 }
 
@@ -242,7 +191,7 @@ impl DynAomiTool for SubmitOrder {
 pub(crate) struct BuildCancelArgs {
     /// Asset ticker for the order being canceled.
     pub coin: String,
-    /// Order ID returned when the order was placed (look it up via `byreal_get_open_orders` if unknown).
+    /// Order ID returned when the order was placed (look it up via `byreal_perps_get_open_orders` if unknown).
     pub oid: u64,
 }
 
@@ -251,7 +200,7 @@ pub(crate) struct BuildCancel;
 impl DynAomiTool for BuildCancel {
     type App = ByrealApp;
     type Args = BuildCancelArgs;
-    const NAME: &'static str = "byreal_build_cancel";
+    const NAME: &'static str = "byreal_perps_build_cancel";
     const DESCRIPTION: &'static str = "Build (do not submit) a cancel for a single resting order. Returns a preview and a routed `commit_eip712` step the host wallet signs.";
 
     fn run_with_routes(
@@ -259,7 +208,7 @@ impl DynAomiTool for BuildCancel {
         args: Self::Args,
         _ctx: DynToolCallCtx,
     ) -> Result<ToolReturn, String> {
-        let client = byreal_client()?;
+        let client = perps_client()?;
         let asset_index = client.lookup_asset(&args.coin)?;
         let action = build_cancel_action(asset_index, args.oid);
         let (action_json, nonce, typed_data) = prepare_l1_action(action, None)?;
@@ -288,7 +237,7 @@ impl DynAomiTool for BuildCancel {
 
         let description = format!("Hyperliquid CANCEL {} order #{}", args.coin, args.oid);
 
-        build_signed_routes::<SubmitCancel>(preview, typed_data, description, submit_template)
+        build_evm_signed_routes::<SubmitCancel>(preview, typed_data, description, submit_template)
     }
 }
 
@@ -306,8 +255,8 @@ pub(crate) struct SubmitCancel;
 impl DynAomiTool for SubmitCancel {
     type App = ByrealApp;
     type Args = SubmitCancelArgs;
-    const NAME: &'static str = "byreal_submit_cancel";
-    const DESCRIPTION: &'static str = "Submit a Hyperliquid cancel that was prepared by `byreal_build_cancel` and signed via `commit_eip712`.";
+    const NAME: &'static str = "byreal_perps_submit_cancel";
+    const DESCRIPTION: &'static str = "Submit a Hyperliquid cancel that was prepared by `byreal_perps_build_cancel` and signed via `commit_eip712`.";
 
     fn run(_app: &Self::App, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         validate_confirmation(args.confirmation.as_deref())?;
@@ -318,7 +267,7 @@ impl DynAomiTool for SubmitCancel {
         let sig = parse_signature(sig_hex)?;
         let body =
             build_exchange_body(args.action, args.nonce, &sig, args.vault_address.as_deref());
-        ok(byreal_client()?.post_exchange(body)?)
+        ok(perps_client()?.post_exchange(body)?)
     }
 }
 
@@ -330,7 +279,7 @@ impl DynAomiTool for SubmitCancel {
 pub(crate) struct BuildUpdateLeverageArgs {
     /// Asset ticker.
     pub coin: String,
-    /// Target leverage (1..=max for the asset). Caps vary per asset; check `byreal_get_meta`.
+    /// Target leverage (1..=max for the asset). Caps vary per asset; check `byreal_perps_get_meta`.
     pub leverage: u32,
     /// true = cross margin, false = isolated margin.
     pub is_cross: bool,
@@ -341,7 +290,7 @@ pub(crate) struct BuildUpdateLeverage;
 impl DynAomiTool for BuildUpdateLeverage {
     type App = ByrealApp;
     type Args = BuildUpdateLeverageArgs;
-    const NAME: &'static str = "byreal_build_update_leverage";
+    const NAME: &'static str = "byreal_perps_build_update_leverage";
     const DESCRIPTION: &'static str = "Build (do not submit) a leverage update for one asset. Apply this BEFORE opening a position so the order opens at the intended leverage.";
 
     fn run_with_routes(
@@ -352,7 +301,7 @@ impl DynAomiTool for BuildUpdateLeverage {
         if args.leverage == 0 {
             return Err("[byreal] leverage must be >= 1".to_string());
         }
-        let client = byreal_client()?;
+        let client = perps_client()?;
         let asset_index = client.lookup_asset(&args.coin)?;
         let action = build_update_leverage_action(asset_index, args.is_cross, args.leverage);
         let (action_json, nonce, typed_data) = prepare_l1_action(action, None)?;
@@ -387,7 +336,7 @@ impl DynAomiTool for BuildUpdateLeverage {
             if args.is_cross { "cross" } else { "isolated" },
         );
 
-        build_signed_routes::<SubmitUpdateLeverage>(
+        build_evm_signed_routes::<SubmitUpdateLeverage>(
             preview,
             typed_data,
             description,
@@ -410,8 +359,8 @@ pub(crate) struct SubmitUpdateLeverage;
 impl DynAomiTool for SubmitUpdateLeverage {
     type App = ByrealApp;
     type Args = SubmitUpdateLeverageArgs;
-    const NAME: &'static str = "byreal_submit_update_leverage";
-    const DESCRIPTION: &'static str = "Submit a Hyperliquid leverage update prepared by `byreal_build_update_leverage` and signed via `commit_eip712`.";
+    const NAME: &'static str = "byreal_perps_submit_update_leverage";
+    const DESCRIPTION: &'static str = "Submit a Hyperliquid leverage update prepared by `byreal_perps_build_update_leverage` and signed via `commit_eip712`.";
 
     fn run(_app: &Self::App, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         validate_confirmation(args.confirmation.as_deref())?;
@@ -422,7 +371,7 @@ impl DynAomiTool for SubmitUpdateLeverage {
         let sig = parse_signature(sig_hex)?;
         let body =
             build_exchange_body(args.action, args.nonce, &sig, args.vault_address.as_deref());
-        ok(byreal_client()?.post_exchange(body)?)
+        ok(perps_client()?.post_exchange(body)?)
     }
 }
 
@@ -430,14 +379,8 @@ impl DynAomiTool for SubmitUpdateLeverage {
 // READ TOOLS — all hit the public /info endpoint, no signing required.
 // ===========================================================================
 
-fn ctx_user_address(ctx: &DynToolCallCtx) -> Option<String> {
-    ctx.attribute_string(&["domain", "evm", "address"])
-}
-
 fn resolve_user(arg: Option<String>, ctx: &DynToolCallCtx) -> Result<String, String> {
-    arg.or_else(|| ctx_user_address(ctx)).ok_or_else(|| {
-        "[byreal] no user address provided and none in context — pass `user` explicitly".to_string()
-    })
+    resolve_address(arg, ctx, "evm")
 }
 
 // -- byreal_get_meta -------------------------------------------------------
@@ -450,11 +393,11 @@ pub(crate) struct GetMeta;
 impl DynAomiTool for GetMeta {
     type App = ByrealApp;
     type Args = GetMetaArgs;
-    const NAME: &'static str = "byreal_get_meta";
+    const NAME: &'static str = "byreal_perps_get_meta";
     const DESCRIPTION: &'static str = "List every tradeable Hyperliquid perpetual asset along with its `szDecimals` (size precision) and `maxLeverage`. Call this once per session to discover the asset universe and to look up size precision before placing an order.";
 
     fn run(_app: &Self::App, _args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        ok(byreal_client()?.get_meta()?)
+        ok(perps_client()?.get_meta()?)
     }
 }
 
@@ -468,11 +411,11 @@ pub(crate) struct GetAllMids;
 impl DynAomiTool for GetAllMids {
     type App = ByrealApp;
     type Args = GetAllMidsArgs;
-    const NAME: &'static str = "byreal_get_all_mids";
-    const DESCRIPTION: &'static str = "Get the current mid-price for every listed asset, returned as a `{coin: price_string}` map. Use this to convert a USD notional into a coin size before calling `byreal_build_order`, or to apply slippage to a market order.";
+    const NAME: &'static str = "byreal_perps_get_all_mids";
+    const DESCRIPTION: &'static str = "Get the current mid-price for every listed asset, returned as a `{coin: price_string}` map. Use this to convert a USD notional into a coin size before calling `byreal_perps_build_order`, or to apply slippage to a market order.";
 
     fn run(_app: &Self::App, _args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        ok(byreal_client()?.get_all_mids()?)
+        ok(perps_client()?.get_all_mids()?)
     }
 }
 
@@ -489,11 +432,11 @@ pub(crate) struct GetL2Book;
 impl DynAomiTool for GetL2Book {
     type App = ByrealApp;
     type Args = GetL2BookArgs;
-    const NAME: &'static str = "byreal_get_l2_book";
+    const NAME: &'static str = "byreal_perps_get_l2_book";
     const DESCRIPTION: &'static str = "Snapshot the L2 order book for one asset (top bids and asks with px/sz/n). Use to inspect liquidity depth or pick a limit price near top-of-book.";
 
     fn run(_app: &Self::App, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        ok(byreal_client()?.get_l2_book(&args.coin)?)
+        ok(perps_client()?.get_l2_book(&args.coin)?)
     }
 }
 
@@ -510,12 +453,12 @@ pub(crate) struct GetAccountState;
 impl DynAomiTool for GetAccountState {
     type App = ByrealApp;
     type Args = GetAccountStateArgs;
-    const NAME: &'static str = "byreal_get_account_state";
+    const NAME: &'static str = "byreal_perps_get_account_state";
     const DESCRIPTION: &'static str = "Get an address's perp account state: margin summary (account value, total margin used, withdrawable), every open position with size/entry/leverage/liquidation/PnL, and cross-margin parameters. Call before opening a position to verify free margin, and after to confirm the new position.";
 
     fn run(_app: &Self::App, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
         let user = resolve_user(args.user, &ctx)?;
-        ok(byreal_client()?.get_account_state(&user)?)
+        ok(perps_client()?.get_account_state(&user)?)
     }
 }
 
@@ -532,12 +475,12 @@ pub(crate) struct GetOpenOrders;
 impl DynAomiTool for GetOpenOrders {
     type App = ByrealApp;
     type Args = GetOpenOrdersArgs;
-    const NAME: &'static str = "byreal_get_open_orders";
-    const DESCRIPTION: &'static str = "List every resting (unfilled) order for an address: coin, side, size, limit price, order ID, timestamp. Use to find the `oid` for `byreal_build_cancel`, or to confirm a freshly-placed limit order is on the book.";
+    const NAME: &'static str = "byreal_perps_get_open_orders";
+    const DESCRIPTION: &'static str = "List every resting (unfilled) order for an address: coin, side, size, limit price, order ID, timestamp. Use to find the `oid` for `byreal_perps_build_cancel`, or to confirm a freshly-placed limit order is on the book.";
 
     fn run(_app: &Self::App, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
         let user = resolve_user(args.user, &ctx)?;
-        ok(byreal_client()?.get_open_orders(&user)?)
+        ok(perps_client()?.get_open_orders(&user)?)
     }
 }
 
@@ -554,12 +497,12 @@ pub(crate) struct GetUserFills;
 impl DynAomiTool for GetUserFills {
     type App = ByrealApp;
     type Args = GetUserFillsArgs;
-    const NAME: &'static str = "byreal_get_user_fills";
+    const NAME: &'static str = "byreal_perps_get_user_fills";
     const DESCRIPTION: &'static str = "Recent trade fill history for an address: each fill's coin, side, px, sz, fee, closedPnl, oid, txHash, timestamp. Use to review what just executed or to compute realised PnL.";
 
     fn run(_app: &Self::App, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
         let user = resolve_user(args.user, &ctx)?;
-        ok(byreal_client()?.get_user_fills(&user)?)
+        ok(perps_client()?.get_user_fills(&user)?)
     }
 }
 
@@ -580,11 +523,11 @@ pub(crate) struct GetFundingHistory;
 impl DynAomiTool for GetFundingHistory {
     type App = ByrealApp;
     type Args = GetFundingHistoryArgs;
-    const NAME: &'static str = "byreal_get_funding_history";
+    const NAME: &'static str = "byreal_perps_get_funding_history";
     const DESCRIPTION: &'static str = "Historical funding-rate snapshots for an asset over a time window. The `fundingRate` field is the 8-hour rate; settlement happens hourly at 1/8 of the displayed rate. Annualised ≈ rate × 3 × 365.";
 
     fn run(_app: &Self::App, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        ok(byreal_client()?.get_funding_history(&args.coin, args.start_time, args.end_time)?)
+        ok(perps_client()?.get_funding_history(&args.coin, args.start_time, args.end_time)?)
     }
 }
 
@@ -607,11 +550,11 @@ pub(crate) struct GetCandles;
 impl DynAomiTool for GetCandles {
     type App = ByrealApp;
     type Args = GetCandlesArgs;
-    const NAME: &'static str = "byreal_get_candles";
+    const NAME: &'static str = "byreal_perps_get_candles";
     const DESCRIPTION: &'static str = "OHLCV candle data for one asset over a time window at the given interval. Use for charting context or short-horizon technical reads. Supported intervals: 1m, 5m, 15m, 1h, 4h, 1d.";
 
     fn run(_app: &Self::App, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        ok(byreal_client()?.get_candles(
+        ok(perps_client()?.get_candles(
             &args.coin,
             &args.interval,
             args.start_time,

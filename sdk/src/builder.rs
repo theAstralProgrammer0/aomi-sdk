@@ -56,6 +56,26 @@ pub mod host {
     host_target!(GetContract, "get_contract");
     host_target!(GetAccountInfo, "get_account_info");
     host_target!(SyncChain, "sync_chain");
+
+    // SVM (Solana) primitives.
+    //
+    // `SignTxSolana` is the singular sign-only counterpart to `CommitEip712`:
+    // takes a fully-built unsigned Solana transaction (base64 versioned/legacy
+    // bytes) and returns the signed transaction bytes. The host wallet decodes
+    // the tx, prompts the user for approval, signs with the connected SVM
+    // wallet, and binds the signed bytes back to the route's awaited alias.
+    //
+    // Args contract:
+    //   { "unsigned_tx": "<base64 serialized solana tx>",
+    //     "description": "<human-readable summary for wallet UX>" }
+    //
+    // Bound artifact (string): the base64 signed tx bytes, ready to be POSTed
+    // to whichever venue (e.g. byreal `/dex/v2/send-swap-tx`) is expecting it.
+    //
+    // Note: there is intentionally no `SignTxsSolana` (plural) — Solana
+    // wallets sign one tx per user prompt. Apps that need multiple signed txs
+    // should issue separate `SignTxSolana` route steps.
+    host_target!(SignTxSolana, "sign_tx_solana");
 }
 
 #[derive(Debug, Clone)]
@@ -460,6 +480,57 @@ mod tests {
                             "alias": "clob_l1_signature",
                         },
                         "prompt": "continue submit",
+                    }
+                ]
+            })
+        );
+    }
+
+    #[test]
+    fn route_builder_serializes_solana_sign_plan() {
+        // Mirror of `route_builder_serializes_bound_artifact_plan` but for
+        // the SVM (Solana) sign-only flow: app builds an unsigned tx, host
+        // signs via SignTxSolana, the bound `signed_tx` artifact then feeds
+        // into the submit step which forwards the signed bytes upstream.
+        let tool_return = ToolReturn::route(json!({"status": "awaiting_wallet"}))
+            .next(|next| {
+                next.add::<host::SignTxSolana>(json!({
+                    "unsigned_tx": "AgAB...base64...",
+                    "description": "Swap 1 USDC for 0.005 SOL via byreal RFQ",
+                }))
+                .bind_as("signed_tx")
+                .note("sign this Solana swap");
+            })
+            .after::<SubmitOrder>(json!({"venue": "byreal-rfq"}))
+            .awaits("signed_tx")
+            .note("submit signed tx to venue")
+            .build();
+
+        let serialized = serde_json::to_value(&tool_return).unwrap();
+        assert_eq!(
+            serialized,
+            json!({
+                "__aomi_tool_return": true,
+                "__aomi_tool_value": {"status": "awaiting_wallet"},
+                "__aomi_tool_routes": [
+                    {
+                        "tool": "sign_tx_solana",
+                        "args": {
+                            "unsigned_tx": "AgAB...base64...",
+                            "description": "Swap 1 USDC for 0.005 SOL via byreal RFQ",
+                        },
+                        "trigger": {"type": "on_sync_return"},
+                        "bind_as": "signed_tx",
+                        "prompt": "sign this Solana swap",
+                    },
+                    {
+                        "tool": "submit_order",
+                        "args": {"venue": "byreal-rfq"},
+                        "trigger": {
+                            "type": "on_bound_event",
+                            "alias": "signed_tx",
+                        },
+                        "prompt": "submit signed tx to venue",
                     }
                 ]
             })

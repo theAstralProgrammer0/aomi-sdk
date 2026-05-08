@@ -93,7 +93,7 @@ Key points:
 - The **agent's 7-day expiry** is what forces users back through Flow 1 periodically — the only place byreal's backend matters in steady state.
 - **Reads use WebSocket first, HTTP fallback.** Both go straight to Hyperliquid (never via byreal).
 
-## How this maps to our aomi `byreal` app
+## How this maps to our aomi `byreal` app — perps
 
 Our app collapses Flow 2 into routed `build_*` / `submit_*` pairs and replaces the in-process ECDSA step with a hop through `commit_eip712` to the host wallet — same architecture, signer extracted into a separate trust domain. We deliberately skipped Flow 1 entirely (no agent approval), so today the host wallet signs every trade as if it were the master.
 
@@ -105,7 +105,7 @@ sequenceDiagram
     participant Host as host wallet
     participant HL as Hyperliquid
 
-    LLM->>App: byreal_build_order coin sz tif
+    LLM->>App: byreal_perps_build_order coin sz tif
     App->>HL: POST /info type=meta
     HL-->>App: asset universe
     App->>App: build Actions::Order via hl_ranger
@@ -117,9 +117,113 @@ sequenceDiagram
     Host->>Host: user approves and wallet signs
     Host-->>LLM: signature
 
-    LLM->>App: byreal_submit_order action nonce master_signature
+    LLM->>App: byreal_perps_submit_order action nonce master_signature
     App->>App: parse_signature into r s v
     App->>HL: POST /exchange action+signature+nonce
     HL-->>App: status ok with oid
     App-->>LLM: response
+```
+
+## Spot (Solana) — `byreal_spot_build_swap` / `submit_swap`
+
+Different chain, different signer, but the same build/submit shape. Notice byreal's backend constructs the unsigned tx for us — we never deal with Solana program calldata directly.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor LLM
+    participant App as aomi byreal app
+    participant Host as host wallet (SVM)
+    participant Byreal as api2.byreal.io
+    participant Solana as Solana RPC
+
+    LLM->>App: byreal_spot_build_swap input_mint output_mint amount
+    App->>Byreal: GET /dex/v2/main/auto-fee
+    Byreal-->>App: cuPrice
+    App->>Byreal: POST /router/v1/router-service/swap (quote)
+    Byreal-->>App: routerType, transaction (unsigned base64), quoteId, orderId
+
+    App-->>LLM: ToolReturn preview plus route
+    Note right of App: route adds host SignTxSolana then awaits signed_tx
+
+    LLM->>Host: sign_tx_solana unsigned_tx
+    Host->>Host: wallet decodes versioned tx, user approves, ed25519 sign
+    Host-->>LLM: signed_tx (base64)
+
+    LLM->>App: byreal_spot_submit_swap router_type unsigned_tx signed_tx ...
+    alt routerType == AMM
+        App->>Byreal: POST /dex/v2/send-swap-tx preData=[unsigned] data=[signed]
+    else routerType == RFQ
+        App->>Byreal: POST /rfq/v1/swap quoteId requestId transaction=signed
+    end
+    Byreal->>Solana: forward signed tx to RPC
+    Solana-->>Byreal: signature
+    Byreal-->>App: { signatures or txSignature }
+    App-->>LLM: response
+```
+
+## LP / Copy Farming (Solana) — claim rewards
+
+Same Solana flow as swap, but the unsigned tx comes from byreal's incentive encoder. v1 supports the single-tx case; multi-tx claims need to be split.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor LLM
+    participant App as aomi byreal app
+    participant Host as host wallet (SVM)
+    participant Byreal as api2.byreal.io
+    participant Solana as Solana RPC
+
+    Note over LLM: Discovery (no signing)
+    LLM->>App: byreal_lp_get_top_performers
+    App->>Byreal: POST /dex/v2/copyfarmer/top-positions
+    Byreal-->>App: ranked LP wallets, tick ranges, copies
+    App-->>LLM: leaderboard
+    LLM->>App: byreal_lp_get_unclaimed_rewards wallet
+    App->>Byreal: GET /dex/v2/position/unclaimed-data
+    Byreal-->>App: unclaimed open + closed incentives
+    App-->>LLM: position addresses with pending rewards
+
+    Note over LLM: Build + sign + submit
+    LLM->>App: byreal_lp_build_claim_rewards positions=[a,b]
+    App->>Byreal: POST /dex/v2/incentive/encode-v2
+    Byreal-->>App: orderCode, rewardEncodeItems=[unsigned tx]
+    App-->>LLM: ToolReturn preview plus route
+
+    LLM->>Host: sign_tx_solana unsigned_tx
+    Host-->>LLM: signed_tx
+
+    LLM->>App: byreal_lp_submit_claim_rewards order_code wallet signed_tx
+    App->>Byreal: POST /dex/v2/incentive/order-v2 signedTxPayload=[signed]
+    Byreal->>Solana: forward signed tx to RPC
+    Solana-->>Byreal: signature
+    Byreal-->>App: { txList, claimTokenList }
+    App-->>LLM: response
+```
+
+## Trust-domain summary
+
+```mermaid
+flowchart LR
+    LLM[LLM]
+    App[aomi byreal app]
+    EVM[host EVM wallet]
+    SVM[host SVM wallet]
+    HL[Hyperliquid L1]
+    Byreal[api2.byreal.io]
+    Solana[Solana L1]
+
+    LLM -->|byreal_perps_*| App
+    LLM -->|byreal_spot_*| App
+    LLM -->|byreal_lp_*| App
+
+    App -->|commit_eip712 typed_data| EVM
+    EVM -->|signature| App
+    App -->|POST /exchange| HL
+
+    App -->|sign_tx_solana base64 tx| SVM
+    SVM -->|signed bytes| App
+    App -->|POST /dex /router /rfq| Byreal
+    Byreal -->|forward signed tx| Solana
 ```

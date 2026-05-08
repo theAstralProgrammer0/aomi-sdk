@@ -6,10 +6,12 @@
 //! round-trip against the real `https://api.hyperliquid.xyz/exchange` endpoint
 //! without needing a host wallet runtime.
 
-use crate::client::{
-    OrderInputs, build_cancel_action, build_exchange_body, build_order_action, byreal_client,
-    parse_signature, prepare_l1_action,
+use crate::client::lp::lp_client;
+use crate::client::perps::{
+    OrderInputs, build_cancel_action, build_exchange_body, build_order_action, parse_signature,
+    perps_client, prepare_l1_action,
 };
+use crate::client::spot::spot_client;
 use ethers::signers::{LocalWallet, Signer};
 use ethers::types::H256;
 use ethers::utils::keccak256;
@@ -112,7 +114,7 @@ pub fn place_live_smoke_order(private_key: Option<String>) -> Result<Value, Stri
         .map_err(|e| format!("[byreal] invalid private key: {e}"))?;
     let address = format!("{:#x}", wallet.address());
 
-    let client = byreal_client()?;
+    let client = perps_client()?;
 
     // 1. Fetch live ETH mid price.
     let mids = client.get_all_mids()?;
@@ -203,4 +205,63 @@ fn extract_resting_oid(response: &Value) -> Option<u64> {
         .get("resting")?
         .get("oid")?
         .as_u64()
+}
+
+// ===========================================================================
+// byreal Solana side smoke helpers
+//
+// These hit the live `api2.byreal.io` API. No keys, no signing, no funds —
+// just verifies our envelope unwrap, URL construction, and response shape
+// work end-to-end. Useful before the runtime side of `sign_tx_solana` lands.
+// ===========================================================================
+
+/// Hit the spot reads we'll exercise most: global overview, top-TVL pools,
+/// top-volume tokens. Returns the three responses for inspection.
+pub fn smoke_byreal_spot_reads() -> Result<Value, String> {
+    let client = spot_client()?;
+    let overview = client.get_global_overview()?;
+    let pools = client.list_pools(1, 5, "tvl", "desc", None, None, None)?;
+    let tokens = client.list_tokens(1, 5, "volumeUsd24h", "desc", None, None, None)?;
+    Ok(json!({
+        "overview": overview,
+        "pools_top5_by_tvl": pools,
+        "tokens_top5_by_volume": tokens,
+    }))
+}
+
+/// Hit byreal's swap-quote endpoint with a tiny USDC -> SOL quote and verify
+/// the response carries an unsigned `transaction` ready to be signed. Does
+/// NOT submit. `wallet` is required (the quote pre-builds the tx for that
+/// signer), but no funds are required — byreal returns a quote even if the
+/// wallet is empty.
+pub fn smoke_byreal_swap_quote(wallet: &str) -> Result<Value, String> {
+    let usdc_mint = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
+    let sol_mint = "So11111111111111111111111111111111111111112";
+    let quote = spot_client()?.get_swap_quote(
+        usdc_mint, sol_mint, "1000000", // 1 USDC
+        "in", 100,    // 1% slippage
+        wallet,
+    )?;
+    let tx = quote
+        .get("transaction")
+        .and_then(Value::as_str)
+        .ok_or_else(|| "[byreal] swap quote missing `transaction` field".to_string())?;
+    if tx.is_empty() {
+        return Err("[byreal] swap quote returned empty transaction".to_string());
+    }
+    Ok(json!({
+        "router_type": quote.get("routerType"),
+        "in_amount": quote.get("inAmount"),
+        "out_amount": quote.get("outAmount"),
+        "price_impact_pct": quote.get("priceImpactPct"),
+        "unsigned_tx_len_b64": tx.len(),
+        "quote_id": quote.get("quoteId"),
+        "order_id": quote.get("orderId"),
+    }))
+}
+
+/// Hit the Copy Farming top-performers endpoint — the marquee LP read.
+/// Returns the top 5 by liquidity, no auth required.
+pub fn smoke_byreal_lp_top_performers() -> Result<Value, String> {
+    lp_client()?.list_top_positions(None, 1, 5, "liquidity", "desc", Some(0))
 }

@@ -14,25 +14,22 @@ pub(crate) const ZERO_ADDRESS: &str = "0x000000000000000000000000000000000000000
 pub(crate) const MAINNET_CHAIN_ID: u64 = 1337; // L1 agent signing chain id (constant, not real arbitrum)
 pub(crate) const MAINNET_SOURCE: &str = "a";
 
-static BYREAL_CLIENT: OnceLock<Result<ByrealClient, String>> = OnceLock::new();
+static PERPS_CLIENT: OnceLock<Result<PerpsClient, String>> = OnceLock::new();
 
-pub(crate) fn byreal_client() -> Result<&'static ByrealClient, String> {
-    BYREAL_CLIENT
-        .get_or_init(ByrealClient::new)
+pub(crate) fn perps_client() -> Result<&'static PerpsClient, String> {
+    PERPS_CLIENT
+        .get_or_init(PerpsClient::new)
         .as_ref()
         .map_err(|e| e.clone())
 }
 
-#[derive(Clone, Default)]
-pub(crate) struct ByrealApp;
-
-pub(crate) struct ByrealClient {
+pub(crate) struct PerpsClient {
     http: reqwest::blocking::Client,
     api_url: String,
     coin_to_asset: OnceLock<Result<HashMap<String, u32>, String>>,
 }
 
-impl ByrealClient {
+impl PerpsClient {
     pub(crate) fn new() -> Result<Self, String> {
         let http = reqwest::blocking::Client::builder()
             .timeout(Duration::from_secs(30))
