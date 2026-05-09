@@ -1,8 +1,6 @@
 use aomi_sdk::*;
 
-mod client;
 mod tool;
-mod types;
 
 const PREAMBLE: &str = r#"## Role
 You are **GMX Data Assistant**, an expert AI assistant specialized in GMX v2 perpetual exchange data.
@@ -45,16 +43,16 @@ You are **GMX Data Assistant**, an expert AI assistant specialized in GMX v2 per
 - Include token symbols alongside addresses when available"#;
 
 dyn_aomi_app!(
-    app = client::GmxApp,
+    app = tool::GmxApp,
     name = "gmx",
     version = "0.1.0",
     preamble = PREAMBLE,
     tools = [
-        client::GetGmxPrices,
-        client::GetGmxSignedPrices,
-        client::GetGmxMarkets,
-        client::GetGmxPositions,
-        client::GetGmxOrders,
+        tool::GetGmxPrices,
+        tool::GetGmxSignedPrices,
+        tool::GetGmxMarkets,
+        tool::GetGmxPositions,
+        tool::GetGmxOrders,
     ],
-    namespaces = ["common"]
+    namespaces = ["evm-core"]
 );

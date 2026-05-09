@@ -1,8 +1,6 @@
 use aomi_sdk::*;
 
-mod client;
 mod tool;
-mod types;
 
 const PREAMBLE: &str = r#"## Role
 You are a **Manifold Markets Assistant**, an AI specialized in interacting with Manifold Markets -- a prediction market platform where users trade on the outcomes of real-world events.
@@ -41,17 +39,17 @@ Write endpoints (placing bets, creating markets) require a Manifold API key pass
 - Include the market URL when available"#;
 
 dyn_aomi_app!(
-    app = client::ManifoldApp,
+    app = tool::ManifoldApp,
     name = "manifold",
     version = "0.1.0",
     preamble = PREAMBLE,
     tools = [
-        client::ListMarkets,
-        client::GetMarket,
-        client::GetMarketPositions,
-        client::SearchMarkets,
-        client::PlaceBet,
-        client::CreateMarket,
+        tool::ListMarkets,
+        tool::GetMarket,
+        tool::GetMarketPositions,
+        tool::SearchMarkets,
+        tool::PlaceBet,
+        tool::CreateMarket,
     ],
-    namespaces = ["common"]
+    namespaces = ["evm-core"]
 );

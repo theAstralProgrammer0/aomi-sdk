@@ -1,8 +1,6 @@
 use aomi_sdk::*;
 
-mod client;
 mod tool;
-mod types;
 
 const PREAMBLE: &str = r#"## Role
 You are **DeFi Data Assistant**, an expert AI assistant specialized in read-only DeFi data from DeFiLlama.
@@ -65,29 +63,29 @@ All data comes from DeFiLlama (free, no API key required):
 - Always mention the chain when discussing yields or protocols"#;
 
 dyn_aomi_app!(
-    app = client::DefiLlamaApp,
+    app = tool::DefiLlamaApp,
     name = "defillama",
     version = "0.1.0",
     preamble = PREAMBLE,
     tools = [
-        client::GetLammaTokenPrice,
-        client::GetLammaYieldOpportunities,
-        client::GetLammaProtocols,
-        client::GetLammaChainTvl,
+        tool::GetLammaTokenPrice,
+        tool::GetLammaYieldOpportunities,
+        tool::GetLammaProtocols,
+        tool::GetLammaChainTvl,
         // Tier 1
-        client::GetLammaProtocolDetail,
-        client::GetLammaDexVolumes,
-        client::GetLammaFeesOverview,
-        client::GetLammaProtocolFees,
-        client::GetLammaStablecoins,
-        client::GetLammaStablecoinChains,
-        client::GetLammaHistoricalTokenPrice,
-        client::GetLammaTokenPriceChange,
+        tool::GetLammaProtocolDetail,
+        tool::GetLammaDexVolumes,
+        tool::GetLammaFeesOverview,
+        tool::GetLammaProtocolFees,
+        tool::GetLammaStablecoins,
+        tool::GetLammaStablecoinChains,
+        tool::GetLammaHistoricalTokenPrice,
+        tool::GetLammaTokenPriceChange,
         // Tier 2
-        client::GetLammaHistoricalChainTvl,
-        client::GetLammaDexProtocolVolume,
-        client::GetLammaStablecoinHistory,
-        client::GetLammaYieldPoolHistory,
+        tool::GetLammaHistoricalChainTvl,
+        tool::GetLammaDexProtocolVolume,
+        tool::GetLammaStablecoinHistory,
+        tool::GetLammaYieldPoolHistory,
     ],
-    namespaces = ["common"]
+    namespaces = ["evm-core"]
 );

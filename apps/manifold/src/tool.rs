@@ -1,9 +1,11 @@
-use crate::client::*;
-use crate::types::{CreateMarketRequest, PlaceBetRequest};
+use aomi_ext::manifold::{CreateMarketRequest, ManifoldClient, PlaceBetRequest};
 use aomi_sdk::schemars::JsonSchema;
 use aomi_sdk::*;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
+
+#[derive(Clone, Default)]
+pub(crate) struct ManifoldApp;
 
 fn ok<T: Serialize>(value: T) -> Result<Value, String> {
     let value = serde_json::to_value(value)

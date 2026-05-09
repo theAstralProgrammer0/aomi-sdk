@@ -1,6 +1,6 @@
 use aomi_sdk::*;
 
-mod client;
+
 mod tool;
 
 const PREAMBLE: &str = r#"## Role
@@ -37,14 +37,14 @@ All data comes from the Morpho Blue API (GraphQL):
 - Always include the collateral and loan asset when describing a market"#;
 
 dyn_aomi_app!(
-    app = client::MorphoApp,
+    app = tool::MorphoApp,
     name = "morpho",
     version = "0.1.0",
     preamble = PREAMBLE,
     tools = [
-        client::GetMorphoMarkets,
-        client::GetMorphoVaults,
-        client::GetMorphoUserPositions,
+        tool::GetMorphoMarkets,
+        tool::GetMorphoVaults,
+        tool::GetMorphoUserPositions,
     ],
-    namespaces = ["common"]
+    namespaces = ["evm-core"]
 );

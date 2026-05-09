@@ -1,6 +1,20 @@
-use crate::client::*;
+use aomi_ext::morpho::MorphoClient;
 use aomi_sdk::*;
+use aomi_sdk::schemars::JsonSchema;
+use serde::Deserialize;
 use serde_json::Value;
+
+#[derive(Clone, Default)]
+pub(crate) struct MorphoApp;
+
+// ============================================================================
+// GetMorphoMarkets
+// ============================================================================
+
+pub(crate) struct GetMorphoMarkets;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetMorphoMarketsArgs {}
 
 impl DynAomiTool for GetMorphoMarkets {
     type App = MorphoApp;
@@ -10,10 +24,18 @@ impl DynAomiTool for GetMorphoMarkets {
         "List all Morpho lending markets with LTV, supply/borrow APY, and available liquidity.";
 
     fn run(_app: &MorphoApp, _args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let client = MorphoClient::new()?;
-        client.get_markets()
+        MorphoClient::new()?.get_markets()
     }
 }
+
+// ============================================================================
+// GetMorphoVaults
+// ============================================================================
+
+pub(crate) struct GetMorphoVaults;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetMorphoVaultsArgs {}
 
 impl DynAomiTool for GetMorphoVaults {
     type App = MorphoApp;
@@ -23,9 +45,20 @@ impl DynAomiTool for GetMorphoVaults {
         "List Morpho vaults with APY, TVL, and allocation strategy details.";
 
     fn run(_app: &MorphoApp, _args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let client = MorphoClient::new()?;
-        client.get_vaults()
+        MorphoClient::new()?.get_vaults()
     }
+}
+
+// ============================================================================
+// GetMorphoUserPositions
+// ============================================================================
+
+pub(crate) struct GetMorphoUserPositions;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetMorphoUserPositionsArgs {
+    /// Ethereum wallet address (e.g. "0xabc...def")
+    pub(crate) address: String,
 }
 
 impl DynAomiTool for GetMorphoUserPositions {
@@ -35,7 +68,6 @@ impl DynAomiTool for GetMorphoUserPositions {
     const DESCRIPTION: &'static str = "Get a user's Morpho positions including deposits, borrows, and vault holdings for a given wallet address.";
 
     fn run(_app: &MorphoApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let client = MorphoClient::new()?;
-        client.get_user_positions(&args.address)
+        MorphoClient::new()?.get_user_positions(&args.address)
     }
 }

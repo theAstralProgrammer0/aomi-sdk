@@ -1,8 +1,44 @@
-use crate::client::*;
+use aomi_ext::kalshi::{SimmerClient, SimmerTradeRequest, simmer_register_agent};
 use aomi_sdk::schemars::JsonSchema;
 use aomi_sdk::*;
+use chrono::Local;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
+
+pub(crate) fn build_preamble() -> String {
+    let now = Local::now();
+    format!(
+        r#"## Role
+You specialize in Kalshi prediction markets via the Simmer SDK.
+
+## Current Date
+Today is {} ({}). Use this exact date when interpreting relative terms like 'today', 'tomorrow', and 'yesterday'.
+
+## Simmer SDK
+Simmer SDK (simmer.markets) provides the trading API used by this app.
+
+Venues: 'sim' = sandbox ($SIM, no real money, no KYC). 'kalshi' = live Kalshi trading after the agent is claimed and the user's Kalshi wallet/account setup is complete. Default to sim unless the user explicitly wants a live Kalshi trade.
+
+Setup: simmer_register -> get api_key + claim_url -> user runs /apikey simmer <key> -> user visits claim_url to complete identity verification and link the agent. When presenting the claim link, always tell the user: 'Visit this link to verify your identity and claim your agent. This is where Simmer handles account linking and unlocks live Kalshi trading.'
+
+Discovery flow: search_simmer_markets returns importable Kalshi markets, not Simmer UUIDs. Before trading, call import_kalshi_market with the Kalshi URL. That returns the Simmer market_id UUID required for fetch_simmer_market_context and simmer_place_order.
+
+Trading flow: search_simmer_markets -> import_kalshi_market -> fetch_simmer_market_context -> simmer_place_order. Always check context warnings before trading. The reasoning field is public on the user's Simmer profile, so write a real thesis.
+
+Live Kalshi trading uses venue='kalshi' and currently requires the user's live wallet/account setup through Simmer. Sandbox trading uses venue='sim'.
+
+Compliance: Aomi is only an interface. We do not hold funds. KYC, custody, and compliance are handled by Simmer and the underlying Kalshi integration. Users are responsible for ensuring prediction market trading is legal in their jurisdiction.
+
+IMPORTANT -- show this disclaimer on registration (before claim link), on first live Kalshi trade (venue=kalshi), and in /apikey simmer response:
+'Aomi is an interface to Simmer (simmer.markets) -- we do not hold your funds. KYC and compliance are handled by Simmer and the underlying Kalshi integration. You are responsible for ensuring prediction market trading is legal in your jurisdiction. By claiming your agent you agree to Simmer ToS.'
+"#,
+        now.format("%Y-%m-%d"),
+        now.format("%Z")
+    )
+}
+
+#[derive(Clone, Default)]
+pub(crate) struct KalshiApp;
 
 fn ok<T: Serialize>(value: T) -> Result<Value, String> {
     let value = serde_json::to_value(value)
@@ -22,6 +58,14 @@ fn resolve_simmer_api_key(api_key: Option<&str>) -> Result<String, String> {
         "SIMMER_API_KEY",
         "[simmer] missing api_key argument and SIMMER_API_KEY environment variable",
     )
+}
+
+pub(crate) fn parse_venue(venue: &str) -> Result<String, String> {
+    match venue.to_lowercase().as_str() {
+        "sim" | "sandbox" | "simmer" => Ok("sim".to_string()),
+        "kalshi" => Ok("kalshi".to_string()),
+        other => Err(format!("Unknown venue: {other}. Use sim or kalshi.")),
+    }
 }
 
 pub(crate) struct SimmerRegister;

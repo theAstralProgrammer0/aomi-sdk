@@ -1,12 +1,15 @@
-use crate::client::*;
-use crate::types::{
-    AmendOrderRequest, BybitActionResult, BybitKlineResult, BybitOrderbookResult,
+use aomi_ext::bybit::{
+    AmendOrderRequest, BybitActionResult, BybitClient, BybitKlineResult, BybitOrderbookResult,
     BybitPositionListResult, BybitTickerResult, BybitWalletBalanceResult, CancelOrderRequest,
     CreateOrderRequest, SetLeverageRequest,
 };
 use aomi_sdk::*;
-use serde::Serialize;
+use aomi_sdk::schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
+
+#[derive(Clone, Default)]
+pub(crate) struct BybitApp;
 
 fn ok<T: Serialize>(value: T) -> Result<Value, String> {
     let value = serde_json::to_value(value)
@@ -36,6 +39,146 @@ fn resolve_bybit_credentials(
     )?;
     Ok((api_key, secret_key))
 }
+
+// ============================================================================
+// Arg structs
+// ============================================================================
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetTickersArgs {
+    /// Product category: "spot", "linear", "inverse", or "option"
+    pub(crate) category: String,
+    /// Trading pair symbol (e.g. "BTCUSDT"). Optional — omit to get all tickers for the category.
+    pub(crate) symbol: Option<String>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetOrderbookArgs {
+    /// Product category: "spot", "linear", "inverse", or "option"
+    pub(crate) category: String,
+    /// Trading pair symbol (e.g. "BTCUSDT")
+    pub(crate) symbol: String,
+    /// Depth limit (e.g. 1, 25, 50, 200). Optional.
+    pub(crate) limit: Option<u32>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetKlineArgs {
+    /// Product category: "spot", "linear", "inverse", or "option"
+    pub(crate) category: String,
+    /// Trading pair symbol (e.g. "BTCUSDT")
+    pub(crate) symbol: String,
+    /// Kline interval: 1,3,5,15,30,60,120,240,360,720,D,M,W
+    pub(crate) interval: String,
+    /// Start timestamp in milliseconds. Optional.
+    pub(crate) start: Option<u64>,
+    /// End timestamp in milliseconds. Optional.
+    pub(crate) end: Option<u64>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct CreateOrderArgs {
+    /// Bybit API key
+    pub(crate) api_key: Option<String>,
+    /// Bybit API secret
+    pub(crate) secret_key: Option<String>,
+    /// Product category: "spot", "linear", "inverse", or "option"
+    pub(crate) category: String,
+    /// Trading pair symbol (e.g. "BTCUSDT")
+    pub(crate) symbol: String,
+    /// Order side: "Buy" or "Sell"
+    pub(crate) side: String,
+    /// Order type: "Limit" or "Market"
+    pub(crate) order_type: String,
+    /// Order quantity (string)
+    pub(crate) qty: String,
+    /// Order price (string). Required for Limit orders.
+    pub(crate) price: Option<String>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct CancelOrderArgs {
+    /// Bybit API key
+    pub(crate) api_key: Option<String>,
+    /// Bybit API secret
+    pub(crate) secret_key: Option<String>,
+    /// Product category: "spot", "linear", "inverse", or "option"
+    pub(crate) category: String,
+    /// Trading pair symbol (e.g. "BTCUSDT")
+    pub(crate) symbol: String,
+    /// Order ID to cancel
+    pub(crate) order_id: String,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct AmendOrderArgs {
+    /// Bybit API key
+    pub(crate) api_key: Option<String>,
+    /// Bybit API secret
+    pub(crate) secret_key: Option<String>,
+    /// Product category: "spot", "linear", "inverse", or "option"
+    pub(crate) category: String,
+    /// Trading pair symbol (e.g. "BTCUSDT")
+    pub(crate) symbol: String,
+    /// Order ID to amend
+    pub(crate) order_id: String,
+    /// New quantity (string). Optional.
+    pub(crate) qty: Option<String>,
+    /// New price (string). Optional.
+    pub(crate) price: Option<String>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetPositionsArgs {
+    /// Bybit API key
+    pub(crate) api_key: Option<String>,
+    /// Bybit API secret
+    pub(crate) secret_key: Option<String>,
+    /// Product category: "linear" or "inverse"
+    pub(crate) category: String,
+    /// Trading pair symbol (e.g. "BTCUSDT"). Optional.
+    pub(crate) symbol: Option<String>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetWalletBalanceArgs {
+    /// Bybit API key
+    pub(crate) api_key: Option<String>,
+    /// Bybit API secret
+    pub(crate) secret_key: Option<String>,
+    /// Account type: "UNIFIED" or "CONTRACT"
+    pub(crate) account_type: String,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct SetLeverageArgs {
+    /// Bybit API key
+    pub(crate) api_key: Option<String>,
+    /// Bybit API secret
+    pub(crate) secret_key: Option<String>,
+    /// Product category: "linear" or "inverse"
+    pub(crate) category: String,
+    /// Trading pair symbol (e.g. "BTCUSDT")
+    pub(crate) symbol: String,
+    /// Buy leverage (string, e.g. "10")
+    pub(crate) buy_leverage: String,
+    /// Sell leverage (string, e.g. "10")
+    pub(crate) sell_leverage: String,
+}
+
+// ============================================================================
+// Tool structs
+// ============================================================================
+
+pub(crate) struct GetTickers;
+pub(crate) struct GetOrderbook;
+pub(crate) struct GetKline;
+pub(crate) struct CreateOrder;
+pub(crate) struct CancelOrder;
+pub(crate) struct AmendOrder;
+pub(crate) struct GetPositions;
+pub(crate) struct GetWalletBalance;
+pub(crate) struct SetLeverage;
 
 // ============================================================================
 // Tool 1: GetTickers (public)

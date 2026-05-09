@@ -1,8 +1,6 @@
 use aomi_sdk::*;
 
-mod client;
 mod tool;
-mod types;
 
 const PREAMBLE: &str = r#"## Role
 You are an AI assistant specialized in interacting with the Binance cryptocurrency exchange. Binance is the world's largest centralized exchange (CEX) by trading volume, offering spot and USD-M futures markets.
@@ -33,19 +31,19 @@ You are an AI assistant specialized in interacting with the Binance cryptocurren
 - Always verify the trading pair exists before placing orders"#;
 
 dyn_aomi_app!(
-    app = client::BinanceApp,
+    app = tool::BinanceApp,
     name = "binance",
     version = "0.1.0",
     preamble = PREAMBLE,
     tools = [
-        client::GetPrice,
-        client::GetDepth,
-        client::GetKlines,
-        client::Get24hrStats,
-        client::PlaceOrder,
-        client::CancelOrder,
-        client::GetAccount,
-        client::GetTrades,
+        tool::GetPrice,
+        tool::GetDepth,
+        tool::GetKlines,
+        tool::Get24hrStats,
+        tool::PlaceOrder,
+        tool::CancelOrder,
+        tool::GetAccount,
+        tool::GetTrades,
     ],
-    namespaces = ["common"]
+    namespaces = ["evm-core"]
 );

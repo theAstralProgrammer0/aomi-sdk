@@ -13,7 +13,7 @@ fn namespace_tools() -> HashMap<&'static str, Vec<&'static str>> {
     let mut m = HashMap::new();
 
     m.insert(
-        "common",
+        "evm-core",
         vec![
             "brave_search",
             "commit_tx",
@@ -28,6 +28,11 @@ fn namespace_tools() -> HashMap<&'static str, Vec<&'static str>> {
             "sync_chain",
         ],
     );
+
+    // `solana-core` is reserved for app-specific Solana wallet flows (e.g. byreal).
+    // Most apps must NOT request this namespace — built-in EVM protocol skills
+    // are not Solana skills.
+    m.insert("solana-core", vec!["sign_tx_solana"]);
 
     m.insert(
         "database",

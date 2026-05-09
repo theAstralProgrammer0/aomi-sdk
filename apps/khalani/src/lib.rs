@@ -52,5 +52,5 @@ dyn_aomi_app!(
         client::SearchKhalaniTokens,
         client::GetKhalaniChains,
     ],
-    namespaces = ["common"]
+    namespaces = ["evm-core"]
 );

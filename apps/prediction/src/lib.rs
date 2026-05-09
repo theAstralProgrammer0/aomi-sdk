@@ -30,5 +30,5 @@ dyn_aomi_app!(
         client::SimmerGetPortfolio,
         client::SearchSimmerMarkets,
     ],
-    namespaces = ["common"]
+    namespaces = ["evm-core"]
 );

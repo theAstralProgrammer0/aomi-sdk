@@ -1,10 +1,23 @@
-use crate::client::*;
+use aomi_ext::dydx::DydxClient;
 use aomi_sdk::*;
+use aomi_sdk::schemars::JsonSchema;
+use serde::Deserialize;
 use serde_json::Value;
+
+#[derive(Clone, Default)]
+pub(crate) struct DydxApp;
 
 // ============================================================================
 // Tool 1: GetMarkets
 // ============================================================================
+
+pub(crate) struct GetMarkets;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetMarketsArgs {
+    /// Optional ticker to filter by (e.g., "BTC-USD"). If omitted, returns all perpetual markets.
+    pub(crate) ticker: Option<String>,
+}
 
 impl DynAomiTool for GetMarkets {
     type App = DydxApp;
@@ -26,6 +39,14 @@ impl DynAomiTool for GetMarkets {
 // Tool 2: GetOrderbook
 // ============================================================================
 
+pub(crate) struct GetOrderbook;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetOrderbookArgs {
+    /// Market ticker (e.g., "BTC-USD")
+    pub(crate) ticker: String,
+}
+
 impl DynAomiTool for GetOrderbook {
     type App = DydxApp;
     type Args = GetOrderbookArgs;
@@ -41,6 +62,18 @@ impl DynAomiTool for GetOrderbook {
 // ============================================================================
 // Tool 3: GetCandles
 // ============================================================================
+
+pub(crate) struct GetCandles;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetCandlesArgs {
+    /// Market ticker (e.g., "ETH-USD")
+    pub(crate) ticker: String,
+    /// Candle resolution: 1MIN, 5MINS, 15MINS, 30MINS, 1HOUR, 4HOURS, or 1DAY
+    pub(crate) resolution: String,
+    /// Maximum number of candles to return (optional)
+    pub(crate) limit: Option<u32>,
+}
 
 impl DynAomiTool for GetCandles {
     type App = DydxApp;
@@ -65,6 +98,16 @@ impl DynAomiTool for GetCandles {
 // Tool 4: GetTrades
 // ============================================================================
 
+pub(crate) struct GetTrades;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetTradesArgs {
+    /// Market ticker (e.g., "BTC-USD")
+    pub(crate) ticker: String,
+    /// Maximum number of trades to return (optional)
+    pub(crate) limit: Option<u32>,
+}
+
 impl DynAomiTool for GetTrades {
     type App = DydxApp;
     type Args = GetTradesArgs;
@@ -85,6 +128,16 @@ impl DynAomiTool for GetTrades {
 // Tool 5: GetAccount
 // ============================================================================
 
+pub(crate) struct GetAccount;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetAccountArgs {
+    /// dYdX address (e.g., "dydx1...")
+    pub(crate) address: String,
+    /// Subaccount number (typically 0 for default)
+    pub(crate) subaccount_number: u32,
+}
+
 impl DynAomiTool for GetAccount {
     type App = DydxApp;
     type Args = GetAccountArgs;
@@ -103,6 +156,20 @@ impl DynAomiTool for GetAccount {
 // ============================================================================
 // Tool 6: GetOrders
 // ============================================================================
+
+pub(crate) struct GetOrders;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetOrdersArgs {
+    /// dYdX address (e.g., "dydx1...")
+    pub(crate) address: String,
+    /// Subaccount number (typically 0 for default)
+    pub(crate) subaccount_number: u32,
+    /// Optional order status filter (e.g., "OPEN", "FILLED", "CANCELED")
+    pub(crate) status: Option<String>,
+    /// Optional ticker filter (e.g., "BTC-USD")
+    pub(crate) ticker: Option<String>,
+}
 
 impl DynAomiTool for GetOrders {
     type App = DydxApp;
@@ -130,6 +197,20 @@ impl DynAomiTool for GetOrders {
 // Tool 7: GetFills
 // ============================================================================
 
+pub(crate) struct GetFills;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetFillsArgs {
+    /// dYdX address (e.g., "dydx1...")
+    pub(crate) address: String,
+    /// Subaccount number (typically 0 for default)
+    pub(crate) subaccount_number: u32,
+    /// Optional market ticker filter (e.g., "BTC-USD")
+    pub(crate) market: Option<String>,
+    /// Maximum number of fills to return (optional)
+    pub(crate) limit: Option<u32>,
+}
+
 impl DynAomiTool for GetFills {
     type App = DydxApp;
     type Args = GetFillsArgs;
@@ -156,6 +237,16 @@ impl DynAomiTool for GetFills {
 // ============================================================================
 // Tool 8: GetHistoricalFunding
 // ============================================================================
+
+pub(crate) struct GetHistoricalFunding;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetHistoricalFundingArgs {
+    /// Market ticker (e.g., "BTC-USD")
+    pub(crate) ticker: String,
+    /// Maximum number of funding rate entries to return (optional)
+    pub(crate) limit: Option<u32>,
+}
 
 impl DynAomiTool for GetHistoricalFunding {
     type App = DydxApp;

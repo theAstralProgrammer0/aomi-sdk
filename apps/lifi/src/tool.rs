@@ -1,7 +1,13 @@
-use crate::client::*;
+use aomi_ext::lifi::{
+    LifiClient, amount_to_base_units, get_chain_info, get_token_address, get_token_decimals,
+};
 use aomi_sdk::*;
-use serde::Serialize;
+use aomi_sdk::schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
+
+#[derive(Clone, Default)]
+pub(crate) struct LifiApp;
 
 fn ok<T: Serialize>(value: T) -> Result<Value, String> {
     let value = serde_json::to_value(value)
@@ -13,6 +19,30 @@ fn ok<T: Serialize>(value: T) -> Result<Value, String> {
         }
         other => serde_json::json!({ "source": "lifi", "data": other }),
     })
+}
+
+// ============================================================================
+// GetLifiSwapQuote
+// ============================================================================
+
+pub(crate) struct GetLifiSwapQuote;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetLifiSwapQuoteArgs {
+    /// Source chain
+    pub(crate) chain: String,
+    /// Destination chain (defaults to source chain for same-chain swaps)
+    pub(crate) destination_chain: Option<String>,
+    /// Sell token symbol or address
+    pub(crate) sell_token: String,
+    /// Buy token symbol or address
+    pub(crate) buy_token: String,
+    /// Amount to swap (human-readable units)
+    pub(crate) amount: f64,
+    /// Sender wallet address
+    pub(crate) sender_address: String,
+    /// Receiver wallet address (defaults to sender)
+    pub(crate) receiver_address: Option<String>,
 }
 
 impl DynAomiTool for GetLifiSwapQuote {
@@ -45,6 +75,32 @@ impl DynAomiTool for GetLifiSwapQuote {
             args.receiver_address.as_deref(),
         )?)
     }
+}
+
+// ============================================================================
+// PlaceLifiOrder
+// ============================================================================
+
+pub(crate) struct PlaceLifiOrder;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct PlaceLifiOrderArgs {
+    /// Source chain
+    pub(crate) chain: String,
+    /// Destination chain (defaults to source chain)
+    pub(crate) destination_chain: Option<String>,
+    /// Sell token symbol or address
+    pub(crate) sell_token: String,
+    /// Buy token symbol or address
+    pub(crate) buy_token: String,
+    /// Sell amount (human-readable units)
+    pub(crate) amount: f64,
+    /// Sender/taker wallet address
+    pub(crate) sender_address: String,
+    /// Receiver wallet address
+    pub(crate) receiver_address: Option<String>,
+    /// Slippage tolerance as decimal (0.005 = 0.5%)
+    pub(crate) slippage: Option<f64>,
 }
 
 impl DynAomiTool for PlaceLifiOrder {
@@ -92,6 +148,32 @@ impl DynAomiTool for PlaceLifiOrder {
     }
 }
 
+// ============================================================================
+// GetLifiBridgeQuote
+// ============================================================================
+
+pub(crate) struct GetLifiBridgeQuote;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetLifiBridgeQuoteArgs {
+    /// Source chain
+    pub(crate) from_chain: String,
+    /// Destination chain
+    pub(crate) to_chain: String,
+    /// Source token symbol/address
+    pub(crate) from_token: String,
+    /// Destination token symbol/address
+    pub(crate) to_token: String,
+    /// Amount to bridge
+    pub(crate) amount: f64,
+    /// Sender wallet address; needed for executable quote
+    pub(crate) from_address: Option<String>,
+    /// Receiver wallet address; needed for executable quote
+    pub(crate) to_address: Option<String>,
+    /// Slippage tolerance in basis points (default 50)
+    pub(crate) slippage_bps: Option<u32>,
+}
+
 impl DynAomiTool for GetLifiBridgeQuote {
     type App = LifiApp;
     type Args = GetLifiBridgeQuoteArgs;
@@ -112,6 +194,24 @@ impl DynAomiTool for GetLifiBridgeQuote {
     }
 }
 
+// ============================================================================
+// GetLifiTransferStatus
+// ============================================================================
+
+pub(crate) struct GetLifiTransferStatus;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetLifiTransferStatusArgs {
+    /// Transaction hash to track
+    pub(crate) tx_hash: String,
+    /// Source chain name or ID (speeds up lookup)
+    pub(crate) from_chain: Option<String>,
+    /// Destination chain name or ID (speeds up lookup)
+    pub(crate) to_chain: Option<String>,
+    /// Bridge name (speeds up lookup)
+    pub(crate) bridge: Option<String>,
+}
+
 impl DynAomiTool for GetLifiTransferStatus {
     type App = LifiApp;
     type Args = GetLifiTransferStatusArgs;
@@ -128,6 +228,18 @@ impl DynAomiTool for GetLifiTransferStatus {
     }
 }
 
+// ============================================================================
+// GetLifiChains
+// ============================================================================
+
+pub(crate) struct GetLifiChains;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetLifiChainsArgs {
+    /// Filter by chain type, e.g. "EVM", "SVM"
+    pub(crate) chain_types: Option<String>,
+}
+
 impl DynAomiTool for GetLifiChains {
     type App = LifiApp;
     type Args = GetLifiChainsArgs;
@@ -138,6 +250,20 @@ impl DynAomiTool for GetLifiChains {
     fn run(_app: &LifiApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         ok(LifiClient::new()?.get_chains(args.chain_types.as_deref())?)
     }
+}
+
+// ============================================================================
+// GetLifiTokens
+// ============================================================================
+
+pub(crate) struct GetLifiTokens;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetLifiTokensArgs {
+    /// Comma-separated chain IDs to filter tokens
+    pub(crate) chains: Option<String>,
+    /// Filter by chain type, e.g. "EVM", "SVM"
+    pub(crate) chain_types: Option<String>,
 }
 
 impl DynAomiTool for GetLifiTokens {
@@ -151,6 +277,20 @@ impl DynAomiTool for GetLifiTokens {
     }
 }
 
+// ============================================================================
+// GetLifiToken
+// ============================================================================
+
+pub(crate) struct GetLifiToken;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetLifiTokenArgs {
+    /// Chain name or ID
+    pub(crate) chain: String,
+    /// Token address or symbol
+    pub(crate) token: String,
+}
+
 impl DynAomiTool for GetLifiToken {
     type App = LifiApp;
     type Args = GetLifiTokenArgs;
@@ -161,6 +301,32 @@ impl DynAomiTool for GetLifiToken {
     fn run(_app: &LifiApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         ok(LifiClient::new()?.get_token(&args.chain, &args.token)?)
     }
+}
+
+// ============================================================================
+// GetLifiRoutes
+// ============================================================================
+
+pub(crate) struct GetLifiRoutes;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetLifiRoutesArgs {
+    /// Source chain name or ID
+    pub(crate) from_chain: String,
+    /// Destination chain name or ID
+    pub(crate) to_chain: String,
+    /// Source token symbol or address
+    pub(crate) from_token: String,
+    /// Destination token symbol or address
+    pub(crate) to_token: String,
+    /// Amount to swap/bridge (human-readable units)
+    pub(crate) amount: f64,
+    /// Sender wallet address
+    pub(crate) from_address: String,
+    /// Slippage tolerance as decimal (e.g. 0.005 = 0.5%)
+    pub(crate) slippage: Option<f64>,
+    /// Route ordering preference: "CHEAPEST", "FASTEST", "SAFEST", or "RECOMMENDED"
+    pub(crate) order_preference: Option<String>,
 }
 
 impl DynAomiTool for GetLifiRoutes {
@@ -183,6 +349,18 @@ impl DynAomiTool for GetLifiRoutes {
     }
 }
 
+// ============================================================================
+// GetLifiStepTransaction
+// ============================================================================
+
+pub(crate) struct GetLifiStepTransaction;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetLifiStepTransactionArgs {
+    /// A Step object as returned by /advanced/routes
+    pub(crate) step: Value,
+}
+
 impl DynAomiTool for GetLifiStepTransaction {
     type App = LifiApp;
     type Args = GetLifiStepTransactionArgs;
@@ -192,6 +370,24 @@ impl DynAomiTool for GetLifiStepTransaction {
     fn run(_app: &LifiApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         ok(LifiClient::new()?.get_step_transaction(&args.step)?)
     }
+}
+
+// ============================================================================
+// GetLifiConnections
+// ============================================================================
+
+pub(crate) struct GetLifiConnections;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetLifiConnectionsArgs {
+    /// Source chain name or ID
+    pub(crate) from_chain: Option<String>,
+    /// Destination chain name or ID
+    pub(crate) to_chain: Option<String>,
+    /// Source token address
+    pub(crate) from_token: Option<String>,
+    /// Destination token address
+    pub(crate) to_token: Option<String>,
 }
 
 impl DynAomiTool for GetLifiConnections {
@@ -211,6 +407,18 @@ impl DynAomiTool for GetLifiConnections {
     }
 }
 
+// ============================================================================
+// GetLifiTools
+// ============================================================================
+
+pub(crate) struct GetLifiTools;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetLifiToolsArgs {
+    /// Comma-separated chain IDs to filter
+    pub(crate) chains: Option<String>,
+}
+
 impl DynAomiTool for GetLifiTools {
     type App = LifiApp;
     type Args = GetLifiToolsArgs;
@@ -221,6 +429,30 @@ impl DynAomiTool for GetLifiTools {
     fn run(_app: &LifiApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         ok(LifiClient::new()?.get_tools(args.chains.as_deref())?)
     }
+}
+
+// ============================================================================
+// GetLifiReverseQuote
+// ============================================================================
+
+pub(crate) struct GetLifiReverseQuote;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetLifiReverseQuoteArgs {
+    /// Source chain name or ID
+    pub(crate) from_chain: String,
+    /// Destination chain name or ID (defaults to source chain)
+    pub(crate) to_chain: Option<String>,
+    /// Source token symbol or address
+    pub(crate) from_token: String,
+    /// Destination token symbol or address
+    pub(crate) to_token: String,
+    /// Desired output amount in base units (e.g. wei)
+    pub(crate) to_amount: String,
+    /// Sender wallet address
+    pub(crate) from_address: String,
+    /// Receiver wallet address (defaults to sender)
+    pub(crate) to_address: Option<String>,
 }
 
 impl DynAomiTool for GetLifiReverseQuote {
@@ -240,6 +472,22 @@ impl DynAomiTool for GetLifiReverseQuote {
             args.to_address.as_deref(),
         )?)
     }
+}
+
+// ============================================================================
+// GetLifiGasSuggestion
+// ============================================================================
+
+pub(crate) struct GetLifiGasSuggestion;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetLifiGasSuggestionArgs {
+    /// Destination chain name or ID
+    pub(crate) chain: String,
+    /// Source chain name or ID
+    pub(crate) from_chain: Option<String>,
+    /// Source token address
+    pub(crate) from_token: Option<String>,
 }
 
 impl DynAomiTool for GetLifiGasSuggestion {

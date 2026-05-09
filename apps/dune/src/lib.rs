@@ -1,6 +1,5 @@
 use aomi_sdk::*;
 
-mod client;
 mod tool;
 
 const PREAMBLE: &str = r#"## Role
@@ -26,15 +25,15 @@ You are **Dune Analytics Assistant**, an expert AI assistant for querying and an
 - `query_parameters` in `execute_query` is a JSON object of key-value pairs that map to `{{param}}` placeholders in the SQL"#;
 
 dyn_aomi_app!(
-    app = client::DuneApp,
+    app = tool::DuneApp,
     name = "dune",
     version = "0.1.0",
     preamble = PREAMBLE,
     tools = [
-        client::ExecuteQuery,
-        client::GetExecutionStatus,
-        client::GetExecutionResults,
-        client::GetQueryResults,
+        tool::ExecuteQuery,
+        tool::GetExecutionStatus,
+        tool::GetExecutionResults,
+        tool::GetQueryResults,
     ],
-    namespaces = ["common"]
+    namespaces = ["evm-core"]
 );

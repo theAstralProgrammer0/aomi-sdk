@@ -1,7 +1,11 @@
-use crate::client::*;
+use aomi_ext::gmx::{GmxClient, resolve_chain_label};
 use aomi_sdk::*;
-use serde::Serialize;
+use aomi_sdk::schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
+
+#[derive(Clone, Default)]
+pub(crate) struct GmxApp;
 
 fn ok<T: Serialize>(value: T, chain: &str) -> Result<Value, String> {
     let value = serde_json::to_value(value)
@@ -14,6 +18,19 @@ fn ok<T: Serialize>(value: T, chain: &str) -> Result<Value, String> {
         }
         other => json!({ "source": "gmx", "chain": chain, "data": other }),
     })
+}
+
+// ============================================================================
+// Tool: GetGmxPrices
+// ============================================================================
+
+pub(crate) struct GetGmxPrices;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetGmxPricesArgs {
+    /// Chain to query: "arbitrum" (default) or "avalanche"
+    #[serde(default)]
+    pub(crate) chain: Option<String>,
 }
 
 impl DynAomiTool for GetGmxPrices {
@@ -31,6 +48,19 @@ impl DynAomiTool for GetGmxPrices {
     }
 }
 
+// ============================================================================
+// Tool: GetGmxSignedPrices
+// ============================================================================
+
+pub(crate) struct GetGmxSignedPrices;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetGmxSignedPricesArgs {
+    /// Chain to query: "arbitrum" (default) or "avalanche"
+    #[serde(default)]
+    pub(crate) chain: Option<String>,
+}
+
 impl DynAomiTool for GetGmxSignedPrices {
     type App = GmxApp;
     type Args = GetGmxSignedPricesArgs;
@@ -44,6 +74,19 @@ impl DynAomiTool for GetGmxSignedPrices {
             chain,
         )
     }
+}
+
+// ============================================================================
+// Tool: GetGmxMarkets
+// ============================================================================
+
+pub(crate) struct GetGmxMarkets;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetGmxMarketsArgs {
+    /// Chain to query: "arbitrum" (default) or "avalanche"
+    #[serde(default)]
+    pub(crate) chain: Option<String>,
 }
 
 impl DynAomiTool for GetGmxMarkets {
@@ -61,6 +104,21 @@ impl DynAomiTool for GetGmxMarkets {
     }
 }
 
+// ============================================================================
+// Tool: GetGmxPositions
+// ============================================================================
+
+pub(crate) struct GetGmxPositions;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetGmxPositionsArgs {
+    /// Ethereum address of the account to query positions for (e.g. "0x1234...")
+    pub(crate) account: String,
+    /// Chain to query: "arbitrum" (default) or "avalanche"
+    #[serde(default)]
+    pub(crate) chain: Option<String>,
+}
+
 impl DynAomiTool for GetGmxPositions {
     type App = GmxApp;
     type Args = GetGmxPositionsArgs;
@@ -75,6 +133,21 @@ impl DynAomiTool for GetGmxPositions {
             chain,
         )
     }
+}
+
+// ============================================================================
+// Tool: GetGmxOrders
+// ============================================================================
+
+pub(crate) struct GetGmxOrders;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetGmxOrdersArgs {
+    /// Ethereum address of the account to query orders for (e.g. "0x1234...")
+    pub(crate) account: String,
+    /// Chain to query: "arbitrum" (default) or "avalanche"
+    #[serde(default)]
+    pub(crate) chain: Option<String>,
 }
 
 impl DynAomiTool for GetGmxOrders {

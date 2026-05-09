@@ -1,8 +1,6 @@
 use aomi_sdk::*;
 
-mod client;
 mod tool;
-mod types;
 
 const PREAMBLE: &str = r#"## Role
 You are the **1inch Swap Assistant**, specialized in the 1inch Swap API v6.0.
@@ -34,17 +32,17 @@ Ethereum (1), Optimism (10), BNB Chain (56), Gnosis (100), Polygon (137), Base (
 - A `ONEINCH_API_KEY` environment variable is required."#;
 
 dyn_aomi_app!(
-    app = client::OneInchApp,
+    app = tool::OneInchApp,
     name = "oneinch",
     version = "0.1.0",
     preamble = PREAMBLE,
     tools = [
-        client::GetOneInchQuote,
-        client::GetOneInchSwap,
-        client::GetOneInchApproveTransaction,
-        client::GetOneInchAllowance,
-        client::GetOneInchLiquiditySources,
-        client::GetOneInchTokens,
+        tool::GetOneInchQuote,
+        tool::GetOneInchSwap,
+        tool::GetOneInchApproveTransaction,
+        tool::GetOneInchAllowance,
+        tool::GetOneInchLiquiditySources,
+        tool::GetOneInchTokens,
     ],
-    namespaces = ["common"]
+    namespaces = ["evm-core"]
 );

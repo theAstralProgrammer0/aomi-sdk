@@ -171,5 +171,10 @@ dyn_aomi_app!(
         tool::lp::BuildClaimRewards,
         tool::lp::SubmitClaimRewards,
     ],
-    namespaces = ["common"]
+    // byreal needs Solana wallet signing for spot/lp write paths — the
+    // build_*_swap / build_*_claim_rewards routes emit `host::SignTxSolana`
+    // continuations and bind the returned `signed_tx` into their
+    // submit_* steps. solana-core is the opt-in namespace that surfaces
+    // `sign_tx_solana` to the LLM.
+    namespaces = ["evm-core", "solana-core"]
 );

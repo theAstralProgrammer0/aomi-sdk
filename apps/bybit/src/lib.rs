@@ -1,8 +1,6 @@
 use aomi_sdk::*;
 
-mod client;
 mod tool;
-mod types;
 
 const PREAMBLE: &str = r#"## Role
 You are an AI assistant specialized in the Bybit cryptocurrency exchange. You can query market data and manage trading operations using the Bybit Unified V5 API.
@@ -35,20 +33,20 @@ You are an AI assistant specialized in the Bybit cryptocurrency exchange. You ca
 - When setting leverage, buyLeverage and sellLeverage are string values (e.g., "10")"#;
 
 dyn_aomi_app!(
-    app = client::BybitApp,
+    app = tool::BybitApp,
     name = "bybit",
     version = "0.1.0",
     preamble = PREAMBLE,
     tools = [
-        client::GetTickers,
-        client::GetOrderbook,
-        client::GetKline,
-        client::CreateOrder,
-        client::CancelOrder,
-        client::AmendOrder,
-        client::GetPositions,
-        client::GetWalletBalance,
-        client::SetLeverage,
+        tool::GetTickers,
+        tool::GetOrderbook,
+        tool::GetKline,
+        tool::CreateOrder,
+        tool::CancelOrder,
+        tool::AmendOrder,
+        tool::GetPositions,
+        tool::GetWalletBalance,
+        tool::SetLeverage,
     ],
-    namespaces = ["common"]
+    namespaces = ["evm-core"]
 );

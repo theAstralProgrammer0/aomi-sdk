@@ -1,8 +1,8 @@
 use aomi_sdk::*;
 
-mod client;
+
 mod tool;
-mod types;
+
 
 const PREAMBLE: &str = r#"## Role
 You are the **LI.FI Execution Assistant**, specialized in LI.FI swap, bridge, and cross-chain operations.
@@ -52,24 +52,24 @@ If simulation reverts with `TRANSFER_FROM_FAILED`, do this flow:
 - Let the host's client-specific transaction model decide whether approvals and swaps can be committed together or must be committed sequentially."#;
 
 dyn_aomi_app!(
-    app = client::LifiApp,
+    app = tool::LifiApp,
     name = "lifi",
     version = "0.1.0",
     preamble = PREAMBLE,
     tools = [
-        client::GetLifiSwapQuote,
-        client::PlaceLifiOrder,
-        client::GetLifiBridgeQuote,
-        client::GetLifiTransferStatus,
-        client::GetLifiChains,
-        client::GetLifiTokens,
-        client::GetLifiToken,
-        client::GetLifiRoutes,
-        client::GetLifiStepTransaction,
-        client::GetLifiConnections,
-        client::GetLifiTools,
-        client::GetLifiReverseQuote,
-        client::GetLifiGasSuggestion,
+        tool::GetLifiSwapQuote,
+        tool::PlaceLifiOrder,
+        tool::GetLifiBridgeQuote,
+        tool::GetLifiTransferStatus,
+        tool::GetLifiChains,
+        tool::GetLifiTokens,
+        tool::GetLifiToken,
+        tool::GetLifiRoutes,
+        tool::GetLifiStepTransaction,
+        tool::GetLifiConnections,
+        tool::GetLifiTools,
+        tool::GetLifiReverseQuote,
+        tool::GetLifiGasSuggestion,
     ],
-    namespaces = ["common"]
+    namespaces = ["evm-core"]
 );

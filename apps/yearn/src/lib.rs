@@ -1,6 +1,6 @@
 use aomi_sdk::*;
 
-mod client;
+
 mod tool;
 
 const PREAMBLE: &str = r#"## Role
@@ -41,14 +41,14 @@ All data comes from the Yearn yDaemon API (https://ydaemon.yearn.finance), free 
 - Always mention the chain when discussing vaults"#;
 
 dyn_aomi_app!(
-    app = client::YearnApp,
+    app = tool::YearnApp,
     name = "yearn",
     version = "0.1.0",
     preamble = PREAMBLE,
     tools = [
-        client::GetAllVaults,
-        client::GetVaultDetail,
-        client::GetBlacklistedVaults,
+        tool::GetAllVaults,
+        tool::GetVaultDetail,
+        tool::GetBlacklistedVaults,
     ],
-    namespaces = ["common"]
+    namespaces = ["evm-core"]
 );

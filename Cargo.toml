@@ -3,7 +3,8 @@ members = [
     "sdk",
     "sdk/examples/hello-app",
     "sdk/examples/app-template-http",
-    "xtask",
+    "xtask", 
+    "ext",
 ]
 exclude = [
     "apps/across",

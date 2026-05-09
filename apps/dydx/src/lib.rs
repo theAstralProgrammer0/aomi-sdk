@@ -1,6 +1,5 @@
 use aomi_sdk::*;
 
-mod client;
 mod tool;
 
 const PREAMBLE: &str = r#"## Role
@@ -37,19 +36,19 @@ You are an AI assistant specialized in querying the dYdX v4 perpetual futures de
 - Funding rates are returned as fractional rates per funding interval (typically 1 hour)"#;
 
 dyn_aomi_app!(
-    app = client::DydxApp,
+    app = tool::DydxApp,
     name = "dydx",
     version = "0.1.0",
     preamble = PREAMBLE,
     tools = [
-        client::GetMarkets,
-        client::GetOrderbook,
-        client::GetCandles,
-        client::GetTrades,
-        client::GetAccount,
-        client::GetOrders,
-        client::GetFills,
-        client::GetHistoricalFunding,
+        tool::GetMarkets,
+        tool::GetOrderbook,
+        tool::GetCandles,
+        tool::GetTrades,
+        tool::GetAccount,
+        tool::GetOrders,
+        tool::GetFills,
+        tool::GetHistoricalFunding,
     ],
-    namespaces = ["common"]
+    namespaces = ["evm-core"]
 );

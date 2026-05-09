@@ -1,11 +1,19 @@
-use crate::client::*;
-use crate::types::{
-    Binance24hrStatsResponse, BinanceAccountResponse, BinanceDepthResponse, BinanceKlineResponse,
-    BinanceOrderResponse, BinancePriceResponse, BinanceTradeList,
+use aomi_ext::binance::{
+    Binance24hrStatsResponse, BinanceAccountResponse, BinanceClient, BinanceDepthResponse,
+    BinanceKlineResponse, BinanceOrderResponse, BinancePriceResponse, BinanceTradeList,
+    SPOT_BASE_URL,
 };
 use aomi_sdk::*;
-use serde::Serialize;
+use aomi_sdk::schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
+
+#[derive(Clone, Default)]
+pub(crate) struct BinanceApp;
+
+// ============================================================================
+// Helpers
+// ============================================================================
 
 fn ok<T: Serialize>(value: T) -> Result<Value, String> {
     let value = serde_json::to_value(value)
@@ -40,6 +48,14 @@ fn resolve_binance_credentials(
 // Tool 1: GetPrice — GET /ticker/price (public)
 // ============================================================================
 
+pub(crate) struct GetPrice;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetPriceArgs {
+    /// Trading pair symbol (e.g., "BTCUSDT", "ETHUSDT"). If omitted, returns prices for all symbols.
+    pub(crate) symbol: Option<String>,
+}
+
 impl DynAomiTool for GetPrice {
     type App = BinanceApp;
     type Args = GetPriceArgs;
@@ -61,6 +77,16 @@ impl DynAomiTool for GetPrice {
 // Tool 2: GetDepth — GET /depth (public)
 // ============================================================================
 
+pub(crate) struct GetDepth;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetDepthArgs {
+    /// Trading pair symbol (e.g., "BTCUSDT")
+    pub(crate) symbol: String,
+    /// Number of price levels to return (5, 10, 20, 50, 100, 500, 1000, 5000). Default 100.
+    pub(crate) limit: Option<u32>,
+}
+
 impl DynAomiTool for GetDepth {
     type App = BinanceApp;
     type Args = GetDepthArgs;
@@ -80,6 +106,22 @@ impl DynAomiTool for GetDepth {
 // ============================================================================
 // Tool 3: GetKlines — GET /klines (public)
 // ============================================================================
+
+pub(crate) struct GetKlines;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetKlinesArgs {
+    /// Trading pair symbol (e.g., "BTCUSDT")
+    pub(crate) symbol: String,
+    /// Kline/candlestick interval (e.g., "1m", "5m", "15m", "1h", "4h", "1d", "1w", "1M")
+    pub(crate) interval: String,
+    /// Start time in milliseconds (optional)
+    pub(crate) start_time: Option<u64>,
+    /// End time in milliseconds (optional)
+    pub(crate) end_time: Option<u64>,
+    /// Number of candles to return (default 500, max 1000)
+    pub(crate) limit: Option<u32>,
+}
 
 impl DynAomiTool for GetKlines {
     type App = BinanceApp;
@@ -107,6 +149,14 @@ impl DynAomiTool for GetKlines {
 // Tool 4: Get24hrStats — GET /ticker/24hr (public)
 // ============================================================================
 
+pub(crate) struct Get24hrStats;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct Get24hrStatsArgs {
+    /// Trading pair symbol (e.g., "BTCUSDT"). If omitted, returns stats for all symbols.
+    pub(crate) symbol: Option<String>,
+}
+
 impl DynAomiTool for Get24hrStats {
     type App = BinanceApp;
     type Args = Get24hrStatsArgs;
@@ -126,6 +176,28 @@ impl DynAomiTool for Get24hrStats {
 // ============================================================================
 // Tool 5: PlaceOrder — POST /order (signed)
 // ============================================================================
+
+pub(crate) struct PlaceOrder;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct PlaceOrderArgs {
+    /// Binance API key
+    pub(crate) api_key: Option<String>,
+    /// Binance secret key for request signing
+    pub(crate) secret_key: Option<String>,
+    /// Trading pair symbol (e.g., "BTCUSDT")
+    pub(crate) symbol: String,
+    /// Order side: "BUY" or "SELL"
+    pub(crate) side: String,
+    /// Order type: "LIMIT", "MARKET", "STOP_LOSS_LIMIT", "TAKE_PROFIT_LIMIT"
+    pub(crate) order_type: String,
+    /// Time in force: "GTC", "IOC", or "FOK". Required for LIMIT orders.
+    pub(crate) time_in_force: Option<String>,
+    /// Order quantity
+    pub(crate) quantity: Option<String>,
+    /// Order price (required for LIMIT orders)
+    pub(crate) price: Option<String>,
+}
 
 impl DynAomiTool for PlaceOrder {
     type App = BinanceApp;
@@ -164,6 +236,22 @@ impl DynAomiTool for PlaceOrder {
 // Tool 6: CancelOrder — DELETE /order (signed)
 // ============================================================================
 
+pub(crate) struct CancelOrder;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct CancelOrderArgs {
+    /// Binance API key
+    pub(crate) api_key: Option<String>,
+    /// Binance secret key for request signing
+    pub(crate) secret_key: Option<String>,
+    /// Trading pair symbol (e.g., "BTCUSDT")
+    pub(crate) symbol: String,
+    /// Order ID to cancel
+    pub(crate) order_id: Option<u64>,
+    /// Original client order ID to cancel (alternative to order_id)
+    pub(crate) orig_client_order_id: Option<String>,
+}
+
 impl DynAomiTool for CancelOrder {
     type App = BinanceApp;
     type Args = CancelOrderArgs;
@@ -195,6 +283,16 @@ impl DynAomiTool for CancelOrder {
 // Tool 7: GetAccount — GET /account (signed)
 // ============================================================================
 
+pub(crate) struct GetAccount;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetAccountArgs {
+    /// Binance API key
+    pub(crate) api_key: Option<String>,
+    /// Binance secret key for request signing
+    pub(crate) secret_key: Option<String>,
+}
+
 impl DynAomiTool for GetAccount {
     type App = BinanceApp;
     type Args = GetAccountArgs;
@@ -218,6 +316,26 @@ impl DynAomiTool for GetAccount {
 // ============================================================================
 // Tool 8: GetTrades — GET /myTrades (signed)
 // ============================================================================
+
+pub(crate) struct GetTrades;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetTradesArgs {
+    /// Binance API key
+    pub(crate) api_key: Option<String>,
+    /// Binance secret key for request signing
+    pub(crate) secret_key: Option<String>,
+    /// Trading pair symbol (e.g., "BTCUSDT")
+    pub(crate) symbol: String,
+    /// Trade ID to fetch from (optional)
+    pub(crate) from_id: Option<u64>,
+    /// Start time in milliseconds (optional)
+    pub(crate) start_time: Option<u64>,
+    /// End time in milliseconds (optional)
+    pub(crate) end_time: Option<u64>,
+    /// Number of trades to return (default 500, max 1000)
+    pub(crate) limit: Option<u32>,
+}
 
 impl DynAomiTool for GetTrades {
     type App = BinanceApp;

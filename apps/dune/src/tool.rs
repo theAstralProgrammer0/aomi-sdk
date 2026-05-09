@@ -1,6 +1,11 @@
-use crate::client::*;
+use aomi_ext::dune::DuneClient;
 use aomi_sdk::*;
+use aomi_sdk::schemars::JsonSchema;
+use serde::Deserialize;
 use serde_json::Value;
+
+#[derive(Clone, Default)]
+pub(crate) struct DuneApp;
 
 fn resolve_dune_api_key(api_key: Option<&str>) -> Result<String, String> {
     resolve_secret_value(
@@ -9,6 +14,69 @@ fn resolve_dune_api_key(api_key: Option<&str>) -> Result<String, String> {
         "[dune] missing api_key argument and DUNE_API_KEY environment variable",
     )
 }
+
+// ============================================================================
+// Tool structs & arg types
+// ============================================================================
+
+pub(crate) struct ExecuteQuery;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct ExecuteQueryArgs {
+    /// Dune API key for authentication.
+    pub api_key: Option<String>,
+    /// Numeric Dune query ID (from the dashboard URL).
+    pub query_id: u64,
+    /// Optional JSON object of query parameters that map to {{param}} placeholders in the SQL.
+    #[serde(default)]
+    pub query_parameters: Option<Value>,
+}
+
+pub(crate) struct GetExecutionStatus;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetExecutionStatusArgs {
+    /// Dune API key for authentication.
+    pub api_key: Option<String>,
+    /// Execution ID returned by execute_query.
+    pub execution_id: String,
+}
+
+pub(crate) struct GetExecutionResults;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetExecutionResultsArgs {
+    /// Dune API key for authentication.
+    pub api_key: Option<String>,
+    /// Execution ID returned by execute_query.
+    pub execution_id: String,
+    /// Maximum number of rows to return.
+    #[serde(default)]
+    pub limit: Option<u64>,
+    /// Number of rows to skip (for pagination).
+    #[serde(default)]
+    pub offset: Option<u64>,
+}
+
+pub(crate) struct GetQueryResults;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetQueryResultsArgs {
+    /// Dune API key for authentication.
+    pub api_key: Option<String>,
+    /// Numeric Dune query ID.
+    pub query_id: u64,
+    /// Maximum number of rows to return.
+    #[serde(default)]
+    pub limit: Option<u64>,
+    /// Number of rows to skip (for pagination).
+    #[serde(default)]
+    pub offset: Option<u64>,
+}
+
+// ============================================================================
+// Tool impls
+// ============================================================================
 
 impl DynAomiTool for ExecuteQuery {
     type App = DuneApp;

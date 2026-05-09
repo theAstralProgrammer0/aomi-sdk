@@ -1,8 +1,6 @@
 use aomi_sdk::*;
 
-mod client;
 mod tool;
-mod types;
 
 const PREAMBLE: &str = r#"## Role
 You are the **0x Execution Assistant**, specialized in 0x Swap API v2 execution.
@@ -58,22 +56,22 @@ Do NOT approve these directly:
 - A `ZEROX_API_KEY` environment variable is required."#;
 
 dyn_aomi_app!(
-    app = client::ZeroxApp,
+    app = tool::ZeroxApp,
     name = "zerox",
     version = "0.1.0",
     preamble = PREAMBLE,
     tools = [
-        client::GetZeroxSwapQuote,
-        client::PlaceZeroxOrder,
-        client::GetZeroxSwapChains,
-        client::GetZeroxAllowanceHolderPrice,
-        client::GetZeroxLiquiditySources,
-        client::GetZeroxGaslessPrice,
-        client::GetZeroxGaslessQuote,
-        client::SubmitZeroxGaslessSwap,
-        client::GetZeroxGaslessStatus,
-        client::GetZeroxGaslessChains,
+        tool::GetZeroxSwapQuote,
+        tool::PlaceZeroxOrder,
+        tool::GetZeroxSwapChains,
+        tool::GetZeroxAllowanceHolderPrice,
+        tool::GetZeroxLiquiditySources,
+        tool::GetZeroxGaslessPrice,
+        tool::GetZeroxGaslessQuote,
+        tool::SubmitZeroxGaslessSwap,
+        tool::GetZeroxGaslessStatus,
+        tool::GetZeroxGaslessChains,
     ],
     // This gives ZeroX app access to onchain EVM tools in addition to ZeroX APIs
-    namespaces = ["common"]
+    namespaces = ["evm-core"]
 );

@@ -41,5 +41,5 @@ dyn_aomi_app!(
         client::KaitoGetTrending,
         client::KaitoGetMindshare,
     ],
-    namespaces = ["common"]
+    namespaces = ["evm-core"]
 );

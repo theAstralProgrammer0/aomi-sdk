@@ -1,8 +1,6 @@
 use aomi_sdk::*;
 
-mod client;
 mod tool;
-mod types;
 
 const PREAMBLE: &str = r#"## Role
 You are an AI assistant specialized in X (formerly Twitter) data analysis. You help users discover content, analyze trends, monitor accounts, and understand social media dynamics. Keep responses concise and data-driven.
@@ -45,16 +43,16 @@ You are an AI assistant specialized in X (formerly Twitter) data analysis. You h
 - Combine search operators for precise queries (e.g., '#crypto min_faves:1000 lang:en')"#;
 
 dyn_aomi_app!(
-    app = client::XApp,
+    app = tool::XApp,
     name = "x",
     version = "0.1.0",
     preamble = PREAMBLE,
     tools = [
-        client::GetXUser,
-        client::GetXUserPosts,
-        client::SearchX,
-        client::GetXTrends,
-        client::GetXPost,
+        tool::GetXUser,
+        tool::GetXUserPosts,
+        tool::SearchX,
+        tool::GetXTrends,
+        tool::GetXPost,
     ],
-    namespaces = ["common"]
+    namespaces = ["evm-core"]
 );

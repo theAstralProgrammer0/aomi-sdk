@@ -1,6 +1,88 @@
-use crate::client::*;
+use aomi_ext::hyperliquid::HyperliquidClient;
 use aomi_sdk::*;
+use aomi_sdk::schemars::JsonSchema;
+use serde::Deserialize;
 use serde_json::Value;
+
+#[derive(Clone, Default)]
+pub(crate) struct HyperliquidApp;
+
+// ============================================================================
+// Tool structs + Args
+// ============================================================================
+
+pub(crate) struct GetMeta;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetMetaArgs {}
+
+pub(crate) struct GetAllMids;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetAllMidsArgs {}
+
+pub(crate) struct GetL2Book;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetL2BookArgs {
+    /// Asset ticker (e.g., "BTC", "ETH", "SOL")
+    pub(crate) coin: String,
+}
+
+pub(crate) struct GetClearinghouseState;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetClearinghouseStateArgs {
+    /// Ethereum-style address (0x...)
+    pub(crate) user: String,
+}
+
+pub(crate) struct GetOpenOrders;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetOpenOrdersArgs {
+    /// Ethereum-style address (0x...)
+    pub(crate) user: String,
+}
+
+pub(crate) struct GetUserFills;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetUserFillsArgs {
+    /// Ethereum-style address (0x...)
+    pub(crate) user: String,
+}
+
+pub(crate) struct GetFundingHistory;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetFundingHistoryArgs {
+    /// Asset ticker (e.g., "BTC", "ETH")
+    pub(crate) coin: String,
+    /// Start time in milliseconds (Unix epoch)
+    pub(crate) start_time: u64,
+    /// End time in milliseconds (Unix epoch). Optional -- defaults to now.
+    #[serde(default)]
+    pub(crate) end_time: Option<u64>,
+}
+
+pub(crate) struct GetCandleSnapshot;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetCandleSnapshotArgs {
+    /// Asset ticker (e.g., "BTC", "ETH")
+    pub(crate) coin: String,
+    /// Candle interval: "1m", "5m", "15m", "1h", "4h", "1d"
+    pub(crate) interval: String,
+    /// Start time in milliseconds (Unix epoch)
+    pub(crate) start_time: u64,
+    /// End time in milliseconds (Unix epoch)
+    pub(crate) end_time: u64,
+}
+
+// ============================================================================
+// Impls
+// ============================================================================
 
 impl DynAomiTool for GetMeta {
     type App = HyperliquidApp;
@@ -8,11 +90,7 @@ impl DynAomiTool for GetMeta {
     const NAME: &'static str = "get_meta";
     const DESCRIPTION: &'static str = "Get exchange metadata including the universe of tradeable perpetual assets and their size decimals.";
 
-    fn run(
-        _app: &HyperliquidApp,
-        _args: Self::Args,
-        _ctx: DynToolCallCtx,
-    ) -> Result<Value, String> {
+    fn run(_app: &HyperliquidApp, _args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let client = HyperliquidClient::new()?;
         client.get_meta()
     }
@@ -25,11 +103,7 @@ impl DynAomiTool for GetAllMids {
     const DESCRIPTION: &'static str =
         "Get current mid-prices for all listed assets on Hyperliquid.";
 
-    fn run(
-        _app: &HyperliquidApp,
-        _args: Self::Args,
-        _ctx: DynToolCallCtx,
-    ) -> Result<Value, String> {
+    fn run(_app: &HyperliquidApp, _args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let client = HyperliquidClient::new()?;
         client.get_all_mids()
     }

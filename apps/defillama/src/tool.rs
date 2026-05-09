@@ -1,7 +1,11 @@
-use crate::client::*;
+use aomi_ext::defillama::DefiLamaClient;
+use aomi_sdk::schemars::JsonSchema;
 use aomi_sdk::*;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
+
+#[derive(Clone, Default)]
+pub(crate) struct DefiLlamaApp;
 
 fn ok<T: Serialize>(value: T) -> Result<Value, String> {
     let value = serde_json::to_value(value)
@@ -13,6 +17,18 @@ fn ok<T: Serialize>(value: T) -> Result<Value, String> {
         }
         other => json!({ "source": "defillama", "data": other }),
     })
+}
+
+// ============================================================================
+// GetLammaTokenPrice
+// ============================================================================
+
+pub(crate) struct GetLammaTokenPrice;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetLammaTokenPriceArgs {
+    /// Token symbol or name (e.g., "ETH", "bitcoin", "USDC")
+    pub(crate) token: String,
 }
 
 impl DynAomiTool for GetLammaTokenPrice {
@@ -34,6 +50,24 @@ impl DynAomiTool for GetLammaTokenPrice {
             "confidence": coin.get("confidence").cloned().unwrap_or(Value::Null),
         }))
     }
+}
+
+// ============================================================================
+// GetLammaYieldOpportunities
+// ============================================================================
+
+pub(crate) struct GetLammaYieldOpportunities;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetLammaYieldOpportunitiesArgs {
+    /// Filter by chain (optional): ethereum, arbitrum, optimism, polygon, base, bsc, solana
+    pub(crate) chain: Option<String>,
+    /// Filter by project name (optional): aave, compound, lido, etc.
+    pub(crate) project: Option<String>,
+    /// Only show stablecoin pools
+    pub(crate) stablecoin_only: Option<bool>,
+    /// Maximum results (default: 20)
+    pub(crate) limit: Option<u32>,
 }
 
 impl DynAomiTool for GetLammaYieldOpportunities {
@@ -90,6 +124,20 @@ impl DynAomiTool for GetLammaYieldOpportunities {
     }
 }
 
+// ============================================================================
+// GetLammaProtocols
+// ============================================================================
+
+pub(crate) struct GetLammaProtocols;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetLammaProtocolsArgs {
+    /// Filter by category: dexes, lending, yield, liquid-staking, bridge, derivatives
+    pub(crate) category: Option<String>,
+    /// Maximum results (default: 20)
+    pub(crate) limit: Option<u32>,
+}
+
 impl DynAomiTool for GetLammaProtocols {
     type App = DefiLlamaApp;
     type Args = GetLammaProtocolsArgs;
@@ -121,6 +169,18 @@ impl DynAomiTool for GetLammaProtocols {
 
         ok(json!({ "protocols_count": formatted.len(), "protocols": formatted }))
     }
+}
+
+// ============================================================================
+// GetLammaChainTvl
+// ============================================================================
+
+pub(crate) struct GetLammaChainTvl;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetLammaChainTvlArgs {
+    /// Maximum results (default: 15)
+    pub(crate) limit: Option<u32>,
 }
 
 impl DynAomiTool for GetLammaChainTvl {
@@ -155,6 +215,18 @@ impl DynAomiTool for GetLammaChainTvl {
     }
 }
 
+// ============================================================================
+// GetLammaProtocolDetail
+// ============================================================================
+
+pub(crate) struct GetLammaProtocolDetail;
+
+#[derive(Debug, Clone, Deserialize, JsonSchema)]
+pub(crate) struct GetLammaProtocolDetailArgs {
+    #[schemars(description = "Protocol slug (e.g. \"aave\", \"uniswap\", \"lido\")")]
+    pub protocol: String,
+}
+
 impl DynAomiTool for GetLammaProtocolDetail {
     type App = DefiLlamaApp;
     type Args = GetLammaProtocolDetailArgs;
@@ -165,6 +237,25 @@ impl DynAomiTool for GetLammaProtocolDetail {
     fn run(_app: &DefiLlamaApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         ok(DefiLamaClient::new()?.get_protocol_detail(&args.protocol)?)
     }
+}
+
+// ============================================================================
+// GetLammaDexVolumes
+// ============================================================================
+
+pub(crate) struct GetLammaDexVolumes;
+
+#[derive(Debug, Clone, Deserialize, JsonSchema)]
+pub(crate) struct GetLammaDexVolumesArgs {
+    #[schemars(description = "Filter by chain name (e.g. \"Ethereum\", \"Arbitrum\"). Optional.")]
+    #[serde(default)]
+    pub chain: Option<String>,
+    #[schemars(description = "Exclude total data chart from response (default: true)")]
+    #[serde(default)]
+    pub exclude_total_data_chart: Option<bool>,
+    #[schemars(description = "Exclude total data chart breakdown from response (default: true)")]
+    #[serde(default)]
+    pub exclude_total_data_chart_breakdown: Option<bool>,
 }
 
 impl DynAomiTool for GetLammaDexVolumes {
@@ -181,6 +272,28 @@ impl DynAomiTool for GetLammaDexVolumes {
             args.exclude_total_data_chart_breakdown,
         )?)
     }
+}
+
+// ============================================================================
+// GetLammaFeesOverview
+// ============================================================================
+
+pub(crate) struct GetLammaFeesOverview;
+
+#[derive(Debug, Clone, Deserialize, JsonSchema)]
+pub(crate) struct GetLammaFeesOverviewArgs {
+    #[schemars(description = "Filter by chain name (e.g. \"Ethereum\"). Optional.")]
+    #[serde(default)]
+    pub chain: Option<String>,
+    #[schemars(description = "Exclude total data chart from response (default: true)")]
+    #[serde(default)]
+    pub exclude_total_data_chart: Option<bool>,
+    #[schemars(description = "Exclude total data chart breakdown from response (default: true)")]
+    #[serde(default)]
+    pub exclude_total_data_chart_breakdown: Option<bool>,
+    #[schemars(description = "Data type filter (e.g. \"dailyFees\", \"dailyRevenue\"). Optional.")]
+    #[serde(default)]
+    pub data_type: Option<String>,
 }
 
 impl DynAomiTool for GetLammaFeesOverview {
@@ -200,6 +313,21 @@ impl DynAomiTool for GetLammaFeesOverview {
     }
 }
 
+// ============================================================================
+// GetLammaProtocolFees
+// ============================================================================
+
+pub(crate) struct GetLammaProtocolFees;
+
+#[derive(Debug, Clone, Deserialize, JsonSchema)]
+pub(crate) struct GetLammaProtocolFeesArgs {
+    #[schemars(description = "Protocol slug (e.g. \"aave\", \"uniswap\")")]
+    pub protocol: String,
+    #[schemars(description = "Data type filter (e.g. \"dailyFees\", \"dailyRevenue\"). Optional.")]
+    #[serde(default)]
+    pub data_type: Option<String>,
+}
+
 impl DynAomiTool for GetLammaProtocolFees {
     type App = DefiLlamaApp;
     type Args = GetLammaProtocolFeesArgs;
@@ -209,6 +337,19 @@ impl DynAomiTool for GetLammaProtocolFees {
     fn run(_app: &DefiLlamaApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         ok(DefiLamaClient::new()?.get_protocol_fees(&args.protocol, args.data_type.as_deref())?)
     }
+}
+
+// ============================================================================
+// GetLammaStablecoins
+// ============================================================================
+
+pub(crate) struct GetLammaStablecoins;
+
+#[derive(Debug, Clone, Deserialize, JsonSchema)]
+pub(crate) struct GetLammaStablecoinsArgs {
+    #[schemars(description = "Include price data in response (default: true)")]
+    #[serde(default)]
+    pub include_prices: Option<bool>,
 }
 
 impl DynAomiTool for GetLammaStablecoins {
@@ -222,6 +363,15 @@ impl DynAomiTool for GetLammaStablecoins {
     }
 }
 
+// ============================================================================
+// GetLammaStablecoinChains
+// ============================================================================
+
+pub(crate) struct GetLammaStablecoinChains;
+
+#[derive(Debug, Clone, Deserialize, JsonSchema)]
+pub(crate) struct GetLammaStablecoinChainsArgs {}
+
 impl DynAomiTool for GetLammaStablecoinChains {
     type App = DefiLlamaApp;
     type Args = GetLammaStablecoinChainsArgs;
@@ -231,6 +381,34 @@ impl DynAomiTool for GetLammaStablecoinChains {
     fn run(_app: &DefiLlamaApp, _args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         ok(DefiLamaClient::new()?.get_stablecoin_chains()?)
     }
+}
+
+// ============================================================================
+// GetLammaHistoricalTokenPrice
+// ============================================================================
+
+pub(crate) struct GetLammaHistoricalTokenPrice;
+
+#[derive(Debug, Clone, Deserialize, JsonSchema)]
+pub(crate) struct GetLammaHistoricalTokenPriceArgs {
+    #[schemars(
+        description = "Comma-separated coin identifiers (e.g. \"coingecko:ethereum,coingecko:bitcoin\")"
+    )]
+    pub coins: String,
+    #[schemars(description = "Start unix timestamp. Optional.")]
+    #[serde(default)]
+    pub start: Option<u64>,
+    #[schemars(description = "End unix timestamp. Optional.")]
+    #[serde(default)]
+    pub end: Option<u64>,
+    #[schemars(description = "Number of data points to return. Optional.")]
+    #[serde(default)]
+    pub span: Option<u64>,
+    #[schemars(
+        description = "Time period between data points (e.g. \"1d\", \"1h\", \"4h\"). Optional."
+    )]
+    #[serde(default)]
+    pub period: Option<String>,
 }
 
 impl DynAomiTool for GetLammaHistoricalTokenPrice {
@@ -250,6 +428,31 @@ impl DynAomiTool for GetLammaHistoricalTokenPrice {
     }
 }
 
+// ============================================================================
+// GetLammaTokenPriceChange
+// ============================================================================
+
+pub(crate) struct GetLammaTokenPriceChange;
+
+#[derive(Debug, Clone, Deserialize, JsonSchema)]
+pub(crate) struct GetLammaTokenPriceChangeArgs {
+    #[schemars(
+        description = "Comma-separated coin identifiers (e.g. \"coingecko:ethereum,coingecko:bitcoin\")"
+    )]
+    pub coins: String,
+    #[schemars(description = "Unix timestamp to calculate change from. Optional.")]
+    #[serde(default)]
+    pub timestamp: Option<u64>,
+    #[schemars(
+        description = "If true, calculate change looking forward from timestamp. Optional."
+    )]
+    #[serde(default)]
+    pub look_forward: Option<bool>,
+    #[schemars(description = "Period for price change (e.g. \"1d\", \"7d\", \"30d\"). Optional.")]
+    #[serde(default)]
+    pub period: Option<String>,
+}
+
 impl DynAomiTool for GetLammaTokenPriceChange {
     type App = DefiLlamaApp;
     type Args = GetLammaTokenPriceChangeArgs;
@@ -267,6 +470,18 @@ impl DynAomiTool for GetLammaTokenPriceChange {
     }
 }
 
+// ============================================================================
+// GetLammaHistoricalChainTvl
+// ============================================================================
+
+pub(crate) struct GetLammaHistoricalChainTvl;
+
+#[derive(Debug, Clone, Deserialize, JsonSchema)]
+pub(crate) struct GetLammaHistoricalChainTvlArgs {
+    #[schemars(description = "Chain name (e.g. \"Ethereum\", \"Arbitrum\", \"Solana\")")]
+    pub chain: String,
+}
+
 impl DynAomiTool for GetLammaHistoricalChainTvl {
     type App = DefiLlamaApp;
     type Args = GetLammaHistoricalChainTvlArgs;
@@ -276,6 +491,24 @@ impl DynAomiTool for GetLammaHistoricalChainTvl {
     fn run(_app: &DefiLlamaApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         ok(DefiLamaClient::new()?.get_historical_chain_tvl(&args.chain)?)
     }
+}
+
+// ============================================================================
+// GetLammaDexProtocolVolume
+// ============================================================================
+
+pub(crate) struct GetLammaDexProtocolVolume;
+
+#[derive(Debug, Clone, Deserialize, JsonSchema)]
+pub(crate) struct GetLammaDexProtocolVolumeArgs {
+    #[schemars(description = "Protocol slug (e.g. \"uniswap\", \"curve\")")]
+    pub protocol: String,
+    #[schemars(description = "Exclude total data chart from response (default: true)")]
+    #[serde(default)]
+    pub exclude_total_data_chart: Option<bool>,
+    #[schemars(description = "Exclude total data chart breakdown from response (default: true)")]
+    #[serde(default)]
+    pub exclude_total_data_chart_breakdown: Option<bool>,
 }
 
 impl DynAomiTool for GetLammaDexProtocolVolume {
@@ -293,6 +526,24 @@ impl DynAomiTool for GetLammaDexProtocolVolume {
     }
 }
 
+// ============================================================================
+// GetLammaStablecoinHistory
+// ============================================================================
+
+pub(crate) struct GetLammaStablecoinHistory;
+
+#[derive(Debug, Clone, Deserialize, JsonSchema)]
+pub(crate) struct GetLammaStablecoinHistoryArgs {
+    #[schemars(
+        description = "Chain name to filter (e.g. \"Ethereum\"). Optional -- omit for all chains."
+    )]
+    #[serde(default)]
+    pub chain: Option<String>,
+    #[schemars(description = "Stablecoin ID filter. Optional.")]
+    #[serde(default)]
+    pub stablecoin: Option<u64>,
+}
+
 impl DynAomiTool for GetLammaStablecoinHistory {
     type App = DefiLlamaApp;
     type Args = GetLammaStablecoinHistoryArgs;
@@ -306,6 +557,18 @@ impl DynAomiTool for GetLammaStablecoinHistory {
                 .get_stablecoin_history(args.chain.as_deref(), args.stablecoin)?,
         )
     }
+}
+
+// ============================================================================
+// GetLammaYieldPoolHistory
+// ============================================================================
+
+pub(crate) struct GetLammaYieldPoolHistory;
+
+#[derive(Debug, Clone, Deserialize, JsonSchema)]
+pub(crate) struct GetLammaYieldPoolHistoryArgs {
+    #[schemars(description = "Pool UUID (e.g. from get_yield_opportunities results)")]
+    pub pool: String,
 }
 
 impl DynAomiTool for GetLammaYieldPoolHistory {

@@ -1,8 +1,6 @@
 use aomi_sdk::*;
 
-mod client;
 mod tool;
-mod types;
 
 const PREAMBLE: &str = r#"## Role
 You are the **CoW Protocol Execution Assistant**, specialized in CoW Protocol swap quotes, order management, trade history, and debugging.
@@ -50,21 +48,21 @@ CoW Protocol supports the following chains:
 - When querying trades, provide exactly one of `owner` or `order_uid`, never both."#;
 
 dyn_aomi_app!(
-    app = client::CowApp,
+    app = tool::CowApp,
     name = "cow",
     version = "0.1.0",
     preamble = PREAMBLE,
     tools = [
-        client::GetCowSwapQuote,
-        client::PlaceCowOrder,
-        client::GetCowOrder,
-        client::GetCowOrderStatus,
-        client::GetCowUserOrders,
-        client::CancelCowOrders,
-        client::GetCowTrades,
-        client::GetCowNativePrice,
-        client::GetCowOrdersByTx,
-        client::DebugCowOrder,
+        tool::GetCowSwapQuote,
+        tool::PlaceCowOrder,
+        tool::GetCowOrder,
+        tool::GetCowOrderStatus,
+        tool::GetCowUserOrders,
+        tool::CancelCowOrders,
+        tool::GetCowTrades,
+        tool::GetCowNativePrice,
+        tool::GetCowOrdersByTx,
+        tool::DebugCowOrder,
     ],
-    namespaces = ["common"]
+    namespaces = ["evm-core"]
 );

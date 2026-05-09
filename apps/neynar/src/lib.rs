@@ -1,8 +1,6 @@
 use aomi_sdk::*;
 
-mod client;
 mod tool;
-mod types;
 
 const PREAMBLE: &str = r#"## Role
 You are an AI assistant specialized in Farcaster, the decentralized social protocol, via the Neynar API. You help users discover casts, look up profiles, explore channels, and track trending content on Farcaster.
@@ -36,19 +34,19 @@ You are an AI assistant specialized in Farcaster, the decentralized social proto
 - Use get_trending_feed to discover what is currently popular on Farcaster"#;
 
 dyn_aomi_app!(
-    app = client::NeynarApp,
+    app = tool::NeynarApp,
     name = "neynar",
     version = "0.1.0",
     preamble = PREAMBLE,
     tools = [
-        client::GetUserByUsername,
-        client::SearchUsers,
-        client::GetFeed,
-        client::GetCast,
-        client::SearchCasts,
-        client::PublishCast,
-        client::GetChannel,
-        client::GetTrendingFeed,
+        tool::GetUserByUsername,
+        tool::SearchUsers,
+        tool::GetFeed,
+        tool::GetCast,
+        tool::SearchCasts,
+        tool::PublishCast,
+        tool::GetChannel,
+        tool::GetTrendingFeed,
     ],
-    namespaces = ["common"]
+    namespaces = ["evm-core"]
 );

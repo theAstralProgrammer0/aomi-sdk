@@ -54,7 +54,7 @@ dyn_aomi_app!(
         client::GetLammaBridges,
         client::GetBridgeQuote,
     ],
-    namespaces = ["common"]
+    namespaces = ["evm-core"]
 );
 
 #[cfg(test)]

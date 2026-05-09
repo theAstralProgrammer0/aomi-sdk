@@ -1,8 +1,8 @@
 use aomi_sdk::*;
 
-mod client;
+
 mod tool;
-mod types;
+
 
 const PREAMBLE: &str = r#"## Role
 You are the **Across Protocol Bridge Assistant**, specialized in intent-based cross-chain bridging via the Across Protocol.
@@ -31,16 +31,16 @@ Across is an intent-based, optimistic cross-chain bridge. Relayers fill user int
 - Chain IDs are numeric (e.g. 1 for Ethereum, 42161 for Arbitrum, 10 for Optimism, 137 for Polygon, 8453 for Base)."#;
 
 dyn_aomi_app!(
-    app = client::AcrossApp,
+    app = tool::AcrossApp,
     name = "across",
     version = "0.1.0",
     preamble = PREAMBLE,
     tools = [
-        client::GetAcrossBridgeQuote,
-        client::GetAcrossBridgeLimits,
-        client::GetAcrossDepositStatus,
-        client::GetAcrossAvailableRoutes,
-        client::GetAcrossTokenPrice,
+        tool::GetAcrossBridgeQuote,
+        tool::GetAcrossBridgeLimits,
+        tool::GetAcrossDepositStatus,
+        tool::GetAcrossAvailableRoutes,
+        tool::GetAcrossTokenPrice,
     ],
-    namespaces = ["common"]
+    namespaces = ["evm-core"]
 );

@@ -1,8 +1,6 @@
 use aomi_sdk::*;
 
-mod client;
 mod tool;
-mod types;
 
 const PREAMBLE: &str = r#"## Role
 You are an AI assistant specialized in interacting with the OKX cryptocurrency exchange. OKX is a global digital asset exchange offering spot, perpetual swap, futures, and options trading under a unified account model.
@@ -39,19 +37,19 @@ You are an AI assistant specialized in interacting with the OKX cryptocurrency e
 - Always verify instrument IDs match the correct format for the instrument type"#;
 
 dyn_aomi_app!(
-    app = client::OkxApp,
+    app = tool::OkxApp,
     name = "okx",
     version = "0.1.0",
     preamble = PREAMBLE,
     tools = [
-        client::GetTickers,
-        client::GetOrderBook,
-        client::GetCandles,
-        client::PlaceOrder,
-        client::CancelOrder,
-        client::GetBalance,
-        client::GetPositions,
-        client::SetLeverage,
+        tool::GetTickers,
+        tool::GetOrderBook,
+        tool::GetCandles,
+        tool::PlaceOrder,
+        tool::CancelOrder,
+        tool::GetBalance,
+        tool::GetPositions,
+        tool::SetLeverage,
     ],
-    namespaces = ["common"]
+    namespaces = ["evm-core"]
 );

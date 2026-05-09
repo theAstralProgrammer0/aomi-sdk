@@ -1,8 +1,11 @@
-use crate::client::*;
-use crate::types::{CancelOrderRequest, PlaceOrderRequest, SetLeverageRequest};
+use aomi_ext::okx::{CancelOrderRequest, OkxClient, PlaceOrderRequest, SetLeverageRequest};
 use aomi_sdk::*;
-use serde::Serialize;
+use aomi_sdk::schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
+
+#[derive(Clone, Default)]
+pub(crate) struct OkxApp;
 
 fn ok<T: Serialize>(value: T) -> Result<Value, String> {
     let value = serde_json::to_value(value)
@@ -38,6 +41,129 @@ fn resolve_okx_credentials(
     )?;
     Ok((api_key, secret_key, passphrase))
 }
+
+// ============================================================================
+// Tool arg structs
+// ============================================================================
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetTickersArgs {
+    /// Instrument type: SPOT, SWAP, FUTURES, or OPTION
+    pub(crate) inst_type: String,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetOrderBookArgs {
+    /// Instrument ID, e.g. BTC-USDT, BTC-USDT-SWAP
+    pub(crate) inst_id: String,
+    /// Order book depth (max 400). Default 1.
+    pub(crate) sz: Option<String>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetCandlesArgs {
+    /// Instrument ID, e.g. BTC-USDT
+    pub(crate) inst_id: String,
+    /// Bar size, e.g. 1m, 5m, 15m, 30m, 1H, 4H, 1D, 1W, 1M
+    pub(crate) bar: Option<String>,
+    /// Pagination: return records newer than this timestamp (ms)
+    pub(crate) after: Option<String>,
+    /// Pagination: return records older than this timestamp (ms)
+    pub(crate) before: Option<String>,
+    /// Number of results (max 300, default 100)
+    pub(crate) limit: Option<String>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct PlaceOrderArgs {
+    /// OKX API key
+    pub(crate) api_key: Option<String>,
+    /// OKX API secret key
+    pub(crate) secret_key: Option<String>,
+    /// OKX API passphrase
+    pub(crate) passphrase: Option<String>,
+    /// Instrument ID, e.g. BTC-USDT
+    pub(crate) inst_id: String,
+    /// Trade mode: cash, cross, or isolated
+    pub(crate) td_mode: String,
+    /// Order side: buy or sell
+    pub(crate) side: String,
+    /// Order type: market, limit, post_only, fok, ioc
+    pub(crate) ord_type: String,
+    /// Quantity to trade
+    pub(crate) sz: String,
+    /// Price (required for limit orders)
+    pub(crate) px: Option<String>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct CancelOrderArgs {
+    /// OKX API key
+    pub(crate) api_key: Option<String>,
+    /// OKX API secret key
+    pub(crate) secret_key: Option<String>,
+    /// OKX API passphrase
+    pub(crate) passphrase: Option<String>,
+    /// Instrument ID, e.g. BTC-USDT
+    pub(crate) inst_id: String,
+    /// Order ID to cancel
+    pub(crate) ord_id: String,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetBalanceArgs {
+    /// OKX API key
+    pub(crate) api_key: Option<String>,
+    /// OKX API secret key
+    pub(crate) secret_key: Option<String>,
+    /// OKX API passphrase
+    pub(crate) passphrase: Option<String>,
+    /// Optional comma-separated currency list, e.g. BTC,USDT
+    pub(crate) ccy: Option<String>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetPositionsArgs {
+    /// OKX API key
+    pub(crate) api_key: Option<String>,
+    /// OKX API secret key
+    pub(crate) secret_key: Option<String>,
+    /// OKX API passphrase
+    pub(crate) passphrase: Option<String>,
+    /// Instrument type: SPOT, SWAP, FUTURES, OPTION (optional)
+    pub(crate) inst_type: Option<String>,
+    /// Instrument ID (optional)
+    pub(crate) inst_id: Option<String>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct SetLeverageArgs {
+    /// OKX API key
+    pub(crate) api_key: Option<String>,
+    /// OKX API secret key
+    pub(crate) secret_key: Option<String>,
+    /// OKX API passphrase
+    pub(crate) passphrase: Option<String>,
+    /// Instrument ID, e.g. BTC-USDT-SWAP
+    pub(crate) inst_id: String,
+    /// Leverage ratio, e.g. "10"
+    pub(crate) lever: String,
+    /// Margin mode: cross or isolated
+    pub(crate) mgn_mode: String,
+}
+
+// ============================================================================
+// Tool structs
+// ============================================================================
+
+pub(crate) struct GetTickers;
+pub(crate) struct GetOrderBook;
+pub(crate) struct GetCandles;
+pub(crate) struct PlaceOrder;
+pub(crate) struct CancelOrder;
+pub(crate) struct GetBalance;
+pub(crate) struct GetPositions;
+pub(crate) struct SetLeverage;
 
 // ============================================================================
 // Tool 1: GetTickers — GET /market/tickers
