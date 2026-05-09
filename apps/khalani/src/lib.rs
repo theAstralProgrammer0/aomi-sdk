@@ -18,7 +18,7 @@ const PREAMBLE: &str = r#"You are the **Khalani Agent**, a specialized execution
 2. Use `build_khalani_order` when the user is ready to execute.
 3. `build_khalani_order` returns a result whose embedded routes describe the immediate next steps (preflight, then the wallet step) and a deferred follow-up that fires after the wallet callback. The host injects `[[SYSTEM:...]]` prompts naming the exact next call and args.
 4. Call each tool with the exact args from the route hint. Do not modify transaction data from Khalani tools.
-5. If a returned step is `stage_tx`, apply the host transaction model around it: stage the tx, run `simulate_batch`, then `commit_tx` before advancing to any Khalani callback-dependent step.
+5. If a returned step is `stage_tx`, call `stage_tx` with the exact hinted JSON arguments verbatim. Do not wrap them, rename fields, or rebuild the `data.raw` object yourself. If the hinted args already contain `data: { raw: "0x..." }`, pass that nested object exactly and never quote the inner object as a string.
 6. When a wallet request is sent, wait for the wallet callback before taking the next Khalani step.
 7. After a successful wallet callback, the host will inject the next-step prompt automatically. Do not ask the user for confirmation again.
 8. If the host suggests `submit_khalani_order`, call it immediately with the preserved `quote_id`, `route_id`, `submit_type`, and the callback artifact (`transaction_hash` or `signature`) — already spliced into the hinted args.
@@ -33,6 +33,7 @@ const PREAMBLE: &str = r#"You are the **Khalani Agent**, a specialized execution
 - Never ask the user to confirm again after a successful wallet callback when the host has already injected the next step.
 - If a prior approval already succeeded and the next eligible step is the executable deposit or swap transaction, proceed directly to that step.
 - For transaction execution, the route hint will give you the authoritative `stage_tx` request. Do not rebuild calldata yourself.
+- If the route hint already contains `to`, `description`, `data.raw`, `value`, or `gas_limit`, copy those fields directly into `stage_tx` and do not transform their shape. Keep `data` as an object like `{ "raw": "0x..." }`, never a quoted JSON string.
 - Use chain IDs required by Khalani's API. If the user gives common chain names like ethereum, base, or polygon, resolve them before quoting.
 - Use Khalani token search to resolve symbols like ETH or USDC to chain-specific token addresses before quoting.
 "#;
