@@ -10,6 +10,9 @@ reqwest = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 
+# Generated-client runtime (only pulled in when a generated provider is enabled)
+progenitor-client = { version = "0.14", optional = true }
+
 # Per-provider optional deps
 hmac = { workspace = true, optional = true }
 sha2 = { workspace = true, optional = true }
@@ -21,9 +24,9 @@ default = []
 across = []
 binance = ["dep:hmac", "dep:sha2"]
 bybit = ["dep:hmac", "dep:sha2"]
-cow = []
-defillama = []
-dune = []
+cow = ["dep:progenitor-client", "dep:chrono"]
+defillama = ["dep:progenitor-client", "dep:chrono"]
+dune = ["dep:progenitor-client", "dep:chrono"]
 dydx = []
 gmx = []
 hyperliquid = []

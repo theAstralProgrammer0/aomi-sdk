@@ -1,0 +1,156 @@
+use clap::Args;
+use eyre::{Context, Result, bail};
+use progenitor::{GenerationSettings, Generator, InterfaceStyle};
+use std::path::PathBuf;
+
+use crate::spec_load;
+use crate::specs::workspace_root;
+
+#[derive(Args, Debug)]
+pub struct GenClientArgs {
+    /// Platform name (looks for ext/specs/<platform>.yaml).
+    pub platform: String,
+
+    /// Override the spec path. Defaults to ext/specs/<platform>.yaml.
+    #[arg(long)]
+    pub spec: Option<PathBuf>,
+
+    /// Override the output directory. Defaults to ext/src/<platform>/.
+    #[arg(long)]
+    pub out: Option<PathBuf>,
+
+    /// Overwrite an existing module at the output directory.
+    #[arg(long)]
+    pub force: bool,
+}
+
+pub fn run(args: GenClientArgs) -> Result<()> {
+    let root = workspace_root()?;
+    let spec_path = args
+        .spec
+        .clone()
+        .unwrap_or_else(|| root.join("ext").join("specs").join(format!("{}.yaml", args.platform)));
+    let out_dir = args
+        .out
+        .clone()
+        .unwrap_or_else(|| root.join("ext").join("src").join(&args.platform));
+
+    if out_dir.exists() && !args.force {
+        bail!(
+            "{} already exists. Pass --force to overwrite.",
+            out_dir.display()
+        );
+    }
+
+    println!("Reading spec: {}", spec_path.display());
+    let spec = spec_load::load_and_preprocess(&spec_path)?;
+
+    println!("Running progenitor...");
+    let mut generator = Generator::new(
+        GenerationSettings::default()
+            .with_interface(InterfaceStyle::Positional)
+            .with_tag(progenitor::TagStyle::Merged),
+    );
+    let tokens = generator
+        .generate_tokens(&spec)
+        .map_err(|e| eyre::eyre!("progenitor failed: {e}"))?;
+
+    let formatted = format_tokens(tokens.to_string())?;
+
+    std::fs::create_dir_all(&out_dir)
+        .with_context(|| format!("failed to create {}", out_dir.display()))?;
+
+    let client_path = out_dir.join("client.rs");
+    std::fs::write(&client_path, &formatted)
+        .with_context(|| format!("failed to write {}", client_path.display()))?;
+
+    let mod_path = out_dir.join("mod.rs");
+    let mod_body = generated_mod_rs(&args.platform);
+    std::fs::write(&mod_path, mod_body)
+        .with_context(|| format!("failed to write {}", mod_path.display()))?;
+
+    println!("✓ wrote {}", client_path.display());
+    println!("✓ wrote {}", mod_path.display());
+
+    let updated = wire_into_ext(&root, &args.platform)?;
+    if updated.cargo_toml {
+        println!("✓ updated ext/Cargo.toml feature `{}`", args.platform);
+    }
+    if updated.lib_rs {
+        println!("✓ added `pub mod {}` to ext/src/lib.rs", args.platform);
+    }
+    Ok(())
+}
+
+#[derive(Default)]
+struct WireUpdate {
+    cargo_toml: bool,
+    lib_rs: bool,
+}
+
+/// Ensure ext/Cargo.toml declares the platform's feature with the right deps,
+/// and ext/src/lib.rs declares `pub mod <platform>;` gated by the feature.
+fn wire_into_ext(root: &std::path::Path, platform: &str) -> Result<WireUpdate> {
+    let mut up = WireUpdate::default();
+
+    let cargo_path = root.join("ext").join("Cargo.toml");
+    let cargo = std::fs::read_to_string(&cargo_path)?;
+    let needed = format!(r#"{platform} = ["dep:progenitor-client", "dep:chrono"]"#);
+    if !cargo.contains(&needed) {
+        let stub_re = format!("{platform} = [");
+        let new_cargo = if cargo.lines().any(|l| l.trim().starts_with(&stub_re)) {
+            // Replace existing line for this platform.
+            cargo
+                .lines()
+                .map(|l| {
+                    if l.trim().starts_with(&stub_re) {
+                        needed.clone()
+                    } else {
+                        l.to_string()
+                    }
+                })
+                .collect::<Vec<_>>()
+                .join("\n")
+                + "\n"
+        } else {
+            // Append at end of [features] block. Simplest: append after default = [].
+            cargo.replacen(
+                "default = []",
+                &format!("default = []\n{needed}"),
+                1,
+            )
+        };
+        std::fs::write(&cargo_path, new_cargo)?;
+        up.cargo_toml = true;
+    }
+
+    let lib_path = root.join("ext").join("src").join("lib.rs");
+    let lib = std::fs::read_to_string(&lib_path)?;
+    let pub_mod_line = format!("#[cfg(feature = \"{platform}\")]\npub mod {platform};");
+    let one_liner = format!(r#"#[cfg(feature = "{platform}")] pub mod {platform};"#);
+    if !lib.contains(&pub_mod_line) && !lib.contains(&one_liner) {
+        let appended = format!("{}\n{pub_mod_line}\n", lib.trim_end());
+        std::fs::write(&lib_path, appended)?;
+        up.lib_rs = true;
+    }
+    Ok(up)
+}
+
+fn format_tokens(raw: String) -> Result<String> {
+    let parsed: syn::File = syn::parse_str(&raw)
+        .with_context(|| "progenitor produced unparseable Rust — this is a bug in the spec or the generator")?;
+    Ok(prettyplease::unparse(&parsed))
+}
+
+fn generated_mod_rs(platform: &str) -> String {
+    format!(
+        "//! Generated by `aomi-build gen-client {platform}`.\n\
+         //! Do not edit by hand — re-run with --force to regenerate.\n\
+         //!\n\
+         //! Hand-written companions (signing helpers, etc.) live next to this file\n\
+         //! in `auth.rs` or other sibling modules.\n\n\
+         #[allow(clippy::all, dead_code, unused_imports)]\n\
+         pub mod client;\n\n\
+         pub use client::*;\n"
+    )
+}

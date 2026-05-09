@@ -678,7 +678,7 @@ mod tests {
             RouteTrigger::OnSyncReturn
         ));
         assert_eq!(result.routes[1].bind_as, None);
-        assert!(result.routes[1].execution.is_some());
+        assert!(result.routes[1].enforcement.is_some());
         assert!(matches!(
             result.routes[1].trigger,
             RouteTrigger::OnSyncReturn
@@ -796,26 +796,6 @@ mod tests {
 // Typed RouteStep emission
 // ============================================================================
 
-fn add_khalani_preflight_step(
-    next: &mut NextRoutesBuilder<'_>,
-    preflight_step: Option<&(String, Value)>,
-) {
-    if let Some((name, args)) = preflight_step {
-        match name.as_str() {
-            "view_state" => {
-                next.add::<host::ViewState>(args.clone()).note(
-                    "preflight allowance check; surface failures to the user before continuing",
-                );
-            }
-            _ => {
-                next.add_named(name.clone(), args.clone()).note(
-                    "preflight allowance check; surface failures to the user before continuing",
-                );
-            }
-        }
-    }
-}
-
 #[allow(clippy::too_many_arguments)]
 pub(crate) fn build_khalani_follow_up_result<WalletTool, FollowUpTool>(
     quote_id: &str,
@@ -872,23 +852,30 @@ where
 
     Ok(ToolReturn::route(result)
         .next(|next| {
-            add_khalani_preflight_step(next, preflight_step.as_ref());
+            if let Some((name, args)) = preflight_step.as_ref() {
+                match name.as_str() {
+                    "view_state" => {
+                        next.add::<host::ViewState>(args.clone()).note(
+                            "preflight allowance check; surface failures to the user before continuing",
+                        );
+                    }
+                    _ => {
+                        next.add_named(name.clone(), args.clone()).note(
+                            "preflight allowance check; surface failures to the user before continuing",
+                        );
+                    }
+                }
+            }
             let step = next
                 .add::<WalletTool>(wallet_request)
                 .note(immediate_route_note);
             if WalletTool::tool_name() == host::StageTx::tool_name() {
-                step.execution(RoutedActionExecution::Transaction(
-                    TransactionExecutionPlan {
-                        steps: vec![
-                            TransactionExecutionStep::SimulateBatch,
-                            TransactionExecutionStep::CommitTxs {
-                                bind_as: callback_field.to_string(),
-                                aa_preference: Some("auto".to_string()),
-                            },
-                        ],
-                        on_simulation_failure: Some(TransactionFailurePolicy::Stop),
-                    },
-                ));
+                step.enforce(EnforcementPolicy::Stop, |enforce| {
+                    enforce.add::<host::SimulateBatch>(json!({}));
+                    enforce
+                        .add::<host::CommitTxs>(json!({"aa_preference": "auto"}))
+                        .bind_as(callback_field);
+                });
             }
         })
         .after::<FollowUpTool>(follow_up_args)

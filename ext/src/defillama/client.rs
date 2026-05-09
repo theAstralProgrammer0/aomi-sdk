@@ -1,475 +1,1240 @@
-use crate::defillama::types::{
-    ExcludedChartsQuery, FeesOverviewQuery, HistoricalTokenPriceQuery, IncludePricesQuery,
-    ProtocolFeesQuery, StablecoinHistoryQuery, TokenPriceChangeQuery,
-};
-use serde::Serialize;
-use serde_json::Value;
-use std::time::Duration;
-
-pub const DEFAULT_DEFILLAMA_API: &str = "https://api.llama.fi";
-pub const DEFAULT_DEFILLAMA_COINS_API: &str = "https://coins.llama.fi";
-pub const DEFAULT_DEFILLAMA_YIELDS_API: &str = "https://yields.llama.fi";
-pub const DEFAULT_DEFILLAMA_STABLECOINS_API: &str = "https://stablecoins.llama.fi";
-
-#[derive(Clone)]
-pub struct DefiLamaClient {
-    pub http: reqwest::blocking::Client,
-    pub api_endpoint: String,
-    pub coins_endpoint: String,
-    pub yields_endpoint: String,
-    pub stablecoins_endpoint: String,
-}
-
-impl DefiLamaClient {
-    pub fn new() -> Result<Self, String> {
-        let http = reqwest::blocking::Client::builder()
-            .timeout(Duration::from_secs(30))
-            .build()
-            .map_err(|e| format!("failed to build HTTP client: {e}"))?;
-        Ok(Self {
-            http,
-            api_endpoint: std::env::var("DEFILLAMA_API_ENDPOINT")
-                .unwrap_or_else(|_| DEFAULT_DEFILLAMA_API.to_string()),
-            coins_endpoint: std::env::var("DEFILLAMA_COINS_ENDPOINT")
-                .unwrap_or_else(|_| DEFAULT_DEFILLAMA_COINS_API.to_string()),
-            yields_endpoint: std::env::var("DEFILLAMA_YIELDS_ENDPOINT")
-                .unwrap_or_else(|_| DEFAULT_DEFILLAMA_YIELDS_API.to_string()),
-            stablecoins_endpoint: std::env::var("DEFILLAMA_STABLECOINS_ENDPOINT")
-                .unwrap_or_else(|_| DEFAULT_DEFILLAMA_STABLECOINS_API.to_string()),
-        })
-    }
-
-    fn get_json(&self, url: &str, op: &str) -> Result<Value, String> {
-        let response = self
-            .http
-            .get(url)
-            .send()
-            .map_err(|e| format!("[defillama] {op} request failed ({url}): {e}"))?;
-
-        let status = response.status();
-        let body = response.text().unwrap_or_default();
-        if !status.is_success() {
-            return Err(format!(
-                "[defillama] {op} request failed ({url}): {status} {body}"
-            ));
-        }
-
-        serde_json::from_str::<Value>(&body)
-            .map_err(|e| format!("[defillama] {op} decode failed ({url}): {e}; body: {body}"))
-    }
-
-    fn get_json_with_query<Q: Serialize>(
-        &self,
-        url: &str,
-        query: &Q,
-        op: &str,
-    ) -> Result<Value, String> {
-        let response = self
-            .http
-            .get(url)
-            .query(query)
-            .send()
-            .map_err(|e| format!("[defillama] {op} request failed ({url}): {e}"))?;
-
-        let status = response.status();
-        let body = response.text().unwrap_or_default();
-        if !status.is_success() {
-            return Err(format!(
-                "[defillama] {op} request failed ({url}): {status} {body}"
-            ));
-        }
-
-        serde_json::from_str::<Value>(&body)
-            .map_err(|e| format!("[defillama] {op} decode failed ({url}): {e}; body: {body}"))
-    }
-
-    pub fn get_token_price(&self, token: &str) -> Result<Value, String> {
-        let coin_id = normalize_token_id(token);
-        let url = format!("{}/prices/current/{}", self.coins_endpoint, coin_id);
-        self.get_json(&url, "token price")
-    }
-
-    pub fn get_yield_pools(
-        &self,
-        chain: Option<&str>,
-        project: Option<&str>,
-    ) -> Result<Value, String> {
-        let url = format!("{}/pools", self.yields_endpoint);
-        let mut value = self.get_json(&url, "yield pools")?;
-
-        if let Some(data) = value.get_mut("data").and_then(Value::as_array_mut) {
-            data.retain(|pool| {
-                let chain_ok = chain
-                    .map(|c| {
-                        pool.get("chain")
-                            .and_then(Value::as_str)
-                            .map(|s| s.eq_ignore_ascii_case(c))
-                            .unwrap_or(false)
-                    })
-                    .unwrap_or(true);
-                let project_ok = project
-                    .map(|p| {
-                        let p_lower = p.to_lowercase();
-                        pool.get("project")
-                            .and_then(Value::as_str)
-                            .map(|s| s.to_lowercase().contains(&p_lower))
-                            .unwrap_or(false)
-                    })
-                    .unwrap_or(true);
-                let apy_ok = pool.get("apy").and_then(Value::as_f64).unwrap_or(0.0) > 0.0;
-                chain_ok && project_ok && apy_ok
-            });
-        }
-
-        Ok(value)
-    }
-
-    pub fn get_protocols(&self, category: Option<&str>) -> Result<Value, String> {
-        let url = format!("{}/protocols", self.api_endpoint);
-        let mut value = self.get_json(&url, "protocols")?;
-
-        if let Some(arr) = value.as_array_mut() {
-            if let Some(category_filter) = category {
-                let category_filter = category_filter.to_lowercase();
-                arr.retain(|protocol| {
-                    protocol
-                        .get("category")
-                        .and_then(Value::as_str)
-                        .map(|s| s.to_lowercase().contains(&category_filter))
-                        .unwrap_or(false)
-                });
+#[allow(unused_imports)]
+pub use progenitor_client::{ByteStream, ClientInfo, Error, ResponseValue};
+#[allow(unused_imports)]
+use progenitor_client::{encode_path, ClientHooks, OperationInfo, RequestBuilderExt};
+/// Types used as operation parameters and responses.
+#[allow(clippy::all)]
+pub mod types {
+    /// Error types.
+    pub mod error {
+        /// Error from a `TryFrom` or `FromStr` implementation.
+        pub struct ConversionError(::std::borrow::Cow<'static, str>);
+        impl ::std::error::Error for ConversionError {}
+        impl ::std::fmt::Display for ConversionError {
+            fn fmt(
+                &self,
+                f: &mut ::std::fmt::Formatter<'_>,
+            ) -> Result<(), ::std::fmt::Error> {
+                ::std::fmt::Display::fmt(&self.0, f)
             }
-            arr.sort_by(|a, b| {
-                let at = a.get("tvl").and_then(Value::as_f64).unwrap_or(0.0);
-                let bt = b.get("tvl").and_then(Value::as_f64).unwrap_or(0.0);
-                bt.partial_cmp(&at).unwrap_or(std::cmp::Ordering::Equal)
-            });
         }
-
-        Ok(value)
-    }
-
-    pub fn get_chains_tvl(&self) -> Result<Value, String> {
-        let url = format!("{}/v2/chains", self.api_endpoint);
-        let mut value = self.get_json(&url, "chains tvl")?;
-
-        if let Some(arr) = value.as_array_mut() {
-            arr.sort_by(|a, b| {
-                let at = a.get("tvl").and_then(Value::as_f64).unwrap_or(0.0);
-                let bt = b.get("tvl").and_then(Value::as_f64).unwrap_or(0.0);
-                bt.partial_cmp(&at).unwrap_or(std::cmp::Ordering::Equal)
-            });
+        impl ::std::fmt::Debug for ConversionError {
+            fn fmt(
+                &self,
+                f: &mut ::std::fmt::Formatter<'_>,
+            ) -> Result<(), ::std::fmt::Error> {
+                ::std::fmt::Debug::fmt(&self.0, f)
+            }
         }
-
-        Ok(value)
+        impl From<&'static str> for ConversionError {
+            fn from(value: &'static str) -> Self {
+                Self(value.into())
+            }
+        }
+        impl From<String> for ConversionError {
+            fn from(value: String) -> Self {
+                Self(value.into())
+            }
+        }
     }
-
-    pub fn get_protocol_detail(&self, protocol: &str) -> Result<Value, String> {
-        let url = format!("{}/protocol/{}", self.api_endpoint, protocol);
-        self.get_json(&url, "protocol detail")
+    ///`ChainTvl`
+    ///
+    /// <details><summary>JSON schema</summary>
+    ///
+    /// ```json
+    ///{
+    ///  "type": "object",
+    ///  "required": [
+    ///    "name",
+    ///    "tvl"
+    ///  ],
+    ///  "properties": {
+    ///    "chainId": {
+    ///      "type": [
+    ///        "integer",
+    ///        "null"
+    ///      ]
+    ///    },
+    ///    "name": {
+    ///      "type": "string"
+    ///    },
+    ///    "tokenSymbol": {
+    ///      "type": [
+    ///        "string",
+    ///        "null"
+    ///      ]
+    ///    },
+    ///    "tvl": {
+    ///      "type": "number"
+    ///    }
+    ///  },
+    ///  "additionalProperties": true
+    ///}
+    /// ```
+    /// </details>
+    #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+    pub struct ChainTvl {
+        #[serde(
+            rename = "chainId",
+            default,
+            skip_serializing_if = "::std::option::Option::is_none"
+        )]
+        pub chain_id: ::std::option::Option<i64>,
+        pub name: ::std::string::String,
+        #[serde(
+            rename = "tokenSymbol",
+            default,
+            skip_serializing_if = "::std::option::Option::is_none"
+        )]
+        pub token_symbol: ::std::option::Option<::std::string::String>,
+        pub tvl: f64,
     }
+    ///`CoinPrice`
+    ///
+    /// <details><summary>JSON schema</summary>
+    ///
+    /// ```json
+    ///{
+    ///  "type": "object",
+    ///  "properties": {
+    ///    "confidence": {
+    ///      "type": [
+    ///        "number",
+    ///        "null"
+    ///      ]
+    ///    },
+    ///    "decimals": {
+    ///      "type": "integer"
+    ///    },
+    ///    "price": {
+    ///      "type": "number"
+    ///    },
+    ///    "symbol": {
+    ///      "type": "string"
+    ///    },
+    ///    "timestamp": {
+    ///      "type": "integer",
+    ///      "format": "int64"
+    ///    }
+    ///  },
+    ///  "additionalProperties": true
+    ///}
+    /// ```
+    /// </details>
+    #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+    pub struct CoinPrice {
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        pub confidence: ::std::option::Option<f64>,
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        pub decimals: ::std::option::Option<i64>,
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        pub price: ::std::option::Option<f64>,
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        pub symbol: ::std::option::Option<::std::string::String>,
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        pub timestamp: ::std::option::Option<i64>,
+    }
+    impl ::std::default::Default for CoinPrice {
+        fn default() -> Self {
+            Self {
+                confidence: Default::default(),
+                decimals: Default::default(),
+                price: Default::default(),
+                symbol: Default::default(),
+                timestamp: Default::default(),
+            }
+        }
+    }
+    ///`CoinPriceMap`
+    ///
+    /// <details><summary>JSON schema</summary>
+    ///
+    /// ```json
+    ///{
+    ///  "type": "object",
+    ///  "properties": {
+    ///    "coins": {
+    ///      "type": "object",
+    ///      "additionalProperties": {
+    ///        "$ref": "#/components/schemas/CoinPrice"
+    ///      }
+    ///    }
+    ///  }
+    ///}
+    /// ```
+    /// </details>
+    #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+    pub struct CoinPriceMap {
+        #[serde(
+            default,
+            skip_serializing_if = ":: std :: collections :: HashMap::is_empty"
+        )]
+        pub coins: ::std::collections::HashMap<::std::string::String, CoinPrice>,
+    }
+    impl ::std::default::Default for CoinPriceMap {
+        fn default() -> Self {
+            Self { coins: Default::default() }
+        }
+    }
+    ///`ProtocolSummary`
+    ///
+    /// <details><summary>JSON schema</summary>
+    ///
+    /// ```json
+    ///{
+    ///  "type": "object",
+    ///  "required": [
+    ///    "name",
+    ///    "tvl"
+    ///  ],
+    ///  "properties": {
+    ///    "category": {
+    ///      "type": [
+    ///        "string",
+    ///        "null"
+    ///      ]
+    ///    },
+    ///    "chainTvls": {
+    ///      "type": "object",
+    ///      "additionalProperties": {
+    ///        "type": "number"
+    ///      }
+    ///    },
+    ///    "chains": {
+    ///      "type": "array",
+    ///      "items": {
+    ///        "type": "string"
+    ///      }
+    ///    },
+    ///    "id": {
+    ///      "type": "string"
+    ///    },
+    ///    "name": {
+    ///      "type": "string"
+    ///    },
+    ///    "symbol": {
+    ///      "type": [
+    ///        "string",
+    ///        "null"
+    ///      ]
+    ///    },
+    ///    "tvl": {
+    ///      "type": "number"
+    ///    }
+    ///  },
+    ///  "additionalProperties": true
+    ///}
+    /// ```
+    /// </details>
+    #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+    pub struct ProtocolSummary {
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        pub category: ::std::option::Option<::std::string::String>,
+        #[serde(
+            rename = "chainTvls",
+            default,
+            skip_serializing_if = ":: std :: collections :: HashMap::is_empty"
+        )]
+        pub chain_tvls: ::std::collections::HashMap<::std::string::String, f64>,
+        #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
+        pub chains: ::std::vec::Vec<::std::string::String>,
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        pub id: ::std::option::Option<::std::string::String>,
+        pub name: ::std::string::String,
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        pub symbol: ::std::option::Option<::std::string::String>,
+        pub tvl: f64,
+    }
+    ///`TvlPoint`
+    ///
+    /// <details><summary>JSON schema</summary>
+    ///
+    /// ```json
+    ///{
+    ///  "type": "object",
+    ///  "required": [
+    ///    "date",
+    ///    "tvl"
+    ///  ],
+    ///  "properties": {
+    ///    "date": {
+    ///      "description": "Unix epoch seconds.",
+    ///      "type": "integer",
+    ///      "format": "int64"
+    ///    },
+    ///    "tvl": {
+    ///      "type": "number"
+    ///    }
+    ///  }
+    ///}
+    /// ```
+    /// </details>
+    #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+    pub struct TvlPoint {
+        ///Unix epoch seconds.
+        pub date: i64,
+        pub tvl: f64,
+    }
+}
+#[derive(Clone, Debug)]
+/**Client for DefiLlama API
 
-    pub fn get_dex_volumes(
-        &self,
-        chain: Option<&str>,
+Free public DefiLlama REST API.
+
+## Hosts
+DefiLlama splits its surface across four hosts:
+  - `https://api.llama.fi`         — protocols, TVL, fees, dex/options/perps overviews, blocks
+  - `https://coins.llama.fi`       — token prices (current, historical, batch, chart, %, first)
+  - `https://yields.llama.fi`      — yield pools and per-pool charts
+  - `https://stablecoins.llama.fi` — stablecoin mcap, chain distribution, prices
+
+Each operation declares its own `servers` entry to pin the host.
+
+## Auth
+All endpoints in this spec are unauthenticated. DefiLlama also exposes a
+Pro API at `https://pro-api.llama.fi/{key}/...` which is intentionally NOT
+covered here.
+
+
+Version: 1.0*/
+pub struct Client {
+    pub(crate) baseurl: String,
+    pub(crate) client: reqwest::Client,
+}
+impl Client {
+    /// Create a new client.
+    ///
+    /// `baseurl` is the base URL provided to the internal
+    /// `reqwest::Client`, and should include a scheme and hostname,
+    /// as well as port and a path stem if applicable.
+    pub fn new(baseurl: &str) -> Self {
+        #[cfg(not(target_arch = "wasm32"))]
+        let client = {
+            let dur = ::std::time::Duration::from_secs(15u64);
+            reqwest::ClientBuilder::new().connect_timeout(dur).timeout(dur)
+        };
+        #[cfg(target_arch = "wasm32")]
+        let client = reqwest::ClientBuilder::new();
+        Self::new_with_client(baseurl, client.build().unwrap())
+    }
+    /// Construct a new client with an existing `reqwest::Client`,
+    /// allowing more control over its configuration.
+    ///
+    /// `baseurl` is the base URL provided to the internal
+    /// `reqwest::Client`, and should include a scheme and hostname,
+    /// as well as port and a path stem if applicable.
+    pub fn new_with_client(baseurl: &str, client: reqwest::Client) -> Self {
+        Self {
+            baseurl: baseurl.to_string(),
+            client,
+        }
+    }
+}
+impl ClientInfo<()> for Client {
+    fn api_version() -> &'static str {
+        "1.0"
+    }
+    fn baseurl(&self) -> &str {
+        self.baseurl.as_str()
+    }
+    fn client(&self) -> &reqwest::Client {
+        &self.client
+    }
+    fn inner(&self) -> &() {
+        &()
+    }
+}
+impl ClientHooks<()> for &Client {}
+#[allow(clippy::all)]
+impl Client {
+    /**List all protocols with current TVL
+
+Sends a `GET` request to `/protocols`
+
+Arguments:
+- `category`: Optional category filter (e.g. "Lending", "Dexes").
+*/
+    pub async fn get_protocols<'a>(
+        &'a self,
+        category: Option<&'a str>,
+    ) -> Result<ResponseValue<::std::vec::Vec<types::ProtocolSummary>>, Error<()>> {
+        let url = format!("{}/protocols", self.baseurl,);
+        let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
+        header_map
+            .append(
+                ::reqwest::header::HeaderName::from_static("api-version"),
+                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+            );
+        #[allow(unused_mut)]
+        let mut request = self
+            .client
+            .get(url)
+            .header(
+                ::reqwest::header::ACCEPT,
+                ::reqwest::header::HeaderValue::from_static("application/json"),
+            )
+            .query(&progenitor_client::QueryParam::new("category", &category))
+            .headers(header_map)
+            .build()?;
+        let info = OperationInfo {
+            operation_id: "get_protocols",
+        };
+        self.pre(&mut request, &info).await?;
+        let result = self.exec(request, &info).await;
+        self.post(&result, &info).await?;
+        let response = result?;
+        match response.status().as_u16() {
+            200u16 => ResponseValue::from_response(response).await,
+            _ => Err(Error::UnexpectedResponse(response)),
+        }
+    }
+    /**Historical TVL of a protocol with token and chain breakdowns
+
+Sends a `GET` request to `/protocol/{protocol}`
+
+Arguments:
+- `protocol`: Protocol slug (e.g. "uniswap", "aave-v3").
+*/
+    pub async fn get_protocol_detail<'a>(
+        &'a self,
+        protocol: &'a str,
+    ) -> Result<
+        ResponseValue<::serde_json::Map<::std::string::String, ::serde_json::Value>>,
+        Error<()>,
+    > {
+        let url = format!(
+            "{}/protocol/{}", self.baseurl, encode_path(& protocol.to_string()),
+        );
+        let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
+        header_map
+            .append(
+                ::reqwest::header::HeaderName::from_static("api-version"),
+                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+            );
+        #[allow(unused_mut)]
+        let mut request = self
+            .client
+            .get(url)
+            .header(
+                ::reqwest::header::ACCEPT,
+                ::reqwest::header::HeaderValue::from_static("application/json"),
+            )
+            .headers(header_map)
+            .build()?;
+        let info = OperationInfo {
+            operation_id: "get_protocol_detail",
+        };
+        self.pre(&mut request, &info).await?;
+        let result = self.exec(request, &info).await;
+        self.post(&result, &info).await?;
+        let response = result?;
+        match response.status().as_u16() {
+            200u16 => ResponseValue::from_response(response).await,
+            _ => Err(Error::UnexpectedResponse(response)),
+        }
+    }
+    /**Current TVL of a protocol (single number)
+
+Sends a `GET` request to `/tvl/{protocol}`
+
+Arguments:
+- `protocol`: Protocol slug (e.g. "uniswap", "aave-v3").
+*/
+    pub async fn get_protocol_current_tvl<'a>(
+        &'a self,
+        protocol: &'a str,
+    ) -> Result<ResponseValue<f64>, Error<()>> {
+        let url = format!(
+            "{}/tvl/{}", self.baseurl, encode_path(& protocol.to_string()),
+        );
+        let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
+        header_map
+            .append(
+                ::reqwest::header::HeaderName::from_static("api-version"),
+                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+            );
+        #[allow(unused_mut)]
+        let mut request = self
+            .client
+            .get(url)
+            .header(
+                ::reqwest::header::ACCEPT,
+                ::reqwest::header::HeaderValue::from_static("application/json"),
+            )
+            .headers(header_map)
+            .build()?;
+        let info = OperationInfo {
+            operation_id: "get_protocol_current_tvl",
+        };
+        self.pre(&mut request, &info).await?;
+        let result = self.exec(request, &info).await;
+        self.post(&result, &info).await?;
+        let response = result?;
+        match response.status().as_u16() {
+            200u16 => ResponseValue::from_response(response).await,
+            _ => Err(Error::UnexpectedResponse(response)),
+        }
+    }
+    /**Current TVL of all chains
+
+Sends a `GET` request to `/v2/chains`
+
+*/
+    pub async fn get_chains_tvl<'a>(
+        &'a self,
+    ) -> Result<ResponseValue<::std::vec::Vec<types::ChainTvl>>, Error<()>> {
+        let url = format!("{}/v2/chains", self.baseurl,);
+        let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
+        header_map
+            .append(
+                ::reqwest::header::HeaderName::from_static("api-version"),
+                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+            );
+        #[allow(unused_mut)]
+        let mut request = self
+            .client
+            .get(url)
+            .header(
+                ::reqwest::header::ACCEPT,
+                ::reqwest::header::HeaderValue::from_static("application/json"),
+            )
+            .headers(header_map)
+            .build()?;
+        let info = OperationInfo {
+            operation_id: "get_chains_tvl",
+        };
+        self.pre(&mut request, &info).await?;
+        let result = self.exec(request, &info).await;
+        self.post(&result, &info).await?;
+        let response = result?;
+        match response.status().as_u16() {
+            200u16 => ResponseValue::from_response(response).await,
+            _ => Err(Error::UnexpectedResponse(response)),
+        }
+    }
+    /**Historical TVL across all chains
+
+Sends a `GET` request to `/v2/historicalChainTvl`
+
+*/
+    pub async fn get_historical_chain_tvl_all<'a>(
+        &'a self,
+    ) -> Result<ResponseValue<::std::vec::Vec<types::TvlPoint>>, Error<()>> {
+        let url = format!("{}/v2/historicalChainTvl", self.baseurl,);
+        let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
+        header_map
+            .append(
+                ::reqwest::header::HeaderName::from_static("api-version"),
+                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+            );
+        #[allow(unused_mut)]
+        let mut request = self
+            .client
+            .get(url)
+            .header(
+                ::reqwest::header::ACCEPT,
+                ::reqwest::header::HeaderValue::from_static("application/json"),
+            )
+            .headers(header_map)
+            .build()?;
+        let info = OperationInfo {
+            operation_id: "get_historical_chain_tvl_all",
+        };
+        self.pre(&mut request, &info).await?;
+        let result = self.exec(request, &info).await;
+        self.post(&result, &info).await?;
+        let response = result?;
+        match response.status().as_u16() {
+            200u16 => ResponseValue::from_response(response).await,
+            _ => Err(Error::UnexpectedResponse(response)),
+        }
+    }
+    /**Historical TVL of a single chain
+
+Sends a `GET` request to `/v2/historicalChainTvl/{chain}`
+
+Arguments:
+- `chain`: Chain slug (e.g. "ethereum", "arbitrum").
+*/
+    pub async fn get_historical_chain_tvl<'a>(
+        &'a self,
+        chain: &'a str,
+    ) -> Result<ResponseValue<::std::vec::Vec<types::TvlPoint>>, Error<()>> {
+        let url = format!(
+            "{}/v2/historicalChainTvl/{}", self.baseurl, encode_path(& chain
+            .to_string()),
+        );
+        let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
+        header_map
+            .append(
+                ::reqwest::header::HeaderName::from_static("api-version"),
+                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+            );
+        #[allow(unused_mut)]
+        let mut request = self
+            .client
+            .get(url)
+            .header(
+                ::reqwest::header::ACCEPT,
+                ::reqwest::header::HeaderValue::from_static("application/json"),
+            )
+            .headers(header_map)
+            .build()?;
+        let info = OperationInfo {
+            operation_id: "get_historical_chain_tvl",
+        };
+        self.pre(&mut request, &info).await?;
+        let result = self.exec(request, &info).await;
+        self.post(&result, &info).await?;
+        let response = result?;
+        match response.status().as_u16() {
+            200u16 => ResponseValue::from_response(response).await,
+            _ => Err(Error::UnexpectedResponse(response)),
+        }
+    }
+    /**All DEXs with volume summaries
+
+Sends a `GET` request to `/overview/dexs`
+
+*/
+    pub async fn get_dex_overview<'a>(
+        &'a self,
+        data_type: Option<&'a str>,
         exclude_total_data_chart: Option<bool>,
         exclude_total_data_chart_breakdown: Option<bool>,
-    ) -> Result<Value, String> {
-        let url = match chain {
-            Some(c) => format!("{}/overview/dexs/{}", self.api_endpoint, c),
-            None => format!("{}/overview/dexs", self.api_endpoint),
+    ) -> Result<
+        ResponseValue<::serde_json::Map<::std::string::String, ::serde_json::Value>>,
+        Error<()>,
+    > {
+        let url = format!("{}/overview/dexs", self.baseurl,);
+        let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
+        header_map
+            .append(
+                ::reqwest::header::HeaderName::from_static("api-version"),
+                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+            );
+        #[allow(unused_mut)]
+        let mut request = self
+            .client
+            .get(url)
+            .header(
+                ::reqwest::header::ACCEPT,
+                ::reqwest::header::HeaderValue::from_static("application/json"),
+            )
+            .query(&progenitor_client::QueryParam::new("dataType", &data_type))
+            .query(
+                &progenitor_client::QueryParam::new(
+                    "excludeTotalDataChart",
+                    &exclude_total_data_chart,
+                ),
+            )
+            .query(
+                &progenitor_client::QueryParam::new(
+                    "excludeTotalDataChartBreakdown",
+                    &exclude_total_data_chart_breakdown,
+                ),
+            )
+            .headers(header_map)
+            .build()?;
+        let info = OperationInfo {
+            operation_id: "get_dex_overview",
         };
-        self.get_json_with_query(
-            &url,
-            &ExcludedChartsQuery {
-                exclude_total_data_chart: exclude_total_data_chart.unwrap_or(true),
-                exclude_total_data_chart_breakdown: exclude_total_data_chart_breakdown
-                    .unwrap_or(true),
-            },
-            "dex volumes",
-        )
+        self.pre(&mut request, &info).await?;
+        let result = self.exec(request, &info).await;
+        self.post(&result, &info).await?;
+        let response = result?;
+        match response.status().as_u16() {
+            200u16 => ResponseValue::from_response(response).await,
+            _ => Err(Error::UnexpectedResponse(response)),
+        }
     }
+    /**All DEXs on a chain
 
-    pub fn get_fees_overview(
-        &self,
-        chain: Option<&str>,
+Sends a `GET` request to `/overview/dexs/{chain}`
+
+Arguments:
+- `chain`: Chain slug (e.g. "ethereum", "arbitrum").
+- `exclude_total_data_chart`
+- `exclude_total_data_chart_breakdown`
+*/
+    pub async fn get_dex_overview_by_chain<'a>(
+        &'a self,
+        chain: &'a str,
         exclude_total_data_chart: Option<bool>,
         exclude_total_data_chart_breakdown: Option<bool>,
-        data_type: Option<&str>,
-    ) -> Result<Value, String> {
-        let url = match chain {
-            Some(c) => format!("{}/overview/fees/{}", self.api_endpoint, c),
-            None => format!("{}/overview/fees", self.api_endpoint),
+    ) -> Result<
+        ResponseValue<::serde_json::Map<::std::string::String, ::serde_json::Value>>,
+        Error<()>,
+    > {
+        let url = format!(
+            "{}/overview/dexs/{}", self.baseurl, encode_path(& chain.to_string()),
+        );
+        let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
+        header_map
+            .append(
+                ::reqwest::header::HeaderName::from_static("api-version"),
+                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+            );
+        #[allow(unused_mut)]
+        let mut request = self
+            .client
+            .get(url)
+            .header(
+                ::reqwest::header::ACCEPT,
+                ::reqwest::header::HeaderValue::from_static("application/json"),
+            )
+            .query(
+                &progenitor_client::QueryParam::new(
+                    "excludeTotalDataChart",
+                    &exclude_total_data_chart,
+                ),
+            )
+            .query(
+                &progenitor_client::QueryParam::new(
+                    "excludeTotalDataChartBreakdown",
+                    &exclude_total_data_chart_breakdown,
+                ),
+            )
+            .headers(header_map)
+            .build()?;
+        let info = OperationInfo {
+            operation_id: "get_dex_overview_by_chain",
         };
-        self.get_json_with_query(
-            &url,
-            &FeesOverviewQuery {
-                exclude_total_data_chart: exclude_total_data_chart.unwrap_or(true),
-                exclude_total_data_chart_breakdown: exclude_total_data_chart_breakdown
-                    .unwrap_or(true),
-                data_type: data_type.map(str::to_string),
-            },
-            "fees overview",
-        )
+        self.pre(&mut request, &info).await?;
+        let result = self.exec(request, &info).await;
+        self.post(&result, &info).await?;
+        let response = result?;
+        match response.status().as_u16() {
+            200u16 => ResponseValue::from_response(response).await,
+            _ => Err(Error::UnexpectedResponse(response)),
+        }
     }
+    /**Volume summary for a single DEX protocol
 
-    pub fn get_protocol_fees(
-        &self,
-        protocol: &str,
-        data_type: Option<&str>,
-    ) -> Result<Value, String> {
-        let url = format!("{}/summary/fees/{}", self.api_endpoint, protocol);
-        self.get_json_with_query(
-            &url,
-            &ProtocolFeesQuery {
-                data_type: data_type.map(str::to_string),
-            },
-            "protocol fees",
-        )
+Sends a `GET` request to `/summary/dexs/{protocol}`
+
+Arguments:
+- `protocol`: Protocol slug (e.g. "uniswap", "aave-v3").
+- `data_type`
+- `exclude_total_data_chart`
+- `exclude_total_data_chart_breakdown`
+*/
+    pub async fn get_dex_protocol_volume<'a>(
+        &'a self,
+        protocol: &'a str,
+        data_type: Option<&'a str>,
+        exclude_total_data_chart: Option<bool>,
+        exclude_total_data_chart_breakdown: Option<bool>,
+    ) -> Result<
+        ResponseValue<::serde_json::Map<::std::string::String, ::serde_json::Value>>,
+        Error<()>,
+    > {
+        let url = format!(
+            "{}/summary/dexs/{}", self.baseurl, encode_path(& protocol.to_string()),
+        );
+        let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
+        header_map
+            .append(
+                ::reqwest::header::HeaderName::from_static("api-version"),
+                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+            );
+        #[allow(unused_mut)]
+        let mut request = self
+            .client
+            .get(url)
+            .header(
+                ::reqwest::header::ACCEPT,
+                ::reqwest::header::HeaderValue::from_static("application/json"),
+            )
+            .query(&progenitor_client::QueryParam::new("dataType", &data_type))
+            .query(
+                &progenitor_client::QueryParam::new(
+                    "excludeTotalDataChart",
+                    &exclude_total_data_chart,
+                ),
+            )
+            .query(
+                &progenitor_client::QueryParam::new(
+                    "excludeTotalDataChartBreakdown",
+                    &exclude_total_data_chart_breakdown,
+                ),
+            )
+            .headers(header_map)
+            .build()?;
+        let info = OperationInfo {
+            operation_id: "get_dex_protocol_volume",
+        };
+        self.pre(&mut request, &info).await?;
+        let result = self.exec(request, &info).await;
+        self.post(&result, &info).await?;
+        let response = result?;
+        match response.status().as_u16() {
+            200u16 => ResponseValue::from_response(response).await,
+            _ => Err(Error::UnexpectedResponse(response)),
+        }
     }
+    /**All protocols with fee/revenue summaries
 
-    pub fn get_stablecoins(&self, include_prices: Option<bool>) -> Result<Value, String> {
-        let url = format!("{}/stablecoins", self.stablecoins_endpoint);
-        self.get_json_with_query(
-            &url,
-            &IncludePricesQuery {
-                include_prices: include_prices.unwrap_or(true),
-            },
-            "stablecoins",
-        )
+Sends a `GET` request to `/overview/fees`
+
+*/
+    pub async fn get_fees_overview<'a>(
+        &'a self,
+        data_type: Option<&'a str>,
+    ) -> Result<
+        ResponseValue<::serde_json::Map<::std::string::String, ::serde_json::Value>>,
+        Error<()>,
+    > {
+        let url = format!("{}/overview/fees", self.baseurl,);
+        let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
+        header_map
+            .append(
+                ::reqwest::header::HeaderName::from_static("api-version"),
+                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+            );
+        #[allow(unused_mut)]
+        let mut request = self
+            .client
+            .get(url)
+            .header(
+                ::reqwest::header::ACCEPT,
+                ::reqwest::header::HeaderValue::from_static("application/json"),
+            )
+            .query(&progenitor_client::QueryParam::new("dataType", &data_type))
+            .headers(header_map)
+            .build()?;
+        let info = OperationInfo {
+            operation_id: "get_fees_overview",
+        };
+        self.pre(&mut request, &info).await?;
+        let result = self.exec(request, &info).await;
+        self.post(&result, &info).await?;
+        let response = result?;
+        match response.status().as_u16() {
+            200u16 => ResponseValue::from_response(response).await,
+            _ => Err(Error::UnexpectedResponse(response)),
+        }
     }
+    /**Fee/revenue summary for a single protocol
 
-    pub fn get_stablecoin_chains(&self) -> Result<Value, String> {
-        let url = format!("{}/stablecoinchains", self.stablecoins_endpoint);
-        self.get_json(&url, "stablecoin chains")
+Sends a `GET` request to `/summary/fees/{protocol}`
+
+Arguments:
+- `protocol`: Protocol slug (e.g. "uniswap", "aave-v3").
+- `data_type`
+*/
+    pub async fn get_protocol_fees<'a>(
+        &'a self,
+        protocol: &'a str,
+        data_type: Option<&'a str>,
+    ) -> Result<
+        ResponseValue<::serde_json::Map<::std::string::String, ::serde_json::Value>>,
+        Error<()>,
+    > {
+        let url = format!(
+            "{}/summary/fees/{}", self.baseurl, encode_path(& protocol.to_string()),
+        );
+        let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
+        header_map
+            .append(
+                ::reqwest::header::HeaderName::from_static("api-version"),
+                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+            );
+        #[allow(unused_mut)]
+        let mut request = self
+            .client
+            .get(url)
+            .header(
+                ::reqwest::header::ACCEPT,
+                ::reqwest::header::HeaderValue::from_static("application/json"),
+            )
+            .query(&progenitor_client::QueryParam::new("dataType", &data_type))
+            .headers(header_map)
+            .build()?;
+        let info = OperationInfo {
+            operation_id: "get_protocol_fees",
+        };
+        self.pre(&mut request, &info).await?;
+        let result = self.exec(request, &info).await;
+        self.post(&result, &info).await?;
+        let response = result?;
+        match response.status().as_u16() {
+            200u16 => ResponseValue::from_response(response).await,
+            _ => Err(Error::UnexpectedResponse(response)),
+        }
     }
+    /**Current prices of tokens by `chain:address` (or coingecko id)
 
-    pub fn get_historical_token_price(
-        &self,
-        coins: &str,
-        start: Option<u64>,
-        end: Option<u64>,
-        span: Option<u64>,
-        period: Option<&str>,
-    ) -> Result<Value, String> {
-        let url = format!("{}/chart/{}", self.coins_endpoint, coins);
-        self.get_json_with_query(
-            &url,
-            &HistoricalTokenPriceQuery {
-                start,
-                end,
-                span,
-                period: period.map(str::to_string),
-            },
-            "historical token price",
-        )
+Sends a `GET` request to `/prices/current/{coins}`
+
+Arguments:
+- `coins`: Comma-separated list of coin IDs in `chain:address` format
+(e.g. `ethereum:0x...`) or coingecko ID (`coingecko:bitcoin`).
+
+- `search_width`
+*/
+    pub async fn get_current_prices<'a>(
+        &'a self,
+        coins: &'a str,
+        search_width: Option<&'a str>,
+    ) -> Result<ResponseValue<types::CoinPriceMap>, Error<()>> {
+        let url = format!(
+            "{}/prices/current/{}", self.baseurl, encode_path(& coins.to_string()),
+        );
+        let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
+        header_map
+            .append(
+                ::reqwest::header::HeaderName::from_static("api-version"),
+                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+            );
+        #[allow(unused_mut)]
+        let mut request = self
+            .client
+            .get(url)
+            .header(
+                ::reqwest::header::ACCEPT,
+                ::reqwest::header::HeaderValue::from_static("application/json"),
+            )
+            .query(&progenitor_client::QueryParam::new("searchWidth", &search_width))
+            .headers(header_map)
+            .build()?;
+        let info = OperationInfo {
+            operation_id: "get_current_prices",
+        };
+        self.pre(&mut request, &info).await?;
+        let result = self.exec(request, &info).await;
+        self.post(&result, &info).await?;
+        let response = result?;
+        match response.status().as_u16() {
+            200u16 => ResponseValue::from_response(response).await,
+            _ => Err(Error::UnexpectedResponse(response)),
+        }
     }
+    /**Prices at a single past timestamp
 
-    pub fn get_token_price_change(
-        &self,
-        coins: &str,
-        timestamp: Option<u64>,
+Sends a `GET` request to `/prices/historical/{timestamp}/{coins}`
+
+Arguments:
+- `timestamp`
+- `coins`: Comma-separated list of coin IDs in `chain:address` format
+(e.g. `ethereum:0x...`) or coingecko ID (`coingecko:bitcoin`).
+
+- `search_width`
+*/
+    pub async fn get_historical_prices<'a>(
+        &'a self,
+        timestamp: i64,
+        coins: &'a str,
+        search_width: Option<&'a str>,
+    ) -> Result<ResponseValue<types::CoinPriceMap>, Error<()>> {
+        let url = format!(
+            "{}/prices/historical/{}/{}", self.baseurl, encode_path(& timestamp
+            .to_string()), encode_path(& coins.to_string()),
+        );
+        let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
+        header_map
+            .append(
+                ::reqwest::header::HeaderName::from_static("api-version"),
+                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+            );
+        #[allow(unused_mut)]
+        let mut request = self
+            .client
+            .get(url)
+            .header(
+                ::reqwest::header::ACCEPT,
+                ::reqwest::header::HeaderValue::from_static("application/json"),
+            )
+            .query(&progenitor_client::QueryParam::new("searchWidth", &search_width))
+            .headers(header_map)
+            .build()?;
+        let info = OperationInfo {
+            operation_id: "get_historical_prices",
+        };
+        self.pre(&mut request, &info).await?;
+        let result = self.exec(request, &info).await;
+        self.post(&result, &info).await?;
+        let response = result?;
+        match response.status().as_u16() {
+            200u16 => ResponseValue::from_response(response).await,
+            _ => Err(Error::UnexpectedResponse(response)),
+        }
+    }
+    /**Percentage change in price over a window
+
+Sends a `GET` request to `/percentage/{coins}`
+
+Arguments:
+- `coins`: Comma-separated list of coin IDs in `chain:address` format
+(e.g. `ethereum:0x...`) or coingecko ID (`coingecko:bitcoin`).
+
+- `look_forward`
+- `period`
+- `timestamp`
+*/
+    pub async fn get_price_change_percentage<'a>(
+        &'a self,
+        coins: &'a str,
         look_forward: Option<bool>,
-        period: Option<&str>,
-    ) -> Result<Value, String> {
-        let url = format!("{}/percentage/{}", self.coins_endpoint, coins);
-        self.get_json_with_query(
-            &url,
-            &TokenPriceChangeQuery {
-                timestamp,
-                look_forward,
-                period: period.map(str::to_string),
-            },
-            "token price change",
-        )
-    }
-
-    pub fn get_historical_chain_tvl(&self, chain: &str) -> Result<Value, String> {
-        let url = format!("{}/v2/historicalChainTvl/{}", self.api_endpoint, chain);
-        self.get_json(&url, "historical chain tvl")
-    }
-
-    pub fn get_dex_protocol_volume(
-        &self,
-        protocol: &str,
-        exclude_total_data_chart: Option<bool>,
-        exclude_total_data_chart_breakdown: Option<bool>,
-    ) -> Result<Value, String> {
-        let url = format!("{}/summary/dexs/{}", self.api_endpoint, protocol);
-        self.get_json_with_query(
-            &url,
-            &ExcludedChartsQuery {
-                exclude_total_data_chart: exclude_total_data_chart.unwrap_or(true),
-                exclude_total_data_chart_breakdown: exclude_total_data_chart_breakdown
-                    .unwrap_or(true),
-            },
-            "dex protocol volume",
-        )
-    }
-
-    pub fn get_stablecoin_history(
-        &self,
-        chain: Option<&str>,
-        stablecoin: Option<u64>,
-    ) -> Result<Value, String> {
-        let url = match chain {
-            Some(c) => format!("{}/stablecoincharts/{}", self.stablecoins_endpoint, c),
-            None => format!("{}/stablecoincharts/all", self.stablecoins_endpoint),
+        period: Option<&'a str>,
+        timestamp: Option<i64>,
+    ) -> Result<
+        ResponseValue<::std::collections::HashMap<::std::string::String, f64>>,
+        Error<()>,
+    > {
+        let url = format!(
+            "{}/percentage/{}", self.baseurl, encode_path(& coins.to_string()),
+        );
+        let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
+        header_map
+            .append(
+                ::reqwest::header::HeaderName::from_static("api-version"),
+                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+            );
+        #[allow(unused_mut)]
+        let mut request = self
+            .client
+            .get(url)
+            .header(
+                ::reqwest::header::ACCEPT,
+                ::reqwest::header::HeaderValue::from_static("application/json"),
+            )
+            .query(&progenitor_client::QueryParam::new("lookForward", &look_forward))
+            .query(&progenitor_client::QueryParam::new("period", &period))
+            .query(&progenitor_client::QueryParam::new("timestamp", &timestamp))
+            .headers(header_map)
+            .build()?;
+        let info = OperationInfo {
+            operation_id: "get_price_change_percentage",
         };
-        self.get_json_with_query(
-            &url,
-            &StablecoinHistoryQuery { stablecoin },
-            "stablecoin history",
-        )
+        self.pre(&mut request, &info).await?;
+        let result = self.exec(request, &info).await;
+        self.post(&result, &info).await?;
+        let response = result?;
+        match response.status().as_u16() {
+            200u16 => ResponseValue::from_response(response).await,
+            _ => Err(Error::UnexpectedResponse(response)),
+        }
     }
+    /**All yield pools enriched with predictions and stats
 
-    pub fn get_yield_pool_history(&self, pool: &str) -> Result<Value, String> {
-        let url = format!("{}/chart/{}", self.yields_endpoint, pool);
-        self.get_json(&url, "yield pool history")
+Sends a `GET` request to `/pools`
+
+*/
+    pub async fn get_yield_pools<'a>(
+        &'a self,
+        chain: Option<&'a str>,
+        project: Option<&'a str>,
+    ) -> Result<
+        ResponseValue<::serde_json::Map<::std::string::String, ::serde_json::Value>>,
+        Error<()>,
+    > {
+        let url = format!("{}/pools", self.baseurl,);
+        let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
+        header_map
+            .append(
+                ::reqwest::header::HeaderName::from_static("api-version"),
+                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+            );
+        #[allow(unused_mut)]
+        let mut request = self
+            .client
+            .get(url)
+            .header(
+                ::reqwest::header::ACCEPT,
+                ::reqwest::header::HeaderValue::from_static("application/json"),
+            )
+            .query(&progenitor_client::QueryParam::new("chain", &chain))
+            .query(&progenitor_client::QueryParam::new("project", &project))
+            .headers(header_map)
+            .build()?;
+        let info = OperationInfo {
+            operation_id: "get_yield_pools",
+        };
+        self.pre(&mut request, &info).await?;
+        let result = self.exec(request, &info).await;
+        self.post(&result, &info).await?;
+        let response = result?;
+        match response.status().as_u16() {
+            200u16 => ResponseValue::from_response(response).await,
+            _ => Err(Error::UnexpectedResponse(response)),
+        }
+    }
+    /**Historical APY and TVL of a single pool
+
+Sends a `GET` request to `/chart/{pool}`
+
+*/
+    pub async fn get_yield_pool_history<'a>(
+        &'a self,
+        pool: &'a str,
+    ) -> Result<
+        ResponseValue<::serde_json::Map<::std::string::String, ::serde_json::Value>>,
+        Error<()>,
+    > {
+        let url = format!("{}/chart/{}", self.baseurl, encode_path(& pool.to_string()),);
+        let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
+        header_map
+            .append(
+                ::reqwest::header::HeaderName::from_static("api-version"),
+                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+            );
+        #[allow(unused_mut)]
+        let mut request = self
+            .client
+            .get(url)
+            .header(
+                ::reqwest::header::ACCEPT,
+                ::reqwest::header::HeaderValue::from_static("application/json"),
+            )
+            .headers(header_map)
+            .build()?;
+        let info = OperationInfo {
+            operation_id: "get_yield_pool_history",
+        };
+        self.pre(&mut request, &info).await?;
+        let result = self.exec(request, &info).await;
+        self.post(&result, &info).await?;
+        let response = result?;
+        match response.status().as_u16() {
+            200u16 => ResponseValue::from_response(response).await,
+            _ => Err(Error::UnexpectedResponse(response)),
+        }
+    }
+    /**All stablecoins with circulating amounts
+
+Sends a `GET` request to `/stablecoins`
+
+*/
+    pub async fn get_stablecoins<'a>(
+        &'a self,
+        include_prices: Option<bool>,
+    ) -> Result<
+        ResponseValue<::serde_json::Map<::std::string::String, ::serde_json::Value>>,
+        Error<()>,
+    > {
+        let url = format!("{}/stablecoins", self.baseurl,);
+        let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
+        header_map
+            .append(
+                ::reqwest::header::HeaderName::from_static("api-version"),
+                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+            );
+        #[allow(unused_mut)]
+        let mut request = self
+            .client
+            .get(url)
+            .header(
+                ::reqwest::header::ACCEPT,
+                ::reqwest::header::HeaderValue::from_static("application/json"),
+            )
+            .query(&progenitor_client::QueryParam::new("includePrices", &include_prices))
+            .headers(header_map)
+            .build()?;
+        let info = OperationInfo {
+            operation_id: "get_stablecoins",
+        };
+        self.pre(&mut request, &info).await?;
+        let result = self.exec(request, &info).await;
+        self.post(&result, &info).await?;
+        let response = result?;
+        match response.status().as_u16() {
+            200u16 => ResponseValue::from_response(response).await,
+            _ => Err(Error::UnexpectedResponse(response)),
+        }
+    }
+    /**Current mcap sum of all stablecoins per chain
+
+Sends a `GET` request to `/stablecoinchains`
+
+*/
+    pub async fn get_stablecoin_chains<'a>(
+        &'a self,
+    ) -> Result<
+        ResponseValue<
+            ::std::vec::Vec<
+                ::serde_json::Map<::std::string::String, ::serde_json::Value>,
+            >,
+        >,
+        Error<()>,
+    > {
+        let url = format!("{}/stablecoinchains", self.baseurl,);
+        let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
+        header_map
+            .append(
+                ::reqwest::header::HeaderName::from_static("api-version"),
+                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+            );
+        #[allow(unused_mut)]
+        let mut request = self
+            .client
+            .get(url)
+            .header(
+                ::reqwest::header::ACCEPT,
+                ::reqwest::header::HeaderValue::from_static("application/json"),
+            )
+            .headers(header_map)
+            .build()?;
+        let info = OperationInfo {
+            operation_id: "get_stablecoin_chains",
+        };
+        self.pre(&mut request, &info).await?;
+        let result = self.exec(request, &info).await;
+        self.post(&result, &info).await?;
+        let response = result?;
+        match response.status().as_u16() {
+            200u16 => ResponseValue::from_response(response).await,
+            _ => Err(Error::UnexpectedResponse(response)),
+        }
+    }
+    /**Historical mcap and chain distribution of a single stablecoin
+
+Sends a `GET` request to `/stablecoin/{asset}`
+
+Arguments:
+- `asset`: Stablecoin id (e.g. "1" for USDT).
+*/
+    pub async fn get_stablecoin_history<'a>(
+        &'a self,
+        asset: &'a str,
+    ) -> Result<
+        ResponseValue<::serde_json::Map<::std::string::String, ::serde_json::Value>>,
+        Error<()>,
+    > {
+        let url = format!(
+            "{}/stablecoin/{}", self.baseurl, encode_path(& asset.to_string()),
+        );
+        let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
+        header_map
+            .append(
+                ::reqwest::header::HeaderName::from_static("api-version"),
+                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+            );
+        #[allow(unused_mut)]
+        let mut request = self
+            .client
+            .get(url)
+            .header(
+                ::reqwest::header::ACCEPT,
+                ::reqwest::header::HeaderValue::from_static("application/json"),
+            )
+            .headers(header_map)
+            .build()?;
+        let info = OperationInfo {
+            operation_id: "get_stablecoin_history",
+        };
+        self.pre(&mut request, &info).await?;
+        let result = self.exec(request, &info).await;
+        self.post(&result, &info).await?;
+        let response = result?;
+        match response.status().as_u16() {
+            200u16 => ResponseValue::from_response(response).await,
+            _ => Err(Error::UnexpectedResponse(response)),
+        }
     }
 }
-
-pub fn normalize_token_id(token: &str) -> String {
-    let token_lower = token.to_lowercase();
-    match token_lower.as_str() {
-        "eth" | "ethereum" => "coingecko:ethereum".to_string(),
-        "btc" | "bitcoin" => "coingecko:bitcoin".to_string(),
-        "usdc" => "coingecko:usd-coin".to_string(),
-        "usdt" | "tether" => "coingecko:tether".to_string(),
-        "dai" => "coingecko:dai".to_string(),
-        "sol" | "solana" => "coingecko:solana".to_string(),
-        "bnb" => "coingecko:binancecoin".to_string(),
-        "avax" | "avalanche" => "coingecko:avalanche-2".to_string(),
-        "matic" | "polygon" => "coingecko:matic-network".to_string(),
-        "arb" | "arbitrum" => "coingecko:arbitrum".to_string(),
-        "op" | "optimism" => "coingecko:optimism".to_string(),
-        "uni" | "uniswap" => "coingecko:uniswap".to_string(),
-        "aave" => "coingecko:aave".to_string(),
-        "link" | "chainlink" => "coingecko:chainlink".to_string(),
-        "mkr" | "maker" => "coingecko:maker".to_string(),
-        "crv" | "curve" => "coingecko:curve-dao-token".to_string(),
-        "ldo" | "lido" => "coingecko:lido-dao".to_string(),
-        _ => format!("coingecko:{token_lower}"),
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn client() -> DefiLamaClient {
-        DefiLamaClient::new().expect("client should build")
-    }
-
-    #[test]
-    fn token_price_smoke() {
-        let res = client()
-            .get_token_price("ethereum")
-            .expect("should get ETH price");
-        let coins = res.get("coins").expect("should have coins key");
-        assert!(coins.as_object().map(|m| !m.is_empty()).unwrap_or(false));
-    }
-
-    #[test]
-    fn protocols_smoke() {
-        let res = client().get_protocols(None).expect("should get protocols");
-        let arr = res.as_array();
-        assert!(arr.map(|a| !a.is_empty()).unwrap_or(false));
-    }
-
-    #[test]
-    fn chains_tvl_smoke() {
-        let res = client().get_chains_tvl().expect("should get chains tvl");
-        assert!(res.is_array());
-    }
-
-    #[test]
-    fn protocol_detail_smoke() {
-        let res = client()
-            .get_protocol_detail("aave")
-            .expect("should get aave detail");
-        assert!(res.get("name").is_some(), "should have protocol name");
-    }
-
-    #[test]
-    fn dex_volumes_smoke() {
-        let res = client()
-            .get_dex_volumes(None, None, None)
-            .expect("should get dex volumes");
-        assert!(res.get("protocols").is_some() || res.get("allChains").is_some());
-    }
-
-    #[test]
-    fn fees_overview_smoke() {
-        client()
-            .get_fees_overview(None, None, None, None)
-            .expect("should get fees overview");
-    }
-
-    #[test]
-    fn protocol_fees_smoke() {
-        client()
-            .get_protocol_fees("aave", None)
-            .expect("should get aave fees");
-    }
-
-    #[test]
-    fn stablecoins_smoke() {
-        let res = client()
-            .get_stablecoins(Some(true))
-            .expect("should get stablecoins");
-        assert!(res.get("peggedAssets").is_some());
-    }
-
-    #[test]
-    fn stablecoin_chains_smoke() {
-        client()
-            .get_stablecoin_chains()
-            .expect("should get stablecoin chains");
-    }
-
-    #[test]
-    fn historical_token_price_smoke() {
-        let res = client()
-            .get_historical_token_price("coingecko:ethereum", None, None, Some(5), Some("1d"))
-            .expect("should get historical price chart");
-        assert!(res.get("coins").is_some(), "should have coins key");
-    }
-
-    #[test]
-    fn token_price_change_smoke() {
-        let res = client()
-            .get_token_price_change("coingecko:ethereum", None, None, Some("1d"))
-            .expect("should get price change");
-        assert!(res.get("coins").is_some(), "should have coins key");
-    }
-
-    #[test]
-    fn historical_chain_tvl_smoke() {
-        client()
-            .get_historical_chain_tvl("Ethereum")
-            .expect("should get historical chain tvl");
-    }
-
-    #[test]
-    fn dex_protocol_volume_smoke() {
-        client()
-            .get_dex_protocol_volume("uniswap", None, None)
-            .expect("should get uniswap volume");
-    }
-
-    #[test]
-    fn stablecoin_history_smoke() {
-        client()
-            .get_stablecoin_history(None, None)
-            .expect("should get stablecoin history");
-    }
-
-    #[test]
-    fn normalize_token_id_known() {
-        assert_eq!(normalize_token_id("ETH"), "coingecko:ethereum");
-        assert_eq!(normalize_token_id("btc"), "coingecko:bitcoin");
-        assert_eq!(normalize_token_id("USDC"), "coingecko:usd-coin");
-        assert_eq!(normalize_token_id("unknown"), "coingecko:unknown");
-    }
+/// Items consumers will typically use such as the Client.
+pub mod prelude {
+    #[allow(unused_imports)]
+    pub use super::Client;
 }
