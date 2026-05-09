@@ -3,7 +3,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use serde::Serialize;
 use serde_json::Value;
 
-use crate::route::{RouteStep, RouteTrigger, ToolReturn};
+use crate::route::{RouteStep, RouteTrigger, RoutedActionExecution, ToolReturn};
 use crate::types::DynAomiTool;
 
 /// Type-level convenience for naming a routed target tool. The blanket impl
@@ -112,6 +112,7 @@ impl RouteBuilder {
                     },
                     bind_as: None,
                     prompt: None,
+                    execution: None,
                 },
                 awaited_alias: None,
             });
@@ -130,6 +131,14 @@ impl RouteBuilder {
             {
                 self.errors
                     .push(format!("duplicate bound alias `{alias}` in route plan"));
+            }
+            if let Some(execution) = step.execution.as_ref() {
+                for alias in step_execution_aliases(execution) {
+                    if !aliases.insert(alias.to_string()) {
+                        self.errors
+                            .push(format!("duplicate bound alias `{alias}` in route plan"));
+                    }
+                }
             }
         }
 
@@ -179,7 +188,7 @@ impl RouteBuilder {
             }
             if !aliases.contains(&alias) {
                 self.errors.push(format!(
-                    "deferred route awaits unknown alias `{alias}`; bind it in `next(...)` first"
+                    "deferred route awaits unknown alias `{alias}`; produce it in `next(...)` or the attached execution plan first"
                 ));
             }
             after.step.trigger = RouteTrigger::OnBoundEvent { alias };
@@ -199,6 +208,20 @@ impl RouteBuilder {
     pub fn build(self) -> ToolReturn {
         self.try_build()
             .unwrap_or_else(|err| panic!("invalid RouteBuilder plan: {err}"))
+    }
+}
+
+fn step_execution_aliases(execution: &RoutedActionExecution) -> impl Iterator<Item = &str> {
+    execution_aliases(execution).into_iter()
+}
+
+fn execution_aliases(execution: &RoutedActionExecution) -> Vec<&str> {
+    match execution {
+        RoutedActionExecution::Transaction(plan) => plan
+            .steps
+            .iter()
+            .filter_map(|step| step.bound_alias())
+            .collect(),
     }
 }
 
@@ -252,6 +275,11 @@ impl<'a> NextStepBuilder<'a> {
         self.route.next_steps[self.index].prompt = Some(note.into());
         self
     }
+
+    pub fn execution(self, execution: RoutedActionExecution) -> Self {
+        self.route.next_steps[self.index].execution = Some(execution);
+        self
+    }
 }
 
 pub struct AfterStepBuilder {
@@ -292,7 +320,10 @@ impl AfterStepBuilder {
 
 #[cfg(test)]
 mod tests {
-    use crate::route::{RouteStep, ToolReturn};
+    use crate::route::{
+        RouteStep, ToolReturn, TransactionExecutionPlan, TransactionExecutionStep,
+        TransactionFailurePolicy,
+    };
     use crate::{DynAomiApp, DynAomiTool, DynToolCallCtx};
     use serde_json::{Value, json};
 
@@ -498,6 +529,36 @@ mod tests {
             .build();
 
         assert_eq!(tool_return.routes[0].bind_as.as_deref(), Some("from_async"));
+    }
+
+    #[test]
+    fn route_builder_execution_plan_can_satisfy_awaited_alias() {
+        let tool_return = ToolReturn::route(json!({"status": "ok"}))
+            .next(|next| {
+                next.add::<host::StageTx>(json!({"to": "0x1", "data": {"raw": "0x"}}))
+                    .execution(RoutedActionExecution::Transaction(
+                        TransactionExecutionPlan {
+                            steps: vec![
+                                TransactionExecutionStep::SimulateBatch,
+                                TransactionExecutionStep::CommitTxs {
+                                    bind_as: "transaction_hash".to_string(),
+                                    aa_preference: Some("auto".to_string()),
+                                },
+                            ],
+                            on_simulation_failure: Some(TransactionFailurePolicy::Stop),
+                        },
+                    ));
+            })
+            .after::<SubmitOrder>(json!({"quote_id": "quote-1"}))
+            .awaits("transaction_hash")
+            .build();
+
+        assert_eq!(tool_return.routes[0].bind_as, None);
+        assert!(tool_return.routes[0].execution.is_some());
+        assert!(matches!(
+            &tool_return.routes[1].trigger,
+            RouteTrigger::OnBoundEvent { alias } if alias == "transaction_hash"
+        ));
     }
 
     #[test]

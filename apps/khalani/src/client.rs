@@ -447,12 +447,37 @@ pub(crate) fn hex_to_decimal_wei(s: &str) -> String {
     }
 }
 
+fn normalize_hex_calldata(data: &str) -> String {
+    let trimmed = data.trim();
+    let Some(body) = trimmed
+        .strip_prefix("0x")
+        .or_else(|| trimmed.strip_prefix("0X"))
+    else {
+        return trimmed.to_string();
+    };
+
+    if body.is_empty() {
+        return "0x".to_string();
+    }
+
+    if body.len().is_multiple_of(2) {
+        format!("0x{body}")
+    } else {
+        format!("0x0{body}")
+    }
+}
+
 pub(crate) fn normalize_tx_fields(tx: &Value) -> Option<Value> {
     let to = tx.get("to").and_then(Value::as_str)?;
     let raw_value = tx.get("value").and_then(Value::as_str).unwrap_or("0");
+    let data = tx
+        .get("data")
+        .and_then(Value::as_str)
+        .map(normalize_hex_calldata)
+        .unwrap_or_else(|| "0x".to_string());
     Some(json!({
         "to": to,
-        "data": tx.get("data").and_then(Value::as_str).unwrap_or("0x"),
+        "data": data,
         "value": hex_to_decimal_wei(raw_value),
         "gas_limit": tx.get("gasLimit").or_else(|| tx.get("gas")).cloned().unwrap_or(Value::Null),
     }))
@@ -546,6 +571,17 @@ pub(crate) fn extract_quote_summary(quote_entry: &Value) -> Value {
 }
 
 pub(crate) fn build_stage_tx_request(tx: &Value, description: String) -> Value {
+    let raw_data = tx
+        .get("data")
+        .and_then(|data| match data {
+            Value::String(raw) => Some(normalize_hex_calldata(raw)),
+            Value::Object(map) => map
+                .get("raw")
+                .and_then(Value::as_str)
+                .map(normalize_hex_calldata),
+            _ => None,
+        })
+        .unwrap_or_else(|| "0x".to_string());
     serde_json::to_value(KhalaniStageTxRequest {
         to: tx.get("to").cloned().unwrap_or(Value::Null),
         value: tx
@@ -554,12 +590,7 @@ pub(crate) fn build_stage_tx_request(tx: &Value, description: String) -> Value {
             .unwrap_or_else(|| Value::String("0".to_string())),
         gas_limit: tx.get("gas_limit").cloned().unwrap_or(Value::Null),
         description,
-        data: KhalaniStageTxData {
-            raw: tx
-                .get("data")
-                .cloned()
-                .unwrap_or_else(|| Value::String("0x".to_string())),
-        },
+        data: KhalaniStageTxData { raw: raw_data },
         kind: "contract_call",
     })
     .unwrap_or(Value::Null)
@@ -646,10 +677,8 @@ mod tests {
             result.routes[0].trigger,
             RouteTrigger::OnSyncReturn
         ));
-        assert_eq!(
-            result.routes[1].bind_as.as_deref(),
-            Some("transaction_hash")
-        );
+        assert_eq!(result.routes[1].bind_as, None);
+        assert!(result.routes[1].execution.is_some());
         assert!(matches!(
             result.routes[1].trigger,
             RouteTrigger::OnSyncReturn
@@ -658,6 +687,108 @@ mod tests {
             &result.routes[2].trigger,
             RouteTrigger::OnBoundEvent { alias } if alias == "transaction_hash"
         ));
+    }
+
+    #[test]
+    fn build_stage_tx_request_unwraps_nested_raw_calldata() {
+        let request = build_stage_tx_request(
+            &json!({
+                "to": "0x1",
+                "value": "0",
+                "gas_limit": "21000",
+                "data": { "raw": "0xdeadbeef" }
+            }),
+            "demo".to_string(),
+        );
+
+        assert_eq!(
+            request.pointer("/data/raw").and_then(Value::as_str),
+            Some("0xdeadbeef")
+        );
+    }
+
+    #[test]
+    fn build_stage_tx_request_pads_odd_length_nested_raw_calldata() {
+        let request = build_stage_tx_request(
+            &json!({
+                "to": "0x1",
+                "value": "0",
+                "gas_limit": "21000",
+                "data": { "raw": "0xabc" }
+            }),
+            "demo".to_string(),
+        );
+
+        assert_eq!(
+            request.pointer("/data/raw").and_then(Value::as_str),
+            Some("0x0abc")
+        );
+    }
+
+    #[test]
+    fn normalize_tx_fields_pads_odd_length_hex_calldata() {
+        let normalized = normalize_tx_fields(&json!({
+            "to": "0x1",
+            "value": "0",
+            "data": "0xabc"
+        }))
+        .expect("normalized tx");
+
+        assert_eq!(
+            normalized.get("data").and_then(Value::as_str),
+            Some("0x0abc")
+        );
+    }
+
+    #[test]
+    fn stage_tx_follow_up_route_preserves_raw_shape_and_prompt() {
+        let tool_return = build_khalani_follow_up_result::<host::StageTx, SubmitKhalaniOrder>(
+            "quote-1",
+            &Some("route-1".to_string()),
+            "APPROVAL_FLOW",
+            json!({"route": "Hyperstream"}),
+            json!({
+                "to": "0x1111111111111111111111111111111111111111",
+                "description": "Stage Khalani test transaction",
+                "data": { "raw": "0xdeadbeef" },
+                "value": "0",
+                "gas_limit": null,
+                "kind": "contract_call"
+            }),
+            None,
+            json!({
+                "quote_id": "quote-1",
+                "route_id": "route-1",
+                "submit_type": "SIGNED_TRANSACTION",
+                "transaction_hash": null,
+                "signature": null
+            }),
+            "transaction_hash",
+            "Transaction confirmed — submit the Khalani order.",
+        )
+        .expect("tool return");
+
+        let serialized = serde_json::to_value(tool_return).expect("serialize tool return");
+        assert_eq!(
+            serialized["__aomi_tool_value"]["next_wallet_step"],
+            "stage_tx"
+        );
+        assert!(serialized["__aomi_tool_value"].get("stage_plan").is_none());
+        assert!(
+            serialized["__aomi_tool_value"]
+                .get("wallet_request")
+                .is_none()
+        );
+        assert_eq!(serialized["__aomi_tool_routes"][0]["tool"], "stage_tx");
+        assert_eq!(
+            serialized["__aomi_tool_routes"][0]["args"]["data"]["raw"],
+            "0xdeadbeef"
+        );
+        assert!(
+            serialized["__aomi_tool_routes"][0]["prompt"]
+                .as_str()
+                .is_some_and(|prompt| prompt.contains("not as a quoted string"))
+        );
     }
 }
 
@@ -701,6 +832,14 @@ where
     WalletTool: RouteTarget,
     FollowUpTool: RouteTarget,
 {
+    let immediate_route_note = if WalletTool::tool_name() == host::StageTx::tool_name() {
+        "Call `stage_tx` with this exact JSON object args. Keep nested `data.raw` as the JSON object under `data`, not as a quoted string, and do not rebuild Khalani calldata."
+    } else if WalletTool::tool_name() == host::CommitEip712::tool_name() {
+        "Call `commit_eip712` with the exact wallet request args from this Khalani step."
+    } else {
+        "Call the exact next Khalani host step with the provided JSON args."
+    };
+
     let preflight_step = preflight.as_ref().and_then(|pf| {
         pf.get("tool").and_then(Value::as_str).map(|name| {
             (
@@ -710,20 +849,47 @@ where
         })
     });
 
-    let result = json!({
+    let mut result = json!({
         "source": "khalani",
         "quote_id": quote_id,
         "route_id": route_id,
         "transaction_type": transaction_type,
         "summary": summary,
-        "wallet_request": wallet_request.clone(),
+        "next_wallet_step": WalletTool::tool_name(),
     });
+
+    if WalletTool::tool_name() == host::StageTx::tool_name() {
+        result["note"] = Value::String(
+            "The exact stage_tx arguments are carried only by the host-owned next action prompt. Do not reconstruct or quote Khalani calldata from the assistant-visible tool result."
+                .to_string(),
+        );
+    } else if WalletTool::tool_name() == host::CommitEip712::tool_name() {
+        result["note"] = Value::String(
+            "The exact commit_eip712 arguments are carried only by the host-owned next action prompt."
+                .to_string(),
+        );
+    }
 
     Ok(ToolReturn::route(result)
         .next(|next| {
             add_khalani_preflight_step(next, preflight_step.as_ref());
-            next.add::<WalletTool>(wallet_request)
-                .bind_as(callback_field);
+            let step = next
+                .add::<WalletTool>(wallet_request)
+                .note(immediate_route_note);
+            if WalletTool::tool_name() == host::StageTx::tool_name() {
+                step.execution(RoutedActionExecution::Transaction(
+                    TransactionExecutionPlan {
+                        steps: vec![
+                            TransactionExecutionStep::SimulateBatch,
+                            TransactionExecutionStep::CommitTxs {
+                                bind_as: callback_field.to_string(),
+                                aa_preference: Some("auto".to_string()),
+                            },
+                        ],
+                        on_simulation_failure: Some(TransactionFailurePolicy::Stop),
+                    },
+                ));
+            }
         })
         .after::<FollowUpTool>(follow_up_args)
         .awaits(callback_field)

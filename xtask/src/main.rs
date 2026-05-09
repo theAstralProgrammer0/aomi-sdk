@@ -5,6 +5,53 @@ use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
+use toml::Value;
+
+struct AppManifest {
+    path: PathBuf,
+    package_name: String,
+    library_name: String,
+    skip: bool,
+}
+
+impl AppManifest {
+    fn load(path: PathBuf) -> Self {
+        let contents = fs::read_to_string(&path)
+            .unwrap_or_else(|err| panic!("failed to read {}: {err}", path.display()));
+        Self::parse(&path, &contents)
+    }
+
+    fn parse(path: &Path, contents: &str) -> Self {
+        let value: Value = toml::from_str(contents)
+            .unwrap_or_else(|err| panic!("invalid TOML in {}: {err}", path.display()));
+        let package_name = value
+            .get("package")
+            .and_then(|pkg| pkg.get("name"))
+            .and_then(Value::as_str)
+            .map(ToString::to_string)
+            .unwrap_or_else(|| panic!("missing [package].name in {}", path.display()));
+        let library_name = value
+            .get("lib")
+            .and_then(|lib| lib.get("name"))
+            .and_then(Value::as_str)
+            .map(ToString::to_string)
+            .unwrap_or_else(|| package_name.clone());
+        let skip = value
+            .get("package")
+            .and_then(|pkg| pkg.get("metadata"))
+            .and_then(|meta| meta.get("aomi"))
+            .and_then(|aomi| aomi.get("skip"))
+            .and_then(Value::as_bool)
+            .unwrap_or(false);
+
+        Self {
+            path: path.to_path_buf(),
+            package_name,
+            library_name,
+            skip,
+        }
+    }
+}
 
 fn main() {
     let args: Vec<String> = env::args().skip(1).collect();
@@ -74,7 +121,8 @@ fn cmd_build_plugins(args: &[String]) {
     let mut failed: Vec<String> = Vec::new();
 
     for manifest_path in app_manifests {
-        let pkg_name = package_name(&manifest_path);
+        let manifest = AppManifest::load(manifest_path);
+        let pkg_name = manifest.package_name.as_str();
 
         if let Some(ref filter) = app_filter
             && pkg_name != *filter
@@ -82,7 +130,7 @@ fn cmd_build_plugins(args: &[String]) {
             continue;
         }
 
-        if should_skip(&manifest_path) {
+        if manifest.skip {
             println!("  [SKIP] {pkg_name} — skip = true in Cargo.toml");
             continue;
         }
@@ -90,7 +138,7 @@ fn cmd_build_plugins(args: &[String]) {
         println!("building plugin: {pkg_name}");
         let ok = build_app(
             &cargo,
-            &manifest_path,
+            &manifest.path,
             &target_dir,
             &cargo_home,
             profile,
@@ -98,18 +146,22 @@ fn cmd_build_plugins(args: &[String]) {
         );
         if !ok {
             eprintln!("  [SKIP] {pkg_name} — build failed");
-            failed.push(pkg_name);
+            failed.push(manifest.package_name);
             continue;
         }
 
-        let built_lib =
-            built_library_path(&target_dir, profile, target_triple.as_deref(), &pkg_name);
+        let built_lib = built_library_path(
+            &target_dir,
+            profile,
+            target_triple.as_deref(),
+            &manifest.library_name,
+        );
         if !built_lib.is_file() {
             eprintln!(
                 "  [SKIP] {pkg_name} — expected library at {}, not found",
                 built_lib.display()
             );
-            failed.push(pkg_name);
+            failed.push(manifest.package_name);
             continue;
         }
         let manifest_name = plugin_manifest_name(&built_lib);
@@ -145,7 +197,7 @@ fn cmd_build_plugins(args: &[String]) {
             }
             eprintln!("  [SKIP] {pkg_name} — validation failed");
             let _ = fs::remove_file(&dest);
-            failed.push(pkg_name);
+            failed.push(manifest.package_name);
             continue;
         }
 
@@ -225,35 +277,6 @@ fn tracked_app_manifests(apps_dir: &Path) -> Vec<PathBuf> {
         .collect::<Vec<_>>();
     manifests.sort();
     manifests
-}
-
-fn package_name(manifest_path: &Path) -> String {
-    let contents = fs::read_to_string(manifest_path)
-        .unwrap_or_else(|err| panic!("failed to read {}: {err}", manifest_path.display()));
-    let value: toml::Value = toml::from_str(&contents)
-        .unwrap_or_else(|err| panic!("invalid TOML in {}: {err}", manifest_path.display()));
-
-    value
-        .get("package")
-        .and_then(|pkg| pkg.get("name"))
-        .and_then(toml::Value::as_str)
-        .map(ToString::to_string)
-        .unwrap_or_else(|| panic!("missing [package].name in {}", manifest_path.display()))
-}
-
-fn should_skip(manifest_path: &Path) -> bool {
-    let contents = fs::read_to_string(manifest_path).unwrap_or_default();
-    let value: toml::Value = match toml::from_str(&contents) {
-        Ok(v) => v,
-        Err(_) => return false,
-    };
-    value
-        .get("package")
-        .and_then(|pkg| pkg.get("metadata"))
-        .and_then(|meta| meta.get("aomi"))
-        .and_then(|aomi| aomi.get("skip"))
-        .and_then(toml::Value::as_bool)
-        .unwrap_or(false)
 }
 
 fn build_app(
@@ -534,4 +557,42 @@ impl DynAomiTool for ExampleTool {{
     println!("  2. add your HTTP client in src/client.rs");
     println!("  3. implement your tools in src/tool.rs");
     println!("  4. cargo xtask build-aomi --app {name}");
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn app_manifest_uses_explicit_lib_name_when_present() {
+        let manifest = AppManifest::parse(
+            Path::new("apps/khalani/Cargo.toml"),
+            r#"
+[package]
+name = "dyn-khalani"
+
+[lib]
+name = "khalani"
+crate-type = ["cdylib"]
+"#,
+        );
+
+        assert_eq!(manifest.package_name, "dyn-khalani");
+        assert_eq!(manifest.library_name, "khalani");
+        assert!(!manifest.skip);
+    }
+
+    #[test]
+    fn app_manifest_falls_back_to_package_name_for_library_name() {
+        let manifest = AppManifest::parse(
+            Path::new("apps/example/Cargo.toml"),
+            r#"
+[package]
+name = "example-app"
+"#,
+        );
+
+        assert_eq!(manifest.package_name, "example-app");
+        assert_eq!(manifest.library_name, "example-app");
+    }
 }

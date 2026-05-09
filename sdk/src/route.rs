@@ -12,6 +12,62 @@ pub const TOOL_RETURN_VALUE_KEY: &str = "__aomi_tool_value";
 pub const TOOL_RETURN_ROUTES_KEY: &str = "__aomi_tool_routes";
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum TransactionFailurePolicy {
+    Stop,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(tag = "tool", rename_all = "snake_case")]
+pub enum TransactionExecutionStep {
+    SimulateBatch,
+    CommitTxs {
+        bind_as: String,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        aa_preference: Option<String>,
+    },
+}
+
+impl TransactionExecutionStep {
+    pub fn bound_alias(&self) -> Option<&str> {
+        match self {
+            Self::SimulateBatch => None,
+            Self::CommitTxs { bind_as, .. } => Some(bind_as.as_str()),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct TransactionExecutionPlan {
+    pub steps: Vec<TransactionExecutionStep>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub on_simulation_failure: Option<TransactionFailurePolicy>,
+}
+
+impl TransactionExecutionPlan {
+    pub fn binds_alias(&self, alias: &str) -> bool {
+        self.steps
+            .iter()
+            .filter_map(TransactionExecutionStep::bound_alias)
+            .any(|candidate| candidate == alias)
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(tag = "kind", content = "plan", rename_all = "snake_case")]
+pub enum RoutedActionExecution {
+    Transaction(TransactionExecutionPlan),
+}
+
+impl RoutedActionExecution {
+    pub fn binds_alias(&self, alias: &str) -> bool {
+        match self {
+            Self::Transaction(plan) => plan.binds_alias(alias),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum RouteTrigger {
     /// Fires inline after the emitting tool's `run` returns. The host renders
@@ -46,6 +102,11 @@ pub struct RouteStep {
     /// voice (e.g. "preserve args exactly" vs "call only if still desired").
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub prompt: Option<String>,
+    /// Host-only deterministic execution metadata. Visible in the serialized
+    /// route envelope so the host can recover it, but not intended as part of
+    /// the semantic tool args the LLM reasons about.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub execution: Option<RoutedActionExecution>,
 }
 
 impl RouteStep {
@@ -56,6 +117,7 @@ impl RouteStep {
             trigger: RouteTrigger::OnSyncReturn,
             bind_as: None,
             prompt: None,
+            execution: None,
         }
     }
 
@@ -75,6 +137,7 @@ impl RouteStep {
             },
             bind_as: None,
             prompt: None,
+            execution: None,
         }
     }
 
@@ -87,6 +150,11 @@ impl RouteStep {
 
     pub fn prompt(mut self, prompt: impl Into<String>) -> Self {
         self.prompt = Some(prompt.into());
+        self
+    }
+
+    pub fn execution(mut self, execution: RoutedActionExecution) -> Self {
+        self.execution = Some(execution);
         self
     }
 
