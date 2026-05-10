@@ -159,17 +159,12 @@ impl RouteBuilder {
         for step in &self.next_steps {
             *tool_counts.entry(step.tool.as_str()).or_default() += 1;
             if let Some(alias) = step.bind_as.as_deref()
-                && !aliases.insert(alias.to_string())
             {
-                self.errors
-                    .push(format!("duplicate bound alias `{alias}` in route plan"));
+                record_route_alias(&mut aliases, &mut self.errors, alias);
             }
             if let Some(enforcement) = step.enforcement.as_ref() {
                 for alias in step_enforcement_aliases(enforcement) {
-                    if !aliases.insert(alias.to_string()) {
-                        self.errors
-                            .push(format!("duplicate bound alias `{alias}` in route plan"));
-                    }
+                    record_route_alias(&mut aliases, &mut self.errors, alias);
                 }
             }
         }
@@ -224,7 +219,10 @@ impl RouteBuilder {
                     after.step.tool
                 ));
             }
-            if !aliases.contains(&alias) {
+            if alias.trim().is_empty() {
+                self.errors
+                    .push("deferred route awaits alias must not be empty".to_string());
+            } else if !aliases.contains(&alias) {
                 self.errors.push(format!(
                     "deferred route awaits unknown alias `{alias}`; produce it in `next(...)` or the attached enforcement first"
                 ));
@@ -251,6 +249,14 @@ impl RouteBuilder {
 
 fn step_enforcement_aliases(enforcement: &Enforcement) -> impl Iterator<Item = &str> {
     enforcement_aliases(enforcement).into_iter()
+}
+
+fn record_route_alias(aliases: &mut BTreeSet<String>, errors: &mut Vec<String>, alias: &str) {
+    if alias.trim().is_empty() {
+        errors.push("bound alias must not be empty".to_string());
+    } else if !aliases.insert(alias.to_string()) {
+        errors.push(format!("duplicate bound alias `{alias}` in route plan"));
+    }
 }
 
 fn enforcement_aliases(enforcement: &Enforcement) -> Vec<&str> {
@@ -302,6 +308,7 @@ pub struct NextStepBuilder<'a> {
 impl<'a> NextStepBuilder<'a> {
     /// Publish this step's terminal result Value under the given alias.
     /// Continuations declared via `after(...).awaits(alias)` consume it.
+    /// Bound producers must have unique tool names in RouteBuilder v1.
     pub fn bind_as(self, alias: impl Into<String>) -> Self {
         self.route.next_steps[self.index].bind_as = Some(alias.into());
         self
@@ -364,6 +371,7 @@ pub struct EnforcementStepBuilder<'a> {
 }
 
 impl<'a> EnforcementStepBuilder<'a> {
+    /// Publish this enforced step's terminal result Value under the given alias.
     pub fn bind_as(self, alias: impl Into<String>) -> Self {
         self.steps[self.index].bind_as = Some(alias.into());
         self
@@ -375,6 +383,7 @@ pub struct AfterStepBuilder {
 }
 
 impl AfterStepBuilder {
+    /// Wait for the named artifact alias produced earlier in this route plan.
     pub fn awaits(mut self, alias: impl Into<String>) -> Self {
         if let Some(after) = self.route.after_step.as_mut() {
             after.awaited_alias = Some(alias.into());
@@ -744,5 +753,31 @@ mod tests {
             .expect_err("duplicate aliases should fail");
 
         assert!(err.contains("duplicate bound alias `dup`"));
+    }
+
+    #[test]
+    fn route_builder_rejects_empty_bound_aliases() {
+        let err = ToolReturn::route(json!({"status": "ok"}))
+            .next(|next| {
+                next.add::<SyncTool>(json!({"x": 1})).bind_as("   ");
+            })
+            .try_build()
+            .expect_err("empty bound aliases should fail");
+
+        assert!(err.contains("bound alias must not be empty"));
+    }
+
+    #[test]
+    fn route_builder_rejects_empty_awaited_aliases() {
+        let err = ToolReturn::route(json!({"status": "ok"}))
+            .next(|next| {
+                next.add::<SyncTool>(json!({"x": 1})).bind_as("artifact");
+            })
+            .after::<SubmitOrder>(json!({}))
+            .awaits(" ")
+            .try_build()
+            .expect_err("empty awaited aliases should fail");
+
+        assert!(err.contains("awaits alias must not be empty"));
     }
 }

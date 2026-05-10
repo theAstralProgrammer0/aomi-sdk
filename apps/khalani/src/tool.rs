@@ -1,555 +1,481 @@
-use crate::client::*;
+//! Curated tool layer for Khalani Hyperstream.
+//!
+//! Six tools mapped from the API surface:
+//!
+//!   * `khalani_quote`            — POST /v1/quotes
+//!   * `khalani_build_deposit`    — POST /v1/deposit/build, emits the routed
+//!                                  stage_tx → enforce(simulate_batch +
+//!                                  commit_txs) → submit_khalani_order chain.
+//!   * `submit_khalani_order`     — PUT /v1/deposit/submit (fired by the
+//!                                  OnBoundEvent continuation).
+//!   * `khalani_order_status`     — GET /v1/orders/{address}
+//!   * `khalani_list_chains`      — GET /v1/chains
+//!   * `khalani_search_tokens`    — GET /v1/tokens/search
+//!
+//! Helpers (`ok`, `rt`, `client`, `resolve_evm_wallet`) live at module top
+//! and are reused by every tool so error and response shapes stay consistent.
+
+use aomi_ext::khalani::Client as KhalaniClient;
+use aomi_ext::khalani::types::{
+    DepositBuildRequest, DepositSubmitRequest, QuoteRequest, QuoteRequestTradeType,
+};
 use aomi_sdk::schemars::JsonSchema;
 use aomi_sdk::*;
 use serde::{Deserialize, Serialize};
-use serde_json::{Value, json};
+use serde_json::{Map, Value, json};
+
+#[derive(Clone, Default)]
+pub(crate) struct KhalaniApp;
+
+const BASE_URL: &str = "https://api.hyperstream.dev";
+
+// ============================================================================
+// Helpers
+// ============================================================================
 
 fn ok<T: Serialize>(value: T) -> Result<Value, String> {
-    let value = serde_json::to_value(value)
-        .map_err(|e| format!("[khalani] failed to serialize response: {e}"))?;
-    Ok(match value {
-        Value::Object(mut map) => {
-            map.insert("source".to_string(), Value::String("khalani".to_string()));
-            Value::Object(map)
+    let v = serde_json::to_value(value).map_err(|e| format!("[khalani] serialize: {e}"))?;
+    Ok(match v {
+        Value::Object(mut m) => {
+            m.insert("source".into(), Value::String("khalani".into()));
+            Value::Object(m)
         }
-        other => serde_json::json!({ "source": "khalani", "data": other }),
+        other => json!({ "source": "khalani", "data": other }),
     })
 }
 
-fn to_json_value<T: Serialize>(value: &T) -> Result<Value, String> {
-    serde_json::to_value(value).map_err(|e| format!("failed to encode JSON payload: {e}"))
+fn rt() -> Result<tokio::runtime::Runtime, String> {
+    tokio::runtime::Runtime::new().map_err(|e| format!("[khalani] runtime: {e}"))
 }
 
-impl DynAomiTool for GetKhalaniQuote {
+fn client() -> KhalaniClient {
+    KhalaniClient::new(BASE_URL)
+}
+
+/// Pull the connected EVM wallet from the host context, falling back to an
+/// explicit override.
+fn resolve_evm_wallet(arg: Option<String>, ctx: &DynToolCallCtx) -> Result<String, String> {
+    arg.or_else(|| ctx.attribute_string(&["domain", "evm", "address"]))
+        .ok_or_else(|| {
+            "[khalani] no EVM wallet address provided and none in context — pass `wallet` or connect an EVM wallet"
+                .to_string()
+        })
+}
+
+/// One on-chain transaction extracted from a Khalani build response.
+///
+/// Khalani returns `{ approvals: [eip1193_request, …], kind }`. The
+/// `approvals` array contains a mix of `wallet_switchEthereumChain` and
+/// `eth_sendTransaction` items; we only care about the latter. The final
+/// `eth_sendTransaction` is always the deposit (`deposit: true`), preceded
+/// by zero or more ERC-20 approval txs (`waitForReceipt: true`).
+struct StagedTx {
+    to: String,
+    value: String,
+    data: String,
+    description: String,
+}
+
+fn extract_staged_txs(
+    build_response: &Map<String, Value>,
+    quote_id: &str,
+) -> Result<Vec<StagedTx>, String> {
+    let approvals = build_response
+        .get("approvals")
+        .and_then(Value::as_array)
+        .ok_or_else(|| {
+            "[khalani] build response missing `approvals` — is this an EIP-712 route? not yet supported"
+                .to_string()
+        })?;
+
+    let mut staged = Vec::new();
+    for entry in approvals {
+        let req = entry.get("request").and_then(Value::as_object);
+        let method = req
+            .and_then(|r| r.get("method"))
+            .and_then(Value::as_str)
+            .unwrap_or("");
+        if method != "eth_sendTransaction" {
+            continue;
+        }
+        let params = req
+            .and_then(|r| r.get("params"))
+            .and_then(Value::as_array)
+            .and_then(|a| a.first())
+            .and_then(Value::as_object)
+            .ok_or_else(|| "[khalani] eth_sendTransaction missing params[0]".to_string())?;
+
+        let to = params
+            .get("to")
+            .and_then(Value::as_str)
+            .ok_or_else(|| "[khalani] tx missing `to`".to_string())?
+            .to_string();
+        let data = params
+            .get("data")
+            .and_then(Value::as_str)
+            .unwrap_or("0x")
+            .to_string();
+        let value = match params.get("value") {
+            Some(Value::String(s)) => s.clone(),
+            Some(Value::Number(n)) => n.to_string(),
+            _ => "0".to_string(),
+        };
+
+        let is_deposit = entry.get("deposit").and_then(Value::as_bool).unwrap_or(false);
+        let description = if is_deposit {
+            format!("Khalani deposit for quote {quote_id}")
+        } else {
+            format!("Khalani approval for quote {quote_id}")
+        };
+        staged.push(StagedTx {
+            to,
+            value,
+            data,
+            description,
+        });
+    }
+
+    if staged.is_empty() {
+        return Err(
+            "[khalani] build response had no eth_sendTransaction entries to stage".to_string(),
+        );
+    }
+    Ok(staged)
+}
+
+// ============================================================================
+// Tool 1: Quote — POST /v1/quotes
+// ============================================================================
+
+pub(crate) struct Quote;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct QuoteArgs {
+    /// EVM chain ID of the source asset (1 = Ethereum, 10 = Optimism, 8453 = Base, …).
+    pub from_chain_id: i64,
+    /// EVM chain ID of the destination asset.
+    pub to_chain_id: i64,
+    /// Source token address (lowercase 0x…) or the sentinel `"native"` for the chain's native asset.
+    pub from_token: String,
+    /// Destination token address or `"native"`.
+    pub to_token: String,
+    /// Amount to swap, in the source token's base units string (e.g. "100000000" for 100 USDC).
+    pub amount: String,
+    /// Sender wallet (EVM address). Defaults to the host-connected EVM wallet.
+    #[serde(default)]
+    pub wallet: Option<String>,
+    /// Recipient on the destination chain. Defaults to the sender wallet when omitted.
+    #[serde(default)]
+    pub recipient: Option<String>,
+    /// Slippage tolerance in basis points (50 = 0.5%). Defaults to 50.
+    #[serde(default)]
+    pub slippage_bps: Option<i64>,
+}
+
+impl DynAomiTool for Quote {
     type App = KhalaniApp;
-    type Args = GetKhalaniQuoteArgs;
+    type Args = QuoteArgs;
+    const NAME: &'static str = "khalani_quote";
+    const DESCRIPTION: &'static str = "Use to quote a cross-chain swap or transfer via Khalani Hyperstream. Returns a `quoteId` plus route candidates with expected output and fees. Pass the resulting `quoteId` to `khalani_build_deposit` to execute. Amount is in source-token base units (e.g. 100 USDC = '100000000').";
 
-    const NAME: &'static str = "get_khalani_quote";
-    const DESCRIPTION: &'static str =
-        "Fetch a Khalani quote for a same-chain or cross-chain swap route.";
-
-    fn run(_app: &Self::App, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
-        let client = KhalaniClient::new()?;
-        let sender_address = resolve_sender_address(&ctx, args.sender_address.as_deref())?;
-        let destination_chain = args
-            .destination_chain
-            .clone()
-            .unwrap_or_else(|| args.chain.clone());
-        let from_chain_id = resolve_chain_id(&args.chain)?;
-        let to_chain_id = resolve_chain_id(&destination_chain)?;
-        let sell_token = client.resolve_token(&args.sell_token, from_chain_id)?;
-        let buy_token = client.resolve_token(&args.buy_token, to_chain_id)?;
-        let amount_base_units = amount_to_base_units(args.amount, sell_token.decimals)?;
-
-        ok(client.get_quote(
-            from_chain_id,
-            to_chain_id,
-            &sell_token.address,
-            &buy_token.address,
-            &amount_base_units,
-            &sender_address,
-            args.receiver_address.as_deref(),
-            slippage_to_bps(args.slippage),
-        )?)
+    fn run(_app: &KhalaniApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
+        let from_address = resolve_evm_wallet(args.wallet.clone(), &ctx)?;
+        let body = QuoteRequest {
+            amount: args.amount,
+            from_address,
+            from_chain_id: args.from_chain_id,
+            from_token: args.from_token,
+            recipient: args.recipient,
+            slippage_in_bps: Some(args.slippage_bps.unwrap_or(50)),
+            to_chain_id: args.to_chain_id,
+            to_token: args.to_token,
+            trade_type: QuoteRequestTradeType::ExactInput,
+        };
+        let runtime = rt()?;
+        let response = runtime
+            .block_on(async { client().get_quote(&body).await })
+            .map_err(|e| format!("[khalani] quote: {e}"))?
+            .into_inner();
+        ok(response)
     }
 }
 
 // ============================================================================
-// Tool 2: build_khalani_order
+// Tool 2: BuildDeposit — POST /v1/deposit/build (producer route)
 // ============================================================================
 
-#[derive(Debug, Clone, Deserialize, Serialize, JsonSchema)]
-pub(crate) struct BuildKhalaniOrderArgs {
-    /// Source chain: ethereum, arbitrum, polygon, base, etc.
-    chain: String,
-    /// Destination chain for cross-chain routes. Defaults to the source chain.
-    destination_chain: Option<String>,
-    /// Token to swap from.
-    sell_token: String,
-    /// Token to swap to.
-    buy_token: String,
-    /// Human-readable sell amount.
-    amount: f64,
-    /// Sender/taker wallet address. Defaults to the connected wallet.
-    sender_address: Option<String>,
-    /// Recipient wallet address. Defaults to sender.
-    receiver_address: Option<String>,
-    /// Slippage decimal (0.005 = 0.5%).
-    slippage: Option<f64>,
+pub(crate) struct BuildDeposit;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct BuildDepositArgs {
+    /// `quoteId` returned by `khalani_quote`.
+    pub quote_id: String,
+    /// `routeId` of the chosen route from the quote response. Optional when the quote returned a single route.
+    #[serde(default)]
+    pub route_id: Option<String>,
+    /// Sender EVM wallet. Defaults to the host-connected EVM wallet.
+    #[serde(default)]
+    pub wallet: Option<String>,
+    /// Slippage tolerance in basis points. Defaults to 50.
+    #[serde(default)]
+    pub slippage_bps: Option<i64>,
 }
 
-pub(crate) struct BuildKhalaniOrder;
-
-impl DynAomiTool for BuildKhalaniOrder {
+impl DynAomiTool for BuildDeposit {
     type App = KhalaniApp;
-    type Args = BuildKhalaniOrderArgs;
-
-    const NAME: &'static str = "build_khalani_order";
-    const DESCRIPTION: &'static str = "Build a Khalani execution step and return the next explicit wallet action. This tool never sends the wallet request itself.";
+    type Args = BuildDepositArgs;
+    const NAME: &'static str = "khalani_build_deposit";
+    const DESCRIPTION: &'static str = "Use after `khalani_quote` once the user has confirmed a route. Builds the on-chain deposit transaction for the chosen quote and emits a routed plan: stage_tx is fired with the deposit calldata; enforcement automatically runs simulate_batch then commit_txs; once the wallet broadcasts, submit_khalani_order is fired as a continuation. Do not call stage_tx / simulate_batch / commit_txs / submit_khalani_order yourself — the route handles them.";
 
     fn run_with_routes(
-        _app: &Self::App,
+        _app: &KhalaniApp,
         args: Self::Args,
         ctx: DynToolCallCtx,
     ) -> Result<ToolReturn, String> {
-        let client = KhalaniClient::new()?;
-        let sender_address = resolve_sender_address(&ctx, args.sender_address.as_deref())?;
-        let destination_chain = args
-            .destination_chain
-            .clone()
-            .unwrap_or_else(|| args.chain.clone());
-        let from_chain_id = resolve_chain_id(&args.chain)?;
-        let to_chain_id = resolve_chain_id(&destination_chain)?;
-        let sell_token = client.resolve_token(&args.sell_token, from_chain_id)?;
-        let buy_token = client.resolve_token(&args.buy_token, to_chain_id)?;
-        let amount_base_units = amount_to_base_units(args.amount, sell_token.decimals)?;
-
-        // Step 1: Get a fresh quote
-        let quote = client.get_quote(
-            from_chain_id,
-            to_chain_id,
-            &sell_token.address,
-            &buy_token.address,
-            &amount_base_units,
-            &sender_address,
-            args.receiver_address.as_deref(),
-            slippage_to_bps(args.slippage),
-        )?;
-
-        let quote_entry = normalize_khalani_quote_response(&quote)
-            .ok_or_else(|| "Khalani quote response is empty".to_string())?;
-        let quote_id = extract_khalani_quote_id(&quote_entry)
-            .ok_or_else(|| "Khalani quote missing quoteId".to_string())?;
-        let route_id = extract_khalani_route_id(&quote_entry);
-        let summary = extract_quote_summary(&quote_entry);
-
-        let slippage_bps = slippage_to_bps(args.slippage);
-
-        // Step 2: Try multiple build payload variants
-        let mut build_payloads: Vec<Value> = Vec::new();
-
-        if let Some(ref rid) = route_id {
-            build_payloads.push(to_json_value(&KhalaniDepositBuildCanonicalRequest {
-                from: sender_address.clone(),
-                quote_id: quote_id.clone(),
-                route_id: rid.clone(),
-            })?);
-            build_payloads.push(to_json_value(&KhalaniDepositBuildFromAddressRequest {
-                from_address: sender_address.clone(),
-                quote_id: quote_id.clone(),
-                route_id: rid.clone(),
-                deposit_method: "CONTRACT_CALL",
-                slippage_in_bps: slippage_bps,
-            })?);
-            build_payloads.push(to_json_value(&KhalaniDepositBuildUserAddressRequest {
-                user_address: sender_address.clone(),
-                quote_id: quote_id.clone(),
-                route_id: rid.clone(),
-                deposit_method: "CONTRACT_CALL",
-                slippage_in_bps: slippage_bps,
-            })?);
-        }
-
-        build_payloads.push(to_json_value(&KhalaniDepositBuildLegacyRequest {
-            quote_id: quote_id.clone(),
-            user: sender_address.clone(),
-            allowance_target: extract_khalani_allowance_target(&quote_entry),
-            slippage_in_bps: slippage_bps,
-        })?);
-
-        let mut build: Option<Value> = None;
-        let mut last_build_error: Option<String> = None;
-        for payload in build_payloads {
-            match client.build_deposit(&payload) {
-                Ok(value) => {
-                    build = Some(value);
-                    break;
-                }
-                Err(err) => last_build_error = Some(err),
-            }
-        }
-        let build = build.ok_or_else(|| {
-            last_build_error.unwrap_or_else(|| "Khalani deposit build request failed".to_string())
-        })?;
-
-        // Step 3: Determine flow from build response
-
-        // Approval flow: find the first executable tx.
-        if let Some(approvals) = build.get("approvals").and_then(Value::as_array) {
-            let (tx, is_deposit) = approvals
-                .iter()
-                .find_map(|a| {
-                    let tx = extract_khalani_eth_send_tx(a)?;
-                    let deposit = a.get("deposit").and_then(Value::as_bool) == Some(true);
-                    Some((tx, deposit))
-                })
-                .ok_or_else(|| {
-                    "Khalani approvals present but no executable transaction found".to_string()
-                })?;
-
-            let wallet_request = build_stage_tx_request(
-                &tx,
-                if is_deposit {
-                    format!(
-                        "Khalani deposit tx for {} {} -> {}",
-                        args.amount, args.sell_token, args.buy_token
-                    )
-                } else {
-                    format!(
-                        "Khalani approval tx for {} on {}",
-                        args.sell_token, args.chain
-                    )
-                },
-            );
-
-            if is_deposit {
-                return build_khalani_follow_up_result::<host::StageTx, SubmitKhalaniOrder>(
-                    &quote_id,
-                    &route_id,
-                    "APPROVAL_FLOW",
-                    summary,
-                    wallet_request,
-                    build_transaction_preflight(&tx),
-                    to_json_value(&SubmitKhalaniOrderArgs {
-                        quote_id: quote_id.clone(),
-                        route_id: route_id.clone(),
-                        submit_type: "SIGNED_TRANSACTION".to_string(),
-                        transaction_hash: None,
-                        signature: None,
-                    })?,
-                    "transaction_hash",
-                    "Transaction confirmed — submit the Khalani order.",
-                );
-            }
-
-            return build_khalani_follow_up_result::<host::StageTx, BuildKhalaniOrder>(
-                &quote_id,
-                &route_id,
-                "APPROVAL_FLOW",
-                summary,
-                wallet_request,
-                build_transaction_preflight(&tx),
-                to_json_value(&BuildKhalaniOrderArgs {
-                    chain: args.chain.clone(),
-                    destination_chain: args.destination_chain.clone(),
-                    sell_token: args.sell_token.clone(),
-                    buy_token: args.buy_token.clone(),
-                    amount: args.amount,
-                    sender_address: Some(sender_address.clone()),
-                    receiver_address: args.receiver_address.clone(),
-                    slippage: args.slippage,
-                })?,
-                "transaction_hash",
-                "Approval confirmed — re-run build_khalani_order to produce the deposit plan.",
-            );
-        }
-
-        // Permit2 / EIP-712 signature flow.
-        let tx_type = extract_khalani_transaction_type(&build);
-        if tx_type.eq_ignore_ascii_case("PERMIT2") {
-            let typed_data = extract_khalani_typed_data(&build)
-                .ok_or_else(|| "Khalani build missing typed data".to_string())?;
-            return build_khalani_follow_up_result::<host::CommitEip712, SubmitKhalaniOrder>(
-                &quote_id,
-                &route_id,
-                &tx_type,
-                summary,
-                to_json_value(&WalletEip712Request {
-                    typed_data,
-                    description: format!(
-                        "Khalani Permit2 signature for {} {} -> {}",
-                        args.amount, args.sell_token, args.buy_token
-                    ),
-                })?,
-                None,
-                to_json_value(&SubmitKhalaniOrderArgs {
-                    quote_id: quote_id.clone(),
-                    route_id: route_id.clone(),
-                    submit_type: "SIGNED_EIP712".to_string(),
-                    transaction_hash: None,
-                    signature: None,
-                })?,
-                "signature",
-                "Permit2 signed — submit the Khalani order.",
-            );
-        }
-
-        // Contract call execution flow.
-        let tx = extract_khalani_contract_call_tx(&build)
-            .ok_or_else(|| "Khalani build missing executable transaction".to_string())?;
-        build_khalani_follow_up_result::<host::StageTx, SubmitKhalaniOrder>(
-            &quote_id,
-            &route_id,
-            &tx_type,
-            summary,
-            build_stage_tx_request(
-                &tx,
-                format!(
-                    "Khalani swap {} {} to {} on {}",
-                    args.amount, args.sell_token, args.buy_token, args.chain
-                ),
-            ),
-            build_transaction_preflight(&tx),
-            to_json_value(&SubmitKhalaniOrderArgs {
-                quote_id: quote_id.clone(),
-                route_id: route_id.clone(),
-                submit_type: "SIGNED_TRANSACTION".to_string(),
-                transaction_hash: None,
-                signature: None,
-            })?,
-            "transaction_hash",
-            "Transaction confirmed — submit the Khalani order.",
-        )
-    }
-}
-
-// ============================================================================
-// Tool 3: submit_khalani_order
-// ============================================================================
-
-#[derive(Debug, Clone, Deserialize, Serialize, JsonSchema)]
-pub(crate) struct SubmitKhalaniOrderArgs {
-    /// Khalani quote ID to submit.
-    quote_id: String,
-    /// Khalani route ID when provided by build output.
-    route_id: Option<String>,
-    /// SIGNED_TRANSACTION or SIGNED_EIP712.
-    submit_type: String,
-    /// Wallet transaction hash for SIGNED_TRANSACTION submit.
-    transaction_hash: Option<String>,
-    /// Wallet signature for SIGNED_EIP712 submit.
-    signature: Option<String>,
-}
-
-pub(crate) struct SubmitKhalaniOrder;
-
-impl DynAomiTool for SubmitKhalaniOrder {
-    type App = KhalaniApp;
-    type Args = SubmitKhalaniOrderArgs;
-
-    const NAME: &'static str = "submit_khalani_order";
-    const DESCRIPTION: &'static str =
-        "Submit a wallet-completed Khalani order using a transaction hash or EIP-712 signature.";
-
-    fn run(_app: &Self::App, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let client = KhalaniClient::new()?;
-        let submit_type = args.submit_type.to_uppercase();
-        let value = match submit_type.as_str() {
-            "SIGNED_EIP712" => {
-                let signature = args.signature.clone().ok_or_else(|| {
-                    "submit_khalani_order requires signature for SIGNED_EIP712".to_string()
-                })?;
-                if let Some(route_id) = args.route_id.clone() {
-                    client.submit_deposit(&KhalaniSignedEip712SubmitRequest {
-                        quote_id: args.quote_id,
-                        route_id,
-                        signature,
-                    })?
-                } else {
-                    client.submit_deposit(&KhalaniLegacySubmitRequest {
-                        quote_id: args.quote_id,
-                        submitted_data: KhalaniSignedEip712SubmittedData {
-                            submit_type: "SIGNED_EIP712",
-                            signature,
-                        },
-                    })?
-                }
-            }
-            "SIGNED_TRANSACTION" => {
-                let tx_hash = args.transaction_hash.clone().ok_or_else(|| {
-                    "submit_khalani_order requires transaction_hash for SIGNED_TRANSACTION"
-                        .to_string()
-                })?;
-                if let Some(route_id) = args.route_id.clone() {
-                    client.submit_deposit(&KhalaniSignedTransactionSubmitRequest {
-                        quote_id: args.quote_id,
-                        route_id,
-                        tx_hash: tx_hash.clone(),
-                        transaction_hash: tx_hash,
-                    })?
-                } else {
-                    client.submit_deposit(&KhalaniLegacySubmitRequest {
-                        quote_id: args.quote_id,
-                        submitted_data: KhalaniSignedTransactionSubmittedData {
-                            submit_type: "SIGNED_TRANSACTION",
-                            transaction_hash: tx_hash,
-                        },
-                    })?
-                }
-            }
-            other => {
-                return Err(format!(
-                    "submit_khalani_order unsupported submit_type '{other}'"
-                ));
-            }
+        let wallet = resolve_evm_wallet(args.wallet.clone(), &ctx)?;
+        let body = DepositBuildRequest {
+            allowance_target: None,
+            deposit_method: None,
+            from: Some(wallet.clone()),
+            from_address: Some(wallet.clone()),
+            quote_id: Some(args.quote_id.clone()),
+            route_id: args.route_id.clone(),
+            slippage_in_bps: args.slippage_bps,
+            user: Some(wallet.clone()),
+            user_address: Some(wallet.clone()),
         };
-        ok(value)
+
+        let runtime = rt()?;
+        let response = runtime
+            .block_on(async { client().build_deposit(&body).await })
+            .map_err(|e| format!("[khalani] build_deposit: {e}"))?
+            .into_inner();
+
+        let staged = extract_staged_txs(&response, &args.quote_id)?;
+
+        let submit_template = json!({
+            "quote_id": args.quote_id,
+            "route_id": args.route_id,
+            "wallet": wallet,
+        });
+
+        let preview = json!({
+            "status": "awaiting_wallet",
+            "quote_id": args.quote_id,
+            "route_id": args.route_id,
+            "tx_count": staged.len(),
+            "tx_targets": staged.iter().map(|t| t.to.clone()).collect::<Vec<_>>(),
+        });
+
+        let last_index = staged.len() - 1;
+        let stage_args: Vec<Value> = staged
+            .iter()
+            .enumerate()
+            .map(|(i, tx)| {
+                json!({
+                    "to": tx.to,
+                    "description": tx.description,
+                    "data": { "raw": tx.data },
+                    "value": tx.value,
+                    "kind": if i == last_index { "bridge" } else { "erc20_approve" },
+                })
+            })
+            .collect();
+
+        ToolReturn::route(ok(preview)?)
+            .next(|next| {
+                for (i, args) in stage_args.iter().enumerate() {
+                    let step = next.add::<host::StageTx>(args.clone());
+                    if i == last_index {
+                        step.note(
+                            "Stage the Khalani deposit. CRITICAL: copy the `data.raw` and `to` \
+                             fields BYTE-FOR-BYTE from the args below — do not abbreviate, \
+                             reformat, or truncate the calldata. After this step returns, the \
+                             host automatically simulates and commits the staged txs and waits \
+                             for the wallet.",
+                        )
+                        .enforce(EnforcementPolicy::Continue, |enforce| {
+                            enforce.add::<host::SimulateBatch>(json!({}));
+                            enforce
+                                .add::<host::CommitTxs>(json!({ "aa_preference": "auto" }))
+                                .bind_as("transaction_hash");
+                        });
+                    } else {
+                        step.note(
+                            "Stage the ERC-20 approval. CRITICAL: copy `data.raw` and `to` \
+                             byte-for-byte; do not abbreviate or modify the calldata.",
+                        );
+                    }
+                }
+            })
+            .after::<SubmitOrder>(submit_template)
+            .awaits("transaction_hash")
+            .note("Deposit landed on-chain — register the order with Khalani.")
+            .try_build()
+            .map_err(|e| format!("[khalani] route build: {e}"))
     }
 }
 
 // ============================================================================
-// Tool 4: get_khalani_order_status
+// Tool 3: SubmitOrder — PUT /v1/deposit/submit (continuation)
 // ============================================================================
 
-#[derive(Debug, Clone, Deserialize, JsonSchema)]
-pub(crate) struct GetKhalaniOrderStatusArgs {
-    /// Khalani order ID.
-    order_id: String,
-    /// Optional wallet address used for the documented orders lookup. Defaults to the connected wallet.
-    address: Option<String>,
+pub(crate) struct SubmitOrder;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct SubmitOrderArgs {
+    /// Quote id this submission belongs to.
+    pub quote_id: String,
+    /// Route id chosen at build time.
+    #[serde(default)]
+    pub route_id: Option<String>,
+    /// Connected wallet address. Forwarded from `khalani_build_deposit` so the submission carries the deposit's `from`. The runtime fills it in automatically.
+    #[serde(default)]
+    #[allow(dead_code)]
+    pub wallet: Option<String>,
+    /// On-chain deposit transaction hash. Spliced in automatically by the OnBoundEvent continuation; never invent one.
+    #[serde(default)]
+    pub transaction_hash: Option<String>,
+    /// EIP-712 signature when the chosen route uses signed-typed-data instead of a raw deposit tx. Optional.
+    #[serde(default)]
+    pub signature: Option<String>,
 }
 
-pub(crate) struct GetKhalaniOrderStatus;
-
-impl DynAomiTool for GetKhalaniOrderStatus {
+impl DynAomiTool for SubmitOrder {
     type App = KhalaniApp;
-    type Args = GetKhalaniOrderStatusArgs;
+    type Args = SubmitOrderArgs;
+    const NAME: &'static str = "submit_khalani_order";
+    const DESCRIPTION: &'static str = "Register a confirmed Khalani deposit so the solver network can pick it up. Triggered automatically by the routed continuation after the wallet broadcasts the deposit tx — `transaction_hash` is filled in by the runtime. Do not invoke directly; respond to the route's prompt.";
 
-    const NAME: &'static str = "get_khalani_order_status";
-    const DESCRIPTION: &'static str = "Fetch a Khalani order by order_id.";
-
-    fn run(_app: &Self::App, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
-        let client = KhalaniClient::new()?;
-        let address = resolve_sender_address(&ctx, args.address.as_deref())?;
-        let value =
-            client.get_orders_by_address(&address, None, Some(1), Some(0), Some(&args.order_id))?;
-        let order = value
-            .get("data")
-            .and_then(Value::as_array)
-            .and_then(|items| items.first())
-            .cloned()
-            .ok_or_else(|| format!("No Khalani order found for order_id '{}'", args.order_id))?;
-
-        Ok(json!({
-            "source": "khalani",
-            "order": order,
-        }))
+    fn run(_app: &KhalaniApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
+        let tx_hash = args.transaction_hash.clone();
+        let body = DepositSubmitRequest {
+            quote_id: Some(args.quote_id),
+            route_id: args.route_id,
+            signature: args.signature,
+            submitted_data: Map::new(),
+            transaction_hash: tx_hash.clone(),
+            tx_hash,
+        };
+        let runtime = rt()?;
+        let response = runtime
+            .block_on(async { client().submit_deposit(&body).await })
+            .map_err(|e| format!("[khalani] submit_deposit: {e}"))?
+            .into_inner();
+        ok(response)
     }
 }
 
 // ============================================================================
-// Tool 5: get_khalani_orders_by_address
+// Tool 4: OrderStatus — GET /v1/orders/{address}
 // ============================================================================
 
-#[derive(Debug, Clone, Deserialize, JsonSchema)]
-pub(crate) struct GetKhalaniOrdersByAddressArgs {
-    /// Wallet address.
-    address: String,
-    /// Optional Khalani order status filter.
-    status: Option<String>,
-    /// Page size.
-    limit: Option<u32>,
-    /// Pagination offset.
-    offset: Option<u32>,
+pub(crate) struct OrderStatus;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct OrderStatusArgs {
+    /// Wallet address whose orders to fetch. Defaults to the host-connected EVM wallet.
+    #[serde(default)]
+    pub wallet: Option<String>,
+    /// Comma-separated `orderId`s to filter to. Use this to follow a single recently-submitted order.
+    #[serde(default)]
+    pub order_ids: Option<String>,
+    /// Filter by status (e.g. "FILLED", "PENDING", "FAILED"). Optional.
+    #[serde(default)]
+    pub status: Option<String>,
+    /// Page size (default 20).
+    #[serde(default)]
+    pub limit: Option<i64>,
 }
 
-pub(crate) struct GetKhalaniOrdersByAddress;
-
-impl DynAomiTool for GetKhalaniOrdersByAddress {
+impl DynAomiTool for OrderStatus {
     type App = KhalaniApp;
-    type Args = GetKhalaniOrdersByAddressArgs;
+    type Args = OrderStatusArgs;
+    const NAME: &'static str = "khalani_order_status";
+    const DESCRIPTION: &'static str = "Use after `submit_khalani_order` to poll an order until it reaches a terminal state (FILLED, FAILED, EXPIRED). Filter to a single order with `order_ids`. Returns the most recent orders for the wallet first.";
 
-    const NAME: &'static str = "get_khalani_orders_by_address";
-    const DESCRIPTION: &'static str = "Fetch Khalani orders for a wallet address.";
-
-    fn run(_app: &Self::App, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        ok(KhalaniClient::new()?.get_orders_by_address(
-            &args.address,
-            args.status.as_deref(),
-            args.limit,
-            args.offset,
-            None,
-        )?)
+    fn run(_app: &KhalaniApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
+        let address = resolve_evm_wallet(args.wallet, &ctx)?;
+        let limit = Some(args.limit.unwrap_or(20));
+        let runtime = rt()?;
+        let response = runtime
+            .block_on(async {
+                client()
+                    .get_orders_by_address(
+                        &address,
+                        limit,
+                        None,
+                        args.order_ids.as_deref(),
+                        args.status.as_deref(),
+                    )
+                    .await
+            })
+            .map_err(|e| format!("[khalani] order_status: {e}"))?
+            .into_inner();
+        ok(response)
     }
 }
 
 // ============================================================================
-// Tool 6: get_khalani_tokens
+// Tool 5: ListChains — GET /v1/chains
 // ============================================================================
 
-#[derive(Debug, Clone, Deserialize, JsonSchema)]
-pub(crate) struct GetKhalaniTokensArgs {
-    /// Numeric chain ID filter.
-    chain_id: Option<u64>,
-    /// Page size.
-    limit: Option<u32>,
-    /// Pagination offset.
-    offset: Option<u32>,
-    /// Token symbol/name search string.
-    query: Option<String>,
-}
+pub(crate) struct ListChains;
 
-pub(crate) struct GetKhalaniTokens;
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct ListChainsArgs {}
 
-impl DynAomiTool for GetKhalaniTokens {
+impl DynAomiTool for ListChains {
     type App = KhalaniApp;
-    type Args = GetKhalaniTokensArgs;
+    type Args = ListChainsArgs;
+    const NAME: &'static str = "khalani_list_chains";
+    const DESCRIPTION: &'static str = "List the chains Khalani Hyperstream supports, with viem-style metadata (id, name, native currency). Use when the user asks 'what chains does Khalani support?' or you need a chain ID for a follow-up call.";
 
-    const NAME: &'static str = "get_khalani_tokens";
-    const DESCRIPTION: &'static str = "Fetch Khalani tokens with optional chain/query filters.";
-
-    fn run(_app: &Self::App, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        ok(KhalaniClient::new()?.get_tokens(
-            args.chain_id,
-            args.limit,
-            args.offset,
-            args.query.as_deref(),
-        )?)
+    fn run(_app: &KhalaniApp, _args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
+        let runtime = rt()?;
+        let response = runtime
+            .block_on(async { client().list_chains().await })
+            .map_err(|e| format!("[khalani] list_chains: {e}"))?
+            .into_inner();
+        ok(json!({ "chains": response }))
     }
 }
 
 // ============================================================================
-// Tool 7: search_khalani_tokens
+// Tool 6: SearchTokens — GET /v1/tokens/search
 // ============================================================================
 
-#[derive(Debug, Clone, Deserialize, JsonSchema)]
-pub(crate) struct SearchKhalaniTokensArgs {
-    /// Token symbol/name search string.
-    query: String,
-    /// Numeric chain ID filter.
-    chain_id: Option<u64>,
-    /// Maximum results.
-    limit: Option<u32>,
-    /// Pagination offset.
-    offset: Option<u32>,
+pub(crate) struct SearchTokens;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct SearchTokensArgs {
+    /// Substring match on symbol / name / address. Required.
+    pub q: String,
+    /// Restrict results to a single chain id.
+    #[serde(default)]
+    pub chain_id: Option<i64>,
+    /// Page size (default 20).
+    #[serde(default)]
+    pub limit: Option<i64>,
 }
 
-pub(crate) struct SearchKhalaniTokens;
-
-impl DynAomiTool for SearchKhalaniTokens {
+impl DynAomiTool for SearchTokens {
     type App = KhalaniApp;
-    type Args = SearchKhalaniTokensArgs;
+    type Args = SearchTokensArgs;
+    const NAME: &'static str = "khalani_search_tokens";
+    const DESCRIPTION: &'static str = "Search Khalani's supported-token catalogue by symbol, name, or address. Use to resolve a token symbol the user typed (e.g. 'USDC on Base') into the address + decimals you need for `khalani_quote`.";
 
-    const NAME: &'static str = "search_khalani_tokens";
-    const DESCRIPTION: &'static str = "Search Khalani token metadata.";
-
-    fn run(_app: &Self::App, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        ok(KhalaniClient::new()?.search_tokens(
-            &args.query,
-            args.chain_id,
-            args.limit,
-            args.offset,
-        )?)
-    }
-}
-
-// ============================================================================
-// Tool 8: get_khalani_chains
-// ============================================================================
-
-#[derive(Debug, Clone, Deserialize, JsonSchema)]
-pub(crate) struct GetKhalaniChainsArgs {}
-
-pub(crate) struct GetKhalaniChains;
-
-impl DynAomiTool for GetKhalaniChains {
-    type App = KhalaniApp;
-    type Args = GetKhalaniChainsArgs;
-
-    const NAME: &'static str = "get_khalani_chains";
-    const DESCRIPTION: &'static str = "Fetch Khalani supported chains.";
-
-    fn run(_app: &Self::App, _args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        ok(KhalaniClient::new()?.get_chains()?)
+    fn run(_app: &KhalaniApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
+        let limit = Some(args.limit.unwrap_or(20));
+        let runtime = rt()?;
+        let response = runtime
+            .block_on(async {
+                client()
+                    .search_tokens(args.chain_id, limit, None, &args.q)
+                    .await
+            })
+            .map_err(|e| format!("[khalani] search_tokens: {e}"))?
+            .into_inner();
+        ok(response)
     }
 }

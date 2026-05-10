@@ -1,9 +1,9 @@
 ---
-name: openapi-from-docs
-description: Draft an OpenAPI 3.1 spec for a third-party platform (e.g. Binance, Dune, DefiLlama) by reading its public documentation and writing the result to ext/specs/<platform>.yaml. Use when the user wants to add or update an Aomi app for a platform that does NOT have an official OpenAPI spec discoverable via aomi-build gen-specs. Triggers include "draft openapi spec for X", "openapi-from-docs", "/openapi-from-docs", or "no spec found, run the skill".
+name: aomi-app-client-api-gen
+description: Draft an OpenAPI 3.0 spec for a third-party platform (e.g. Binance, Dune, DefiLlama) by reading its public documentation. By default writes to `apps/<platform>/openapi.yaml` (app-local mode); writes to `ext/specs/<platform>.yaml` when the platform is a shared library (Binance, Bybit, etc. — many Aomi apps may wrap it). Use when the user wants to add or update an Aomi app for a platform that does NOT have an official OpenAPI spec discoverable via `aomi-build gen-specs`. Output feeds `aomi-build gen-client` downstream. Triggers include "draft openapi spec for X", "/aomi-app-client-api-gen", "no spec found, run the skill", or asking to add an Aomi app for an API without a discoverable OpenAPI surface.
 ---
 
-# openapi-from-docs
+# aomi-app-client-api-gen
 
 You are drafting an OpenAPI 3.1 spec for a third-party platform from its docs. The output feeds the `aomi-build gen-client` step downstream — quality matters because Rust client codegen will rely on it.
 
@@ -56,9 +56,13 @@ If the platform requires HMAC signing or any other computed credential (Binance,
 ```
 ## Auth
 This API uses HMAC-SHA256 over the query string with appended `&timestamp=...&signature=...`.
-The signing logic is hand-written in `ext/src/<platform>/auth.rs` — the spec only describes
+The signing logic is hand-written in `<auth-shim path>` — the spec only describes
 the resulting header (`X-MBX-APIKEY`) for codegen purposes.
 ```
+
+The auth shim path depends on mode: for app-local providers it's
+`apps/<platform>/src/auth.rs`; for shared providers (--shared) it's
+`ext/src/<platform>/auth.rs`.
 
 Do not invent OpenAPI extensions unless absolutely necessary.
 
@@ -74,11 +78,18 @@ Before writing the file, sanity-check yourself:
 
 ### 5. Write the files
 
-Write two files:
+Choose mode first:
 
-**`ext/specs/<platform>.yaml`** — the spec itself.
+- **App-local (default)**: spec lives at `apps/<platform>/openapi.yaml`. Use this for one-off integrations or platforms whose client is unlikely to be shared across multiple Aomi apps. The whole crate (spec, generated client, tool layer) is then self-contained.
+- **Shared (`--shared` downstream)**: spec lives at `ext/specs/<platform>.yaml`. Use this only for big-party platforms (Binance, Bybit, OKX) whose client is genuinely shared by multiple Aomi apps.
 
-**`ext/specs/<platform>.meta.json`** — provenance sidecar with this exact shape:
+If you don't know, default to **app-local**. The user can always promote later by moving files and passing `--shared` to subsequent gen commands.
+
+Write two files (paths below assume app-local mode; for shared, swap to `ext/specs/<platform>.{yaml,meta.json}`):
+
+**`apps/<platform>/openapi.yaml`** — the spec itself.
+
+**`apps/<platform>/openapi.meta.json`** — provenance sidecar with this exact shape:
 
 ```json
 {
@@ -98,7 +109,7 @@ Write two files:
 
 The `completeness` block is skill-only — it tells future-you (and the human) what's incomplete so they don't trust the spec blindly.
 
-Use `mkdir -p ext/specs` if needed before writing.
+Use `mkdir -p` on the parent dir as needed before writing.
 
 ### 6. Report back
 
@@ -108,17 +119,27 @@ Print a short summary: how many endpoints, what was skipped, what's rough. End w
 Next: aomi-build gen-client <platform>
 ```
 
+## Naming components — avoid progenitor enum-name collisions
+
+If you name a top-level component schema something a progenitor-generated inline enum is also likely to be named, the resulting client won't compile (panic in typify).
+
+progenitor synthesizes inline enum types from `enum:` constraints on string fields. The generated names look like `<OwningType><FieldName>` (e.g. a field `notification_type` on a response collapses to a type literally called `NotificationType`).
+
+To stay safe:
+- **Don't name components** `*Type`, `*Status`, `*Kind`, `*Mode`, `*Role` if a string field of the same root word elsewhere in the spec has an `enum:` constraint. Either drop the `enum:` (use plain string) or rename the component (e.g. `Notification` → `NotificationKind` won't help; pick a more specific name like `NotificationCategory`).
+- **Symptom**: progenitor panics during gen-client with a type-redeclaration error. The fix is to rename the component (and update its `$ref` sites). Note the rename in `completeness.notes`.
+
 ## Anti-patterns
 
 - **Don't fabricate.** If the docs are unclear about a response field's type, mark it `type: object` with `additionalProperties: true` and note it in `completeness.notes`. Never guess.
 - **Don't over-spec.** This is a starting point for codegen, not a contract. 80% accurate covering the endpoints the user wants is better than 95% accurate covering endpoints they don't.
-- **Don't write the spec to `apps/`.** Specs always live in `ext/specs/`.
-- **Don't run `cargo build` or codegen here.** This skill ends at the spec file. The user will run `aomi-build gen-client` next.
+- **Don't run `cargo build` or codegen here.** This skill ends at the spec file. The user will run `aomi-build gen-client` (and `gen-tool`) next.
+- **Don't co-locate when shared, don't centralize when app-local.** A spec in the wrong place breaks gen-client's path resolution.
 
 ## Example invocations
 
 ```
-/openapi-from-docs dune https://docs.dune.com/api-reference/overview
-/openapi-from-docs defillama https://defillama.com/docs/api
-/openapi-from-docs binance  # → you ask for docs URL
+/aomi-app-client-api-gen dune https://docs.dune.com/api-reference/overview
+/aomi-app-client-api-gen defillama https://defillama.com/docs/api
+/aomi-app-client-api-gen binance  # → you ask for docs URL
 ```
