@@ -31,6 +31,10 @@ pub struct NewAppArgs {
     /// Skip the final `cargo build -p <platform>` verification.
     #[arg(long)]
     pub no_build: bool,
+
+    /// Treat as a shared library (lives under ext/). Default is app-local.
+    #[arg(long)]
+    pub shared: bool,
 }
 
 pub fn run(args: NewAppArgs) -> Result<()> {
@@ -43,6 +47,7 @@ pub fn run(args: NewAppArgs) -> Result<()> {
         out: None,
         force: args.force,
         from_url: args.from_url.clone(),
+        shared: args.shared,
     })
     .with_context(|| "gen-specs failed")?;
 
@@ -53,6 +58,7 @@ pub fn run(args: NewAppArgs) -> Result<()> {
         spec: None,
         out: None,
         force: args.force,
+        shared: args.shared,
     })
     .with_context(|| "gen-client failed")?;
 
@@ -70,6 +76,7 @@ pub fn run(args: NewAppArgs) -> Result<()> {
         out: None,
         all: args.all,
         force: args.force,
+        shared: args.shared,
     })
     .with_context(|| "gen-tool failed")?;
 

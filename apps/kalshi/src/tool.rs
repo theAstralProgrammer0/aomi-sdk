@@ -83,7 +83,7 @@ impl DynAomiTool for SimmerRegister {
     type Args = SimmerRegisterArgs;
     const NAME: &'static str = "simmer_register";
     const DESCRIPTION: &'static str =
-        "Register a new Simmer agent for Kalshi trading. Returns an API key and claim URL.";
+        "Use when the user has no Simmer API key yet and wants to start trading Kalshi markets. Returns an api_key (must be saved with /apikey simmer <key>), a claim_url for identity verification, and a sandbox starting balance. One-time setup.";
 
     fn run(_app: &KalshiApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let result = simmer_register_agent(&args.name, args.description.as_deref())?;
@@ -117,7 +117,7 @@ impl DynAomiTool for SimmerStatus {
     type App = KalshiApp;
     type Args = SimmerStatusArgs;
     const NAME: &'static str = "simmer_status";
-    const DESCRIPTION: &'static str = "Get Simmer agent status, balances, claim state, and whether live Kalshi trading is enabled.";
+    const DESCRIPTION: &'static str = "Use when the user asks 'is my agent set up?' or 'can I trade live Kalshi yet?'. Returns agent state, $SIM and USD balances, claim_url, and live_trading_enabled flag.";
 
     fn run(_app: &KalshiApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let api_key = resolve_simmer_api_key(args.api_key.as_deref())?;
@@ -149,7 +149,7 @@ impl DynAomiTool for SimmerBriefing {
     type App = KalshiApp;
     type Args = SimmerBriefingArgs;
     const NAME: &'static str = "simmer_briefing";
-    const DESCRIPTION: &'static str = "Get a Simmer briefing covering portfolio, positions, opportunities, risk alerts, and performance.";
+    const DESCRIPTION: &'static str = "Use when the user opens a session or asks 'what's new?' / 'how am I doing?'. Returns a one-shot dashboard: portfolio snapshot, current positions, fresh opportunities, risk alerts, and performance. Optional `since` ISO timestamp to scope to changes since a moment.";
 
     fn run(_app: &KalshiApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let api_key = resolve_simmer_api_key(args.api_key.as_deref())?;
@@ -183,7 +183,7 @@ impl DynAomiTool for SearchSimmerMarkets {
     type App = KalshiApp;
     type Args = SearchSimmerMarketsArgs;
     const NAME: &'static str = "search_simmer_markets";
-    const DESCRIPTION: &'static str = "List importable Kalshi markets from Simmer. Returns Kalshi URLs that can be imported into Simmer before trading.";
+    const DESCRIPTION: &'static str = "Use when the user wants to discover Kalshi markets to trade (e.g. 'find election markets'). Returns importable markets with Kalshi URLs — NOT Simmer market_ids. Next step: call import_kalshi_market with one of the returned URLs.";
 
     fn run(_app: &KalshiApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let api_key = resolve_simmer_api_key(args.api_key.as_deref())?;
@@ -221,7 +221,7 @@ impl DynAomiTool for ImportKalshiMarket {
     type App = KalshiApp;
     type Args = ImportKalshiMarketArgs;
     const NAME: &'static str = "import_kalshi_market";
-    const DESCRIPTION: &'static str = "Import a Kalshi market into Simmer and return the Simmer market_id UUID required for context and trading calls.";
+    const DESCRIPTION: &'static str = "Use after search_simmer_markets (or when the user pastes a Kalshi URL) to register the market with Simmer. Returns the Simmer market_id UUID — required for fetch_simmer_market_context and simmer_place_order.";
 
     fn run(_app: &KalshiApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let api_key = resolve_simmer_api_key(args.api_key.as_deref())?;
@@ -249,7 +249,7 @@ impl DynAomiTool for FetchSimmerMarketContext {
     type App = KalshiApp;
     type Args = FetchSimmerMarketContextArgs;
     const NAME: &'static str = "fetch_simmer_market_context";
-    const DESCRIPTION: &'static str = "Get detailed context for an imported Kalshi market before trading, including warnings, slippage, fees, and resolution criteria.";
+    const DESCRIPTION: &'static str = "Use immediately before simmer_place_order to inspect a market. Returns warnings, slippage estimate, fees, time-to-resolution, and resolution criteria. Always surface warnings to the user before placing a trade.";
 
     fn run(_app: &KalshiApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let api_key = resolve_simmer_api_key(args.api_key.as_deref())?;
@@ -298,7 +298,7 @@ impl DynAomiTool for SimmerPlaceOrder {
     type App = KalshiApp;
     type Args = SimmerPlaceOrderArgs;
     const NAME: &'static str = "simmer_place_order";
-    const DESCRIPTION: &'static str = "Place an order via Simmer for Kalshi or the sim sandbox. Supports dry_run on live venues and shares-based sells.";
+    const DESCRIPTION: &'static str = "Use to place a buy or sell on a Kalshi market via Simmer. side is 'yes'/'no'; provide either amount (USD, buys only) or shares (required for sells). venue defaults to 'sim' (sandbox); pass 'kalshi' only for real-money trades. Set dry_run=true to validate first on live venues. The reasoning field is public on the user's Simmer profile — write a real thesis.";
 
     fn run(_app: &KalshiApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let venue = args
@@ -388,7 +388,7 @@ impl DynAomiTool for SimmerGetPositions {
     type App = KalshiApp;
     type Args = SimmerGetPositionsArgs;
     const NAME: &'static str = "simmer_get_positions";
-    const DESCRIPTION: &'static str = "Get positions for the sim sandbox or Kalshi venue.";
+    const DESCRIPTION: &'static str = "Use when the user asks 'what am I holding?'. Returns open positions on a venue (defaults to 'sim'; pass 'kalshi' for live). Includes per-position PnL plus a total_pnl summary.";
 
     fn run(_app: &KalshiApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let venue = args
@@ -433,7 +433,7 @@ impl DynAomiTool for SimmerGetPortfolio {
     type Args = SimmerGetPortfolioArgs;
     const NAME: &'static str = "simmer_get_portfolio";
     const DESCRIPTION: &'static str =
-        "Get portfolio summary from Simmer for the linked Kalshi account.";
+        "Use when the user asks 'what's my account worth?'. Returns cash balance, currency, positions value, total value, and realized/unrealized PnL across the linked Kalshi account.";
 
     fn run(_app: &KalshiApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let api_key = resolve_simmer_api_key(args.api_key.as_deref())?;

@@ -51,7 +51,7 @@ impl DynAomiTool for GetXUser {
     type App = XApp;
     type Args = GetXUserArgs;
     const NAME: &'static str = "get_x_user";
-    const DESCRIPTION: &'static str = "Get an X (Twitter) user's profile information by username. Returns follower count, bio, verification status, and more.";
+    const DESCRIPTION: &'static str = "Use when the user asks about an X account (followers, bio, verification, account age). Pass the handle without the @ — e.g. \"elonmusk\". Returns the profile object.";
 
     fn run(_app: &XApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let client = x_client(args.api_key.as_deref())?;
@@ -87,7 +87,7 @@ impl DynAomiTool for GetXUserPosts {
     type App = XApp;
     type Args = GetXUserPostsArgs;
     const NAME: &'static str = "get_x_user_posts";
-    const DESCRIPTION: &'static str = "Get recent posts from an X (Twitter) user. Returns post text, engagement metrics, and metadata.";
+    const DESCRIPTION: &'static str = "Use when the user asks \"what has @handle been posting recently\". Returns one page of recent posts (text + engagement) plus a `cursor` for pagination. Pass the handle without the @.";
 
     fn run(_app: &XApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let client = x_client(args.api_key.as_deref())?;
@@ -133,7 +133,7 @@ impl DynAomiTool for SearchX {
     type App = XApp;
     type Args = SearchXArgs;
     const NAME: &'static str = "search_x";
-    const DESCRIPTION: &'static str = "Search for posts on X (Twitter) using advanced query operators. Supports filtering by user, hashtag, date range, and engagement metrics.";
+    const DESCRIPTION: &'static str = "Use when the user wants posts about a topic, hashtag, or from a specific account combined with filters. Supports advanced operators (from:, #tag, lang:en, since:YYYY-MM-DD, min_faves:N, filter:media). `query_type=Latest` for chronological, `Top` for most-engaged. Returns posts + cursor.";
 
     fn run(_app: &XApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let client = x_client(args.api_key.as_deref())?;
@@ -182,8 +182,7 @@ impl DynAomiTool for GetXTrends {
     type App = XApp;
     type Args = GetXTrendsArgs;
     const NAME: &'static str = "get_x_trends";
-    const DESCRIPTION: &'static str =
-        "Get current trending topics on X (Twitter). Returns trend names and post counts.";
+    const DESCRIPTION: &'static str = "Use when the user asks \"what's trending on X\". `woeid` is the Yahoo location id (1=worldwide, 23424977=US, 23424975=UK). Defaults to worldwide when omitted.";
 
     fn run(_app: &XApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let client = x_client(args.api_key.as_deref())?;
@@ -222,7 +221,7 @@ impl DynAomiTool for GetXPost {
     type App = XApp;
     type Args = GetXPostArgs;
     const NAME: &'static str = "get_x_post";
-    const DESCRIPTION: &'static str = "Get details of a specific X (Twitter) post by its ID. Returns full post content, engagement metrics, and author info.";
+    const DESCRIPTION: &'static str = "Use when the user shares an X post URL or numeric post id and wants full content + engagement. The id is the trailing number in `https://x.com/<user>/status/<id>`.";
 
     fn run(_app: &XApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let client = x_client(args.api_key.as_deref())?;

@@ -35,13 +35,11 @@ pub(crate) struct ListMarkets;
 
 #[derive(Debug, Deserialize, JsonSchema)]
 pub(crate) struct ListMarketsArgs {
-    /// Maximum number of markets to return (default: 20, max: 1000)
+    /// Maximum number of markets to return (default 20, max 1000).
     limit: Option<u32>,
-    /// Cursor ID for pagination -- return markets before this ID
-    before: Option<String>,
-    /// Sort order: "newest" or "score"
+    /// Sort order: "newest" (default) or "score" for hottest.
     sort: Option<String>,
-    /// Filter by topic slug(s), comma-separated
+    /// Filter by topic slug(s), comma-separated (e.g. "ai,politics").
     topics: Option<String>,
 }
 
@@ -49,28 +47,17 @@ impl DynAomiTool for ListMarkets {
     type App = ManifoldApp;
     type Args = ListMarketsArgs;
     const NAME: &'static str = "list_markets";
-    const DESCRIPTION: &'static str = "List prediction markets on Manifold, optionally filtered by topic and sorted by newest or score.";
+    const DESCRIPTION: &'static str = "Use when the user wants to browse Manifold prediction markets without a specific keyword, e.g. \"what's hot on Manifold\" or \"newest markets\". Returns a compact list of {id, question, url, probability, volume, isResolved}. Use search_markets when there is a keyword.";
 
     fn run(_app: &ManifoldApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let mut query_parts: Vec<String> = Vec::new();
-        if let Some(limit) = args.limit {
-            query_parts.push(format!("limit={limit}"));
-        }
-        if let Some(before) = &args.before {
-            query_parts.push(format!("before={before}"));
-        }
-        if let Some(sort) = &args.sort {
-            query_parts.push(format!("sort={sort}"));
-        }
+        query_parts.push(format!("limit={}", args.limit.unwrap_or(20).min(1000)));
+        query_parts.push(format!("sort={}", args.sort.as_deref().unwrap_or("newest")));
         if let Some(topics) = &args.topics {
             query_parts.push(format!("topics={topics}"));
         }
 
-        let path = if query_parts.is_empty() {
-            "/markets".to_string()
-        } else {
-            format!("/markets?{}", query_parts.join("&"))
-        };
+        let path = format!("/markets?{}", query_parts.join("&"));
 
         let markets = ManifoldClient::new()?.get(&path, "list_markets")?;
         let markets_arr = markets.as_array().cloned().unwrap_or_default();
@@ -107,8 +94,7 @@ impl DynAomiTool for GetMarket {
     type App = ManifoldApp;
     type Args = GetMarketArgs;
     const NAME: &'static str = "get_market";
-    const DESCRIPTION: &'static str =
-        "Get detailed information about a specific Manifold market by ID or slug.";
+    const DESCRIPTION: &'static str = "Use when the user wants full detail on one Manifold market (probability, volume, liquidity, close time, resolution). Accepts an `id` (24-char hex) or a slug from the market URL.";
 
     fn run(_app: &ManifoldApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let path = format!("/market/{}", args.id);
@@ -149,7 +135,7 @@ impl DynAomiTool for GetMarketPositions {
     type App = ManifoldApp;
     type Args = GetMarketPositionsArgs;
     const NAME: &'static str = "get_market_positions";
-    const DESCRIPTION: &'static str = "Get user positions for a specific Manifold market.";
+    const DESCRIPTION: &'static str = "Use when the user asks who is holding what on a market (top traders, position concentration). Returns the list of user positions for a given market id.";
 
     fn run(_app: &ManifoldApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let path = format!("/market/{}/positions", args.id);
@@ -178,17 +164,18 @@ impl DynAomiTool for SearchMarkets {
     type App = ManifoldApp;
     type Args = SearchMarketsArgs;
     const NAME: &'static str = "search_markets";
-    const DESCRIPTION: &'static str =
-        "Search Manifold prediction markets by keyword with optional sort and filter.";
+    const DESCRIPTION: &'static str = "Use when the user asks about a topic and you need to find Manifold markets — e.g. \"is there a market on the next Fed cut?\". `term` is a keyword search; `filter` defaults to \"open\" so unresolved markets surface first.";
 
     fn run(_app: &ManifoldApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let mut query_parts: Vec<String> = vec![format!("term={}", urlencoded(&args.term))];
         if let Some(sort) = &args.sort {
             query_parts.push(format!("sort={sort}"));
         }
-        if let Some(filter) = &args.filter {
-            query_parts.push(format!("filter={filter}"));
-        }
+        // Default to open markets so resolved/closed don't dominate results.
+        query_parts.push(format!(
+            "filter={}",
+            args.filter.as_deref().unwrap_or("open")
+        ));
 
         let path = format!("/search-markets?{}", query_parts.join("&"));
         let results = ManifoldClient::new()?.get(&path, "search_markets")?;
@@ -231,8 +218,7 @@ impl DynAomiTool for PlaceBet {
     type App = ManifoldApp;
     type Args = PlaceBetArgs;
     const NAME: &'static str = "place_bet";
-    const DESCRIPTION: &'static str =
-        "Place a YES or NO bet on a Manifold binary market. Requires a Manifold API key.";
+    const DESCRIPTION: &'static str = "Use when the user wants to bet mana on a Manifold binary (YES/NO) market. `contract_id` is the market `id` from get_market or search_markets. `amount` is in mana (M$). Requires MANIFOLD_API_KEY.";
 
     fn run(_app: &ManifoldApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let outcome = args.outcome.to_uppercase();
@@ -288,8 +274,7 @@ impl DynAomiTool for CreateMarket {
     type App = ManifoldApp;
     type Args = CreateMarketArgs;
     const NAME: &'static str = "create_market";
-    const DESCRIPTION: &'static str =
-        "Create a new prediction market on Manifold. Requires a Manifold API key.";
+    const DESCRIPTION: &'static str = "Use when the user wants to launch their own prediction market. Defaults to a BINARY (YES/NO) market with 50% initial probability. Requires MANIFOLD_API_KEY.";
 
     fn run(_app: &ManifoldApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let market_type = args.market_type.as_deref().unwrap_or("BINARY");

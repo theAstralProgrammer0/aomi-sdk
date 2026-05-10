@@ -20,46 +20,108 @@ fn ok<T: Serialize>(value: T) -> Result<Value, String> {
 }
 
 // ============================================================================
-// GetAcrossBridgeQuote
+// AcrossListRoutes -- discovery
 // ============================================================================
 
-pub(crate) struct GetAcrossBridgeQuote;
+pub(crate) struct AcrossListRoutes;
 
 #[derive(Debug, Deserialize, JsonSchema)]
-pub(crate) struct GetAcrossBridgeQuoteArgs {
-    #[schemars(description = "ERC-20 token address on the origin chain (input token)")]
+pub(crate) struct AcrossListRoutesArgs {
+    /// Filter by origin chain ID (numeric, e.g. 1 for Ethereum, 42161 for Arbitrum). Optional.
+    #[serde(default)]
+    pub origin_chain_id: Option<u64>,
+    /// Filter by destination chain ID. Optional.
+    #[serde(default)]
+    pub destination_chain_id: Option<u64>,
+    /// Filter by origin ERC-20 address (0x..., checksummed). Optional.
+    #[serde(default)]
+    pub origin_token: Option<String>,
+    /// Filter by destination ERC-20 address. Optional.
+    #[serde(default)]
+    pub destination_token: Option<String>,
+}
+
+impl DynAomiTool for AcrossListRoutes {
+    type App = AcrossApp;
+    type Args = AcrossListRoutesArgs;
+    const NAME: &'static str = "across_list_routes";
+    const DESCRIPTION: &'static str = "Use to discover supported Across bridge routes (which token on which origin chain can be bridged to which destination). Returns route entries with origin/destination chain IDs and token addresses. Filter by any combination of chain or token to narrow results.";
+
+    fn run(_app: &AcrossApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
+        ok(AcrossClient::new()?.get_available_routes(
+            args.origin_chain_id,
+            args.destination_chain_id,
+            args.origin_token.as_deref(),
+            args.destination_token.as_deref(),
+        )?)
+    }
+}
+
+// ============================================================================
+// AcrossGetLimits
+// ============================================================================
+
+pub(crate) struct AcrossGetLimits;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct AcrossGetLimitsArgs {
+    /// Origin-chain ERC-20 address (input token).
     pub input_token: String,
-
-    #[schemars(description = "ERC-20 token address on the destination chain (output token)")]
+    /// Destination-chain ERC-20 address (output token).
     pub output_token: String,
-
-    #[schemars(
-        description = "Origin chain ID (e.g. 1 for Ethereum, 42161 for Arbitrum, 10 for Optimism, 137 for Polygon, 8453 for Base)"
-    )]
+    /// Origin chain ID (numeric).
     pub origin_chain_id: u64,
-
-    #[schemars(
-        description = "Destination chain ID (e.g. 1 for Ethereum, 42161 for Arbitrum, 10 for Optimism, 137 for Polygon, 8453 for Base)"
-    )]
+    /// Destination chain ID (numeric).
     pub destination_chain_id: u64,
+}
 
-    #[schemars(description = "Amount in the token's smallest unit (e.g. wei for ETH)")]
+impl DynAomiTool for AcrossGetLimits {
+    type App = AcrossApp;
+    type Args = AcrossGetLimitsArgs;
+    const NAME: &'static str = "across_get_limits";
+    const DESCRIPTION: &'static str = "Use before quoting a bridge to check that the user's amount is within bounds. Returns minDeposit, maxDeposit, and recommended instant-fill caps for the given origin token / destination token / chain pair, in the input token's smallest unit.";
+
+    fn run(_app: &AcrossApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
+        ok(AcrossClient::new()?.get_limits(
+            &args.input_token,
+            &args.output_token,
+            args.origin_chain_id,
+            args.destination_chain_id,
+        )?)
+    }
+}
+
+// ============================================================================
+// AcrossGetBridgeQuote -- fee + output amount + relayer params
+// ============================================================================
+
+pub(crate) struct AcrossGetBridgeQuote;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct AcrossGetBridgeQuoteArgs {
+    /// Origin-chain ERC-20 address (input token).
+    pub input_token: String,
+    /// Destination-chain ERC-20 address (output token).
+    pub output_token: String,
+    /// Origin chain ID (e.g. 1, 10, 137, 8453, 42161).
+    pub origin_chain_id: u64,
+    /// Destination chain ID.
+    pub destination_chain_id: u64,
+    /// Input amount in the input token's smallest unit (1 USDC = "1000000").
     pub amount: String,
-
-    #[schemars(description = "Recipient address on the destination chain. Optional.")]
+    /// Recipient address on the destination chain. Defaults to depositor when omitted.
     #[serde(default)]
     pub recipient: Option<String>,
-
-    #[schemars(description = "Optional message for cross-chain actions")]
+    /// Optional cross-chain message hex (for atomic actions on destination).
     #[serde(default)]
     pub message: Option<String>,
 }
 
-impl DynAomiTool for GetAcrossBridgeQuote {
+impl DynAomiTool for AcrossGetBridgeQuote {
     type App = AcrossApp;
-    type Args = GetAcrossBridgeQuoteArgs;
-    const NAME: &'static str = "get_across_bridge_quote";
-    const DESCRIPTION: &'static str = "Get a bridge fee quote from Across Protocol. Returns suggested fees, estimated fill time, and fee breakdown for a cross-chain transfer.";
+    type Args = AcrossGetBridgeQuoteArgs;
+    const NAME: &'static str = "across_get_bridge_quote";
+    const DESCRIPTION: &'static str = "Use when the user wants to bridge a token via Across. Returns `outputAmount`, the fee breakdown (totalRelayFee, lpFee, gasFee, capitalFee), `estimatedFillTimeSec`, and the relayer parameters needed to call SpokePool. To execute, the host must call `depositV3` (or `deposit`) on the origin-chain SpokePool with these parameters; this tool does NOT return raw calldata.";
 
     fn run(_app: &AcrossApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         ok(AcrossClient::new()?.get_suggested_fees(
@@ -75,144 +137,26 @@ impl DynAomiTool for GetAcrossBridgeQuote {
 }
 
 // ============================================================================
-// GetAcrossBridgeLimits
+// AcrossGetDepositStatus
 // ============================================================================
 
-pub(crate) struct GetAcrossBridgeLimits;
+pub(crate) struct AcrossGetDepositStatus;
 
 #[derive(Debug, Deserialize, JsonSchema)]
-pub(crate) struct GetAcrossBridgeLimitsArgs {
-    #[schemars(description = "ERC-20 token address on the origin chain (input token)")]
-    pub input_token: String,
-
-    #[schemars(description = "ERC-20 token address on the destination chain (output token)")]
-    pub output_token: String,
-
-    #[schemars(
-        description = "Origin chain ID (e.g. 1 for Ethereum, 42161 for Arbitrum, 10 for Optimism)"
-    )]
+pub(crate) struct AcrossGetDepositStatusArgs {
+    /// Origin chain ID where the deposit was made.
     pub origin_chain_id: u64,
-
-    #[schemars(
-        description = "Destination chain ID (e.g. 1 for Ethereum, 42161 for Arbitrum, 10 for Optimism)"
-    )]
-    pub destination_chain_id: u64,
-}
-
-impl DynAomiTool for GetAcrossBridgeLimits {
-    type App = AcrossApp;
-    type Args = GetAcrossBridgeLimitsArgs;
-    const NAME: &'static str = "get_across_bridge_limits";
-    const DESCRIPTION: &'static str =
-        "Get minimum and maximum transfer limits for a specific token route on Across Protocol.";
-
-    fn run(_app: &AcrossApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        ok(AcrossClient::new()?.get_limits(
-            &args.input_token,
-            &args.output_token,
-            args.origin_chain_id,
-            args.destination_chain_id,
-        )?)
-    }
-}
-
-// ============================================================================
-// GetAcrossDepositStatus
-// ============================================================================
-
-pub(crate) struct GetAcrossDepositStatus;
-
-#[derive(Debug, Deserialize, JsonSchema)]
-pub(crate) struct GetAcrossDepositStatusArgs {
-    #[schemars(description = "Origin chain ID where the deposit was made")]
-    pub origin_chain_id: u64,
-
-    #[schemars(description = "Deposit ID to track")]
+    /// Numeric deposit ID emitted by the origin SpokePool when the deposit tx confirmed.
     pub deposit_id: u64,
 }
 
-impl DynAomiTool for GetAcrossDepositStatus {
+impl DynAomiTool for AcrossGetDepositStatus {
     type App = AcrossApp;
-    type Args = GetAcrossDepositStatusArgs;
-    const NAME: &'static str = "get_across_deposit_status";
-    const DESCRIPTION: &'static str = "Track the status of a bridge deposit on Across Protocol. Returns fill status and corresponding fill transaction hash if filled.";
+    type Args = AcrossGetDepositStatusArgs;
+    const NAME: &'static str = "across_get_deposit_status";
+    const DESCRIPTION: &'static str = "Use to track an Across bridge deposit. Returns the fill status (PENDING / FILLED / etc.) and, when filled, the destination-chain fill tx hash. Poll while the user is waiting (typical fill is under 30 seconds for instant-eligible amounts).";
 
     fn run(_app: &AcrossApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         ok(AcrossClient::new()?.get_deposit_status(args.origin_chain_id, args.deposit_id)?)
-    }
-}
-
-// ============================================================================
-// GetAcrossAvailableRoutes
-// ============================================================================
-
-pub(crate) struct GetAcrossAvailableRoutes;
-
-#[derive(Debug, Deserialize, JsonSchema)]
-pub(crate) struct GetAcrossAvailableRoutesArgs {
-    #[schemars(description = "Filter by origin chain ID. Optional.")]
-    #[serde(default)]
-    pub origin_chain_id: Option<u64>,
-
-    #[schemars(description = "Filter by destination chain ID. Optional.")]
-    #[serde(default)]
-    pub destination_chain_id: Option<u64>,
-
-    #[schemars(description = "Filter by origin token address. Optional.")]
-    #[serde(default)]
-    pub origin_token: Option<String>,
-
-    #[schemars(description = "Filter by destination token address. Optional.")]
-    #[serde(default)]
-    pub destination_token: Option<String>,
-}
-
-impl DynAomiTool for GetAcrossAvailableRoutes {
-    type App = AcrossApp;
-    type Args = GetAcrossAvailableRoutesArgs;
-    const NAME: &'static str = "get_across_available_routes";
-    const DESCRIPTION: &'static str = "List available bridge routes on Across Protocol. Optionally filter by origin/destination chain ID or token address.";
-
-    fn run(_app: &AcrossApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        ok(AcrossClient::new()?.get_available_routes(
-            args.origin_chain_id,
-            args.destination_chain_id,
-            args.origin_token.as_deref(),
-            args.destination_token.as_deref(),
-        )?)
-    }
-}
-
-// ============================================================================
-// GetAcrossTokenPrice
-// ============================================================================
-
-pub(crate) struct GetAcrossTokenPrice;
-
-#[derive(Debug, Deserialize, JsonSchema)]
-pub(crate) struct GetAcrossTokenPriceArgs {
-    #[schemars(
-        description = "L1 (Ethereum mainnet) token address. Optional if l2_token is provided."
-    )]
-    #[serde(default)]
-    pub l1_token: Option<String>,
-
-    #[schemars(description = "L2 token address. Optional if l1_token is provided.")]
-    #[serde(default)]
-    pub l2_token: Option<String>,
-}
-
-impl DynAomiTool for GetAcrossTokenPrice {
-    type App = AcrossApp;
-    type Args = GetAcrossTokenPriceArgs;
-    const NAME: &'static str = "get_across_token_price";
-    const DESCRIPTION: &'static str = "Get token price from Across Protocol's coingecko endpoint. Provide either an L1 or L2 token address.";
-
-    fn run(_app: &AcrossApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        if args.l1_token.is_none() && args.l2_token.is_none() {
-            return Err("[across] token price failed: at least one of l1_token or l2_token must be provided".to_string());
-        }
-        ok(AcrossClient::new()?
-            .get_coingecko_price(args.l1_token.as_deref(), args.l2_token.as_deref())?)
     }
 }

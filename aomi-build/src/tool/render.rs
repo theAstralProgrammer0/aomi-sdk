@@ -1,8 +1,22 @@
 use std::fmt::Write;
 
-use super::{Op, ParamKind, ParamLoc};
+use super::{Mode, Op, ParamKind, ParamLoc};
 
-pub fn cargo_toml(platform: &str) -> String {
+pub fn cargo_toml(platform: &str, mode: Mode) -> String {
+    let provider_dep_block = match mode {
+        Mode::Shared => format!(
+            "aomi-ext = {{ path = \"../../ext\", features = [\"{platform}\"] }}\n"
+        ),
+        Mode::AppLocal => {
+            // App-local: client deps live directly here. progenitor-client +
+            // chrono are added by gen-client (per-spec dep detection); reqwest
+            // we add unconditionally so tool layer can wrap a custom client
+            // for auth header injection.
+            "progenitor-client = \"0.14\"\n\
+             chrono = { version = \"0.4\", features = [\"serde\"] }\n"
+                .to_string()
+        }
+    };
     format!(
         r#"[package]
 name = "{platform}"
@@ -14,7 +28,9 @@ crate-type = ["cdylib"]
 
 [dependencies]
 aomi-sdk = {{ path = "../../sdk" }}
-aomi-ext = {{ path = "../../ext", features = ["{platform}"] }}
+{provider_dep_block}# Match progenitor-client's reqwest version so curated tool layers can wrap
+# `Client::new_with_client(...)` with header-injecting middleware for auth.
+reqwest = {{ version = "0.13", default-features = false, features = ["json", "rustls"] }}
 schemars = "1.0.4"
 serde = {{ version = "1.0", features = ["derive"] }}
 serde_json = "1.0"
@@ -29,7 +45,7 @@ pub fn preamble_default(platform: &str) -> String {
     )
 }
 
-pub fn lib_rs(platform: &str, app_struct: &str, ops: &[Op], preamble: &str) -> String {
+pub fn lib_rs(platform: &str, app_struct: &str, ops: &[Op], preamble: &str, mode: Mode) -> String {
     let tool_list = ops
         .iter()
         .map(|o| format!("        tool::{},", o.tool_marker))
@@ -45,6 +61,11 @@ pub fn lib_rs(platform: &str, app_struct: &str, ops: &[Op], preamble: &str) -> S
     let _ = writeln!(out);
     let _ = writeln!(out, "use aomi_sdk::*;");
     let _ = writeln!(out);
+    if mode == Mode::AppLocal {
+        // Generated client lives at apps/<platform>/src/client/
+        let _ = writeln!(out, "#[allow(clippy::all, dead_code, unused_imports)]");
+        let _ = writeln!(out, "mod client;");
+    }
     let _ = writeln!(out, "mod tool;");
     let _ = writeln!(out);
     let _ = writeln!(out, "const PREAMBLE: &str = r##\"{preamble}\"##;");
@@ -62,7 +83,7 @@ pub fn lib_rs(platform: &str, app_struct: &str, ops: &[Op], preamble: &str) -> S
     out
 }
 
-pub fn tool_rs(platform: &str, app_struct: &str, ops: &[Op]) -> String {
+pub fn tool_rs(platform: &str, app_struct: &str, ops: &[Op], mode: Mode) -> String {
     let mut out = String::new();
     let _ = writeln!(
         out,
@@ -71,7 +92,11 @@ pub fn tool_rs(platform: &str, app_struct: &str, ops: &[Op]) -> String {
          //! review tool names, descriptions, and any auth assumptions."
     );
     let _ = writeln!(out);
-    let _ = writeln!(out, "use aomi_ext::{platform}::Client as GenClient;");
+    let client_use = match mode {
+        Mode::Shared => format!("use aomi_ext::{platform}::Client as GenClient;"),
+        Mode::AppLocal => "use crate::client::Client as GenClient;".to_string(),
+    };
+    let _ = writeln!(out, "{client_use}");
     let _ = writeln!(out, "use aomi_sdk::*;");
     let _ = writeln!(out, "use aomi_sdk::schemars::JsonSchema;");
     let _ = writeln!(out, "use serde::{{Deserialize, Serialize}};");
@@ -240,15 +265,17 @@ fn emit_tool(out: &mut String, platform: &str, app_struct: &str, op: &Op) {
     } else {
         format!("\n                {}\n            ", call_args.join(",\n                "))
     };
+    // Progenitor snake_cases method names; operation_id is often camelCase.
+    let method_ident = crate::spec_load::snake_case(&op.operation_id);
     let _ = writeln!(
         out,
         "            client.{}({}).await",
-        op.operation_id, args_str
+        method_ident, args_str
     );
     let _ = writeln!(
         out,
         "        }}).map_err(|e| format!(\"[{platform}] {}: {{e}}\"))?;",
-        op.operation_id
+        method_ident
     );
     let _ = writeln!(out, "        ok(result.into_inner())");
     let _ = writeln!(out, "    }}");

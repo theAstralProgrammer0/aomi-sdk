@@ -50,9 +50,20 @@ pub mod types {
     ///  ],
     ///  "properties": {
     ///    "chainId": {
-    ///      "type": [
-    ///        "integer",
-    ///        "null"
+    ///      "oneOf": [
+    ///        {
+    ///          "type": "null"
+    ///        },
+    ///        {
+    ///          "oneOf": [
+    ///            {
+    ///              "type": "integer"
+    ///            },
+    ///            {
+    ///              "type": "string"
+    ///            }
+    ///          ]
+    ///        }
     ///      ]
     ///    },
     ///    "name": {
@@ -79,7 +90,7 @@ pub mod types {
             default,
             skip_serializing_if = "::std::option::Option::is_none"
         )]
-        pub chain_id: ::std::option::Option<i64>,
+        pub chain_id: ::std::option::Option<ChainTvlChainId>,
         pub name: ::std::string::String,
         #[serde(
             rename = "tokenSymbol",
@@ -88,6 +99,42 @@ pub mod types {
         )]
         pub token_symbol: ::std::option::Option<::std::string::String>,
         pub tvl: f64,
+    }
+    ///`ChainTvlChainId`
+    ///
+    /// <details><summary>JSON schema</summary>
+    ///
+    /// ```json
+    ///{
+    ///  "oneOf": [
+    ///    {
+    ///      "type": "integer"
+    ///    },
+    ///    {
+    ///      "type": "string"
+    ///    }
+    ///  ]
+    ///}
+    /// ```
+    /// </details>
+    #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+    #[serde(untagged)]
+    pub enum ChainTvlChainId {
+        Integer(i64),
+        String(::std::string::String),
+    }
+    impl ::std::fmt::Display for ChainTvlChainId {
+        fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+            match self {
+                Self::Integer(x) => x.fmt(f),
+                Self::String(x) => x.fmt(f),
+            }
+        }
+    }
+    impl ::std::convert::From<i64> for ChainTvlChainId {
+        fn from(value: i64) -> Self {
+            Self::Integer(value)
+        }
     }
     ///`CoinPrice`
     ///
@@ -184,8 +231,7 @@ pub mod types {
     ///{
     ///  "type": "object",
     ///  "required": [
-    ///    "name",
-    ///    "tvl"
+    ///    "name"
     ///  ],
     ///  "properties": {
     ///    "category": {
@@ -219,7 +265,10 @@ pub mod types {
     ///      ]
     ///    },
     ///    "tvl": {
-    ///      "type": "number"
+    ///      "type": [
+    ///        "number",
+    ///        "null"
+    ///      ]
     ///    }
     ///  },
     ///  "additionalProperties": true
@@ -243,7 +292,8 @@ pub mod types {
         pub name: ::std::string::String,
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub symbol: ::std::option::Option<::std::string::String>,
-        pub tvl: f64,
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        pub tvl: ::std::option::Option<f64>,
     }
     ///`TvlPoint`
     ///

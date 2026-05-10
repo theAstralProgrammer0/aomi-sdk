@@ -37,7 +37,130 @@ pub fn load_and_preprocess(spec_path: &Path) -> Result<openapiv3::OpenAPI> {
     if n > 0 {
         println!("  dropped {n} operation(s) with multipart request bodies (progenitor doesn't support multipart)");
     }
+    let n = collapse_request_body_to_json(&mut spec);
+    if n > 0 {
+        println!("  collapsed {n} request body/ies to application/json only (progenitor allows one media type)");
+    }
+    let n = collapse_response_content_to_json(&mut spec);
+    if n > 0 {
+        println!("  collapsed {n} response(s) to one media type (progenitor allows one)");
+    }
+    // Write the post-processed spec to a sibling .preprocessed.yaml for
+    // debugging when progenitor still chokes on something.
+    if let Ok(yaml) = serde_yaml::to_string(&spec) {
+        let dbg_path = spec_path.with_extension("preprocessed.yaml");
+        let _ = std::fs::write(&dbg_path, yaml);
+    }
     Ok(spec)
+}
+
+/// progenitor allows exactly one media type per response. When a response
+/// declares multiple (e.g. JSON + XML), keep `application/json` if present,
+/// else the first remaining type, and drop the rest.
+fn collapse_response_content_to_json(spec: &mut openapiv3::OpenAPI) -> usize {
+    use openapiv3::ReferenceOr;
+    let mut collapsed = 0;
+    fn fix(content: &mut indexmap::IndexMap<String, openapiv3::MediaType>) -> bool {
+        if content.len() <= 1 {
+            return false;
+        }
+        let keep = if content.contains_key("application/json") {
+            Some("application/json".to_string())
+        } else {
+            content.keys().next().cloned()
+        };
+        let Some(keep) = keep else {
+            return false;
+        };
+        let to_drop: Vec<String> = content.keys().filter(|k| **k != keep).cloned().collect();
+        for k in &to_drop {
+            content.shift_remove(k);
+        }
+        true
+    }
+    for item_ref in spec.paths.paths.values_mut() {
+        let ReferenceOr::Item(item) = item_ref else {
+            continue;
+        };
+        for op in [
+            &mut item.get,
+            &mut item.put,
+            &mut item.post,
+            &mut item.delete,
+            &mut item.patch,
+            &mut item.head,
+            &mut item.options,
+            &mut item.trace,
+        ]
+        .into_iter()
+        .flatten()
+        {
+            for resp in op.responses.responses.values_mut() {
+                if let ReferenceOr::Item(r) = resp {
+                    if fix(&mut r.content) {
+                        collapsed += 1;
+                    }
+                }
+            }
+            if let Some(ReferenceOr::Item(r)) = op.responses.default.as_mut() {
+                if fix(&mut r.content) {
+                    collapsed += 1;
+                }
+            }
+        }
+    }
+    collapsed
+}
+
+/// progenitor allows exactly one media type per request body. When a spec
+/// declares multiple (e.g. JSON + XML + form), keep `application/json` if
+/// present, else the first remaining type, and drop the rest.
+fn collapse_request_body_to_json(spec: &mut openapiv3::OpenAPI) -> usize {
+    use openapiv3::ReferenceOr;
+    let mut collapsed = 0;
+    for item_ref in spec.paths.paths.values_mut() {
+        let ReferenceOr::Item(item) = item_ref else {
+            continue;
+        };
+        for op in [
+            &mut item.get,
+            &mut item.put,
+            &mut item.post,
+            &mut item.delete,
+            &mut item.patch,
+            &mut item.head,
+            &mut item.options,
+            &mut item.trace,
+        ]
+        .into_iter()
+        .flatten()
+        {
+            let Some(ReferenceOr::Item(rb)) = &mut op.request_body else {
+                continue;
+            };
+            if rb.content.len() <= 1 {
+                continue;
+            }
+            let preferred = if rb.content.contains_key("application/json") {
+                Some("application/json".to_string())
+            } else {
+                rb.content.keys().next().cloned()
+            };
+            if let Some(keep) = preferred {
+                let other_keys: Vec<String> = rb
+                    .content
+                    .keys()
+                    .filter(|k| **k != keep)
+                    .cloned()
+                    .collect();
+                for k in &other_keys {
+                    rb.content.shift_remove(k);
+                }
+                collapsed += 1;
+            }
+        }
+    }
+    collapsed
 }
 
 /// progenitor doesn't handle `multipart/form-data` request bodies. Drop those
@@ -193,31 +316,45 @@ fn dedupe_success_responses(spec: &mut openapiv3::OpenAPI) -> usize {
         .into_iter()
         .flatten()
         {
-            let to_remove: Vec<openapiv3::StatusCode> = {
-                let mut seen = false;
-                op.responses
-                    .responses
-                    .iter()
-                    .filter_map(|(code, r)| {
-                        let has_body = matches!(r, ReferenceOr::Item(rr) if !rr.content.is_empty());
-                        if !has_body {
-                            return None;
-                        }
-                        if is_success(code) {
-                            if seen {
-                                Some(code.clone())
-                            } else {
-                                seen = true;
-                                None
-                            }
-                        } else {
-                            Some(code.clone())
-                        }
-                    })
-                    .collect()
+            // Pick which single response to keep:
+            //   1. first 2xx with a body (real success type),
+            //   2. else first 2xx (empty body — generated client returns ()),
+            //   3. else nothing — every other response is dropped.
+            //
+            // progenitor's assertion is on response_type uniqueness, and a
+            // response with no body still counts as `()` — distinct from a
+            // typed body. Mixing empty 200 + bodied 202 panics. Keeping only
+            // ONE response avoids every variant of that bug.
+            let keep: Option<openapiv3::StatusCode> = {
+                let bodied_2xx = op.responses.responses.iter().find_map(|(c, r)| {
+                    if !is_success(c) {
+                        return None;
+                    }
+                    matches!(r, ReferenceOr::Item(rr) if !rr.content.is_empty()).then(|| c.clone())
+                });
+                bodied_2xx.or_else(|| {
+                    op.responses
+                        .responses
+                        .iter()
+                        .find_map(|(c, _)| is_success(c).then(|| c.clone()))
+                })
             };
+            let to_remove: Vec<openapiv3::StatusCode> = op
+                .responses
+                .responses
+                .keys()
+                .filter(|c| Some(*c) != keep.as_ref())
+                .cloned()
+                .collect();
             for code in &to_remove {
                 op.responses.responses.shift_remove(code);
+                dropped += 1;
+            }
+            // Always drop the `default` response. progenitor counts it as a
+            // response_type even when empty, which trips its `<= 1` assertion
+            // whenever an op has both a 200 and a `default` (very common).
+            if op.responses.default.is_some() {
+                op.responses.default = None;
                 dropped += 1;
             }
         }

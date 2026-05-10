@@ -61,7 +61,7 @@ impl DynAomiTool for GetPrice {
     type Args = GetPriceArgs;
     const NAME: &'static str = "binance_get_price";
     const DESCRIPTION: &'static str =
-        "Get the latest price for a trading pair, or all trading pairs if no symbol is specified.";
+        "Use when the user asks the latest spot price of a pair. Returns the current price for one symbol (e.g. BTCUSDT), or every pair when symbol is omitted.";
 
     fn run(_app: &BinanceApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let client = BinanceClient::new()?;
@@ -91,7 +91,7 @@ impl DynAomiTool for GetDepth {
     type App = BinanceApp;
     type Args = GetDepthArgs;
     const NAME: &'static str = "binance_get_depth";
-    const DESCRIPTION: &'static str = "Get order book depth (bids and asks) for a trading pair.";
+    const DESCRIPTION: &'static str = "Use when the user wants order-book depth (top bids/asks and sizes) for a spot pair, e.g. before placing a limit order or to gauge liquidity. Default depth is 100 levels.";
 
     fn run(_app: &BinanceApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let client = BinanceClient::new()?;
@@ -127,7 +127,7 @@ impl DynAomiTool for GetKlines {
     type App = BinanceApp;
     type Args = GetKlinesArgs;
     const NAME: &'static str = "binance_get_klines";
-    const DESCRIPTION: &'static str = "Get candlestick/kline data for a trading pair. Returns arrays of [open_time, open, high, low, close, volume, close_time, quote_volume, trades, taker_buy_base_vol, taker_buy_quote_vol, ignore].";
+    const DESCRIPTION: &'static str = "Use when the user asks for price history, charts, or technical analysis of a pair. Returns OHLCV candles as arrays [open_time, open, high, low, close, volume, close_time, quote_volume, trades, taker_buy_base_vol, taker_buy_quote_vol, ignore]. Default 500 candles, max 1000.";
 
     fn run(_app: &BinanceApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let client = BinanceClient::new()?;
@@ -161,7 +161,7 @@ impl DynAomiTool for Get24hrStats {
     type App = BinanceApp;
     type Args = Get24hrStatsArgs;
     const NAME: &'static str = "binance_get_24hr_stats";
-    const DESCRIPTION: &'static str = "Get 24-hour rolling window price change statistics for a trading pair, or all pairs if no symbol is specified.";
+    const DESCRIPTION: &'static str = "Use when the user asks how a pair has moved over the past 24 hours (price change %, high/low, volume). Returns rolling 24h stats for one symbol, or all pairs when symbol is omitted.";
 
     fn run(_app: &BinanceApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let client = BinanceClient::new()?;
@@ -203,7 +203,7 @@ impl DynAomiTool for PlaceOrder {
     type App = BinanceApp;
     type Args = PlaceOrderArgs;
     const NAME: &'static str = "binance_place_order";
-    const DESCRIPTION: &'static str = "Place a new spot order on Binance. Supports LIMIT, MARKET, STOP_LOSS_LIMIT, and TAKE_PROFIT_LIMIT order types. Requires API credentials.";
+    const DESCRIPTION: &'static str = "Use when the user wants to place a spot order. Supports LIMIT (set price + GTC/IOC/FOK), MARKET (omit price/time_in_force), STOP_LOSS_LIMIT, TAKE_PROFIT_LIMIT. Reads BINANCE_API_KEY/BINANCE_SECRET_KEY from env if api_key/secret_key args are omitted.";
 
     fn run(_app: &BinanceApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let client = BinanceClient::new()?;
@@ -256,7 +256,7 @@ impl DynAomiTool for CancelOrder {
     type App = BinanceApp;
     type Args = CancelOrderArgs;
     const NAME: &'static str = "binance_cancel_order";
-    const DESCRIPTION: &'static str = "Cancel an active spot order on Binance. Provide either order_id or orig_client_order_id. Requires API credentials.";
+    const DESCRIPTION: &'static str = "Use when the user wants to cancel an open spot order. Provide either order_id (preferred — returned by place_order) or orig_client_order_id. Reads credentials from BINANCE_API_KEY/BINANCE_SECRET_KEY if not passed.";
 
     fn run(_app: &BinanceApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let client = BinanceClient::new()?;
@@ -297,7 +297,7 @@ impl DynAomiTool for GetAccount {
     type App = BinanceApp;
     type Args = GetAccountArgs;
     const NAME: &'static str = "binance_get_account";
-    const DESCRIPTION: &'static str = "Get account information including balances for all assets on Binance spot. Requires API credentials.";
+    const DESCRIPTION: &'static str = "Use when the user asks about their Binance balances or account state. Returns free/locked balances for every asset and account-level permissions. Reads BINANCE_API_KEY/BINANCE_SECRET_KEY from env if not passed.";
 
     fn run(_app: &BinanceApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let client = BinanceClient::new()?;
@@ -342,7 +342,7 @@ impl DynAomiTool for GetTrades {
     type Args = GetTradesArgs;
     const NAME: &'static str = "binance_get_trades";
     const DESCRIPTION: &'static str =
-        "Get trade history for a specific trading pair on Binance spot. Requires API credentials.";
+        "Use when the user asks for their personal fill history on a pair (price, qty, fee, timestamp). Pair-scoped — must specify symbol. Default 500 trades, max 1000. Reads credentials from BINANCE_API_KEY/BINANCE_SECRET_KEY if not passed.";
 
     fn run(_app: &BinanceApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let client = BinanceClient::new()?;

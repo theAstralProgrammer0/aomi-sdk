@@ -36,7 +36,7 @@ Execution-oriented apps may assume a host runtime exposes some or all of the fol
 
 ## Route hints (`ToolReturn` envelope)
 
-Apps that drive multi-step execution flows (e.g. `khalani`, `polymarket`) return a `ToolReturn` instead of a bare JSON value. `ToolReturn` carries the tool's structured payload plus an ordered `routes: Vec<RouteStep>` list. Each `RouteStep` declares a triggering event (`OnSyncReturn` or `OnBoundEvent`), the next tool to call, hinted args, and an optional `prompt` override.
+Apps that drive multi-step execution flows (e.g. `khalani`, `polymarket`) return a `ToolReturn` instead of a bare JSON value. `ToolReturn` carries the tool's structured payload plus an ordered `routes: Vec<RouteStep>` list. Each `RouteStep` declares a triggering event (`OnSyncReturn` or `OnBoundEvent`), the next tool to call, hinted args, an optional `prompt` override, and optionally host-owned `enforcement` metadata for deterministic follow-up execution.
 
 Builders are exposed in `aomi_sdk::route`:
 
@@ -58,7 +58,14 @@ ToolReturn::with_routes(value, [
 
 The host treats each route as advisory: `OnSyncReturn` steps render into the next system prompt the LLM sees, while `OnBoundEvent` steps wait for the named alias to resolve. Wallet callbacks, staged transaction completions, and other out-of-band events all flow through the runtime's `RoutedEventBridge` and splice fields like `signature` or `transaction_hash` into the hinted args before the continuation prompt is injected. The runtime never parses prose; the route's structured fields are the contract.
 
-If an app returns a `stage_tx` route, the host transaction model still applies: stage first, then `simulate_batch`, then `commit_tx`.
+If an app returns a `stage_tx` route, the host transaction model still applies: stage first, then `simulate_batch`, then `commit_txs`.
+
+RouteBuilder v1 invariants:
+
+- artifact aliases (`bind_as(...)`, enforced-step `bind_as(...)`, and `awaits(...)`) must be non-empty
+- aliases must be unique within one route plan
+- at most one `next(...)` producer may attach `enforcement`
+- bound producers must have unique tool names in one route plan
 
 ## Design Rules
 

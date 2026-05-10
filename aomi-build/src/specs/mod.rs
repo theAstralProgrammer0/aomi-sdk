@@ -33,8 +33,9 @@ pub struct GenSpecsArgs {
     #[arg(long, value_enum, default_value_t = Source::All)]
     pub source: Source,
 
-    /// Output path for the YAML spec. Defaults to ext/specs/<platform>.yaml
-    /// resolved against the workspace root.
+    /// Output path for the YAML spec. Defaults to apps/<platform>/openapi.yaml
+    /// (or ext/specs/<platform>.yaml when --shared is set), resolved against
+    /// the workspace root.
     #[arg(long)]
     pub out: Option<PathBuf>,
 
@@ -45,6 +46,23 @@ pub struct GenSpecsArgs {
     /// Skip discovery and fetch directly from this URL. Implies --source well-known.
     #[arg(long)]
     pub from_url: Option<String>,
+
+    /// Treat this provider as a shared library (lives under ext/). Default is
+    /// app-local — the spec, generated client, and tool layer all live inside
+    /// `apps/<platform>/`. Use --shared for big platforms (Binance, Bybit, …)
+    /// where the same client is reused by multiple Aomi apps.
+    #[arg(long)]
+    pub shared: bool,
+}
+
+impl GenSpecsArgs {
+    pub fn default_spec_path(&self, root: &Path) -> PathBuf {
+        if self.shared {
+            root.join("ext").join("specs").join(format!("{}.yaml", self.platform))
+        } else {
+            root.join("apps").join(&self.platform).join("openapi.yaml")
+        }
+    }
 }
 
 /// One candidate spec returned by a discovery source.
@@ -141,8 +159,10 @@ fn cascade(platform: &str, source: Source, from_url: Option<&str>) -> Result<Spe
 fn skill_handoff_message(platform: &str) -> String {
     format!(
         "no spec found for `{platform}` from any source.\n\n\
-         To draft one from documentation, run the `openapi-from-docs` skill in Claude Code:\n\n  \
-         /openapi-from-docs {platform} <docs-url>\n\n\
+         If you know the spec's URL, retry with --from-url:\n\n  \
+         aomi-build gen-specs {platform} --from-url https://example.com/openapi.json\n\n\
+         Otherwise, draft one from docs via the `aomi-app-client-api-gen` skill in Claude Code:\n\n  \
+         /aomi-app-client-api-gen {platform} <docs-url>\n\n\
          The skill will produce ext/specs/{platform}.yaml from the platform's docs."
     )
 }
@@ -163,7 +183,7 @@ fn resolve_out_path(args: &GenSpecsArgs) -> Result<PathBuf> {
         return Ok(p.clone());
     }
     let root = workspace_root()?;
-    Ok(root.join("ext").join("specs").join(format!("{}.yaml", args.platform)))
+    Ok(args.default_spec_path(&root))
 }
 
 pub(crate) fn workspace_root() -> Result<PathBuf> {

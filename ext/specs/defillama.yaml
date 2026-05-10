@@ -333,14 +333,16 @@ components:
     ProtocolSummary:
       type: object
       additionalProperties: true
-      required: [name, tvl]
+      required: [name]
       properties:
         id:       { type: string }
         name:     { type: string }
         symbol:   { type: string, nullable: true }
         category: { type: string, nullable: true }
         chains:   { type: array, items: { type: string } }
-        tvl:      { type: number }
+        # nullable: CEX-style protocols (Binance CEX) return `tvl: null`.
+        # Discovered via test-schema; spec drift fixed 2026-05-10.
+        tvl:      { type: number, nullable: true }
         chainTvls:
           type: object
           additionalProperties: { type: number }
@@ -350,7 +352,13 @@ components:
       required: [name, tvl]
       properties:
         name:    { type: string }
-        chainId: { type: integer, nullable: true }
+        # Server returns chainId as a STRING ("11235"), not an integer.
+        # Discovered via test-schema; spec drift fixed 2026-05-10.
+        chainId:
+          nullable: true
+          oneOf:
+            - { type: integer }
+            - { type: string }
         tokenSymbol: { type: string, nullable: true }
         tvl:     { type: number }
     TvlPoint:

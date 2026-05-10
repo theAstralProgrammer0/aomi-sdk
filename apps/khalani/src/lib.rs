@@ -55,5 +55,5 @@ dyn_aomi_app!(
         tool::ListChains,
         tool::SearchTokens,
     ],
-    namespaces = ["common"]
+    namespaces = ["evm-core"]
 );

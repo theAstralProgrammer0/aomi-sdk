@@ -173,7 +173,7 @@ impl DynAomiTool for GetTickers {
     type App = OkxApp;
     type Args = GetTickersArgs;
     const NAME: &'static str = "okx_get_tickers";
-    const DESCRIPTION: &'static str = "Get tickers for all instruments of a given type (SPOT, SWAP, FUTURES, OPTION). Returns price, volume, and 24h change data.";
+    const DESCRIPTION: &'static str = "Use when the user asks for prices or 24h stats across an OKX category. Returns last price, volume, and 24h change for every instrument of the given type (SPOT, SWAP, FUTURES, OPTION).";
 
     fn run(_app: &OkxApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let client = OkxClient::new()?;
@@ -191,7 +191,7 @@ impl DynAomiTool for GetOrderBook {
     type Args = GetOrderBookArgs;
     const NAME: &'static str = "okx_get_order_book";
     const DESCRIPTION: &'static str =
-        "Get order book (bids and asks) for an instrument. Returns price levels and quantities.";
+        "Use when the user wants order-book depth for an OKX instrument (e.g. before a limit order). Returns bid/ask levels with sizes. sz is depth (max 400; default 1 — pass e.g. \"50\" for a useful snapshot).";
 
     fn run(_app: &OkxApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let client = OkxClient::new()?;
@@ -211,7 +211,7 @@ impl DynAomiTool for GetCandles {
     type App = OkxApp;
     type Args = GetCandlesArgs;
     const NAME: &'static str = "okx_get_candles";
-    const DESCRIPTION: &'static str = "Get candlestick (OHLCV) data for an instrument. Supports various bar sizes: 1m, 5m, 15m, 30m, 1H, 4H, 1D, 1W, 1M.";
+    const DESCRIPTION: &'static str = "Use when the user asks for OKX price history or chart data. Returns OHLCV candles for an instrument. bar values: 1m, 3m, 5m, 15m, 30m, 1H, 2H, 4H, 6H, 12H, 1D, 1W, 1M. Default 100 candles, max 300.";
 
     fn run(_app: &OkxApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let client = OkxClient::new()?;
@@ -240,7 +240,7 @@ impl DynAomiTool for PlaceOrder {
     type App = OkxApp;
     type Args = PlaceOrderArgs;
     const NAME: &'static str = "okx_place_order";
-    const DESCRIPTION: &'static str = "Place a new order. Requires API credentials. Use tdMode 'cash' for spot, 'cross' or 'isolated' for derivatives.";
+    const DESCRIPTION: &'static str = "Use when the user wants to place an OKX order. tdMode is 'cash' for spot, 'cross' or 'isolated' for derivatives (mismatch is the most common rejection). For limit orders pass px; for market orders omit it. Reads OKX_API_KEY/OKX_SECRET_KEY/OKX_PASSPHRASE from env if not passed.";
 
     fn run(_app: &OkxApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let client = OkxClient::new()?;
@@ -271,7 +271,7 @@ impl DynAomiTool for CancelOrder {
     type Args = CancelOrderArgs;
     const NAME: &'static str = "okx_cancel_order";
     const DESCRIPTION: &'static str =
-        "Cancel an existing order by order ID. Requires API credentials.";
+        "Use when the user wants to cancel an open OKX order. Pass instId and the ordId returned by place_order. Reads OKX credentials from env if not passed.";
 
     fn run(_app: &OkxApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let client = OkxClient::new()?;
@@ -297,7 +297,7 @@ impl DynAomiTool for GetBalance {
     type App = OkxApp;
     type Args = GetBalanceArgs;
     const NAME: &'static str = "okx_get_balance";
-    const DESCRIPTION: &'static str = "Get account balance for the unified account. Optionally filter by currency. Requires API credentials.";
+    const DESCRIPTION: &'static str = "Use when the user asks about their OKX balance. Returns unified-account balances; optional ccy is a comma-separated currency list (e.g. \"BTC,USDT\"). Reads OKX credentials from env if not passed.";
 
     fn run(_app: &OkxApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let client = OkxClient::new()?;
@@ -322,7 +322,7 @@ impl DynAomiTool for GetPositions {
     type App = OkxApp;
     type Args = GetPositionsArgs;
     const NAME: &'static str = "okx_get_positions";
-    const DESCRIPTION: &'static str = "Get current positions in the unified account. Optionally filter by instrument type and/or instrument ID. Requires API credentials.";
+    const DESCRIPTION: &'static str = "Use when the user asks about their open derivative positions on OKX. Optionally scope by instType (SWAP/FUTURES/OPTION) and/or instId. Reads OKX credentials from env if not passed.";
 
     fn run(_app: &OkxApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let client = OkxClient::new()?;
@@ -355,7 +355,7 @@ impl DynAomiTool for SetLeverage {
     type App = OkxApp;
     type Args = SetLeverageArgs;
     const NAME: &'static str = "okx_set_leverage";
-    const DESCRIPTION: &'static str = "Set leverage for an instrument. Requires API credentials. Margin mode must be 'cross' or 'isolated'.";
+    const DESCRIPTION: &'static str = "Use when the user wants to change leverage on an OKX instrument before trading derivatives. lever is a string (e.g. \"10\"). mgnMode must match the tdMode planned for the order: 'cross' or 'isolated'. Reads OKX credentials from env if not passed.";
 
     fn run(_app: &OkxApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let client = OkxClient::new()?;

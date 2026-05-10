@@ -29,37 +29,40 @@ fn make_client(api_key: Option<&str>) -> Result<ZeroxClient, String> {
 }
 
 // ============================================================================
-// Tool: GetZeroxSwapQuote
+// Tool: ZeroxGetPrice (price discovery, no taker required)
 // ============================================================================
 
-pub(crate) struct GetZeroxSwapQuote;
+pub(crate) struct ZeroxGetPrice;
 
 #[derive(Debug, Deserialize, JsonSchema)]
-pub(crate) struct GetZeroxSwapQuoteArgs {
+pub(crate) struct ZeroxGetPriceArgs {
     /// Optional 0x API key. Falls back to ZEROX_API_KEY when omitted.
+    #[serde(default)]
     pub(crate) api_key: Option<String>,
-    /// Source chain
+    /// Chain name (ethereum, polygon, arbitrum, optimism, base, bsc, avalanche).
     pub(crate) chain: String,
-    /// Sell token symbol or address
+    /// Sell token symbol (e.g. "USDC", "ETH") or 0x... contract address.
     pub(crate) sell_token: String,
-    /// Buy token symbol or address
+    /// Buy token symbol or 0x... contract address.
     pub(crate) buy_token: String,
-    /// Amount to swap (human-readable units)
+    /// Sell amount in human-readable units (e.g. 100.0 for 100 USDC).
     pub(crate) amount: f64,
-    /// Sender/taker address (optional for price quotes)
+    /// Optional taker address (improves quote accuracy when included).
+    #[serde(default)]
     pub(crate) sender_address: Option<String>,
-    /// Slippage tolerance as decimal (0.005 = 0.5%)
+    /// Slippage tolerance as a decimal (0.005 = 0.5%). Default: 0.01 (1%).
+    #[serde(default)]
     pub(crate) slippage: Option<f64>,
 }
 
-impl DynAomiTool for GetZeroxSwapQuote {
+impl DynAomiTool for ZeroxGetPrice {
     type App = ZeroxApp;
-    type Args = GetZeroxSwapQuoteArgs;
-    const NAME: &'static str = "get_zerox_swap_quote";
-    const DESCRIPTION: &'static str = "Get a 0x permit2/price swap quote for price discovery.";
+    type Args = ZeroxGetPriceArgs;
+    const NAME: &'static str = "zerox_get_price";
+    const DESCRIPTION: &'static str = "Use when the user asks for a 0x swap price (no signing). Returns expected `buyAmount` and routing for selling `amount` of `sell_token` for `buy_token`. Uses the AllowanceHolder pricing path so the quote reflects actual execution cost. No wallet signature required.";
 
     fn run(_app: &ZeroxApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        ok(make_client(args.api_key.as_deref())?.get_quote(
+        ok(make_client(args.api_key.as_deref())?.get_allowance_holder_price(
             &args.chain,
             &args.sell_token,
             &args.buy_token,
@@ -71,34 +74,36 @@ impl DynAomiTool for GetZeroxSwapQuote {
 }
 
 // ============================================================================
-// Tool: PlaceZeroxOrder
+// Tool: ZeroxBuildSwap (executable AllowanceHolder quote)
 // ============================================================================
 
-pub(crate) struct PlaceZeroxOrder;
+pub(crate) struct ZeroxBuildSwap;
 
 #[derive(Debug, Deserialize, JsonSchema)]
-pub(crate) struct PlaceZeroxOrderArgs {
+pub(crate) struct ZeroxBuildSwapArgs {
     /// Optional 0x API key. Falls back to ZEROX_API_KEY when omitted.
+    #[serde(default)]
     pub(crate) api_key: Option<String>,
-    /// Source chain
+    /// Chain name (ethereum, polygon, arbitrum, optimism, base, bsc, avalanche).
     pub(crate) chain: String,
-    /// Sell token symbol or address
+    /// Sell token symbol or 0x... address.
     pub(crate) sell_token: String,
-    /// Buy token symbol or address
+    /// Buy token symbol or 0x... address.
     pub(crate) buy_token: String,
-    /// Sell amount (human-readable units)
+    /// Sell amount in human-readable units.
     pub(crate) amount: f64,
-    /// Sender/taker wallet address (required)
+    /// Taker wallet address (the address that will execute the swap).
     pub(crate) sender_address: String,
-    /// Slippage tolerance as decimal (0.005 = 0.5%)
+    /// Slippage tolerance as a decimal (0.005 = 0.5%). Default: 0.01.
+    #[serde(default)]
     pub(crate) slippage: Option<f64>,
 }
 
-impl DynAomiTool for PlaceZeroxOrder {
+impl DynAomiTool for ZeroxBuildSwap {
     type App = ZeroxApp;
-    type Args = PlaceZeroxOrderArgs;
-    const NAME: &'static str = "place_zerox_order";
-    const DESCRIPTION: &'static str = "Get executable tx data via 0x allowance-holder/quote. Returns a raw transaction payload (to, data, value) that the host should stage with `stage_tx` using `data.raw`, verify with `simulate_batch`, then finalize with `commit_tx`.";
+    type Args = ZeroxBuildSwapArgs;
+    const NAME: &'static str = "zerox_build_swap";
+    const DESCRIPTION: &'static str = "Use when the user is ready to execute a 0x swap. Returns a raw swap tx (`transaction.to`, `transaction.data`, `transaction.value`) plus an `issues.allowance` block. If `issues.allowance` indicates insufficient allowance, the host must first approve the returned `spender` (the 0x AllowanceHolder) for the sell token, then stage and commit the swap tx via `stage_tx` / `simulate_batch` / `commit_tx`. Do not re-encode 0x calldata.";
 
     fn run(_app: &ZeroxApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let quote = make_client(args.api_key.as_deref())?.place_order(
@@ -121,162 +126,42 @@ impl DynAomiTool for PlaceZeroxOrder {
         ok(serde_json::json!({
             "quote": quote,
             "transaction": tx,
-            "note": "Stage this raw 0x transaction with stage_tx using data.raw, verify the staged pending_tx_id with simulate_batch, then call commit_tx. Do not re-encode 0x calldata.",
+            "note": "If quote.issues.allowance is non-null, approve the returned `spender` (the AllowanceHolder, NOT the Exchange Proxy or Permit2) for the sell token before staging this swap. Stage with stage_tx using { raw: <tx hex> } or by passing transaction.to/data/value directly; never re-encode.",
         }))
     }
 }
 
 // ============================================================================
-// High Priority tools
+// Tool: ZeroxGetGaslessQuote (EIP-712 quote for signing)
 // ============================================================================
 
-pub(crate) struct GetZeroxSwapChains;
+pub(crate) struct ZeroxGetGaslessQuote;
 
 #[derive(Debug, Deserialize, JsonSchema)]
-pub(crate) struct GetZeroxSwapChainsArgs {
+pub(crate) struct ZeroxGetGaslessQuoteArgs {
     /// Optional 0x API key. Falls back to ZEROX_API_KEY when omitted.
+    #[serde(default)]
     pub(crate) api_key: Option<String>,
-}
-
-impl DynAomiTool for GetZeroxSwapChains {
-    type App = ZeroxApp;
-    type Args = GetZeroxSwapChainsArgs;
-    const NAME: &'static str = "get_zerox_swap_chains";
-    const DESCRIPTION: &'static str =
-        "List all chains supported by the 0x Swap API. Returns an array of { chainName, chainId }.";
-
-    fn run(_app: &ZeroxApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        ok(make_client(args.api_key.as_deref())?.get_swap_chains()?)
-    }
-}
-
-pub(crate) struct GetZeroxAllowanceHolderPrice;
-
-#[derive(Debug, Deserialize, JsonSchema)]
-pub(crate) struct GetZeroxAllowanceHolderPriceArgs {
-    /// Optional 0x API key. Falls back to ZEROX_API_KEY when omitted.
-    pub(crate) api_key: Option<String>,
-    /// Source chain (e.g. "ethereum", "polygon")
+    /// Chain name (ethereum, polygon, arbitrum, optimism, base, bsc, avalanche).
     pub(crate) chain: String,
-    /// Sell token symbol or address
+    /// Sell token (must be ERC-20, not native ETH/MATIC/BNB/AVAX).
     pub(crate) sell_token: String,
-    /// Buy token symbol or address
+    /// Buy token symbol or 0x... address.
     pub(crate) buy_token: String,
-    /// Amount to sell (human-readable units)
+    /// Sell amount in human-readable units.
     pub(crate) amount: f64,
-    /// Sender/taker address (optional for price discovery)
-    pub(crate) sender_address: Option<String>,
-    /// Slippage tolerance as decimal (0.005 = 0.5%)
-    pub(crate) slippage: Option<f64>,
-}
-
-impl DynAomiTool for GetZeroxAllowanceHolderPrice {
-    type App = ZeroxApp;
-    type Args = GetZeroxAllowanceHolderPriceArgs;
-    const NAME: &'static str = "get_zerox_allowance_holder_price";
-    const DESCRIPTION: &'static str = "Get a 0x allowance-holder/price quote for price discovery. Matches the AllowanceHolder execution path so the price reflects actual execution costs.";
-
-    fn run(_app: &ZeroxApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        ok(make_client(args.api_key.as_deref())?.get_allowance_holder_price(
-            &args.chain,
-            &args.sell_token,
-            &args.buy_token,
-            args.amount,
-            args.sender_address.as_deref(),
-            args.slippage,
-        )?)
-    }
-}
-
-pub(crate) struct GetZeroxLiquiditySources;
-
-#[derive(Debug, Deserialize, JsonSchema)]
-pub(crate) struct GetZeroxLiquiditySourcesArgs {
-    /// Optional 0x API key. Falls back to ZEROX_API_KEY when omitted.
-    pub(crate) api_key: Option<String>,
-    /// Chain name (e.g. "ethereum", "polygon")
-    pub(crate) chain: String,
-}
-
-impl DynAomiTool for GetZeroxLiquiditySources {
-    type App = ZeroxApp;
-    type Args = GetZeroxLiquiditySourcesArgs;
-    const NAME: &'static str = "get_zerox_liquidity_sources";
-    const DESCRIPTION: &'static str =
-        "List available DEXs and AMMs (liquidity sources) on a given chain.";
-
-    fn run(_app: &ZeroxApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        ok(make_client(args.api_key.as_deref())?.get_liquidity_sources(&args.chain)?)
-    }
-}
-
-// ============================================================================
-// Gasless tools
-// ============================================================================
-
-pub(crate) struct GetZeroxGaslessPrice;
-
-#[derive(Debug, Deserialize, JsonSchema)]
-pub(crate) struct GetZeroxGaslessPriceArgs {
-    /// Optional 0x API key. Falls back to ZEROX_API_KEY when omitted.
-    pub(crate) api_key: Option<String>,
-    /// Source chain (e.g. "ethereum", "polygon")
-    pub(crate) chain: String,
-    /// Sell token symbol or address (must be ERC-20, not native)
-    pub(crate) sell_token: String,
-    /// Buy token symbol or address
-    pub(crate) buy_token: String,
-    /// Amount to sell (human-readable units)
-    pub(crate) amount: f64,
-    /// Sender/taker address (optional)
-    pub(crate) sender_address: Option<String>,
-    /// Slippage tolerance as decimal (0.005 = 0.5%)
-    pub(crate) slippage: Option<f64>,
-}
-
-impl DynAomiTool for GetZeroxGaslessPrice {
-    type App = ZeroxApp;
-    type Args = GetZeroxGaslessPriceArgs;
-    const NAME: &'static str = "get_zerox_gasless_price";
-    const DESCRIPTION: &'static str = "Get a gasless swap price quote from 0x. The sell token must be an ERC-20 token (not native ETH/MATIC/etc.).";
-
-    fn run(_app: &ZeroxApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        ok(make_client(args.api_key.as_deref())?.get_gasless_price(
-            &args.chain,
-            &args.sell_token,
-            &args.buy_token,
-            args.amount,
-            args.sender_address.as_deref(),
-            args.slippage,
-        )?)
-    }
-}
-
-pub(crate) struct GetZeroxGaslessQuote;
-
-#[derive(Debug, Deserialize, JsonSchema)]
-pub(crate) struct GetZeroxGaslessQuoteArgs {
-    /// Optional 0x API key. Falls back to ZEROX_API_KEY when omitted.
-    pub(crate) api_key: Option<String>,
-    /// Source chain (e.g. "ethereum", "polygon")
-    pub(crate) chain: String,
-    /// Sell token symbol or address (must be ERC-20, not native)
-    pub(crate) sell_token: String,
-    /// Buy token symbol or address
-    pub(crate) buy_token: String,
-    /// Amount to sell (human-readable units)
-    pub(crate) amount: f64,
-    /// Sender/taker wallet address (required)
+    /// Taker wallet address (the address that signs the EIP-712 payloads).
     pub(crate) sender_address: String,
-    /// Slippage tolerance as decimal (0.005 = 0.5%)
+    /// Slippage tolerance as a decimal (0.005 = 0.5%). Default: 0.01.
+    #[serde(default)]
     pub(crate) slippage: Option<f64>,
 }
 
-impl DynAomiTool for GetZeroxGaslessQuote {
+impl DynAomiTool for ZeroxGetGaslessQuote {
     type App = ZeroxApp;
-    type Args = GetZeroxGaslessQuoteArgs;
-    const NAME: &'static str = "get_zerox_gasless_quote";
-    const DESCRIPTION: &'static str = "Get a gasless swap quote with EIP-712 typed data for signing. Returns approval (optional) and trade objects that the user must sign before submitting.";
+    type Args = ZeroxGetGaslessQuoteArgs;
+    const NAME: &'static str = "zerox_get_gasless_quote";
+    const DESCRIPTION: &'static str = "Use when the user wants a gasless 0x swap (relayer pays gas). Returns EIP-712 typed-data for `trade` and (sometimes) `approval` that the user must sign with the host wallet's `sign_typed_data`. After signing, call `zerox_submit_gasless_swap`. Sell token must be ERC-20 (not native).";
 
     fn run(_app: &ZeroxApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         ok(make_client(args.api_key.as_deref())?.get_gasless_quote(
@@ -290,25 +175,31 @@ impl DynAomiTool for GetZeroxGaslessQuote {
     }
 }
 
-pub(crate) struct SubmitZeroxGaslessSwap;
+// ============================================================================
+// Tool: ZeroxSubmitGaslessSwap
+// ============================================================================
+
+pub(crate) struct ZeroxSubmitGaslessSwap;
 
 #[derive(Debug, Deserialize, JsonSchema)]
-pub(crate) struct SubmitZeroxGaslessSwapArgs {
+pub(crate) struct ZeroxSubmitGaslessSwapArgs {
     /// Optional 0x API key. Falls back to ZEROX_API_KEY when omitted.
+    #[serde(default)]
     pub(crate) api_key: Option<String>,
-    /// Chain ID (numeric, e.g. 1 for Ethereum)
+    /// Numeric chain ID (e.g. 1 for Ethereum, 137 for Polygon).
     pub(crate) chain_id: u64,
-    /// Signed trade object from gasless quote
+    /// Signed `trade` object (signature attached) from `zerox_get_gasless_quote`.
     pub(crate) trade: Value,
-    /// Signed approval object (if the gasless quote required one)
+    /// Signed `approval` object, if the gasless quote required one.
+    #[serde(default)]
     pub(crate) approval: Option<Value>,
 }
 
-impl DynAomiTool for SubmitZeroxGaslessSwap {
+impl DynAomiTool for ZeroxSubmitGaslessSwap {
     type App = ZeroxApp;
-    type Args = SubmitZeroxGaslessSwapArgs;
-    const NAME: &'static str = "submit_zerox_gasless_swap";
-    const DESCRIPTION: &'static str = "Submit a signed gasless trade (and optional approval) to the 0x relayer. Returns a tradeHash for status polling.";
+    type Args = ZeroxSubmitGaslessSwapArgs;
+    const NAME: &'static str = "zerox_submit_gasless_swap";
+    const DESCRIPTION: &'static str = "Use after the user has signed the EIP-712 trade (and approval) returned by `zerox_get_gasless_quote`. Submits the signed payloads to the 0x relayer. Returns a `tradeHash` to poll with `zerox_get_gasless_status`.";
 
     fn run(_app: &ZeroxApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         ok(make_client(args.api_key.as_deref())?.submit_gasless_swap(
@@ -319,45 +210,31 @@ impl DynAomiTool for SubmitZeroxGaslessSwap {
     }
 }
 
-pub(crate) struct GetZeroxGaslessStatus;
+// ============================================================================
+// Tool: ZeroxGetGaslessStatus
+// ============================================================================
+
+pub(crate) struct ZeroxGetGaslessStatus;
 
 #[derive(Debug, Deserialize, JsonSchema)]
-pub(crate) struct GetZeroxGaslessStatusArgs {
+pub(crate) struct ZeroxGetGaslessStatusArgs {
     /// Optional 0x API key. Falls back to ZEROX_API_KEY when omitted.
+    #[serde(default)]
     pub(crate) api_key: Option<String>,
-    /// Trade hash returned by submit_zerox_gasless_swap
+    /// `tradeHash` returned by `zerox_submit_gasless_swap`.
     pub(crate) trade_hash: String,
-    /// Chain ID (numeric, e.g. 1 for Ethereum)
+    /// Numeric chain ID where the trade was submitted.
     pub(crate) chain_id: u64,
 }
 
-impl DynAomiTool for GetZeroxGaslessStatus {
+impl DynAomiTool for ZeroxGetGaslessStatus {
     type App = ZeroxApp;
-    type Args = GetZeroxGaslessStatusArgs;
-    const NAME: &'static str = "get_zerox_gasless_status";
-    const DESCRIPTION: &'static str = "Poll the status of a gasless trade by tradeHash. Status progresses: pending -> succeeded -> confirmed.";
+    type Args = ZeroxGetGaslessStatusArgs;
+    const NAME: &'static str = "zerox_get_gasless_status";
+    const DESCRIPTION: &'static str = "Use to track a submitted gasless trade. Returns status that progresses pending -> succeeded -> confirmed. Confirmed means the on-chain settlement is finalized.";
 
     fn run(_app: &ZeroxApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         ok(make_client(args.api_key.as_deref())?
             .get_gasless_status(&args.trade_hash, args.chain_id)?)
-    }
-}
-
-pub(crate) struct GetZeroxGaslessChains;
-
-#[derive(Debug, Deserialize, JsonSchema)]
-pub(crate) struct GetZeroxGaslessChainsArgs {
-    /// Optional 0x API key. Falls back to ZEROX_API_KEY when omitted.
-    pub(crate) api_key: Option<String>,
-}
-
-impl DynAomiTool for GetZeroxGaslessChains {
-    type App = ZeroxApp;
-    type Args = GetZeroxGaslessChainsArgs;
-    const NAME: &'static str = "get_zerox_gasless_chains";
-    const DESCRIPTION: &'static str = "List all chains that support gasless swaps via the 0x API.";
-
-    fn run(_app: &ZeroxApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        ok(make_client(args.api_key.as_deref())?.get_gasless_chains()?)
     }
 }

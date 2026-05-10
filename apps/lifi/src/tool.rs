@@ -22,34 +22,36 @@ fn ok<T: Serialize>(value: T) -> Result<Value, String> {
 }
 
 // ============================================================================
-// GetLifiSwapQuote
+// LifiGetSwapQuote -- price discovery for a same-chain or cross-chain swap
 // ============================================================================
 
-pub(crate) struct GetLifiSwapQuote;
+pub(crate) struct LifiGetSwapQuote;
 
 #[derive(Debug, Deserialize, JsonSchema)]
-pub(crate) struct GetLifiSwapQuoteArgs {
-    /// Source chain
+pub(crate) struct LifiGetSwapQuoteArgs {
+    /// Source chain (name like "ethereum", "polygon", "base", "arbitrum", "optimism", "bsc", "avalanche").
     pub(crate) chain: String,
-    /// Destination chain (defaults to source chain for same-chain swaps)
+    /// Destination chain. Omit for same-chain swap.
+    #[serde(default)]
     pub(crate) destination_chain: Option<String>,
-    /// Sell token symbol or address
+    /// Sell token symbol (USDC, WETH, ETH, ...) or 0x... address.
     pub(crate) sell_token: String,
-    /// Buy token symbol or address
+    /// Buy token symbol or 0x... address.
     pub(crate) buy_token: String,
-    /// Amount to swap (human-readable units)
+    /// Sell amount in human-readable units (e.g. 100.0 = 100 USDC).
     pub(crate) amount: f64,
-    /// Sender wallet address
+    /// Sender wallet address (0x...). Required.
     pub(crate) sender_address: String,
-    /// Receiver wallet address (defaults to sender)
+    /// Receiver wallet address. Defaults to sender.
+    #[serde(default)]
     pub(crate) receiver_address: Option<String>,
 }
 
-impl DynAomiTool for GetLifiSwapQuote {
+impl DynAomiTool for LifiGetSwapQuote {
     type App = LifiApp;
-    type Args = GetLifiSwapQuoteArgs;
-    const NAME: &'static str = "get_lifi_swap_quote";
-    const DESCRIPTION: &'static str = "Get a LI.FI swap quote for same-chain or cross-chain swaps.";
+    type Args = LifiGetSwapQuoteArgs;
+    const NAME: &'static str = "lifi_get_swap_quote";
+    const DESCRIPTION: &'static str = "Use to preview a same-chain or cross-chain swap via LI.FI (no signing). Returns expected `toAmount`, route summary, and gas/fee estimates. For execution, follow up with `lifi_build_swap_tx`.";
 
     fn run(_app: &LifiApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let client = LifiClient::new()?;
@@ -78,36 +80,39 @@ impl DynAomiTool for GetLifiSwapQuote {
 }
 
 // ============================================================================
-// PlaceLifiOrder
+// LifiBuildSwapTx -- composite: quote + approval_tx (if needed) + main_tx
 // ============================================================================
 
-pub(crate) struct PlaceLifiOrder;
+pub(crate) struct LifiBuildSwapTx;
 
 #[derive(Debug, Deserialize, JsonSchema)]
-pub(crate) struct PlaceLifiOrderArgs {
-    /// Source chain
+pub(crate) struct LifiBuildSwapTxArgs {
+    /// Source chain name.
     pub(crate) chain: String,
-    /// Destination chain (defaults to source chain)
+    /// Destination chain. Omit for same-chain swap.
+    #[serde(default)]
     pub(crate) destination_chain: Option<String>,
-    /// Sell token symbol or address
+    /// Sell token symbol or 0x... address.
     pub(crate) sell_token: String,
-    /// Buy token symbol or address
+    /// Buy token symbol or 0x... address.
     pub(crate) buy_token: String,
-    /// Sell amount (human-readable units)
+    /// Sell amount in human-readable units.
     pub(crate) amount: f64,
-    /// Sender/taker wallet address
+    /// Sender wallet address (0x...).
     pub(crate) sender_address: String,
-    /// Receiver wallet address
+    /// Receiver wallet address. Defaults to sender.
+    #[serde(default)]
     pub(crate) receiver_address: Option<String>,
-    /// Slippage tolerance as decimal (0.005 = 0.5%)
+    /// Slippage tolerance as a decimal (0.005 = 0.5%).
+    #[serde(default)]
     pub(crate) slippage: Option<f64>,
 }
 
-impl DynAomiTool for PlaceLifiOrder {
+impl DynAomiTool for LifiBuildSwapTx {
     type App = LifiApp;
-    type Args = PlaceLifiOrderArgs;
-    const NAME: &'static str = "place_lifi_order";
-    const DESCRIPTION: &'static str = "Get executable tx data via LI.FI. Returns approval_tx (if needed) and main_tx. Stage them with `stage_tx` using the raw-calldata path, verify them with `simulate_batch`, then finalize with `commit_tx`.";
+    type Args = LifiBuildSwapTxArgs;
+    const NAME: &'static str = "lifi_build_swap_tx";
+    const DESCRIPTION: &'static str = "Use when the user is ready to execute a same-chain or cross-chain swap via LI.FI. Returns `{ approval_tx?, main_tx, payload }`. If `approval_tx` is present (ERC-20 sell needing allowance), stage it first via `stage_tx` with `data: { raw }`, then stage `main_tx` the same way; `simulate_batch` on the staged ids; then `commit_tx` once per staged tx. Never re-encode LI.FI calldata.";
 
     fn run(_app: &LifiApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let client = LifiClient::new()?;
@@ -143,42 +148,45 @@ impl DynAomiTool for PlaceLifiOrder {
             "payload": payload,
             "approval_tx": approval_tx,
             "main_tx": main_tx,
-            "note": "If approval_tx is present, stage approval_tx with stage_tx first using data.raw, stage main_tx the same way, simulate the staged pending_tx_id list with simulate_batch, then call commit_tx once per staged tx. Do not re-encode LI.FI calldata.",
+            "note": "If approval_tx is non-null, stage it first with stage_tx { raw }, then stage main_tx the same way, then simulate_batch the staged pending_tx_id list, then commit_tx once per staged tx.",
         }))
     }
 }
 
 // ============================================================================
-// GetLifiBridgeQuote
+// LifiBuildBridgeTx -- cross-chain bridge (returns executable tx when possible)
 // ============================================================================
 
-pub(crate) struct GetLifiBridgeQuote;
+pub(crate) struct LifiBuildBridgeTx;
 
 #[derive(Debug, Deserialize, JsonSchema)]
-pub(crate) struct GetLifiBridgeQuoteArgs {
-    /// Source chain
+pub(crate) struct LifiBuildBridgeTxArgs {
+    /// Source chain name or numeric ID.
     pub(crate) from_chain: String,
-    /// Destination chain
+    /// Destination chain name or numeric ID.
     pub(crate) to_chain: String,
-    /// Source token symbol/address
+    /// Source token symbol or 0x... address.
     pub(crate) from_token: String,
-    /// Destination token symbol/address
+    /// Destination token symbol or 0x... address.
     pub(crate) to_token: String,
-    /// Amount to bridge
+    /// Bridge amount in human-readable units.
     pub(crate) amount: f64,
-    /// Sender wallet address; needed for executable quote
+    /// Sender wallet address. Required for an executable bridge route.
+    #[serde(default)]
     pub(crate) from_address: Option<String>,
-    /// Receiver wallet address; needed for executable quote
+    /// Receiver wallet address. Required for an executable bridge route.
+    #[serde(default)]
     pub(crate) to_address: Option<String>,
-    /// Slippage tolerance in basis points (default 50)
+    /// Slippage tolerance in basis points (default 50 = 0.5%).
+    #[serde(default)]
     pub(crate) slippage_bps: Option<u32>,
 }
 
-impl DynAomiTool for GetLifiBridgeQuote {
+impl DynAomiTool for LifiBuildBridgeTx {
     type App = LifiApp;
-    type Args = GetLifiBridgeQuoteArgs;
-    const NAME: &'static str = "get_lifi_bridge_quote";
-    const DESCRIPTION: &'static str = "Get cross-chain bridge route with executable tx data via LI.FI. Returns executable bridge payload when available; otherwise planning-only estimate.";
+    type Args = LifiBuildBridgeTxArgs;
+    const NAME: &'static str = "lifi_build_bridge_tx";
+    const DESCRIPTION: &'static str = "Use when the user wants to bridge a token from one chain to another via LI.FI. Returns an executable bridge payload (with `executable_tx`) when both `from_address` and `to_address` are provided; otherwise returns a planning-only estimate. Stage and execute the same way as `lifi_build_swap_tx`. After executing, track on-chain finality with `lifi_get_transfer_status`.";
 
     fn run(_app: &LifiApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         ok(LifiClient::new()?.get_bridge_quote(
@@ -195,28 +203,31 @@ impl DynAomiTool for GetLifiBridgeQuote {
 }
 
 // ============================================================================
-// GetLifiTransferStatus
+// LifiGetTransferStatus -- track a cross-chain transfer
 // ============================================================================
 
-pub(crate) struct GetLifiTransferStatus;
+pub(crate) struct LifiGetTransferStatus;
 
 #[derive(Debug, Deserialize, JsonSchema)]
-pub(crate) struct GetLifiTransferStatusArgs {
-    /// Transaction hash to track
+pub(crate) struct LifiGetTransferStatusArgs {
+    /// Source-chain transaction hash (the deposit tx the user signed).
     pub(crate) tx_hash: String,
-    /// Source chain name or ID (speeds up lookup)
+    /// Source chain name or numeric ID. Optional but speeds lookup.
+    #[serde(default)]
     pub(crate) from_chain: Option<String>,
-    /// Destination chain name or ID (speeds up lookup)
+    /// Destination chain name or numeric ID. Optional but speeds lookup.
+    #[serde(default)]
     pub(crate) to_chain: Option<String>,
-    /// Bridge name (speeds up lookup)
+    /// Bridge name (e.g. "across", "stargate"). Optional but speeds lookup.
+    #[serde(default)]
     pub(crate) bridge: Option<String>,
 }
 
-impl DynAomiTool for GetLifiTransferStatus {
+impl DynAomiTool for LifiGetTransferStatus {
     type App = LifiApp;
-    type Args = GetLifiTransferStatusArgs;
-    const NAME: &'static str = "get_lifi_transfer_status";
-    const DESCRIPTION: &'static str = "Track the status of a cross-chain transfer by transaction hash. Returns status (NOT_FOUND, INVALID, PENDING, DONE, FAILED), substatus, and transaction details.";
+    type Args = LifiGetTransferStatusArgs;
+    const NAME: &'static str = "lifi_get_transfer_status";
+    const DESCRIPTION: &'static str = "Use to track a LI.FI cross-chain transfer by source-chain tx hash. Returns `status` (NOT_FOUND, INVALID, PENDING, DONE, FAILED), substatus, and the destination-chain receipt when complete. Poll periodically while status is PENDING.";
 
     fn run(_app: &LifiApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         ok(LifiClient::new()?.get_transfer_status(
@@ -229,23 +240,23 @@ impl DynAomiTool for GetLifiTransferStatus {
 }
 
 // ============================================================================
-// GetLifiChains
+// LifiListChains -- discovery
 // ============================================================================
 
-pub(crate) struct GetLifiChains;
+pub(crate) struct LifiListChains;
 
 #[derive(Debug, Deserialize, JsonSchema)]
-pub(crate) struct GetLifiChainsArgs {
-    /// Filter by chain type, e.g. "EVM", "SVM"
+pub(crate) struct LifiListChainsArgs {
+    /// Filter by chain type, e.g. "EVM", "SVM". Omit for all.
+    #[serde(default)]
     pub(crate) chain_types: Option<String>,
 }
 
-impl DynAomiTool for GetLifiChains {
+impl DynAomiTool for LifiListChains {
     type App = LifiApp;
-    type Args = GetLifiChainsArgs;
-    const NAME: &'static str = "get_lifi_chains";
-    const DESCRIPTION: &'static str =
-        "List all chains supported by LI.FI. Optionally filter by chain type (e.g. EVM, SVM).";
+    type Args = LifiListChainsArgs;
+    const NAME: &'static str = "lifi_list_chains";
+    const DESCRIPTION: &'static str = "Use when the user asks 'what chains does LI.FI support?' Returns the supported chain list with names, ids, and native currency. Optionally filter by `chain_types` (EVM, SVM).";
 
     fn run(_app: &LifiApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         ok(LifiClient::new()?.get_chains(args.chain_types.as_deref())?)
@@ -253,254 +264,25 @@ impl DynAomiTool for GetLifiChains {
 }
 
 // ============================================================================
-// GetLifiTokens
+// LifiListTokens -- discovery
 // ============================================================================
 
-pub(crate) struct GetLifiTokens;
+pub(crate) struct LifiListTokens;
 
 #[derive(Debug, Deserialize, JsonSchema)]
-pub(crate) struct GetLifiTokensArgs {
-    /// Comma-separated chain IDs to filter tokens
-    pub(crate) chains: Option<String>,
-    /// Filter by chain type, e.g. "EVM", "SVM"
-    pub(crate) chain_types: Option<String>,
-}
-
-impl DynAomiTool for GetLifiTokens {
-    type App = LifiApp;
-    type Args = GetLifiTokensArgs;
-    const NAME: &'static str = "get_lifi_tokens";
-    const DESCRIPTION: &'static str = "List supported tokens on LI.FI. Optionally filter by chain IDs (comma-separated) or chain type.";
-
-    fn run(_app: &LifiApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        ok(LifiClient::new()?.get_tokens(args.chains.as_deref(), args.chain_types.as_deref())?)
-    }
-}
-
-// ============================================================================
-// GetLifiToken
-// ============================================================================
-
-pub(crate) struct GetLifiToken;
-
-#[derive(Debug, Deserialize, JsonSchema)]
-pub(crate) struct GetLifiTokenArgs {
-    /// Chain name or ID
-    pub(crate) chain: String,
-    /// Token address or symbol
-    pub(crate) token: String,
-}
-
-impl DynAomiTool for GetLifiToken {
-    type App = LifiApp;
-    type Args = GetLifiTokenArgs;
-    const NAME: &'static str = "get_lifi_token";
-    const DESCRIPTION: &'static str =
-        "Get detailed information for a single token including decimals and price.";
-
-    fn run(_app: &LifiApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        ok(LifiClient::new()?.get_token(&args.chain, &args.token)?)
-    }
-}
-
-// ============================================================================
-// GetLifiRoutes
-// ============================================================================
-
-pub(crate) struct GetLifiRoutes;
-
-#[derive(Debug, Deserialize, JsonSchema)]
-pub(crate) struct GetLifiRoutesArgs {
-    /// Source chain name or ID
-    pub(crate) from_chain: String,
-    /// Destination chain name or ID
-    pub(crate) to_chain: String,
-    /// Source token symbol or address
-    pub(crate) from_token: String,
-    /// Destination token symbol or address
-    pub(crate) to_token: String,
-    /// Amount to swap/bridge (human-readable units)
-    pub(crate) amount: f64,
-    /// Sender wallet address
-    pub(crate) from_address: String,
-    /// Slippage tolerance as decimal (e.g. 0.005 = 0.5%)
-    pub(crate) slippage: Option<f64>,
-    /// Route ordering preference: "CHEAPEST", "FASTEST", "SAFEST", or "RECOMMENDED"
-    pub(crate) order_preference: Option<String>,
-}
-
-impl DynAomiTool for GetLifiRoutes {
-    type App = LifiApp;
-    type Args = GetLifiRoutesArgs;
-    const NAME: &'static str = "get_lifi_routes";
-    const DESCRIPTION: &'static str = "Get multiple route alternatives for a swap or bridge via LI.FI advanced routing. Compare routes by cost, speed, or safety. Use order_preference to sort: CHEAPEST, FASTEST, SAFEST, or RECOMMENDED.";
-
-    fn run(_app: &LifiApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        ok(LifiClient::new()?.get_routes(
-            &args.from_chain,
-            &args.to_chain,
-            &args.from_token,
-            &args.to_token,
-            args.amount,
-            &args.from_address,
-            args.slippage,
-            args.order_preference.as_deref(),
-        )?)
-    }
-}
-
-// ============================================================================
-// GetLifiStepTransaction
-// ============================================================================
-
-pub(crate) struct GetLifiStepTransaction;
-
-#[derive(Debug, Deserialize, JsonSchema)]
-pub(crate) struct GetLifiStepTransactionArgs {
-    /// A Step object as returned by /advanced/routes
-    pub(crate) step: Value,
-}
-
-impl DynAomiTool for GetLifiStepTransaction {
-    type App = LifiApp;
-    type Args = GetLifiStepTransactionArgs;
-    const NAME: &'static str = "get_lifi_step_transaction";
-    const DESCRIPTION: &'static str = "Get executable transaction data for a single route step returned by get_lifi_routes. Pass the step object directly.";
-
-    fn run(_app: &LifiApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        ok(LifiClient::new()?.get_step_transaction(&args.step)?)
-    }
-}
-
-// ============================================================================
-// GetLifiConnections
-// ============================================================================
-
-pub(crate) struct GetLifiConnections;
-
-#[derive(Debug, Deserialize, JsonSchema)]
-pub(crate) struct GetLifiConnectionsArgs {
-    /// Source chain name or ID
-    pub(crate) from_chain: Option<String>,
-    /// Destination chain name or ID
-    pub(crate) to_chain: Option<String>,
-    /// Source token address
-    pub(crate) from_token: Option<String>,
-    /// Destination token address
-    pub(crate) to_token: Option<String>,
-}
-
-impl DynAomiTool for GetLifiConnections {
-    type App = LifiApp;
-    type Args = GetLifiConnectionsArgs;
-    const NAME: &'static str = "get_lifi_connections";
-    const DESCRIPTION: &'static str =
-        "Check available transfer pathways between chains and tokens on LI.FI.";
-
-    fn run(_app: &LifiApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        ok(LifiClient::new()?.get_connections(
-            args.from_chain.as_deref(),
-            args.to_chain.as_deref(),
-            args.from_token.as_deref(),
-            args.to_token.as_deref(),
-        )?)
-    }
-}
-
-// ============================================================================
-// GetLifiTools
-// ============================================================================
-
-pub(crate) struct GetLifiTools;
-
-#[derive(Debug, Deserialize, JsonSchema)]
-pub(crate) struct GetLifiToolsArgs {
-    /// Comma-separated chain IDs to filter
+pub(crate) struct LifiListTokensArgs {
+    /// Comma-separated chain IDs to filter by (e.g. "1,137,8453").
+    #[serde(default)]
     pub(crate) chains: Option<String>,
 }
 
-impl DynAomiTool for GetLifiTools {
+impl DynAomiTool for LifiListTokens {
     type App = LifiApp;
-    type Args = GetLifiToolsArgs;
-    const NAME: &'static str = "get_lifi_tools";
-    const DESCRIPTION: &'static str =
-        "List available bridges and DEX exchanges on LI.FI. Optionally filter by chain IDs.";
+    type Args = LifiListTokensArgs;
+    const NAME: &'static str = "lifi_list_tokens";
+    const DESCRIPTION: &'static str = "Use when the user asks 'what tokens are bridgeable on chain X?' or needs a token's address/decimals. Returns the supported-token map keyed by chain ID. Pass `chains` (comma-separated chain IDs) to scope the response.";
 
     fn run(_app: &LifiApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        ok(LifiClient::new()?.get_tools(args.chains.as_deref())?)
-    }
-}
-
-// ============================================================================
-// GetLifiReverseQuote
-// ============================================================================
-
-pub(crate) struct GetLifiReverseQuote;
-
-#[derive(Debug, Deserialize, JsonSchema)]
-pub(crate) struct GetLifiReverseQuoteArgs {
-    /// Source chain name or ID
-    pub(crate) from_chain: String,
-    /// Destination chain name or ID (defaults to source chain)
-    pub(crate) to_chain: Option<String>,
-    /// Source token symbol or address
-    pub(crate) from_token: String,
-    /// Destination token symbol or address
-    pub(crate) to_token: String,
-    /// Desired output amount in base units (e.g. wei)
-    pub(crate) to_amount: String,
-    /// Sender wallet address
-    pub(crate) from_address: String,
-    /// Receiver wallet address (defaults to sender)
-    pub(crate) to_address: Option<String>,
-}
-
-impl DynAomiTool for GetLifiReverseQuote {
-    type App = LifiApp;
-    type Args = GetLifiReverseQuoteArgs;
-    const NAME: &'static str = "get_lifi_reverse_quote";
-    const DESCRIPTION: &'static str = "Get a quote by specifying the desired output amount (reverse quote). LI.FI calculates the required input amount.";
-
-    fn run(_app: &LifiApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        ok(LifiClient::new()?.get_reverse_quote(
-            &args.from_chain,
-            args.to_chain.as_deref(),
-            &args.from_token,
-            &args.to_token,
-            &args.to_amount,
-            &args.from_address,
-            args.to_address.as_deref(),
-        )?)
-    }
-}
-
-// ============================================================================
-// GetLifiGasSuggestion
-// ============================================================================
-
-pub(crate) struct GetLifiGasSuggestion;
-
-#[derive(Debug, Deserialize, JsonSchema)]
-pub(crate) struct GetLifiGasSuggestionArgs {
-    /// Destination chain name or ID
-    pub(crate) chain: String,
-    /// Source chain name or ID
-    pub(crate) from_chain: Option<String>,
-    /// Source token address
-    pub(crate) from_token: Option<String>,
-}
-
-impl DynAomiTool for GetLifiGasSuggestion {
-    type App = LifiApp;
-    type Args = GetLifiGasSuggestionArgs;
-    const NAME: &'static str = "get_lifi_gas_suggestion";
-    const DESCRIPTION: &'static str = "Get suggested gas amount for a destination chain. Useful for estimating gas needs for cross-chain transfers.";
-
-    fn run(_app: &LifiApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        ok(LifiClient::new()?.get_gas_suggestion(
-            &args.chain,
-            args.from_chain.as_deref(),
-            args.from_token.as_deref(),
-        )?)
+        ok(LifiClient::new()?.get_tokens(args.chains.as_deref(), None)?)
     }
 }

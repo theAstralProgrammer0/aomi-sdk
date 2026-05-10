@@ -37,7 +37,7 @@ impl DynAomiTool for GetGmxPrices {
     type App = GmxApp;
     type Args = GetGmxPricesArgs;
     const NAME: &'static str = "get_gmx_prices";
-    const DESCRIPTION: &'static str = "Get current token prices from GMX oracle feeds. Returns min/max prices and token symbols for all listed tokens.";
+    const DESCRIPTION: &'static str = "Use when the user asks the current price of any token tradable on GMX (BTC, ETH, ARB, AVAX, etc.) or wants to compare GMX's oracle to other venues. Returns min/max oracle prices and the address+symbol for every listed token on the chosen chain. Defaults to Arbitrum.";
 
     fn run(_app: &GmxApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let chain = resolve_chain_label(args.chain.as_deref());
@@ -65,7 +65,7 @@ impl DynAomiTool for GetGmxSignedPrices {
     type App = GmxApp;
     type Args = GetGmxSignedPricesArgs;
     const NAME: &'static str = "get_gmx_signed_prices";
-    const DESCRIPTION: &'static str = "Get latest oracle-signed prices from GMX keepers. These are the prices used for on-chain order execution and settlement.";
+    const DESCRIPTION: &'static str = "Use only when the user specifically asks about keeper-signed oracle prices, EIP-712 price payloads, or what prices GMX will use for on-chain settlement. Returns the latest signed price packets from GMX keepers (with signatures and validity windows). For ordinary 'what is the price' questions use get_gmx_prices instead.";
 
     fn run(_app: &GmxApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let chain = resolve_chain_label(args.chain.as_deref());
@@ -93,7 +93,7 @@ impl DynAomiTool for GetGmxMarkets {
     type App = GmxApp;
     type Args = GetGmxMarketsArgs;
     const NAME: &'static str = "get_gmx_markets";
-    const DESCRIPTION: &'static str = "Get all GM markets on GMX v2 including market addresses, long/short tokens, funding rates, and open interest.";
+    const DESCRIPTION: &'static str = "Use when the user asks what markets exist on GMX v2, GM pool composition, current funding rates, open interest skew, borrow rates, or pool TVL. Returns every GM market on the chosen chain with market address, index/long/short tokens, funding and borrow rates, and long/short OI. Defaults to Arbitrum.";
 
     fn run(_app: &GmxApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let chain = resolve_chain_label(args.chain.as_deref());
@@ -123,7 +123,7 @@ impl DynAomiTool for GetGmxPositions {
     type App = GmxApp;
     type Args = GetGmxPositionsArgs;
     const NAME: &'static str = "get_gmx_positions";
-    const DESCRIPTION: &'static str = "Get open leveraged positions for a specific account on GMX v2. Requires an Ethereum address.";
+    const DESCRIPTION: &'static str = "Use when the user asks about their (or another address's) open GMX v2 perp positions, size, leverage, collateral, entry price, or unrealized PnL. Returns one entry per open position with market, side, size, collateral, entry price, and PnL. Pass the EVM address (0x...). Defaults to Arbitrum.";
 
     fn run(_app: &GmxApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let chain = resolve_chain_label(args.chain.as_deref());
@@ -154,7 +154,7 @@ impl DynAomiTool for GetGmxOrders {
     type App = GmxApp;
     type Args = GetGmxOrdersArgs;
     const NAME: &'static str = "get_gmx_orders";
-    const DESCRIPTION: &'static str = "Get pending orders (limit, trigger, stop-loss, take-profit) for a specific account on GMX v2. Requires an Ethereum address.";
+    const DESCRIPTION: &'static str = "Use when the user asks about their pending GMX v2 orders -- limit entries, take-profit, stop-loss, or any trigger order awaiting keeper execution. Returns one entry per pending order with order type, market, size delta, trigger price, and acceptable price. Pass the EVM address (0x...). Defaults to Arbitrum.";
 
     fn run(_app: &GmxApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let chain = resolve_chain_label(args.chain.as_deref());

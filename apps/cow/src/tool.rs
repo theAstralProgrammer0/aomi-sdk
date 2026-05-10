@@ -30,27 +30,21 @@ pub(crate) struct GetCowSwapQuote;
 
 #[derive(Debug, Deserialize, JsonSchema)]
 pub(crate) struct GetCowSwapQuoteArgs {
-    /// Chain: ethereum, gnosis, arbitrum, base, polygon, avalanche, bsc, sepolia
+    /// Chain: ethereum, gnosis, arbitrum, base, polygon, avalanche, bsc, sepolia.
     pub(crate) chain: String,
-    /// Sell token symbol or address
+    /// Sell token symbol (eth, usdc, weth, ...) or 0x address.
     pub(crate) sell_token: String,
-    /// Buy token symbol or address
+    /// Buy token symbol or 0x address.
     pub(crate) buy_token: String,
-    /// Amount to swap (human-readable units)
+    /// Amount in human units. Treated as sell amount when order_side="sell" (default), buy amount when "buy".
     pub(crate) amount: f64,
-    /// Sender/from address
+    /// Wallet address signing the order (and default receiver).
     pub(crate) sender_address: String,
-    /// Receiver address (optional, defaults to sender)
+    /// Optional alternate receiver. Defaults to sender_address.
     pub(crate) receiver_address: Option<String>,
-    /// Order side: "sell" or "buy" (default: "sell")
+    /// "sell" (exact-in, default) or "buy" (exact-out).
     pub(crate) order_side: Option<String>,
-    /// Quote validity timestamp (optional)
-    pub(crate) valid_to: Option<u64>,
-    /// Allow partial fills (optional)
-    pub(crate) partially_fillable: Option<bool>,
-    /// Signing scheme: eip712, ethsign (optional)
-    pub(crate) signing_scheme: Option<String>,
-    /// Slippage tolerance as decimal (0.005 = 0.5%)
+    /// Slippage tolerance as decimal (0.005 = 0.5%). Defaults to CoW's recommendation when omitted.
     pub(crate) slippage: Option<f64>,
 }
 
@@ -58,7 +52,7 @@ impl DynAomiTool for GetCowSwapQuote {
     type App = CowApp;
     type Args = GetCowSwapQuoteArgs;
     const NAME: &'static str = "get_cow_swap_quote";
-    const DESCRIPTION: &'static str = "Get a CoW Protocol swap quote with fee estimation.";
+    const DESCRIPTION: &'static str = "Use when the user wants to price a swap on CoW Protocol (\"swap 100 USDC for WETH on base\"). Returns the quote with sellAmount, buyAmount, fees, and the order parameters that must be signed before placing. Always run this BEFORE place_cow_order.";
 
     fn run(_app: &CowApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let client = CowClient::new()?;
@@ -74,9 +68,10 @@ impl DynAomiTool for GetCowSwapQuote {
             from: &args.sender_address,
             kind: args.order_side.as_deref().unwrap_or("sell"),
             receiver: args.receiver_address.as_deref(),
-            valid_to: args.valid_to,
-            partially_fillable: args.partially_fillable,
-            signing_scheme: args.signing_scheme.as_deref(),
+            // Knobs we don't expose to the LLM — CoW applies sensible defaults.
+            valid_to: None,
+            partially_fillable: None,
+            signing_scheme: None,
             slippage_bps: args.slippage.map(|s| (s * 10_000.0) as u32),
         };
         ok(client.get_quote::<QuoteRequest>(&args.chain, &payload)?)
@@ -101,7 +96,7 @@ impl DynAomiTool for PlaceCowOrder {
     type App = CowApp;
     type Args = PlaceCowOrderArgs;
     const NAME: &'static str = "place_cow_order";
-    const DESCRIPTION: &'static str = "Submit a signed CoW Protocol orderbook payload to CoW /orders API on the requested chain. Use the host's wallet/signing tools for any required user approval.";
+    const DESCRIPTION: &'static str = "Use AFTER get_cow_swap_quote and the user has signed the order. Submits the complete signed order JSON to CoW's orderbook. The `signed_order` payload must contain the quote fields plus `signature` and `signingScheme` from the host wallet. Returns the orderUid you can poll with get_cow_order_status.";
 
     fn run(_app: &CowApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         ok(CowClient::new()?.place_order(&args.chain, args.signed_order)?)
@@ -126,7 +121,7 @@ impl DynAomiTool for GetCowOrder {
     type App = CowApp;
     type Args = GetCowOrderArgs;
     const NAME: &'static str = "get_cow_order";
-    const DESCRIPTION: &'static str = "Get the full order object for a CoW Protocol order by UID (status, executed amounts, fees, etc.).";
+    const DESCRIPTION: &'static str = "Use when the user wants full detail on a CoW order they previously placed (executed amounts, fees, signature, status). Provide the orderUid returned from place_cow_order. For just the lifecycle state, prefer get_cow_order_status.";
 
     fn run(_app: &CowApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         ok::<CowOrder>(CowClient::new()?.get_order(&args.chain, &args.order_uid)?)
@@ -151,7 +146,7 @@ impl DynAomiTool for GetCowOrderStatus {
     type App = CowApp;
     type Args = GetCowOrderStatusArgs;
     const NAME: &'static str = "get_cow_order_status";
-    const DESCRIPTION: &'static str = "Get the competition status of a CoW Protocol order (open/scheduled/active/solved/executing/traded/cancelled).";
+    const DESCRIPTION: &'static str = "Use to poll a CoW order's lifecycle state (open / scheduled / active / solved / executing / traded / cancelled). Lighter than get_cow_order. Don't poll faster than every ~3s; CoW solver auctions clear in ~30s.";
 
     fn run(_app: &CowApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         ok::<CowOrderStatus>(CowClient::new()?.get_order_status(&args.chain, &args.order_uid)?)
@@ -180,7 +175,7 @@ impl DynAomiTool for GetCowUserOrders {
     type App = CowApp;
     type Args = GetCowUserOrdersArgs;
     const NAME: &'static str = "get_cow_user_orders";
-    const DESCRIPTION: &'static str = "Get a paginated list of CoW Protocol orders for a given owner address, sorted by creation date.";
+    const DESCRIPTION: &'static str = "Use when the user asks about their CoW order history on a chain (\"my recent swaps on base\"). Paginated, newest first. Default limit if omitted is CoW's default (~10).";
 
     fn run(_app: &CowApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         ok::<Vec<CowOrder>>(CowClient::new()?.get_user_orders(
@@ -214,7 +209,7 @@ impl DynAomiTool for CancelCowOrders {
     type App = CowApp;
     type Args = CancelCowOrdersArgs;
     const NAME: &'static str = "cancel_cow_orders";
-    const DESCRIPTION: &'static str = "Cancel one or more open CoW Protocol orders. Requires the cancellation signature from the order owner.";
+    const DESCRIPTION: &'static str = "Use when the user wants to cancel open CoW orders (only orders not yet executed can be cancelled). Requires a cancellation signature from the order owner — the host wallet must sign the cancellation message before calling this. Pass `signing_scheme=\"eip712\"` when in doubt.";
 
     fn run(_app: &CowApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let payload = CancelOrdersRequest {
@@ -250,8 +245,7 @@ impl DynAomiTool for GetCowTrades {
     type App = CowApp;
     type Args = GetCowTradesArgs;
     const NAME: &'static str = "get_cow_trades";
-    const DESCRIPTION: &'static str =
-        "Get trade execution history from CoW Protocol. Provide exactly one of owner or order_uid.";
+    const DESCRIPTION: &'static str = "Use when the user wants the on-chain settlement record (executed amounts, tx hashes) for either a wallet (`owner`) or one specific order (`order_uid`). Pass exactly one. Use get_cow_user_orders when the user wants the order book view rather than fills.";
 
     fn run(_app: &CowApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         match (&args.owner, &args.order_uid) {
@@ -293,61 +287,10 @@ impl DynAomiTool for GetCowNativePrice {
     type App = CowApp;
     type Args = GetCowNativePriceArgs;
     const NAME: &'static str = "get_cow_native_price";
-    const DESCRIPTION: &'static str =
-        "Get the price of a token relative to the chain's native currency via CoW Protocol.";
+    const DESCRIPTION: &'static str = "Use to read CoW's internal estimate of a token's price in the chain's native asset (ETH on mainnet/arbitrum/base, xDAI on gnosis, etc.). Useful for sanity-checking a quote before signing. `token_address` must be a 0x address — symbol shorthand not supported here.";
 
     fn run(_app: &CowApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         ok::<CowNativePrice>(CowClient::new()?.get_native_price(&args.chain, &args.token_address)?)
     }
 }
 
-// ============================================================================
-// GetCowOrdersByTx
-// ============================================================================
-
-pub(crate) struct GetCowOrdersByTx;
-
-#[derive(Debug, Deserialize, JsonSchema)]
-pub(crate) struct GetCowOrdersByTxArgs {
-    /// Chain: ethereum, gnosis, arbitrum, base, polygon, avalanche, bsc, sepolia
-    pub(crate) chain: String,
-    /// Transaction hash (0x...)
-    pub(crate) tx_hash: String,
-}
-
-impl DynAomiTool for GetCowOrdersByTx {
-    type App = CowApp;
-    type Args = GetCowOrdersByTxArgs;
-    const NAME: &'static str = "get_cow_orders_by_tx";
-    const DESCRIPTION: &'static str =
-        "Get all CoW Protocol orders that were settled in a specific transaction.";
-
-    fn run(_app: &CowApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        ok::<Vec<CowOrder>>(CowClient::new()?.get_orders_by_tx(&args.chain, &args.tx_hash)?)
-    }
-}
-
-// ============================================================================
-// DebugCowOrder
-// ============================================================================
-
-pub(crate) struct DebugCowOrder;
-
-#[derive(Debug, Deserialize, JsonSchema)]
-pub(crate) struct DebugCowOrderArgs {
-    /// Chain: ethereum, gnosis, arbitrum, base, polygon, avalanche, bsc, sepolia
-    pub(crate) chain: String,
-    /// Order UID to debug
-    pub(crate) order_uid: String,
-}
-
-impl DynAomiTool for DebugCowOrder {
-    type App = CowApp;
-    type Args = DebugCowOrderArgs;
-    const NAME: &'static str = "debug_cow_order";
-    const DESCRIPTION: &'static str = "Get the full lifecycle debug info for a CoW Protocol order, including events and auction participation.";
-
-    fn run(_app: &CowApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        ok::<CowOrder>(CowClient::new()?.debug_order(&args.chain, &args.order_uid)?)
-    }
-}
