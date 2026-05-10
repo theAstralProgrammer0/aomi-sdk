@@ -1,11 +1,27 @@
-use aomi_ext::manifold::{CreateMarketRequest, ManifoldClient, PlaceBetRequest};
-use aomi_sdk::schemars::JsonSchema;
+//! Curated tool layer for Manifold Markets. Hand-written from the generated
+//! client in `aomi_ext::manifold` — see ext/specs/manifold.yaml for the surface.
+//!
+//! Six user-centric tools: list/search/get markets, market positions, place_bet,
+//! create_market.
+
+use aomi_ext::manifold::Client as GenClient;
+use aomi_ext::manifold::types::{CreateMarketRequest, PlaceBetRequest};
 use aomi_sdk::*;
+use aomi_sdk::schemars::JsonSchema;
+use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
 use serde::{Deserialize, Serialize};
-use serde_json::{Value, json};
+use serde_json::{json, Value};
+use std::num::NonZeroU32;
+use std::time::Duration;
 
 #[derive(Clone, Default)]
 pub(crate) struct ManifoldApp;
+
+const BASE_URL: &str = "https://api.manifold.markets/v0";
+
+// ============================================================================
+// Helpers
+// ============================================================================
 
 fn ok<T: Serialize>(value: T) -> Result<Value, String> {
     let value = serde_json::to_value(value)
@@ -19,12 +35,41 @@ fn ok<T: Serialize>(value: T) -> Result<Value, String> {
     })
 }
 
+fn rt() -> Result<tokio::runtime::Runtime, String> {
+    tokio::runtime::Runtime::new().map_err(|e| format!("[manifold] runtime: {e}"))
+}
+
 fn resolve_manifold_api_key(api_key: Option<&str>) -> Result<String, String> {
     resolve_secret_value(
         api_key,
         "MANIFOLD_API_KEY",
         "[manifold] missing api_key argument and MANIFOLD_API_KEY environment variable",
     )
+}
+
+/// Build a generated client without auth (read endpoints).
+fn public_client() -> Result<GenClient, String> {
+    let http = reqwest::ClientBuilder::new()
+        .timeout(Duration::from_secs(30))
+        .build()
+        .map_err(|e| format!("[manifold] failed to build HTTP client: {e}"))?;
+    Ok(GenClient::new_with_client(BASE_URL, http))
+}
+
+/// Build a generated client carrying `Authorization: Key <api_key>` for write endpoints.
+fn authed_client(api_key: &str) -> Result<GenClient, String> {
+    let mut headers = HeaderMap::new();
+    let mut value = HeaderValue::from_str(&format!("Key {api_key}"))
+        .map_err(|e| format!("[manifold] invalid api_key: {e}"))?;
+    value.set_sensitive(true);
+    headers.insert(AUTHORIZATION, value);
+
+    let http = reqwest::ClientBuilder::new()
+        .timeout(Duration::from_secs(30))
+        .default_headers(headers)
+        .build()
+        .map_err(|e| format!("[manifold] failed to build HTTP client: {e}"))?;
+    Ok(GenClient::new_with_client(BASE_URL, http))
 }
 
 // ============================================================================
@@ -50,31 +95,22 @@ impl DynAomiTool for ListMarkets {
     const DESCRIPTION: &'static str = "Use when the user wants to browse Manifold prediction markets without a specific keyword, e.g. \"what's hot on Manifold\" or \"newest markets\". Returns a compact list of {id, question, url, probability, volume, isResolved}. Use search_markets when there is a keyword.";
 
     fn run(_app: &ManifoldApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let mut query_parts: Vec<String> = Vec::new();
-        query_parts.push(format!("limit={}", args.limit.unwrap_or(20).min(1000)));
-        query_parts.push(format!("sort={}", args.sort.as_deref().unwrap_or("newest")));
-        if let Some(topics) = &args.topics {
-            query_parts.push(format!("topics={topics}"));
-        }
+        let limit = args.limit.unwrap_or(20).min(1000) as i32;
+        let sort = args.sort.clone().unwrap_or_else(|| "newest".to_string());
+        let topics = args.topics.clone();
 
-        let path = format!("/markets?{}", query_parts.join("&"));
+        let runtime = rt()?;
+        let markets = runtime
+            .block_on(async move {
+                let client = public_client()?;
+                client
+                    .list_markets(Some(limit), Some(sort.as_str()), topics.as_deref())
+                    .await
+                    .map_err(|e| format!("[manifold] list_markets: {e}"))
+                    .map(|r| r.into_inner())
+            })?;
 
-        let markets = ManifoldClient::new()?.get(&path, "list_markets")?;
-        let markets_arr = markets.as_array().cloned().unwrap_or_default();
-
-        ok(json!({
-            "markets_count": markets_arr.len(),
-            "markets": markets_arr.iter().map(|m| json!({
-                "id": m.get("id"),
-                "question": m.get("question"),
-                "url": m.get("url"),
-                "probability": m.get("probability"),
-                "volume": m.get("volume"),
-                "createdTime": m.get("createdTime"),
-                "closeTime": m.get("closeTime"),
-                "isResolved": m.get("isResolved"),
-            })).collect::<Vec<_>>(),
-        }))
+        ok(json!({ "markets_count": markets.len(), "markets": markets }))
     }
 }
 
@@ -97,25 +133,17 @@ impl DynAomiTool for GetMarket {
     const DESCRIPTION: &'static str = "Use when the user wants full detail on one Manifold market (probability, volume, liquidity, close time, resolution). Accepts an `id` (24-char hex) or a slug from the market URL.";
 
     fn run(_app: &ManifoldApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let path = format!("/market/{}", args.id);
-        let market = ManifoldClient::new()?.get(&path, "get_market")?;
+        let runtime = rt()?;
+        let market = runtime.block_on(async move {
+            let client = public_client()?;
+            client
+                .get_market(args.id.as_str())
+                .await
+                .map_err(|e| format!("[manifold] get_market: {e}"))
+                .map(|r| r.into_inner())
+        })?;
 
-        ok(json!({
-            "id": market.get("id"),
-            "question": market.get("question"),
-            "description": market.get("textDescription"),
-            "url": market.get("url"),
-            "creatorName": market.get("creatorName"),
-            "probability": market.get("probability"),
-            "volume": market.get("volume"),
-            "totalLiquidity": market.get("totalLiquidity"),
-            "createdTime": market.get("createdTime"),
-            "closeTime": market.get("closeTime"),
-            "isResolved": market.get("isResolved"),
-            "resolution": market.get("resolution"),
-            "mechanism": market.get("mechanism"),
-            "outcomeType": market.get("outcomeType"),
-        }))
+        ok(market)
     }
 }
 
@@ -138,8 +166,16 @@ impl DynAomiTool for GetMarketPositions {
     const DESCRIPTION: &'static str = "Use when the user asks who is holding what on a market (top traders, position concentration). Returns the list of user positions for a given market id.";
 
     fn run(_app: &ManifoldApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let path = format!("/market/{}/positions", args.id);
-        let positions = ManifoldClient::new()?.get(&path, "get_market_positions")?;
+        let id = args.id.clone();
+        let runtime = rt()?;
+        let positions = runtime.block_on(async move {
+            let client = public_client()?;
+            client
+                .get_market_positions(id.as_str())
+                .await
+                .map_err(|e| format!("[manifold] get_market_positions: {e}"))
+                .map(|r| r.into_inner())
+        })?;
         ok(json!({ "market_id": args.id, "positions": positions }))
     }
 }
@@ -167,31 +203,25 @@ impl DynAomiTool for SearchMarkets {
     const DESCRIPTION: &'static str = "Use when the user asks about a topic and you need to find Manifold markets — e.g. \"is there a market on the next Fed cut?\". `term` is a keyword search; `filter` defaults to \"open\" so unresolved markets surface first.";
 
     fn run(_app: &ManifoldApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let mut query_parts: Vec<String> = vec![format!("term={}", urlencoded(&args.term))];
-        if let Some(sort) = &args.sort {
-            query_parts.push(format!("sort={sort}"));
-        }
         // Default to open markets so resolved/closed don't dominate results.
-        query_parts.push(format!(
-            "filter={}",
-            args.filter.as_deref().unwrap_or("open")
-        ));
+        let filter = args.filter.clone().unwrap_or_else(|| "open".to_string());
+        let sort = args.sort.clone();
+        let term = args.term.clone();
 
-        let path = format!("/search-markets?{}", query_parts.join("&"));
-        let results = ManifoldClient::new()?.get(&path, "search_markets")?;
-        let markets_arr = results.as_array().cloned().unwrap_or_default();
+        let runtime = rt()?;
+        let markets = runtime.block_on(async move {
+            let client = public_client()?;
+            client
+                .search_markets(Some(filter.as_str()), sort.as_deref(), term.as_str())
+                .await
+                .map_err(|e| format!("[manifold] search_markets: {e}"))
+                .map(|r| r.into_inner())
+        })?;
 
         ok(json!({
             "query": args.term,
-            "results_count": markets_arr.len(),
-            "markets": markets_arr.iter().map(|m| json!({
-                "id": m.get("id"),
-                "question": m.get("question"),
-                "url": m.get("url"),
-                "probability": m.get("probability"),
-                "volume": m.get("volume"),
-                "isResolved": m.get("isResolved"),
-            })).collect::<Vec<_>>(),
+            "results_count": markets.len(),
+            "markets": markets,
         }))
     }
 }
@@ -231,21 +261,22 @@ impl DynAomiTool for PlaceBet {
 
         let api_key = resolve_manifold_api_key(args.api_key.as_deref())?;
         let body = PlaceBetRequest {
-            contract_id: &args.contract_id,
+            contract_id: args.contract_id.clone(),
             amount: args.amount,
-            outcome: &outcome,
+            outcome: outcome.clone(),
         };
 
-        let result = ManifoldClient::new()?.post("/bet", &api_key, &body, "place_bet")?;
+        let runtime = rt()?;
+        let response = runtime.block_on(async move {
+            let client = authed_client(&api_key)?;
+            client
+                .place_bet(&body)
+                .await
+                .map_err(|e| format!("[manifold] place_bet: {e}"))
+                .map(|r| r.into_inner())
+        })?;
 
-        ok(json!({
-            "status": "success",
-            "betId": result.get("betId").or_else(|| result.get("id")),
-            "contractId": args.contract_id,
-            "amount": args.amount,
-            "outcome": outcome,
-            "result": result,
-        }))
+        ok(response)
     }
 }
 
@@ -277,51 +308,37 @@ impl DynAomiTool for CreateMarket {
     const DESCRIPTION: &'static str = "Use when the user wants to launch their own prediction market. Defaults to a BINARY (YES/NO) market with 50% initial probability. Requires MANIFOLD_API_KEY.";
 
     fn run(_app: &ManifoldApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let market_type = args.market_type.as_deref().unwrap_or("BINARY");
+        let market_type = args
+            .market_type
+            .clone()
+            .unwrap_or_else(|| "BINARY".to_string());
         let initial_prob = args.initial_prob.unwrap_or(50);
 
         if !(1..=99).contains(&initial_prob) {
             return Err("initial_prob must be between 1 and 99".to_string());
         }
+        let initial_prob = NonZeroU32::new(initial_prob)
+            .ok_or_else(|| "initial_prob must be greater than 0".to_string())?;
 
         let api_key = resolve_manifold_api_key(args.api_key.as_deref())?;
+        let close_time = args.close_time.map(|v| v as i64);
         let body = CreateMarketRequest {
-            outcome_type: market_type,
-            question: &args.question,
+            close_time,
             initial_prob,
-            close_time: args.close_time,
+            outcome_type: market_type,
+            question: args.question.clone(),
         };
 
-        let result = ManifoldClient::new()?.post("/market", &api_key, &body, "create_market")?;
+        let runtime = rt()?;
+        let response = runtime.block_on(async move {
+            let client = authed_client(&api_key)?;
+            client
+                .create_market(&body)
+                .await
+                .map_err(|e| format!("[manifold] create_market: {e}"))
+                .map(|r| r.into_inner())
+        })?;
 
-        ok(json!({
-            "status": "created",
-            "id": result.get("id"),
-            "question": args.question,
-            "url": result.get("url"),
-            "slug": result.get("slug"),
-            "result": result,
-        }))
+        ok(response)
     }
-}
-
-// ============================================================================
-// Helpers
-// ============================================================================
-
-/// Minimal percent-encoding for query string values.
-fn urlencoded(s: &str) -> String {
-    let mut result = String::with_capacity(s.len());
-    for c in s.chars() {
-        match c {
-            ' ' => result.push_str("%20"),
-            '&' => result.push_str("%26"),
-            '=' => result.push_str("%3D"),
-            '+' => result.push_str("%2B"),
-            '#' => result.push_str("%23"),
-            '?' => result.push_str("%3F"),
-            _ => result.push(c),
-        }
-    }
-    result
 }

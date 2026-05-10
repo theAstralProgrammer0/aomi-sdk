@@ -1,6 +1,6 @@
 use std::fmt::Write;
 
-use super::{Mode, Op, ParamKind, ParamLoc};
+use super::{Mode, Op, ParamKind, ParamLoc, ResponseSummary};
 
 pub fn cargo_toml(platform: &str, mode: Mode) -> String {
     let provider_dep_block = match mode {
@@ -8,13 +8,22 @@ pub fn cargo_toml(platform: &str, mode: Mode) -> String {
             "aomi-ext = {{ path = \"../../ext\", features = [\"{platform}\"] }}\n"
         ),
         Mode::AppLocal => {
-            // App-local: client deps live directly here. progenitor-client +
-            // chrono are added by gen-client (per-spec dep detection); reqwest
-            // we add unconditionally so tool layer can wrap a custom client
-            // for auth header injection.
-            "progenitor-client = \"0.14\"\n\
-             chrono = { version = \"0.4\", features = [\"serde\"] }\n"
-                .to_string()
+            // App-local: client deps live directly here. Detect from the
+            // generated client source which optional crates progenitor pulled
+            // in (uuid for `format: uuid`, regress for `pattern:` constraints).
+            let client_path = format!("apps/{platform}/src/client/client.rs");
+            let src = std::fs::read_to_string(&client_path).unwrap_or_default();
+            let mut block = String::from(
+                "progenitor-client = \"0.14\"\n\
+                 chrono = { version = \"0.4\", features = [\"serde\"] }\n",
+            );
+            if src.contains("uuid::") {
+                block.push_str("uuid = { version = \"1\", features = [\"serde\", \"v4\"] }\n");
+            }
+            if src.contains("regress::") {
+                block.push_str("regress = \"0.10\"\n");
+            }
+            block
         }
     };
     format!(
@@ -92,11 +101,18 @@ pub fn tool_rs(platform: &str, app_struct: &str, ops: &[Op], mode: Mode) -> Stri
          //! review tool names, descriptions, and any auth assumptions."
     );
     let _ = writeln!(out);
-    let client_use = match mode {
-        Mode::Shared => format!("use aomi_ext::{platform}::Client as GenClient;"),
-        Mode::AppLocal => "use crate::client::Client as GenClient;".to_string(),
+    let (client_use, types_use) = match mode {
+        Mode::Shared => (
+            format!("use aomi_ext::{platform}::Client as GenClient;"),
+            format!("#[allow(unused_imports)]\nuse aomi_ext::{platform}::types::*;"),
+        ),
+        Mode::AppLocal => (
+            "use crate::client::Client as GenClient;".to_string(),
+            "#[allow(unused_imports)]\nuse crate::client::types::*;".to_string(),
+        ),
     };
     let _ = writeln!(out, "{client_use}");
+    let _ = writeln!(out, "{types_use}");
     let _ = writeln!(out, "use aomi_sdk::*;");
     let _ = writeln!(out, "use aomi_sdk::schemars::JsonSchema;");
     let _ = writeln!(out, "use serde::{{Deserialize, Serialize}};");
@@ -277,6 +293,49 @@ fn emit_tool(out: &mut String, platform: &str, app_struct: &str, op: &Op) {
         "        }}).map_err(|e| format!(\"[{platform}] {}: {{e}}\"))?;",
         method_ident
     );
+    // Per-op response-shape comment. The `types::*` glob at the top of the
+    // file makes the named type immediately accessible. Trim noisy fields by
+    // editing the spec — never by adding a *Summary projection here.
+    match &op.response_summary {
+        ResponseSummary::Typed { rust_type } => {
+            let _ = writeln!(
+                out,
+                "        // Response: `{rust_type}` (typed). Forward as-is — the typed struct"
+            );
+            let _ = writeln!(
+                out,
+                "        // IS what the LLM sees. If it carries fields the LLM doesn't act on"
+            );
+            let _ = writeln!(
+                out,
+                "        // (logoURI, audits, extensions, …), drop them from the response schema"
+            );
+            let _ = writeln!(
+                out,
+                "        // in ext/specs/{platform}.yaml and `aomi-build gen-client --force`."
+            );
+        }
+        ResponseSummary::Loose => {
+            let _ = writeln!(
+                out,
+                "        // Response: `Map<String, Value>` — spec marked `additionalProperties: true`."
+            );
+            let _ = writeln!(
+                out,
+                "        // Tighten via: capture real samples to ext/specs/{platform}.samples/,"
+            );
+            let _ = writeln!(
+                out,
+                "        // run `aomi-build tighten-spec {platform}`, then gen-client --force."
+            );
+        }
+        ResponseSummary::Bytes => {
+            let _ = writeln!(
+                out,
+                "        // Response: bytes (non-JSON content type). Decode + summarise as needed."
+            );
+        }
+    }
     let _ = writeln!(out, "        ok(result.into_inner())");
     let _ = writeln!(out, "    }}");
     let _ = writeln!(out, "}}");

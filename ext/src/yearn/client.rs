@@ -1,210 +1,602 @@
-use serde_json::{Value, json};
-use std::time::Duration;
-
-// ============================================================================
-// Yearn yDaemon Client (blocking)
-// ============================================================================
-
-pub const DEFAULT_YEARN_API: &str = "https://ydaemon.yearn.fi";
-
-#[derive(Clone)]
-pub struct YearnClient {
-    pub http: reqwest::blocking::Client,
-    pub api_endpoint: String,
-}
-
-impl YearnClient {
-    pub fn new() -> Result<Self, String> {
-        let http = reqwest::blocking::Client::builder()
-            .timeout(Duration::from_secs(30))
-            .build()
-            .map_err(|e| format!("[yearn] failed to build HTTP client: {e}"))?;
-        Ok(Self {
-            http,
-            api_endpoint: std::env::var("YEARN_API_ENDPOINT")
-                .unwrap_or_else(|_| DEFAULT_YEARN_API.to_string()),
-        })
-    }
-
-    pub fn get_json(&self, url: &str, op: &str) -> Result<Value, String> {
-        let response = self
-            .http
-            .get(url)
-            .send()
-            .map_err(|e| format!("[yearn] {op} failed: {e}"))?;
-
-        let status = response.status();
-        let body = response.text().unwrap_or_default();
-        if !status.is_success() {
-            return Err(format!("[yearn] {op} failed: {status} {body}"));
-        }
-
-        serde_json::from_str::<Value>(&body)
-            .map_err(|e| format!("[yearn] {op} failed: decode error: {e}"))
-    }
-
-    pub fn with_source(value: Value) -> Value {
-        match value {
-            Value::Object(mut map) => {
-                map.insert("source".to_string(), Value::String("yearn".to_string()));
-                Value::Object(map)
+#[allow(unused_imports)]
+pub use progenitor_client::{ByteStream, ClientInfo, Error, ResponseValue};
+#[allow(unused_imports)]
+use progenitor_client::{encode_path, ClientHooks, OperationInfo, RequestBuilderExt};
+/// Types used as operation parameters and responses.
+#[allow(clippy::all)]
+pub mod types {
+    /// Error types.
+    pub mod error {
+        /// Error from a `TryFrom` or `FromStr` implementation.
+        pub struct ConversionError(::std::borrow::Cow<'static, str>);
+        impl ::std::error::Error for ConversionError {}
+        impl ::std::fmt::Display for ConversionError {
+            fn fmt(
+                &self,
+                f: &mut ::std::fmt::Formatter<'_>,
+            ) -> Result<(), ::std::fmt::Error> {
+                ::std::fmt::Display::fmt(&self.0, f)
             }
-            other => json!({
-                "source": "yearn",
-                "data": other,
-            }),
+        }
+        impl ::std::fmt::Debug for ConversionError {
+            fn fmt(
+                &self,
+                f: &mut ::std::fmt::Formatter<'_>,
+            ) -> Result<(), ::std::fmt::Error> {
+                ::std::fmt::Debug::fmt(&self.0, f)
+            }
+        }
+        impl From<&'static str> for ConversionError {
+            fn from(value: &'static str) -> Self {
+                Self(value.into())
+            }
+        }
+        impl From<String> for ConversionError {
+            fn from(value: String) -> Self {
+                Self(value.into())
+            }
         }
     }
-
-    pub fn get_all_vaults(&self, chain_id: u64) -> Result<Value, String> {
-        let url = format!("{}/{chain_id}/vaults/all", self.api_endpoint);
-        let value = self.get_json(&url, "get_all_vaults")?;
-        Ok(Self::with_source(value))
+    ///`YearnApr`
+    ///
+    /// <details><summary>JSON schema</summary>
+    ///
+    /// ```json
+    ///{
+    ///  "type": "object",
+    ///  "properties": {
+    ///    "fees": {
+    ///      "$ref": "#/components/schemas/YearnAprFees"
+    ///    },
+    ///    "forwardAPR": {
+    ///      "$ref": "#/components/schemas/YearnForwardApr"
+    ///    },
+    ///    "netAPR": {
+    ///      "description": "Realised net APY (post-fee). Decimal: 0.05 = 5%.",
+    ///      "type": [
+    ///        "number",
+    ///        "null"
+    ///      ],
+    ///      "format": "double"
+    ///    },
+    ///    "type": {
+    ///      "type": [
+    ///        "string",
+    ///        "null"
+    ///      ]
+    ///    }
+    ///  }
+    ///}
+    /// ```
+    /// </details>
+    #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+    pub struct YearnApr {
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        pub fees: ::std::option::Option<YearnAprFees>,
+        #[serde(
+            rename = "forwardAPR",
+            default,
+            skip_serializing_if = "::std::option::Option::is_none"
+        )]
+        pub forward_apr: ::std::option::Option<YearnForwardApr>,
+        ///Realised net APY (post-fee). Decimal: 0.05 = 5%.
+        #[serde(
+            rename = "netAPR",
+            default,
+            skip_serializing_if = "::std::option::Option::is_none"
+        )]
+        pub net_apr: ::std::option::Option<f64>,
+        #[serde(
+            rename = "type",
+            default,
+            skip_serializing_if = "::std::option::Option::is_none"
+        )]
+        pub type_: ::std::option::Option<::std::string::String>,
     }
-
-    pub fn get_vault_detail(&self, chain_id: u64, address: &str) -> Result<Value, String> {
-        let url = format!("{}/{chain_id}/vaults/{address}", self.api_endpoint);
-        let value = self.get_json(&url, "get_vault_detail")?;
-        Ok(Self::with_source(value))
+    impl ::std::default::Default for YearnApr {
+        fn default() -> Self {
+            Self {
+                fees: Default::default(),
+                forward_apr: Default::default(),
+                net_apr: Default::default(),
+                type_: Default::default(),
+            }
+        }
     }
-
-    pub fn get_blacklisted_vaults(&self) -> Result<Value, String> {
-        let url = format!("{}/info/vaults/blacklisted", self.api_endpoint);
-        let value = self.get_json(&url, "get_blacklisted_vaults")?;
-        Ok(Self::with_source(value))
+    ///`YearnAprFees`
+    ///
+    /// <details><summary>JSON schema</summary>
+    ///
+    /// ```json
+    ///{
+    ///  "type": "object",
+    ///  "properties": {
+    ///    "management": {
+    ///      "type": [
+    ///        "number",
+    ///        "null"
+    ///      ],
+    ///      "format": "double"
+    ///    },
+    ///    "performance": {
+    ///      "type": [
+    ///        "number",
+    ///        "null"
+    ///      ],
+    ///      "format": "double"
+    ///    }
+    ///  }
+    ///}
+    /// ```
+    /// </details>
+    #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+    pub struct YearnAprFees {
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        pub management: ::std::option::Option<f64>,
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        pub performance: ::std::option::Option<f64>,
+    }
+    impl ::std::default::Default for YearnAprFees {
+        fn default() -> Self {
+            Self {
+                management: Default::default(),
+                performance: Default::default(),
+            }
+        }
+    }
+    ///`YearnForwardApr`
+    ///
+    /// <details><summary>JSON schema</summary>
+    ///
+    /// ```json
+    ///{
+    ///  "type": "object",
+    ///  "properties": {
+    ///    "netAPR": {
+    ///      "description": "Forward-looking net APY (post-fee). Decimal.",
+    ///      "type": [
+    ///        "number",
+    ///        "null"
+    ///      ],
+    ///      "format": "double"
+    ///    },
+    ///    "type": {
+    ///      "type": [
+    ///        "string",
+    ///        "null"
+    ///      ]
+    ///    }
+    ///  }
+    ///}
+    /// ```
+    /// </details>
+    #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+    pub struct YearnForwardApr {
+        ///Forward-looking net APY (post-fee). Decimal.
+        #[serde(
+            rename = "netAPR",
+            default,
+            skip_serializing_if = "::std::option::Option::is_none"
+        )]
+        pub net_apr: ::std::option::Option<f64>,
+        #[serde(
+            rename = "type",
+            default,
+            skip_serializing_if = "::std::option::Option::is_none"
+        )]
+        pub type_: ::std::option::Option<::std::string::String>,
+    }
+    impl ::std::default::Default for YearnForwardApr {
+        fn default() -> Self {
+            Self {
+                net_apr: Default::default(),
+                type_: Default::default(),
+            }
+        }
+    }
+    ///`YearnTvl`
+    ///
+    /// <details><summary>JSON schema</summary>
+    ///
+    /// ```json
+    ///{
+    ///  "type": "object",
+    ///  "properties": {
+    ///    "price": {
+    ///      "description": "Underlying token price in USD",
+    ///      "type": [
+    ///        "number",
+    ///        "null"
+    ///      ],
+    ///      "format": "double"
+    ///    },
+    ///    "totalAssets": {
+    ///      "description": "Raw token amount as decimal string",
+    ///      "type": [
+    ///        "string",
+    ///        "null"
+    ///      ]
+    ///    },
+    ///    "tvl": {
+    ///      "description": "USD TVL",
+    ///      "type": [
+    ///        "number",
+    ///        "null"
+    ///      ],
+    ///      "format": "double"
+    ///    }
+    ///  }
+    ///}
+    /// ```
+    /// </details>
+    #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+    pub struct YearnTvl {
+        ///Underlying token price in USD
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        pub price: ::std::option::Option<f64>,
+        ///Raw token amount as decimal string
+        #[serde(
+            rename = "totalAssets",
+            default,
+            skip_serializing_if = "::std::option::Option::is_none"
+        )]
+        pub total_assets: ::std::option::Option<::std::string::String>,
+        ///USD TVL
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        pub tvl: ::std::option::Option<f64>,
+    }
+    impl ::std::default::Default for YearnTvl {
+        fn default() -> Self {
+            Self {
+                price: Default::default(),
+                total_assets: Default::default(),
+                tvl: Default::default(),
+            }
+        }
+    }
+    ///`YearnUnderlyingToken`
+    ///
+    /// <details><summary>JSON schema</summary>
+    ///
+    /// ```json
+    ///{
+    ///  "type": "object",
+    ///  "properties": {
+    ///    "address": {
+    ///      "type": [
+    ///        "string",
+    ///        "null"
+    ///      ]
+    ///    },
+    ///    "decimals": {
+    ///      "type": [
+    ///        "integer",
+    ///        "null"
+    ///      ],
+    ///      "format": "int64"
+    ///    },
+    ///    "name": {
+    ///      "type": [
+    ///        "string",
+    ///        "null"
+    ///      ]
+    ///    },
+    ///    "symbol": {
+    ///      "type": [
+    ///        "string",
+    ///        "null"
+    ///      ]
+    ///    }
+    ///  }
+    ///}
+    /// ```
+    /// </details>
+    #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+    pub struct YearnUnderlyingToken {
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        pub address: ::std::option::Option<::std::string::String>,
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        pub decimals: ::std::option::Option<i64>,
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        pub name: ::std::option::Option<::std::string::String>,
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        pub symbol: ::std::option::Option<::std::string::String>,
+    }
+    impl ::std::default::Default for YearnUnderlyingToken {
+        fn default() -> Self {
+            Self {
+                address: Default::default(),
+                decimals: Default::default(),
+                name: Default::default(),
+                symbol: Default::default(),
+            }
+        }
+    }
+    ///`YearnVault`
+    ///
+    /// <details><summary>JSON schema</summary>
+    ///
+    /// ```json
+    ///{
+    ///  "type": "object",
+    ///  "required": [
+    ///    "address",
+    ///    "chainID"
+    ///  ],
+    ///  "properties": {
+    ///    "address": {
+    ///      "description": "Vault contract address (0x...)",
+    ///      "type": "string"
+    ///    },
+    ///    "apr": {
+    ///      "$ref": "#/components/schemas/YearnApr"
+    ///    },
+    ///    "category": {
+    ///      "type": [
+    ///        "string",
+    ///        "null"
+    ///      ]
+    ///    },
+    ///    "chainID": {
+    ///      "type": "integer",
+    ///      "format": "int64"
+    ///    },
+    ///    "kind": {
+    ///      "description": "e.g. 'Single Strategy', 'Multi Strategy', 'Legacy'",
+    ///      "type": [
+    ///        "string",
+    ///        "null"
+    ///      ]
+    ///    },
+    ///    "name": {
+    ///      "type": [
+    ///        "string",
+    ///        "null"
+    ///      ]
+    ///    },
+    ///    "symbol": {
+    ///      "type": [
+    ///        "string",
+    ///        "null"
+    ///      ]
+    ///    },
+    ///    "token": {
+    ///      "$ref": "#/components/schemas/YearnUnderlyingToken"
+    ///    },
+    ///    "tvl": {
+    ///      "$ref": "#/components/schemas/YearnTvl"
+    ///    },
+    ///    "version": {
+    ///      "type": [
+    ///        "string",
+    ///        "null"
+    ///      ]
+    ///    }
+    ///  }
+    ///}
+    /// ```
+    /// </details>
+    #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+    pub struct YearnVault {
+        ///Vault contract address (0x...)
+        pub address: ::std::string::String,
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        pub apr: ::std::option::Option<YearnApr>,
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        pub category: ::std::option::Option<::std::string::String>,
+        #[serde(rename = "chainID")]
+        pub chain_id: i64,
+        ///e.g. 'Single Strategy', 'Multi Strategy', 'Legacy'
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        pub kind: ::std::option::Option<::std::string::String>,
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        pub name: ::std::option::Option<::std::string::String>,
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        pub symbol: ::std::option::Option<::std::string::String>,
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        pub token: ::std::option::Option<YearnUnderlyingToken>,
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        pub tvl: ::std::option::Option<YearnTvl>,
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        pub version: ::std::option::Option<::std::string::String>,
     }
 }
+#[derive(Clone, Debug)]
+/**Client for Yearn yDaemon API
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+Yearn yDaemon REST API — public, no auth required.
 
-    #[test]
-    fn deposit_stablecoin_vault_workflow() {
-        let client = YearnClient::new().expect("failed to create YearnClient");
+Covers the three endpoints used by the Aomi `yearn` app:
+  - GET /{chainId}/vaults/all
+  - GET /{chainId}/vaults/{address}
+  - GET /info/vaults/blacklisted
 
-        let all_vaults = client.get_all_vaults(1).expect("get_all_vaults failed");
-        let vaults_arr = all_vaults["data"]
-            .as_array()
-            .or_else(|| all_vaults.as_array())
-            .expect("expected vaults to be an array");
-        assert!(!vaults_arr.is_empty());
+Default host is `https://ydaemon.yearn.fi`. Response schemas are
+intentionally narrowed to the subset of fields that the assistant
+actually reasons about (address, symbol, TVL, net APY, fees, kind,
+version, underlying token). The live API returns many more fields
+(icons, descriptions, risk vectors, debts, migration metadata, ...);
+those are dropped by serde at deserialization time.
 
-        let sample = &vaults_arr[0];
-        assert!(sample.get("apy").is_some() || sample.get("apr").is_some());
-        assert!(sample.get("tvl").is_some());
 
-        let blacklisted = client
-            .get_blacklisted_vaults()
-            .expect("get_blacklisted_vaults failed");
-        assert!(blacklisted.is_object() || blacklisted.is_array());
-
-        let empty: Vec<Value> = vec![];
-        let blacklisted_addrs: Vec<String> = blacklisted["data"]
-            .as_array()
-            .or_else(|| blacklisted.as_array())
-            .unwrap_or(&empty)
-            .iter()
-            .filter_map(|v| v.as_str().map(|s| s.to_lowercase()))
-            .collect();
-
-        let filtered: Vec<&Value> = vaults_arr
-            .iter()
-            .filter(|v| {
-                let addr = v["address"].as_str().unwrap_or_default().to_lowercase();
-                !blacklisted_addrs.contains(&addr)
-            })
-            .collect();
-        assert!(!filtered.is_empty());
-
-        let vault_addr = filtered[0]["address"]
-            .as_str()
-            .expect("vault should have an address field");
-        let detail = client
-            .get_vault_detail(1, vault_addr)
-            .expect("get_vault_detail failed");
-        assert!(detail.is_object());
-
-        let detail_data = if detail.get("data").is_some() {
-            &detail["data"]
-        } else {
-            &detail
+Version: 1.0*/
+pub struct Client {
+    pub(crate) baseurl: String,
+    pub(crate) client: reqwest::Client,
+}
+impl Client {
+    /// Create a new client.
+    ///
+    /// `baseurl` is the base URL provided to the internal
+    /// `reqwest::Client`, and should include a scheme and hostname,
+    /// as well as port and a path stem if applicable.
+    pub fn new(baseurl: &str) -> Self {
+        #[cfg(not(target_arch = "wasm32"))]
+        let client = {
+            let dur = ::std::time::Duration::from_secs(15u64);
+            reqwest::ClientBuilder::new().connect_timeout(dur).timeout(dur)
         };
-        let has_strategies =
-            detail_data.get("strategies").is_some() || detail_data.get("strategy").is_some();
-        let has_apr = detail_data.get("apy").is_some() || detail_data.get("apr").is_some();
-        assert!(has_strategies);
-        assert!(has_apr);
-        assert!(detail_data.get("address").is_some() || detail_data.get("token").is_some());
+        #[cfg(target_arch = "wasm32")]
+        let client = reqwest::ClientBuilder::new();
+        Self::new_with_client(baseurl, client.build().unwrap())
     }
+    /// Construct a new client with an existing `reqwest::Client`,
+    /// allowing more control over its configuration.
+    ///
+    /// `baseurl` is the base URL provided to the internal
+    /// `reqwest::Client`, and should include a scheme and hostname,
+    /// as well as port and a path stem if applicable.
+    pub fn new_with_client(baseurl: &str, client: reqwest::Client) -> Self {
+        Self {
+            baseurl: baseurl.to_string(),
+            client,
+        }
+    }
+}
+impl ClientInfo<()> for Client {
+    fn api_version() -> &'static str {
+        "1.0"
+    }
+    fn baseurl(&self) -> &str {
+        self.baseurl.as_str()
+    }
+    fn client(&self) -> &reqwest::Client {
+        &self.client
+    }
+    fn inner(&self) -> &() {
+        &()
+    }
+}
+impl ClientHooks<()> for &Client {}
+#[allow(clippy::all)]
+impl Client {
+    /**List every vault on a chain (TVL, APY/APR, strategies, fees, etc.)
 
-    #[test]
-    fn cross_chain_vault_comparison_workflow() {
-        let client = YearnClient::new().expect("failed to create YearnClient");
+Sends a `GET` request to `/{chainId}/vaults/all`
 
-        let eth_vaults_resp = client.get_all_vaults(1).expect("get_all_vaults(1) failed");
-        let eth_vaults = eth_vaults_resp["data"]
-            .as_array()
-            .or_else(|| eth_vaults_resp.as_array())
-            .expect("expected Ethereum vaults to be an array");
-        assert!(!eth_vaults.is_empty());
-
-        let arb_vaults_resp = client.get_all_vaults(10).expect("get_all_vaults(10) failed");
-        let arb_vaults = arb_vaults_resp["data"]
-            .as_array()
-            .or_else(|| arb_vaults_resp.as_array())
-            .expect("expected Optimism vaults to be an array");
-        assert!(!arb_vaults.is_empty());
-
-        let eth_symbols: std::collections::HashSet<String> = eth_vaults
-            .iter()
-            .filter_map(|v| {
-                v["token"]["symbol"]
-                    .as_str()
-                    .or_else(|| v["symbol"].as_str())
-                    .map(|s| s.to_uppercase())
-            })
-            .collect();
-
-        let arb_symbols: std::collections::HashSet<String> = arb_vaults
-            .iter()
-            .filter_map(|v| {
-                v["token"]["symbol"]
-                    .as_str()
-                    .or_else(|| v["symbol"].as_str())
-                    .map(|s| s.to_uppercase())
-            })
-            .collect();
-
-        let common_symbols: Vec<&String> = eth_symbols.intersection(&arb_symbols).collect();
-        assert!(!common_symbols.is_empty());
-
-        let target = common_symbols[0];
-
-        let best_apy = |vaults: &[Value], symbol: &str| -> Option<f64> {
-            vaults
-                .iter()
-                .filter(|v| {
-                    let sym = v["token"]["symbol"]
-                        .as_str()
-                        .or_else(|| v["symbol"].as_str())
-                        .unwrap_or_default()
-                        .to_uppercase();
-                    sym == symbol
-                })
-                .filter_map(|v| {
-                    v["apy"]["net_apy"]
-                        .as_f64()
-                        .or_else(|| v["apr"]["netAPR"].as_f64())
-                        .or_else(|| v["apr"]["net_apy"].as_f64())
-                        .or_else(|| v["apy"]["points"]["week_ago"].as_f64())
-                })
-                .max_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal))
+Arguments:
+- `chain_id`: Chain ID (e.g. 1, 10, 137, 250, 8453, 42161).
+*/
+    pub async fn get_all_vaults<'a>(
+        &'a self,
+        chain_id: i64,
+    ) -> Result<ResponseValue<::std::vec::Vec<types::YearnVault>>, Error<()>> {
+        let url = format!(
+            "{}/{}/vaults/all", self.baseurl, encode_path(& chain_id.to_string()),
+        );
+        let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
+        header_map
+            .append(
+                ::reqwest::header::HeaderName::from_static("api-version"),
+                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+            );
+        #[allow(unused_mut)]
+        let mut request = self
+            .client
+            .get(url)
+            .header(
+                ::reqwest::header::ACCEPT,
+                ::reqwest::header::HeaderValue::from_static("application/json"),
+            )
+            .headers(header_map)
+            .build()?;
+        let info = OperationInfo {
+            operation_id: "get_all_vaults",
         };
-
-        let eth_best = best_apy(eth_vaults, target);
-        let arb_best = best_apy(arb_vaults, target);
-
-        assert!(eth_best.is_some() || arb_best.is_some());
+        self.pre(&mut request, &info).await?;
+        let result = self.exec(request, &info).await;
+        self.post(&result, &info).await?;
+        let response = result?;
+        match response.status().as_u16() {
+            200u16 => ResponseValue::from_response(response).await,
+            _ => Err(Error::UnexpectedResponse(response)),
+        }
     }
+    /**Deep-dive a single vault by address
+
+Sends a `GET` request to `/{chainId}/vaults/{address}`
+
+Arguments:
+- `chain_id`
+- `address`: Vault contract address (0x...).
+*/
+    pub async fn get_vault_detail<'a>(
+        &'a self,
+        chain_id: i64,
+        address: &'a str,
+    ) -> Result<ResponseValue<types::YearnVault>, Error<()>> {
+        let url = format!(
+            "{}/{}/vaults/{}", self.baseurl, encode_path(& chain_id.to_string()),
+            encode_path(& address.to_string()),
+        );
+        let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
+        header_map
+            .append(
+                ::reqwest::header::HeaderName::from_static("api-version"),
+                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+            );
+        #[allow(unused_mut)]
+        let mut request = self
+            .client
+            .get(url)
+            .header(
+                ::reqwest::header::ACCEPT,
+                ::reqwest::header::HeaderValue::from_static("application/json"),
+            )
+            .headers(header_map)
+            .build()?;
+        let info = OperationInfo {
+            operation_id: "get_vault_detail",
+        };
+        self.pre(&mut request, &info).await?;
+        let result = self.exec(request, &info).await;
+        self.post(&result, &info).await?;
+        let response = result?;
+        match response.status().as_u16() {
+            200u16 => ResponseValue::from_response(response).await,
+            _ => Err(Error::UnexpectedResponse(response)),
+        }
+    }
+    /**Cross-chain list of vaults removed from the official Yearn UI
+
+Sends a `GET` request to `/info/vaults/blacklisted`
+
+*/
+    pub async fn get_blacklisted_vaults<'a>(
+        &'a self,
+    ) -> Result<ResponseValue<::std::vec::Vec<::std::string::String>>, Error<()>> {
+        let url = format!("{}/info/vaults/blacklisted", self.baseurl,);
+        let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
+        header_map
+            .append(
+                ::reqwest::header::HeaderName::from_static("api-version"),
+                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+            );
+        #[allow(unused_mut)]
+        let mut request = self
+            .client
+            .get(url)
+            .header(
+                ::reqwest::header::ACCEPT,
+                ::reqwest::header::HeaderValue::from_static("application/json"),
+            )
+            .headers(header_map)
+            .build()?;
+        let info = OperationInfo {
+            operation_id: "get_blacklisted_vaults",
+        };
+        self.pre(&mut request, &info).await?;
+        let result = self.exec(request, &info).await;
+        self.post(&result, &info).await?;
+        let response = result?;
+        match response.status().as_u16() {
+            200u16 => ResponseValue::from_response(response).await,
+            _ => Err(Error::UnexpectedResponse(response)),
+        }
+    }
+}
+/// Items consumers will typically use such as the Client.
+pub mod prelude {
+    #[allow(unused_imports)]
+    pub use super::Client;
 }

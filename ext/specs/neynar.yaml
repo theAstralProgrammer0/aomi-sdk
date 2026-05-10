@@ -9676,14 +9676,8 @@ components:
       type: object
     Cast:
       properties:
-        app:
-          allOf:
-          - $ref: '#/components/schemas/UserDehydrated'
-          nullable: true
         author:
           $ref: '#/components/schemas/User'
-        author_channel_context:
-          $ref: '#/components/schemas/ChannelUserContext'
         channel:
           allOf:
           - $ref: '#/components/schemas/ChannelOrChannelDehydrated'
@@ -9694,45 +9688,10 @@ components:
           type: array
         hash:
           type: string
-        mentioned_channels:
-          items:
-            $ref: '#/components/schemas/ChannelDehydrated'
-          type: array
-        mentioned_channels_ranges:
-          description: 'Positions within the text (inclusive start, exclusive end)
-            where each mention occurs.
-
-            Each index within this list corresponds to the same-numbered index in
-            the mentioned_channels list.'
-          items:
-            $ref: '#/components/schemas/TextRange'
-          type: array
-        mentioned_profiles:
-          items:
-            $ref: '#/components/schemas/User'
-          type: array
-        mentioned_profiles_ranges:
-          description: 'Positions within the text (inclusive start, exclusive end)
-            where each mention occurs.
-
-            Each index within this list corresponds to the same-numbered index in
-            the mentioned_profiles list.'
-          items:
-            $ref: '#/components/schemas/TextRange'
-          type: array
         object:
           enum:
           - cast
           type: string
-        parent_author:
-          properties:
-            fid:
-              allOf:
-              - $ref: '#/components/schemas/Fid'
-              nullable: true
-          required:
-          - fid
-          type: object
         parent_hash:
           nullable: true
           type: string
@@ -9743,9 +9702,6 @@ components:
           $ref: '#/components/schemas/CastReactions'
         replies:
           $ref: '#/components/schemas/CastReplies'
-        root_parent_url:
-          nullable: true
-          type: string
         text:
           type: string
         thread_hash:
@@ -9754,17 +9710,11 @@ components:
         timestamp:
           format: date-time
           type: string
-        type:
-          $ref: '#/components/schemas/CastNotificationType'
-        viewer_context:
-          $ref: '#/components/schemas/CastViewerContext'
       required:
       - object
       - hash
       - parent_hash
       - parent_url
-      - root_parent_url
-      - parent_author
       - author
       - text
       - timestamp
@@ -9772,10 +9722,6 @@ components:
       - reactions
       - replies
       - thread_hash
-      - mentioned_profiles
-      - mentioned_profiles_ranges
-      - mentioned_channels
-      - mentioned_channels_ranges
       - channel
       title: Cast
       type: object
@@ -10112,29 +10058,13 @@ components:
       type: string
     CastReactions:
       properties:
-        likes:
-          deprecated: true
-          description: This has been deprecated and will always be an empty array.
-            The property will be removed in the future
-          items:
-            $ref: '#/components/schemas/ReactionLike'
-          type: array
         likes_count:
           format: int32
           type: integer
-        recasts:
-          deprecated: true
-          description: This has been deprecated and will always be an empty array.
-            The property will be removed in the future
-          items:
-            $ref: '#/components/schemas/ReactionRecast'
-          type: array
         recasts_count:
           format: int32
           type: integer
       required:
-      - likes
-      - recasts
       - likes_count
       - recasts_count
       title: CastReactions
@@ -10237,50 +10167,14 @@ components:
           type: string
         description:
           type: string
-        description_mentioned_profiles:
-          items:
-            $ref: '#/components/schemas/UserDehydrated'
-          type: array
-        description_mentioned_profiles_ranges:
-          description: Positions within the text (inclusive start, exclusive end)
-            where each mention occurs.
-          items:
-            $ref: '#/components/schemas/TextRange'
-          type: array
-        external_link:
-          description: Channel's external link.
-          properties:
-            title:
-              type: string
-            url:
-              type: string
-          type: object
         follower_count:
           description: Number of followers the channel has.
           type: number
-        hosts:
-          deprecated: true
-          items:
-            $ref: '#/components/schemas/User'
-          type: array
         id:
           type: string
-        image_url:
-          type: string
-        lead:
-          $ref: '#/components/schemas/User'
         member_count:
           format: int32
           type: integer
-        moderator:
-          allOf:
-          - $ref: '#/components/schemas/User'
-          deprecated: true
-          description: Use `lead` instead.
-        moderator_fids:
-          items:
-            $ref: '#/components/schemas/Fid'
-          type: array
         name:
           type: string
         object:
@@ -10290,14 +10184,8 @@ components:
         parent_url:
           format: uri
           type: string
-        pinned_cast_hash:
-          example: '0x71d5225f77e0164388b1d4c120825f3a2c1f131c'
-          pattern: ^(0x)?[a-fA-F0-9]{40}$
-          type: string
         url:
           type: string
-        viewer_context:
-          $ref: '#/components/schemas/ChannelUserContext'
       required:
       - id
       - url
@@ -10331,16 +10219,12 @@ components:
       properties:
         id:
           type: string
-        image_url:
-          type: string
         name:
           type: string
         object:
           enum:
           - channel_dehydrated
           type: string
-        viewer_context:
-          $ref: '#/components/schemas/ChannelUserContext'
       required:
       - id
       - name
@@ -10743,43 +10627,9 @@ components:
       type: object
     EmbedUrlMetadata:
       properties:
-        _status:
-          type: string
-        content_length:
-          nullable: true
-          type: integer
         content_type:
           nullable: true
           type: string
-        frame:
-          $ref: '#/components/schemas/Frame'
-        html:
-          $ref: '#/components/schemas/HtmlMetadata'
-        image:
-          properties:
-            height_px:
-              type: integer
-            width_px:
-              type: integer
-          type: object
-        video:
-          properties:
-            duration_s:
-              type: number
-            stream:
-              items:
-                properties:
-                  codec_name:
-                    type: string
-                  height_px:
-                    type: integer
-                  width_px:
-                    type: integer
-                type: object
-              type: array
-          type: object
-      required:
-      - _status
       title: EmbedUrlMetadata
       type: object
     EncodedJsonFarcasterSignature:
@@ -14066,35 +13916,11 @@ components:
       type: object
     User:
       properties:
-        auth_addresses:
-          items:
-            properties:
-              address:
-                $ref: '#/components/schemas/EthAddress'
-              app:
-                $ref: '#/components/schemas/UserDehydrated'
-            required:
-            - address
-            - app
-            type: object
-          type: array
         custody_address:
           $ref: '#/components/schemas/EthAddress'
         display_name:
           nullable: true
           type: string
-        experimental:
-          properties:
-            deprecation_notice:
-              type: string
-            neynar_user_score:
-              description: Score that represents the probability that the account
-                is not spam.
-              format: double
-              type: number
-          required:
-          - neynar_user_score
-          type: object
         fid:
           $ref: '#/components/schemas/Fid'
         follower_count:
@@ -14109,152 +13935,30 @@ components:
           enum:
           - user
           type: string
-        pfp_url:
-          description: The URL of the user's profile picture
-          nullable: true
-          type: string
-        pro:
-          properties:
-            expires_at:
-              format: date-time
-              type: string
-            status:
-              description: The subscription status of the user
-              enum:
-              - subscribed
-              - unsubscribed
-              type: string
-            subscribed_at:
-              format: date-time
-              type: string
-          required:
-          - status
-          - subscribed_at
-          - expires_at
-          type: object
         profile:
           properties:
-            banner:
-              properties:
-                url:
-                  description: The URL of the user's banner image
-                  format: uri
-                  type: string
-              type: object
             bio:
               properties:
-                mentioned_channels:
-                  items:
-                    $ref: '#/components/schemas/ChannelDehydrated'
-                  type: array
-                mentioned_channels_ranges:
-                  description: 'Positions within the text (inclusive start, exclusive
-                    end) where each mention occurs.
-
-                    Each index within this list corresponds to the same-numbered index
-                    in the mentioned_channels list.'
-                  items:
-                    $ref: '#/components/schemas/TextRange'
-                  type: array
-                mentioned_profiles:
-                  items:
-                    $ref: '#/components/schemas/UserDehydrated'
-                  type: array
-                mentioned_profiles_ranges:
-                  description: 'Positions within the text (inclusive start, exclusive
-                    end) where each mention occurs.
-
-                    Each index within this list corresponds to the same-numbered index
-                    in the mentioned_profiles list.'
-                  items:
-                    $ref: '#/components/schemas/TextRange'
-                  type: array
                 text:
                   type: string
               required:
               - text
               type: object
-            location:
-              $ref: '#/components/schemas/Location'
           required:
           - bio
           type: object
         registered_at:
           format: date-time
           type: string
-        score:
-          description: Score that represents the probability that the account is not
-            spam.
-          format: double
-          type: number
         username:
           type: string
-        verifications:
-          items:
-            $ref: '#/components/schemas/EthAddress'
-          type: array
-        verified_accounts:
-          items:
-            description: Verified accounts of the user on other platforms, currently
-              only X is supported.
-            properties:
-              platform:
-                enum:
-                - x
-                - github
-                type: string
-              username:
-                type: string
-            type: object
-          type: array
-        verified_addresses:
-          properties:
-            eth_addresses:
-              description: List of verified Ethereum addresses of the user sorted
-                by oldest to most recent.
-              items:
-                $ref: '#/components/schemas/EthAddress'
-              type: array
-            primary:
-              properties:
-                eth_address:
-                  allOf:
-                  - $ref: '#/components/schemas/EthAddress'
-                  nullable: true
-                sol_address:
-                  allOf:
-                  - $ref: '#/components/schemas/SolAddress'
-                  nullable: true
-              required:
-              - eth_address
-              - sol_address
-              type: object
-            sol_addresses:
-              description: List of verified Solana addresses of the user sorted by
-                oldest to most recent.
-              items:
-                $ref: '#/components/schemas/SolAddress'
-              type: array
-          required:
-          - eth_addresses
-          - sol_addresses
-          - primary
-          type: object
-        viewer_context:
-          $ref: '#/components/schemas/UserViewerContext'
       required:
       - object
       - fid
       - username
-      - custody_address
-      - registered_at
       - profile
       - follower_count
       - following_count
-      - verifications
-      - auth_addresses
-      - verified_addresses
-      - verified_accounts
       title: User
       type: object
     UserDehydrated:
@@ -14270,11 +13974,6 @@ components:
           enum:
           - user_dehydrated
           type: string
-        pfp_url:
-          nullable: true
-          type: string
-        score:
-          type: number
         username:
           type: string
       required:

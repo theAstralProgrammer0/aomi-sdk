@@ -1,23 +1,19 @@
 //! Curated tool layer for Dune Analytics. Hand-written from the generated
 //! client in `aomi_ext::dune` — see ext/specs/dune.yaml for the full surface.
 //!
-//! Designed for the user story: run SQL queries on Dune, fetch results, and
-//! explore curated datasets/dashboards. The 44 mechanical tools from
-//! `aomi-build gen-tool` were collapsed into 8 user-centric ones:
+//! Intent: run SQL queries on Dune (saved or raw), wait for completion, fetch
+//! results. The 47 mechanical tools from `aomi-build gen-tool` were collapsed
+//! into 5 user-centric ones, all centred on the SQL execute → poll → fetch
+//! workflow:
 //!
-//!   * `dune_run_query`           — composite execute → poll → fetch
-//!   * `dune_get_latest_results`  — fetch results without re-executing
-//!   * `dune_get_execution_status`— manual polling for advanced async use
-//!   * `dune_list_my_queries`     — queries owned by the API key
-//!   * `dune_search_datasets`     — text + filter search
-//!   * `dune_search_by_contract`  — datasets containing a contract address
-//!   * `dune_get_dataset`         — full schema/sample for one dataset
-//!   * `dune_get_dashboard`       — full dashboard contents by id
+//!   * `dune_run_query`           — composite execute → poll → fetch (saved query)
+//!   * `dune_run_sql`             — composite execute → poll → fetch (raw SQL)
+//!   * `dune_get_latest_results`  — fetch the latest cached results, no execution
+//!   * `dune_get_execution_status`— inspect an in-flight execution
+//!   * `dune_list_my_queries`     — discover saved queries owned by the API key
 
 use aomi_ext::dune::Client as DuneClient;
-use aomi_ext::dune::types::{
-    ModelsSearchDatasetsByContractAddressRequest, ModelsSearchDatasetsRequest,
-};
+use aomi_ext::dune::types::{ModelsExecuteSqlRequest, ModelsExecuteSqlRequestPerformance};
 use aomi_sdk::*;
 use aomi_sdk::schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -28,6 +24,13 @@ use std::time::{Duration, Instant};
 pub(crate) struct DuneApp;
 
 const BASE_URL: &str = "https://api.dune.com/api";
+
+// Polling cadence and bounds. Dune query latency varies a lot; the user can
+// extend the wall-clock deadline via `max_wait_seconds`, but the iteration cap
+// is a non-tunable belt-and-suspenders guard.
+const POLL_INTERVAL_SECS: u64 = 2;
+const DEFAULT_MAX_WAIT_SECS: u64 = 60;
+const MAX_POLL_ITERATIONS: u32 = 600;
 
 // ============================================================================
 // Helpers
@@ -56,8 +59,71 @@ fn resolve_key(arg: Option<&str>) -> Result<String, String> {
     )
 }
 
+/// Poll an execution to terminal state, then fetch its result rows. Bounded by
+/// both a wall-clock deadline and an iteration cap. Returns the raw results
+/// payload as the typed `ModelsResultsResponse`.
+async fn poll_and_fetch(
+    client: &DuneClient,
+    execution_id: &str,
+    api_key: &str,
+    max_wait: Duration,
+) -> Result<Value, String> {
+    let deadline = Instant::now() + max_wait;
+    let mut iterations: u32 = 0;
+    loop {
+        if iterations >= MAX_POLL_ITERATIONS {
+            return Err(format!(
+                "[dune] poll loop exceeded {MAX_POLL_ITERATIONS} iterations for execution {execution_id}"
+            ));
+        }
+        iterations += 1;
+
+        let s = client
+            .getv1_execution_executionid_status(execution_id, None, api_key)
+            .await
+            .map_err(|e| format!("[dune] status {execution_id}: {e}"))?
+            .into_inner();
+        let state = s.state.clone().unwrap_or_default();
+        match state.as_str() {
+            "QUERY_STATE_COMPLETED" => break,
+            "QUERY_STATE_FAILED" | "QUERY_STATE_CANCELLED" => {
+                return Err(format!(
+                    "[dune] execution {execution_id} ended in state {state}"
+                ));
+            }
+            _ => {}
+        }
+        if Instant::now() >= deadline {
+            return Err(format!(
+                "[dune] timed out after {}s waiting for execution {execution_id} (last state: {state})",
+                max_wait.as_secs()
+            ));
+        }
+        tokio::time::sleep(Duration::from_secs(POLL_INTERVAL_SECS)).await;
+    }
+
+    let results = client
+        .getv1_execution_executionid_results(
+            execution_id,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            api_key,
+        )
+        .await
+        .map_err(|e| format!("[dune] fetch results {execution_id}: {e}"))?
+        .into_inner();
+    ok(results)
+}
+
 // ============================================================================
-// Tool 1: run_query — composite execute → poll → fetch
+// Tool 1: run_query — composite execute → poll → fetch (saved query by ID)
 // ============================================================================
 
 pub(crate) struct RunQuery;
@@ -80,17 +146,16 @@ impl DynAomiTool for RunQuery {
     type App = DuneApp;
     type Args = RunQueryArgs;
     const NAME: &'static str = "dune_run_query";
-    const DESCRIPTION: &'static str = "Execute a saved Dune SQL query, wait for it to finish, and return the result rows. Use this when the user wants to run analytics on Dune. Polls execution status every 2 seconds until QUERY_STATE_COMPLETED, then fetches the results in one call.";
+    const DESCRIPTION: &'static str = "Execute a saved Dune SQL query by its query ID, wait for it to finish, and return the result rows. Use this when the user names a Dune query (or query ID) and wants the up-to-date data. Polls execution status every 2 seconds until QUERY_STATE_COMPLETED, then fetches results in one tool call. Bounded by max_wait_seconds (default 60).";
 
     fn run(_app: &DuneApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let api_key = resolve_key(args.api_key.as_deref())?;
-        let max_wait = Duration::from_secs(args.max_wait_seconds.unwrap_or(60));
+        let max_wait = Duration::from_secs(args.max_wait_seconds.unwrap_or(DEFAULT_MAX_WAIT_SECS));
         let query_id = args.query_id;
         let query_parameters = args.query_parameters.clone();
         let runtime = rt()?;
         runtime.block_on(async move {
             let client = DuneClient::new(BASE_URL);
-
             let exec = client
                 .postv1_query_queryid_execute(
                     query_id,
@@ -106,62 +171,74 @@ impl DynAomiTool for RunQuery {
                 .execution_id
                 .clone()
                 .ok_or_else(|| "[dune] execute response missing execution_id".to_string())?;
-
-            let deadline = Instant::now() + max_wait;
-            let mut last_state;
-            loop {
-                let s = client
-                    .getv1_execution_executionid_status(
-                        execution_id.as_str(),
-                        None,
-                        api_key.as_str(),
-                    )
-                    .await
-                    .map_err(|e| format!("[dune] status {execution_id}: {e}"))?
-                    .into_inner();
-                last_state = s.state.clone().unwrap_or_default();
-                match last_state.as_str() {
-                    "QUERY_STATE_COMPLETED" => break,
-                    "QUERY_STATE_FAILED" | "QUERY_STATE_CANCELLED" => {
-                        return Err(format!(
-                            "[dune] query {query_id} ended in state {last_state}"
-                        ));
-                    }
-                    _ => {}
-                }
-                if Instant::now() >= deadline {
-                    return Err(format!(
-                        "[dune] timed out after {}s waiting for execution {execution_id} (last state: {last_state})",
-                        max_wait.as_secs()
-                    ));
-                }
-                tokio::time::sleep(Duration::from_secs(2)).await;
-            }
-
-            let results = client
-                .getv1_execution_executionid_results(
-                    execution_id.as_str(),
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    api_key.as_str(),
-                )
-                .await
-                .map_err(|e| format!("[dune] fetch results {execution_id}: {e}"))?
-                .into_inner();
-            ok(results)
+            poll_and_fetch(&client, execution_id.as_str(), api_key.as_str(), max_wait).await
         })
     }
 }
 
 // ============================================================================
-// Tool 2: get_latest_results — fetch existing results without re-executing
+// Tool 2: run_sql — composite execute → poll → fetch (raw SQL string)
+// ============================================================================
+
+pub(crate) struct RunSql;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct RunSqlArgs {
+    /// API credential (falls back to env var DUNE_API_KEY).
+    pub api_key: Option<String>,
+    /// Raw SQL to execute against Dune's catalog (e.g. "SELECT * FROM ethereum.transactions LIMIT 10").
+    pub sql: String,
+    /// Performance tier: "small" (default, cheapest), "medium", or "large".
+    /// Use "large" only for queries that scan a lot of data.
+    #[serde(default)]
+    pub performance: Option<String>,
+    /// Maximum seconds to wait for the query to finish (default 60).
+    #[serde(default)]
+    pub max_wait_seconds: Option<u64>,
+}
+
+impl DynAomiTool for RunSql {
+    type App = DuneApp;
+    type Args = RunSqlArgs;
+    const NAME: &'static str = "dune_run_sql";
+    const DESCRIPTION: &'static str = "Run an ad-hoc SQL query against Dune's catalog without needing to save it first. Wait for the execution to complete and return the result rows in one tool call. Use when the user gives you a SQL string (or asks an analytical question you can answer with one). Polls every 2 seconds until QUERY_STATE_COMPLETED. Bounded by max_wait_seconds (default 60).";
+
+    fn run(_app: &DuneApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
+        let api_key = resolve_key(args.api_key.as_deref())?;
+        let max_wait = Duration::from_secs(args.max_wait_seconds.unwrap_or(DEFAULT_MAX_WAIT_SECS));
+        let perf = match args.performance.as_deref().map(str::to_ascii_lowercase).as_deref() {
+            Some("medium") => Some(ModelsExecuteSqlRequestPerformance::Medium),
+            Some("large") => Some(ModelsExecuteSqlRequestPerformance::Large),
+            Some("small") | None => Some(ModelsExecuteSqlRequestPerformance::Small),
+            Some(other) => {
+                return Err(format!(
+                    "[dune] performance must be small|medium|large, got {other}"
+                ));
+            }
+        };
+        let body = ModelsExecuteSqlRequest {
+            performance: perf,
+            sql: args.sql,
+        };
+        let runtime = rt()?;
+        runtime.block_on(async move {
+            let client = DuneClient::new(BASE_URL);
+            let exec = client
+                .postv1_sql_execute(None, api_key.as_str(), &body)
+                .await
+                .map_err(|e| format!("[dune] execute raw sql: {e}"))?
+                .into_inner();
+            let execution_id = exec
+                .execution_id
+                .clone()
+                .ok_or_else(|| "[dune] execute response missing execution_id".to_string())?;
+            poll_and_fetch(&client, execution_id.as_str(), api_key.as_str(), max_wait).await
+        })
+    }
+}
+
+// ============================================================================
+// Tool 3: get_latest_results — cached results without re-execution
 // ============================================================================
 
 pub(crate) struct GetLatestResults;
@@ -184,7 +261,7 @@ impl DynAomiTool for GetLatestResults {
     type App = DuneApp;
     type Args = GetLatestResultsArgs;
     const NAME: &'static str = "dune_get_latest_results";
-    const DESCRIPTION: &'static str = "Get the most recent results of a Dune query without re-executing it. Use when the query refreshes on a schedule (free-tier and many paid queries) and the user just wants the cached output. Cheaper than running the query.";
+    const DESCRIPTION: &'static str = "Get the most recent cached results of a saved Dune query without re-executing it. Cheaper and faster than `dune_run_query` — prefer this when the user just wants to read a query whose schedule already keeps it fresh.";
 
     fn run(_app: &DuneApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let api_key = resolve_key(args.api_key.as_deref())?;
@@ -214,7 +291,7 @@ impl DynAomiTool for GetLatestResults {
 }
 
 // ============================================================================
-// Tool 3: get_execution_status — manual polling for advanced use
+// Tool 4: get_execution_status — inspect an in-flight execution
 // ============================================================================
 
 pub(crate) struct GetExecutionStatus;
@@ -230,7 +307,7 @@ impl DynAomiTool for GetExecutionStatus {
     type App = DuneApp;
     type Args = GetExecutionStatusArgs;
     const NAME: &'static str = "dune_get_execution_status";
-    const DESCRIPTION: &'static str = "Check the state of a Dune query execution by its execution_id. Returns one of QUERY_STATE_PENDING, QUERY_STATE_EXECUTING, QUERY_STATE_COMPLETED, QUERY_STATE_FAILED, QUERY_STATE_CANCELLED, plus timing/cost. Use only when you need to inspect an in-flight execution started elsewhere — `dune_run_query` waits for completion itself.";
+    const DESCRIPTION: &'static str = "Check the state of a Dune query execution by its execution_id. Returns one of QUERY_STATE_PENDING, QUERY_STATE_EXECUTING, QUERY_STATE_COMPLETED, QUERY_STATE_FAILED, QUERY_STATE_CANCELLED, plus timing/cost info. Only needed when inspecting an execution started elsewhere (e.g. one that timed out from `dune_run_query`); the run tools wait for completion themselves.";
 
     fn run(_app: &DuneApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let api_key = resolve_key(args.api_key.as_deref())?;
@@ -252,7 +329,7 @@ impl DynAomiTool for GetExecutionStatus {
 }
 
 // ============================================================================
-// Tool 4: list_my_queries — queries owned by the API key
+// Tool 5: list_my_queries — saved queries owned by the API key
 // ============================================================================
 
 pub(crate) struct ListMyQueries;
@@ -260,7 +337,7 @@ pub(crate) struct ListMyQueries;
 #[derive(Debug, Deserialize, JsonSchema)]
 pub(crate) struct ListMyQueriesArgs {
     pub api_key: Option<String>,
-    /// Max queries returned (default 100).
+    /// Max queries returned (default Dune-side).
     #[serde(default)]
     pub limit: Option<i64>,
     /// Offset for paging.
@@ -272,7 +349,7 @@ impl DynAomiTool for ListMyQueries {
     type App = DuneApp;
     type Args = ListMyQueriesArgs;
     const NAME: &'static str = "dune_list_my_queries";
-    const DESCRIPTION: &'static str = "List Dune SQL queries owned by the account tied to the API key. Returns IDs, names, and metadata you can pass to `dune_run_query` or `dune_get_latest_results`. Use when the user asks 'what queries do I have' or wants to discover their saved queries.";
+    const DESCRIPTION: &'static str = "List Dune SQL queries owned by the account tied to the API key. Returns IDs, names, and metadata you can pass to `dune_run_query` or `dune_get_latest_results`. Use when the user asks 'what queries do I have' or wants to discover their saved queries before running one.";
 
     fn run(_app: &DuneApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let api_key = resolve_key(args.api_key.as_deref())?;
@@ -283,168 +360,6 @@ impl DynAomiTool for ListMyQueries {
                 .getv1_queries(None, args.limit, args.offset, api_key.as_str())
                 .await
                 .map_err(|e| format!("[dune] list queries: {e}"))?
-                .into_inner();
-            ok(r)
-        })
-    }
-}
-
-// ============================================================================
-// Tool 5: search_datasets — text + filter search across the catalog
-// ============================================================================
-
-pub(crate) struct SearchDatasets;
-
-#[derive(Debug, Deserialize, JsonSchema)]
-pub(crate) struct SearchDatasetsArgs {
-    pub api_key: Option<String>,
-    /// Filter by blockchain slugs (e.g. ["ethereum", "arbitrum"]).
-    #[serde(default)]
-    pub blockchains: Vec<String>,
-    /// Filter by category slugs (e.g. ["dex", "lending"]).
-    #[serde(default)]
-    pub categories: Vec<String>,
-    /// Max datasets returned (default 50).
-    #[serde(default)]
-    pub limit: Option<i64>,
-}
-
-impl DynAomiTool for SearchDatasets {
-    type App = DuneApp;
-    type Args = SearchDatasetsArgs;
-    const NAME: &'static str = "dune_search_datasets";
-    const DESCRIPTION: &'static str = "Search Dune's curated dataset catalog by blockchain and/or category filters. Returns a list of dataset summaries (slug, name, blockchain, category). Use when the user wants to discover what data is available before running a query.";
-
-    fn run(_app: &DuneApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let api_key = resolve_key(args.api_key.as_deref())?;
-        let runtime = rt()?;
-        runtime.block_on(async move {
-            let client = DuneClient::new(BASE_URL);
-            let body = ModelsSearchDatasetsRequest {
-                blockchains: args.blockchains,
-                categories: args.categories,
-                limit: args.limit,
-                ..Default::default()
-            };
-            let r = client
-                .postv1_datasets_search(None, api_key.as_str(), &body)
-                .await
-                .map_err(|e| format!("[dune] search datasets: {e}"))?
-                .into_inner();
-            ok(r)
-        })
-    }
-}
-
-// ============================================================================
-// Tool 6: search_by_contract — datasets that decode a specific contract
-// ============================================================================
-
-pub(crate) struct SearchByContract;
-
-#[derive(Debug, Deserialize, JsonSchema)]
-pub(crate) struct SearchByContractArgs {
-    pub api_key: Option<String>,
-    /// Contract address (any case; chains may differ on checksumming).
-    pub contract_address: String,
-    /// Optional blockchain filter (e.g. ["ethereum"]).
-    #[serde(default)]
-    pub blockchains: Vec<String>,
-    /// Max datasets returned.
-    #[serde(default)]
-    pub limit: Option<i64>,
-}
-
-impl DynAomiTool for SearchByContract {
-    type App = DuneApp;
-    type Args = SearchByContractArgs;
-    const NAME: &'static str = "dune_search_by_contract";
-    const DESCRIPTION: &'static str = "Find Dune datasets (decoded events, function calls, etc.) for a specific contract address. Use when the user has a contract and wants to know what tables Dune already decodes for it.";
-
-    fn run(_app: &DuneApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let api_key = resolve_key(args.api_key.as_deref())?;
-        let runtime = rt()?;
-        runtime.block_on(async move {
-            let client = DuneClient::new(BASE_URL);
-            let body = ModelsSearchDatasetsByContractAddressRequest {
-                blockchains: args.blockchains,
-                contract_address: args.contract_address,
-                include_schema: None,
-                limit: args.limit,
-                offset: None,
-            };
-            let r = client
-                .postv1_datasets_search_by_contract(None, api_key.as_str(), &body)
-                .await
-                .map_err(|e| format!("[dune] search by contract: {e}"))?
-                .into_inner();
-            ok(r)
-        })
-    }
-}
-
-// ============================================================================
-// Tool 7: get_dataset — full schema and sample for one dataset slug
-// ============================================================================
-
-pub(crate) struct GetDataset;
-
-#[derive(Debug, Deserialize, JsonSchema)]
-pub(crate) struct GetDatasetArgs {
-    pub api_key: Option<String>,
-    /// Dataset slug (e.g. "ethereum.transactions"). Get one from `dune_search_datasets`.
-    pub slug: String,
-}
-
-impl DynAomiTool for GetDataset {
-    type App = DuneApp;
-    type Args = GetDatasetArgs;
-    const NAME: &'static str = "dune_get_dataset";
-    const DESCRIPTION: &'static str = "Get full metadata for a Dune dataset by slug — column names/types, descriptions, and a sample row. Use after `dune_search_datasets` when the user picks a dataset and wants to know its schema before writing a query against it.";
-
-    fn run(_app: &DuneApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let api_key = resolve_key(args.api_key.as_deref())?;
-        let runtime = rt()?;
-        runtime.block_on(async move {
-            let client = DuneClient::new(BASE_URL);
-            let r = client
-                .getv1_datasets_slug(args.slug.as_str(), None, api_key.as_str())
-                .await
-                .map_err(|e| format!("[dune] get dataset {}: {e}", args.slug))?
-                .into_inner();
-            ok(r)
-        })
-    }
-}
-
-// ============================================================================
-// Tool 8: get_dashboard — full dashboard contents by id
-// ============================================================================
-
-pub(crate) struct GetDashboard;
-
-#[derive(Debug, Deserialize, JsonSchema)]
-pub(crate) struct GetDashboardArgs {
-    pub api_key: Option<String>,
-    /// Dashboard ID (numeric, from the dashboard URL).
-    pub dashboard_id: i64,
-}
-
-impl DynAomiTool for GetDashboard {
-    type App = DuneApp;
-    type Args = GetDashboardArgs;
-    const NAME: &'static str = "dune_get_dashboard";
-    const DESCRIPTION: &'static str = "Fetch a Dune dashboard by ID — returns its title, description, and the list of constituent queries/visualizations. Use when the user references a specific dashboard and wants to inspect its contents.";
-
-    fn run(_app: &DuneApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let api_key = resolve_key(args.api_key.as_deref())?;
-        let runtime = rt()?;
-        runtime.block_on(async move {
-            let client = DuneClient::new(BASE_URL);
-            let r = client
-                .getv1_dashboards_dashboardid(args.dashboard_id, api_key.as_str())
-                .await
-                .map_err(|e| format!("[dune] get dashboard {}: {e}", args.dashboard_id))?
                 .into_inner();
             ok(r)
         })

@@ -1,164 +1,780 @@
-use serde::Serialize;
-use serde_json::Value;
-use std::time::Duration;
-
-pub const MANIFOLD_API_URL: &str = "https://api.manifold.markets/v0";
-
-/// Shared HTTP helpers for Manifold Markets API.
-pub struct ManifoldClient {
-    pub http: reqwest::blocking::Client,
+#[allow(unused_imports)]
+pub use progenitor_client::{ByteStream, ClientInfo, Error, ResponseValue};
+#[allow(unused_imports)]
+use progenitor_client::{encode_path, ClientHooks, OperationInfo, RequestBuilderExt};
+/// Types used as operation parameters and responses.
+#[allow(clippy::all)]
+pub mod types {
+    /// Error types.
+    pub mod error {
+        /// Error from a `TryFrom` or `FromStr` implementation.
+        pub struct ConversionError(::std::borrow::Cow<'static, str>);
+        impl ::std::error::Error for ConversionError {}
+        impl ::std::fmt::Display for ConversionError {
+            fn fmt(
+                &self,
+                f: &mut ::std::fmt::Formatter<'_>,
+            ) -> Result<(), ::std::fmt::Error> {
+                ::std::fmt::Display::fmt(&self.0, f)
+            }
+        }
+        impl ::std::fmt::Debug for ConversionError {
+            fn fmt(
+                &self,
+                f: &mut ::std::fmt::Formatter<'_>,
+            ) -> Result<(), ::std::fmt::Error> {
+                ::std::fmt::Debug::fmt(&self.0, f)
+            }
+        }
+        impl From<&'static str> for ConversionError {
+            fn from(value: &'static str) -> Self {
+                Self(value.into())
+            }
+        }
+        impl From<String> for ConversionError {
+            fn from(value: String) -> Self {
+                Self(value.into())
+            }
+        }
+    }
+    ///`CreateMarketRequest`
+    ///
+    /// <details><summary>JSON schema</summary>
+    ///
+    /// ```json
+    ///{
+    ///  "type": "object",
+    ///  "required": [
+    ///    "initialProb",
+    ///    "outcomeType",
+    ///    "question"
+    ///  ],
+    ///  "properties": {
+    ///    "closeTime": {
+    ///      "type": "integer",
+    ///      "format": "int64"
+    ///    },
+    ///    "initialProb": {
+    ///      "type": "integer",
+    ///      "format": "int32",
+    ///      "maximum": 99.0,
+    ///      "minimum": 1.0
+    ///    },
+    ///    "outcomeType": {
+    ///      "description": "Currently only BINARY is supported by this client.",
+    ///      "type": "string"
+    ///    },
+    ///    "question": {
+    ///      "type": "string"
+    ///    }
+    ///  }
+    ///}
+    /// ```
+    /// </details>
+    #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+    pub struct CreateMarketRequest {
+        #[serde(
+            rename = "closeTime",
+            default,
+            skip_serializing_if = "::std::option::Option::is_none"
+        )]
+        pub close_time: ::std::option::Option<i64>,
+        #[serde(rename = "initialProb")]
+        pub initial_prob: ::std::num::NonZeroU32,
+        ///Currently only BINARY is supported by this client.
+        #[serde(rename = "outcomeType")]
+        pub outcome_type: ::std::string::String,
+        pub question: ::std::string::String,
+    }
+    ///`CreateMarketResponse`
+    ///
+    /// <details><summary>JSON schema</summary>
+    ///
+    /// ```json
+    ///{
+    ///  "type": "object",
+    ///  "properties": {
+    ///    "id": {
+    ///      "type": "string"
+    ///    },
+    ///    "question": {
+    ///      "type": "string"
+    ///    },
+    ///    "slug": {
+    ///      "type": "string"
+    ///    },
+    ///    "url": {
+    ///      "type": "string"
+    ///    }
+    ///  }
+    ///}
+    /// ```
+    /// </details>
+    #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+    pub struct CreateMarketResponse {
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        pub id: ::std::option::Option<::std::string::String>,
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        pub question: ::std::option::Option<::std::string::String>,
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        pub slug: ::std::option::Option<::std::string::String>,
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        pub url: ::std::option::Option<::std::string::String>,
+    }
+    impl ::std::default::Default for CreateMarketResponse {
+        fn default() -> Self {
+            Self {
+                id: Default::default(),
+                question: Default::default(),
+                slug: Default::default(),
+                url: Default::default(),
+            }
+        }
+    }
+    ///`FullMarket`
+    ///
+    /// <details><summary>JSON schema</summary>
+    ///
+    /// ```json
+    ///{
+    ///  "type": "object",
+    ///  "properties": {
+    ///    "closeTime": {
+    ///      "type": "integer",
+    ///      "format": "int64"
+    ///    },
+    ///    "createdTime": {
+    ///      "type": "integer",
+    ///      "format": "int64"
+    ///    },
+    ///    "creatorName": {
+    ///      "type": "string"
+    ///    },
+    ///    "id": {
+    ///      "type": "string"
+    ///    },
+    ///    "isResolved": {
+    ///      "type": "boolean"
+    ///    },
+    ///    "mechanism": {
+    ///      "type": "string"
+    ///    },
+    ///    "outcomeType": {
+    ///      "type": "string"
+    ///    },
+    ///    "probability": {
+    ///      "type": "number",
+    ///      "format": "double"
+    ///    },
+    ///    "question": {
+    ///      "type": "string"
+    ///    },
+    ///    "resolution": {
+    ///      "type": "string"
+    ///    },
+    ///    "textDescription": {
+    ///      "type": "string"
+    ///    },
+    ///    "totalLiquidity": {
+    ///      "type": "number",
+    ///      "format": "double"
+    ///    },
+    ///    "url": {
+    ///      "type": "string"
+    ///    },
+    ///    "volume": {
+    ///      "type": "number",
+    ///      "format": "double"
+    ///    }
+    ///  }
+    ///}
+    /// ```
+    /// </details>
+    #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+    pub struct FullMarket {
+        #[serde(
+            rename = "closeTime",
+            default,
+            skip_serializing_if = "::std::option::Option::is_none"
+        )]
+        pub close_time: ::std::option::Option<i64>,
+        #[serde(
+            rename = "createdTime",
+            default,
+            skip_serializing_if = "::std::option::Option::is_none"
+        )]
+        pub created_time: ::std::option::Option<i64>,
+        #[serde(
+            rename = "creatorName",
+            default,
+            skip_serializing_if = "::std::option::Option::is_none"
+        )]
+        pub creator_name: ::std::option::Option<::std::string::String>,
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        pub id: ::std::option::Option<::std::string::String>,
+        #[serde(
+            rename = "isResolved",
+            default,
+            skip_serializing_if = "::std::option::Option::is_none"
+        )]
+        pub is_resolved: ::std::option::Option<bool>,
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        pub mechanism: ::std::option::Option<::std::string::String>,
+        #[serde(
+            rename = "outcomeType",
+            default,
+            skip_serializing_if = "::std::option::Option::is_none"
+        )]
+        pub outcome_type: ::std::option::Option<::std::string::String>,
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        pub probability: ::std::option::Option<f64>,
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        pub question: ::std::option::Option<::std::string::String>,
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        pub resolution: ::std::option::Option<::std::string::String>,
+        #[serde(
+            rename = "textDescription",
+            default,
+            skip_serializing_if = "::std::option::Option::is_none"
+        )]
+        pub text_description: ::std::option::Option<::std::string::String>,
+        #[serde(
+            rename = "totalLiquidity",
+            default,
+            skip_serializing_if = "::std::option::Option::is_none"
+        )]
+        pub total_liquidity: ::std::option::Option<f64>,
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        pub url: ::std::option::Option<::std::string::String>,
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        pub volume: ::std::option::Option<f64>,
+    }
+    impl ::std::default::Default for FullMarket {
+        fn default() -> Self {
+            Self {
+                close_time: Default::default(),
+                created_time: Default::default(),
+                creator_name: Default::default(),
+                id: Default::default(),
+                is_resolved: Default::default(),
+                mechanism: Default::default(),
+                outcome_type: Default::default(),
+                probability: Default::default(),
+                question: Default::default(),
+                resolution: Default::default(),
+                text_description: Default::default(),
+                total_liquidity: Default::default(),
+                url: Default::default(),
+                volume: Default::default(),
+            }
+        }
+    }
+    ///`LiteMarket`
+    ///
+    /// <details><summary>JSON schema</summary>
+    ///
+    /// ```json
+    ///{
+    ///  "type": "object",
+    ///  "properties": {
+    ///    "closeTime": {
+    ///      "type": "integer",
+    ///      "format": "int64"
+    ///    },
+    ///    "createdTime": {
+    ///      "type": "integer",
+    ///      "format": "int64"
+    ///    },
+    ///    "id": {
+    ///      "type": "string"
+    ///    },
+    ///    "isResolved": {
+    ///      "type": "boolean"
+    ///    },
+    ///    "probability": {
+    ///      "type": "number",
+    ///      "format": "double"
+    ///    },
+    ///    "question": {
+    ///      "type": "string"
+    ///    },
+    ///    "url": {
+    ///      "type": "string"
+    ///    },
+    ///    "volume": {
+    ///      "type": "number",
+    ///      "format": "double"
+    ///    }
+    ///  }
+    ///}
+    /// ```
+    /// </details>
+    #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+    pub struct LiteMarket {
+        #[serde(
+            rename = "closeTime",
+            default,
+            skip_serializing_if = "::std::option::Option::is_none"
+        )]
+        pub close_time: ::std::option::Option<i64>,
+        #[serde(
+            rename = "createdTime",
+            default,
+            skip_serializing_if = "::std::option::Option::is_none"
+        )]
+        pub created_time: ::std::option::Option<i64>,
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        pub id: ::std::option::Option<::std::string::String>,
+        #[serde(
+            rename = "isResolved",
+            default,
+            skip_serializing_if = "::std::option::Option::is_none"
+        )]
+        pub is_resolved: ::std::option::Option<bool>,
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        pub probability: ::std::option::Option<f64>,
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        pub question: ::std::option::Option<::std::string::String>,
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        pub url: ::std::option::Option<::std::string::String>,
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        pub volume: ::std::option::Option<f64>,
+    }
+    impl ::std::default::Default for LiteMarket {
+        fn default() -> Self {
+            Self {
+                close_time: Default::default(),
+                created_time: Default::default(),
+                id: Default::default(),
+                is_resolved: Default::default(),
+                probability: Default::default(),
+                question: Default::default(),
+                url: Default::default(),
+                volume: Default::default(),
+            }
+        }
+    }
+    ///`PlaceBetRequest`
+    ///
+    /// <details><summary>JSON schema</summary>
+    ///
+    /// ```json
+    ///{
+    ///  "type": "object",
+    ///  "required": [
+    ///    "amount",
+    ///    "contractId",
+    ///    "outcome"
+    ///  ],
+    ///  "properties": {
+    ///    "amount": {
+    ///      "type": "number",
+    ///      "format": "double"
+    ///    },
+    ///    "contractId": {
+    ///      "type": "string"
+    ///    },
+    ///    "outcome": {
+    ///      "description": "YES or NO for binary markets.",
+    ///      "type": "string"
+    ///    }
+    ///  }
+    ///}
+    /// ```
+    /// </details>
+    #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+    pub struct PlaceBetRequest {
+        pub amount: f64,
+        #[serde(rename = "contractId")]
+        pub contract_id: ::std::string::String,
+        ///YES or NO for binary markets.
+        pub outcome: ::std::string::String,
+    }
+    ///`PlaceBetResponse`
+    ///
+    /// <details><summary>JSON schema</summary>
+    ///
+    /// ```json
+    ///{
+    ///  "type": "object",
+    ///  "properties": {
+    ///    "amount": {
+    ///      "type": "number",
+    ///      "format": "double"
+    ///    },
+    ///    "betId": {
+    ///      "type": "string"
+    ///    },
+    ///    "contractId": {
+    ///      "type": "string"
+    ///    },
+    ///    "outcome": {
+    ///      "type": "string"
+    ///    },
+    ///    "probAfter": {
+    ///      "type": "number",
+    ///      "format": "double"
+    ///    }
+    ///  }
+    ///}
+    /// ```
+    /// </details>
+    #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+    pub struct PlaceBetResponse {
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        pub amount: ::std::option::Option<f64>,
+        #[serde(
+            rename = "betId",
+            default,
+            skip_serializing_if = "::std::option::Option::is_none"
+        )]
+        pub bet_id: ::std::option::Option<::std::string::String>,
+        #[serde(
+            rename = "contractId",
+            default,
+            skip_serializing_if = "::std::option::Option::is_none"
+        )]
+        pub contract_id: ::std::option::Option<::std::string::String>,
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        pub outcome: ::std::option::Option<::std::string::String>,
+        #[serde(
+            rename = "probAfter",
+            default,
+            skip_serializing_if = "::std::option::Option::is_none"
+        )]
+        pub prob_after: ::std::option::Option<f64>,
+    }
+    impl ::std::default::Default for PlaceBetResponse {
+        fn default() -> Self {
+            Self {
+                amount: Default::default(),
+                bet_id: Default::default(),
+                contract_id: Default::default(),
+                outcome: Default::default(),
+                prob_after: Default::default(),
+            }
+        }
+    }
 }
+#[derive(Clone, Debug)]
+/**Client for Manifold Markets API
 
-impl ManifoldClient {
-    pub fn new() -> Result<Self, String> {
-        let http = reqwest::blocking::Client::builder()
-            .timeout(Duration::from_secs(30))
-            .build()
-            .map_err(|e| format!("[manifold] failed to build HTTP client: {e}"))?;
-        Ok(Self { http })
+Subset of the Manifold Markets v0 REST API covering the endpoints used by
+the Aomi Manifold app.
+
+## Auth
+Read endpoints (markets, search, positions) are public. Write endpoints
+(POST /bet, POST /market) require an API key sent as
+`Authorization: Key <api_key>`. The codegen describes the header via the
+`apiKeyAuth` security scheme.
+
+
+Version: 0.1.0*/
+pub struct Client {
+    pub(crate) baseurl: String,
+    pub(crate) client: reqwest::Client,
+}
+impl Client {
+    /// Create a new client.
+    ///
+    /// `baseurl` is the base URL provided to the internal
+    /// `reqwest::Client`, and should include a scheme and hostname,
+    /// as well as port and a path stem if applicable.
+    pub fn new(baseurl: &str) -> Self {
+        #[cfg(not(target_arch = "wasm32"))]
+        let client = {
+            let dur = ::std::time::Duration::from_secs(15u64);
+            reqwest::ClientBuilder::new().connect_timeout(dur).timeout(dur)
+        };
+        #[cfg(target_arch = "wasm32")]
+        let client = reqwest::ClientBuilder::new();
+        Self::new_with_client(baseurl, client.build().unwrap())
     }
-
-    /// Public GET request (no authentication required).
-    pub fn get(&self, path: &str, op: &str) -> Result<Value, String> {
-        let url = format!("{MANIFOLD_API_URL}{path}");
-        let response = self
-            .http
-            .get(&url)
-            .send()
-            .map_err(|e| format!("[manifold] {op} failed: {e}"))?;
-
-        let status = response.status();
-        let body = response.text().unwrap_or_default();
-        if !status.is_success() {
-            return Err(format!("[manifold] {op} failed: {status} {body}"));
+    /// Construct a new client with an existing `reqwest::Client`,
+    /// allowing more control over its configuration.
+    ///
+    /// `baseurl` is the base URL provided to the internal
+    /// `reqwest::Client`, and should include a scheme and hostname,
+    /// as well as port and a path stem if applicable.
+    pub fn new_with_client(baseurl: &str, client: reqwest::Client) -> Self {
+        Self {
+            baseurl: baseurl.to_string(),
+            client,
         }
-
-        serde_json::from_str::<Value>(&body)
-            .map_err(|e| format!("[manifold] {op} decode failed: {e}; body: {body}"))
-    }
-
-    /// Authenticated POST request (requires API key).
-    pub fn post<B: Serialize>(
-        &self,
-        path: &str,
-        api_key: &str,
-        body: &B,
-        op: &str,
-    ) -> Result<Value, String> {
-        let url = format!("{MANIFOLD_API_URL}{path}");
-        let response = self
-            .http
-            .post(&url)
-            .header("Authorization", format!("Key {api_key}"))
-            .json(body)
-            .send()
-            .map_err(|e| format!("[manifold] {op} failed: {e}"))?;
-
-        let status = response.status();
-        let resp_body = response.text().unwrap_or_default();
-        if !status.is_success() {
-            return Err(format!("[manifold] {op} failed: {status} {resp_body}"));
-        }
-
-        serde_json::from_str::<Value>(&resp_body)
-            .map_err(|e| format!("[manifold] {op} decode failed: {e}; body: {resp_body}"))
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn create_market_and_bet_workflow() {
-        let client = ManifoldClient::new().expect("build HTTP client");
-
-        let search = client
-            .get("/search-markets?term=AI&filter=open", "search_markets")
-            .expect("search markets for AI");
-        let results = search.as_array().expect("search returns an array");
-        assert!(!results.is_empty(), "search for AI should return results");
-
-        let first = results
-            .iter()
-            .find(|m| m.get("outcomeType").and_then(|v| v.as_str()) == Some("BINARY"))
-            .expect("at least one BINARY market in AI search results");
-        let market_id = first
-            .get("id")
-            .and_then(|v| v.as_str())
-            .expect("first result has an id");
-
-        let detail = client
-            .get(&format!("/market/{market_id}"), "get_market")
-            .expect("get market detail");
-        assert!(detail.get("probability").is_some());
-        assert!(detail.get("volume").is_some());
-        assert!(detail.get("question").is_some());
-
-        let positions = client
-            .get(
-                &format!("/market/{market_id}/positions"),
-                "get_market_positions",
-            )
-            .expect("get market positions");
-        assert!(positions.is_array());
+impl ClientInfo<()> for Client {
+    fn api_version() -> &'static str {
+        "0.1.0"
     }
+    fn baseurl(&self) -> &str {
+        self.baseurl.as_str()
+    }
+    fn client(&self) -> &reqwest::Client {
+        &self.client
+    }
+    fn inner(&self) -> &() {
+        &()
+    }
+}
+impl ClientHooks<()> for &Client {}
+#[allow(clippy::all)]
+impl Client {
+    /**List markets (newest / hottest)
 
-    #[test]
-    fn bet_against_overpriced_workflow() {
-        let client = ManifoldClient::new().expect("build HTTP client");
+Sends a `GET` request to `/markets`
 
-        let list = client
-            .get("/markets?sort=created-time&limit=10", "list_markets")
-            .expect("list newest markets");
-        let markets = list.as_array().expect("list returns an array");
-        assert!(!markets.is_empty(), "should get at least one market");
-        for m in markets.iter() {
-            assert!(m.get("id").is_some(), "market missing id");
-            assert!(m.get("question").is_some(), "market missing question");
+*/
+    pub async fn list_markets<'a>(
+        &'a self,
+        limit: Option<i32>,
+        sort: Option<&'a str>,
+        topics: Option<&'a str>,
+    ) -> Result<ResponseValue<::std::vec::Vec<types::LiteMarket>>, Error<()>> {
+        let url = format!("{}/markets", self.baseurl,);
+        let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
+        header_map
+            .append(
+                ::reqwest::header::HeaderName::from_static("api-version"),
+                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+            );
+        #[allow(unused_mut)]
+        let mut request = self
+            .client
+            .get(url)
+            .header(
+                ::reqwest::header::ACCEPT,
+                ::reqwest::header::HeaderValue::from_static("application/json"),
+            )
+            .query(&progenitor_client::QueryParam::new("limit", &limit))
+            .query(&progenitor_client::QueryParam::new("sort", &sort))
+            .query(&progenitor_client::QueryParam::new("topics", &topics))
+            .headers(header_map)
+            .build()?;
+        let info = OperationInfo {
+            operation_id: "list_markets",
+        };
+        self.pre(&mut request, &info).await?;
+        let result = self.exec(request, &info).await;
+        self.post(&result, &info).await?;
+        let response = result?;
+        match response.status().as_u16() {
+            200u16 => ResponseValue::from_response(response).await,
+            _ => Err(Error::UnexpectedResponse(response)),
         }
-
-        let binary_markets: Vec<&Value> = markets
-            .iter()
-            .filter(|m| m.get("outcomeType").and_then(|v| v.as_str()) == Some("BINARY"))
-            .collect();
-
-        let high_prob_market = binary_markets
-            .iter()
-            .find(|m| {
-                m.get("probability")
-                    .and_then(|p| p.as_f64())
-                    .map_or(false, |p| p > 0.80)
-            })
-            .copied()
-            .or(binary_markets.first().copied())
-            .unwrap_or(&markets[0]);
-
-        let market_id = high_prob_market
-            .get("id")
-            .and_then(|v| v.as_str())
-            .expect("selected market has an id");
-
-        let detail = client
-            .get(&format!("/market/{market_id}"), "get_market")
-            .expect("get market detail");
-        let positions = client
-            .get(
-                &format!("/market/{market_id}/positions"),
-                "get_market_positions",
-            )
-            .expect("get market positions");
-
-        let probability = detail
-            .get("probability")
-            .and_then(|v| v.as_f64())
-            .expect("detail should have numeric probability");
-        assert!((0.0..=1.0).contains(&probability));
-        let liquidity = detail
-            .get("totalLiquidity")
-            .and_then(|v| v.as_f64())
-            .expect("detail should have numeric totalLiquidity");
-        assert!(liquidity >= 0.0);
-        assert!(positions.is_array());
     }
+    /**Keyword search across markets
+
+Sends a `GET` request to `/search-markets`
+
+*/
+    pub async fn search_markets<'a>(
+        &'a self,
+        filter: Option<&'a str>,
+        sort: Option<&'a str>,
+        term: &'a str,
+    ) -> Result<ResponseValue<::std::vec::Vec<types::LiteMarket>>, Error<()>> {
+        let url = format!("{}/search-markets", self.baseurl,);
+        let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
+        header_map
+            .append(
+                ::reqwest::header::HeaderName::from_static("api-version"),
+                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+            );
+        #[allow(unused_mut)]
+        let mut request = self
+            .client
+            .get(url)
+            .header(
+                ::reqwest::header::ACCEPT,
+                ::reqwest::header::HeaderValue::from_static("application/json"),
+            )
+            .query(&progenitor_client::QueryParam::new("filter", &filter))
+            .query(&progenitor_client::QueryParam::new("sort", &sort))
+            .query(&progenitor_client::QueryParam::new("term", &term))
+            .headers(header_map)
+            .build()?;
+        let info = OperationInfo {
+            operation_id: "search_markets",
+        };
+        self.pre(&mut request, &info).await?;
+        let result = self.exec(request, &info).await;
+        self.post(&result, &info).await?;
+        let response = result?;
+        match response.status().as_u16() {
+            200u16 => ResponseValue::from_response(response).await,
+            _ => Err(Error::UnexpectedResponse(response)),
+        }
+    }
+    /**Get a market by id or slug
+
+Sends a `GET` request to `/market/{idOrSlug}`
+
+*/
+    pub async fn get_market<'a>(
+        &'a self,
+        id_or_slug: &'a str,
+    ) -> Result<ResponseValue<types::FullMarket>, Error<()>> {
+        let url = format!(
+            "{}/market/{}", self.baseurl, encode_path(& id_or_slug.to_string()),
+        );
+        let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
+        header_map
+            .append(
+                ::reqwest::header::HeaderName::from_static("api-version"),
+                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+            );
+        #[allow(unused_mut)]
+        let mut request = self
+            .client
+            .get(url)
+            .header(
+                ::reqwest::header::ACCEPT,
+                ::reqwest::header::HeaderValue::from_static("application/json"),
+            )
+            .headers(header_map)
+            .build()?;
+        let info = OperationInfo {
+            operation_id: "get_market",
+        };
+        self.pre(&mut request, &info).await?;
+        let result = self.exec(request, &info).await;
+        self.post(&result, &info).await?;
+        let response = result?;
+        match response.status().as_u16() {
+            200u16 => ResponseValue::from_response(response).await,
+            _ => Err(Error::UnexpectedResponse(response)),
+        }
+    }
+    /**Get top positions for a market
+
+Sends a `GET` request to `/market/{idOrSlug}/positions`
+
+*/
+    pub async fn get_market_positions<'a>(
+        &'a self,
+        id_or_slug: &'a str,
+    ) -> Result<
+        ResponseValue<
+            ::std::vec::Vec<
+                ::serde_json::Map<::std::string::String, ::serde_json::Value>,
+            >,
+        >,
+        Error<()>,
+    > {
+        let url = format!(
+            "{}/market/{}/positions", self.baseurl, encode_path(& id_or_slug
+            .to_string()),
+        );
+        let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
+        header_map
+            .append(
+                ::reqwest::header::HeaderName::from_static("api-version"),
+                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+            );
+        #[allow(unused_mut)]
+        let mut request = self
+            .client
+            .get(url)
+            .header(
+                ::reqwest::header::ACCEPT,
+                ::reqwest::header::HeaderValue::from_static("application/json"),
+            )
+            .headers(header_map)
+            .build()?;
+        let info = OperationInfo {
+            operation_id: "get_market_positions",
+        };
+        self.pre(&mut request, &info).await?;
+        let result = self.exec(request, &info).await;
+        self.post(&result, &info).await?;
+        let response = result?;
+        match response.status().as_u16() {
+            200u16 => ResponseValue::from_response(response).await,
+            _ => Err(Error::UnexpectedResponse(response)),
+        }
+    }
+    /**Place a bet on a binary market
+
+Sends a `POST` request to `/bet`
+
+*/
+    pub async fn place_bet<'a>(
+        &'a self,
+        body: &'a types::PlaceBetRequest,
+    ) -> Result<ResponseValue<types::PlaceBetResponse>, Error<()>> {
+        let url = format!("{}/bet", self.baseurl,);
+        let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
+        header_map
+            .append(
+                ::reqwest::header::HeaderName::from_static("api-version"),
+                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+            );
+        #[allow(unused_mut)]
+        let mut request = self
+            .client
+            .post(url)
+            .header(
+                ::reqwest::header::ACCEPT,
+                ::reqwest::header::HeaderValue::from_static("application/json"),
+            )
+            .json(&body)
+            .headers(header_map)
+            .build()?;
+        let info = OperationInfo {
+            operation_id: "place_bet",
+        };
+        self.pre(&mut request, &info).await?;
+        let result = self.exec(request, &info).await;
+        self.post(&result, &info).await?;
+        let response = result?;
+        match response.status().as_u16() {
+            200u16 => ResponseValue::from_response(response).await,
+            _ => Err(Error::UnexpectedResponse(response)),
+        }
+    }
+    /**Create a new market
+
+Sends a `POST` request to `/market`
+
+*/
+    pub async fn create_market<'a>(
+        &'a self,
+        body: &'a types::CreateMarketRequest,
+    ) -> Result<ResponseValue<types::CreateMarketResponse>, Error<()>> {
+        let url = format!("{}/market", self.baseurl,);
+        let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
+        header_map
+            .append(
+                ::reqwest::header::HeaderName::from_static("api-version"),
+                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+            );
+        #[allow(unused_mut)]
+        let mut request = self
+            .client
+            .post(url)
+            .header(
+                ::reqwest::header::ACCEPT,
+                ::reqwest::header::HeaderValue::from_static("application/json"),
+            )
+            .json(&body)
+            .headers(header_map)
+            .build()?;
+        let info = OperationInfo {
+            operation_id: "create_market",
+        };
+        self.pre(&mut request, &info).await?;
+        let result = self.exec(request, &info).await;
+        self.post(&result, &info).await?;
+        let response = result?;
+        match response.status().as_u16() {
+            200u16 => ResponseValue::from_response(response).await,
+            _ => Err(Error::UnexpectedResponse(response)),
+        }
+    }
+}
+/// Items consumers will typically use such as the Client.
+pub mod prelude {
+    #[allow(unused_imports)]
+    pub use super::Client;
 }

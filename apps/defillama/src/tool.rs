@@ -182,7 +182,7 @@ impl DynAomiTool for ListProtocols {
                 b.tvl.partial_cmp(&a.tvl).unwrap_or(std::cmp::Ordering::Equal)
             });
             protocols.truncate(limit);
-            ok(json!({ "protocols": protocols }))
+            ok(protocols)
         })
     }
 }
@@ -273,67 +273,23 @@ impl DynAomiTool for TopYieldPools {
         let limit = args.limit.unwrap_or(20);
         runtime.block_on(async move {
             let client = DefiLlamaClient::new(YIELDS_HOST);
-            let resp = client
+            let mut response = client
                 .get_yield_pools(chain.as_deref(), project.as_deref())
                 .await
                 .map_err(|e| format!("[defillama] yield pools: {e}"))?
                 .into_inner();
 
-            let mut pools: Vec<Value> = resp
-                .get("data")
-                .and_then(Value::as_array)
-                .cloned()
-                .unwrap_or_default();
-
-            pools.retain(|p: &Value| {
-                let tvl = p.get("tvlUsd").and_then(Value::as_f64).unwrap_or(0.0);
-                if tvl < min_tvl {
-                    return false;
-                }
-                if stables_only
-                    && !p.get("stablecoin").and_then(Value::as_bool).unwrap_or(false)
-                {
-                    return false;
-                }
-                true
+            response.data.retain(|p| {
+                p.tvl_usd.unwrap_or(0.0) >= min_tvl
+                    && (!stables_only || p.stablecoin.unwrap_or(false))
             });
-
-            pools.sort_by(|a: &Value, b: &Value| {
-                let aa = a.get("apy").and_then(Value::as_f64).unwrap_or(0.0);
-                let bb = b.get("apy").and_then(Value::as_f64).unwrap_or(0.0);
-                bb.partial_cmp(&aa).unwrap_or(std::cmp::Ordering::Equal)
+            response.data.sort_by(|a, b| {
+                b.apy.unwrap_or(0.0).partial_cmp(&a.apy.unwrap_or(0.0))
+                    .unwrap_or(std::cmp::Ordering::Equal)
             });
-            pools.truncate(limit);
+            response.data.truncate(limit);
 
-            let summarised: Vec<Value> = pools
-                .into_iter()
-                .map(|p| {
-                    json!({
-                        "pool": p.get("pool").cloned().unwrap_or(Value::Null),
-                        "symbol": p.get("symbol").cloned().unwrap_or(Value::Null),
-                        "project": p.get("project").cloned().unwrap_or(Value::Null),
-                        "chain": p.get("chain").cloned().unwrap_or(Value::Null),
-                        "apy": p.get("apy").cloned().unwrap_or(Value::Null),
-                        "apy_base": p.get("apyBase").cloned().unwrap_or(Value::Null),
-                        "apy_reward": p.get("apyReward").cloned().unwrap_or(Value::Null),
-                        "tvl_usd": p.get("tvlUsd").cloned().unwrap_or(Value::Null),
-                        "stablecoin": p.get("stablecoin").cloned().unwrap_or(Value::Null),
-                        "il_risk": p.get("ilRisk").cloned().unwrap_or(Value::Null),
-                        "exposure": p.get("exposure").cloned().unwrap_or(Value::Null),
-                    })
-                })
-                .collect();
-
-            ok(json!({
-                "filters": {
-                    "chain": chain,
-                    "project": project,
-                    "stablecoin_only": stables_only,
-                    "min_tvl_usd": min_tvl,
-                },
-                "pools_found": summarised.len(),
-                "pools": summarised,
-            }))
+            ok(response)
         })
     }
 }
@@ -386,7 +342,7 @@ impl DynAomiTool for GetChainTvl {
                         b.tvl.partial_cmp(&a.tvl).unwrap_or(std::cmp::Ordering::Equal)
                     });
                     chains.truncate(limit);
-                    ok(json!({ "chains": chains }))
+                    ok(chains)
                 }
             }
         })

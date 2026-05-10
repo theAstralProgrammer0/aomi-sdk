@@ -43,3 +43,5 @@ pub mod yearn;
 pub mod zerox;
 #[cfg(feature = "khalani")]
 pub mod khalani;
+#[cfg(feature = "kaito")]
+pub mod kaito;

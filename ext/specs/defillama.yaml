@@ -248,7 +248,7 @@ paths:
           description: Yield pool list.
           content:
             application/json:
-              schema: { type: object, additionalProperties: true }
+              schema: { $ref: '#/components/schemas/YieldPoolList' }
 
   /chart/{pool}:
     servers: [{ url: https://yields.llama.fi }]
@@ -382,3 +382,27 @@ components:
         symbol:     { type: string }
         timestamp:  { type: integer, format: int64 }
         confidence: { type: number, nullable: true }
+    YieldPoolList:
+      type: object
+      required: [data]
+      properties:
+        status: { type: string, nullable: true }
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/YieldPool' }
+    YieldPool:
+      type: object
+      additionalProperties: true
+      required: [pool, chain, project, symbol]
+      properties:
+        pool:       { type: string, description: 'Pool UUID; feed to /chart/{pool}.' }
+        chain:      { type: string }
+        project:    { type: string }
+        symbol:     { type: string }
+        tvlUsd:     { type: number, nullable: true }
+        apy:        { type: number, nullable: true }
+        apyBase:    { type: number, nullable: true }
+        apyReward:  { type: number, nullable: true }
+        stablecoin: { type: boolean, nullable: true }
+        ilRisk:     { type: string, nullable: true, description: '"yes" or "no".' }
+        exposure:   { type: string, nullable: true, description: '"single" or "multi".' }

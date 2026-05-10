@@ -1,11 +1,58 @@
-use aomi_ext::dydx::DydxClient;
+//! Curated tool layer for dYdX v4 Indexer. Hand-written from the
+//! progenitor-generated client at `aomi_ext::dydx::Client` — see
+//! ext/specs/dydx.yaml.
+//!
+//! Read-only public Indexer endpoints; no auth. Trades / orders are placed
+//! via signed Cosmos transactions and are explicitly out of scope.
+//!
+//! Curated 8 tools (matching the original surface):
+//!   * `dydx_get_markets`             — list markets / one ticker
+//!   * `dydx_get_orderbook`           — L2 snapshot
+//!   * `dydx_get_candles`             — OHLCV history
+//!   * `dydx_get_trades`              — public trade tape
+//!   * `dydx_get_account`             — subaccount snapshot
+//!   * `dydx_get_orders`              — open / historical orders
+//!   * `dydx_get_fills`               — user's executed trades
+//!   * `dydx_get_historical_funding`  — per-hour funding series
+
+use aomi_ext::dydx::Client as DydxClient;
 use aomi_sdk::*;
 use aomi_sdk::schemars::JsonSchema;
-use serde::Deserialize;
-use serde_json::Value;
+use serde::{Deserialize, Serialize};
+use serde_json::{Value, json};
+use std::num::NonZeroU32;
 
 #[derive(Clone, Default)]
 pub(crate) struct DydxApp;
+
+const BASE_URL: &str = "https://indexer.dydx.trade/v4";
+
+// ============================================================================
+// Helpers
+// ============================================================================
+
+fn ok<T: Serialize>(value: T) -> Result<Value, String> {
+    let value = serde_json::to_value(value).map_err(|e| format!("[dydx] serialize: {e}"))?;
+    Ok(match value {
+        Value::Object(mut m) => {
+            m.insert("source".into(), Value::String("dydx".into()));
+            Value::Object(m)
+        }
+        other => json!({ "source": "dydx", "data": other }),
+    })
+}
+
+fn rt() -> Result<tokio::runtime::Runtime, String> {
+    tokio::runtime::Runtime::new().map_err(|e| format!("[dydx] runtime: {e}"))
+}
+
+fn base_url() -> String {
+    std::env::var("DYDX_INDEXER_URL").unwrap_or_else(|_| BASE_URL.to_string())
+}
+
+fn nz(limit: Option<u32>) -> Option<NonZeroU32> {
+    limit.and_then(NonZeroU32::new)
+}
 
 // ============================================================================
 // Tool 1: GetMarkets
@@ -26,12 +73,15 @@ impl DynAomiTool for GetMarkets {
     const DESCRIPTION: &'static str = "Use when the user asks what's tradable on dYdX, market parameters, or oracle price. Returns per-market tick size, step size, initial/maintenance margin fractions, current oracle price, 24h volume, open interest, and next funding rate. Pass a ticker to scope to one market.";
 
     fn run(_app: &DydxApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let client = DydxClient::new()?;
-        let path = match &args.ticker {
-            Some(ticker) => format!("/perpetualMarkets?ticker={ticker}"),
-            None => "/perpetualMarkets".to_string(),
-        };
-        client.get(&path)
+        rt()?.block_on(async move {
+            let client = DydxClient::new(&base_url());
+            let r = client
+                .get_perpetual_markets(args.ticker.as_deref())
+                .await
+                .map_err(|e| format!("[dydx] get markets: {e}"))?
+                .into_inner();
+            ok(r)
+        })
     }
 }
 
@@ -54,8 +104,15 @@ impl DynAomiTool for GetOrderbook {
     const DESCRIPTION: &'static str = "Use when the user asks about depth, spread, or current best bid/ask on a dYdX market. Returns the L2 orderbook snapshot as bid and ask arrays of {price, size} levels.";
 
     fn run(_app: &DydxApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let client = DydxClient::new()?;
-        client.get(&format!("/orderbooks/perpetualMarket/{}", args.ticker))
+        rt()?.block_on(async move {
+            let client = DydxClient::new(&base_url());
+            let r = client
+                .get_orderbook(&args.ticker)
+                .await
+                .map_err(|e| format!("[dydx] orderbook {}: {e}", args.ticker))?
+                .into_inner();
+            ok(r)
+        })
     }
 }
 
@@ -82,15 +139,15 @@ impl DynAomiTool for GetCandles {
     const DESCRIPTION: &'static str = "Use when the user asks for price history, charts, or technical analysis on a dYdX market. Returns OHLCV candles (open/high/low/close as decimal strings, plus baseTokenVolume and usdVolume). Resolutions: 1MIN, 5MINS, 15MINS, 30MINS, 1HOUR, 4HOURS, 1DAY.";
 
     fn run(_app: &DydxApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let client = DydxClient::new()?;
-        let mut path = format!(
-            "/candles/perpetualMarket/{}?resolution={}",
-            args.ticker, args.resolution
-        );
-        if let Some(limit) = args.limit {
-            path.push_str(&format!("&limit={limit}"));
-        }
-        client.get(&path)
+        rt()?.block_on(async move {
+            let client = DydxClient::new(&base_url());
+            let r = client
+                .get_candles(&args.ticker, nz(args.limit), &args.resolution)
+                .await
+                .map_err(|e| format!("[dydx] candles {}: {e}", args.ticker))?
+                .into_inner();
+            ok(r)
+        })
     }
 }
 
@@ -115,12 +172,15 @@ impl DynAomiTool for GetTrades {
     const DESCRIPTION: &'static str = "Use when the user asks for the latest tape, recent fills, or volume on a dYdX market (this is the public market tape, not the user's own fills — use dydx_get_fills for that). Returns recent trades with price, size, side, and timestamp.";
 
     fn run(_app: &DydxApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let client = DydxClient::new()?;
-        let mut path = format!("/trades/perpetualMarket/{}", args.ticker);
-        if let Some(limit) = args.limit {
-            path.push_str(&format!("?limit={limit}"));
-        }
-        client.get(&path)
+        rt()?.block_on(async move {
+            let client = DydxClient::new(&base_url());
+            let r = client
+                .get_trades(&args.ticker, nz(args.limit))
+                .await
+                .map_err(|e| format!("[dydx] trades {}: {e}", args.ticker))?
+                .into_inner();
+            ok(r)
+        })
     }
 }
 
@@ -145,12 +205,16 @@ impl DynAomiTool for GetAccount {
     const DESCRIPTION: &'static str = "Use when the user asks about their dYdX account, equity, free collateral, margin usage, or open perp positions. Returns the subaccount snapshot. If subaccount_number is omitted it defaults to 0.";
 
     fn run(_app: &DydxApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let client = DydxClient::new()?;
-        let sub = args.subaccount_number.unwrap_or(0);
-        client.get(&format!(
-            "/addresses/{}/subaccountNumber/{}",
-            args.address, sub
-        ))
+        rt()?.block_on(async move {
+            let client = DydxClient::new(&base_url());
+            let sub = args.subaccount_number.unwrap_or(0);
+            let r = client
+                .get_subaccount(&args.address, sub)
+                .await
+                .map_err(|e| format!("[dydx] subaccount {}/{sub}: {e}", args.address))?
+                .into_inner();
+            ok(r)
+        })
     }
 }
 
@@ -179,19 +243,21 @@ impl DynAomiTool for GetOrders {
     const DESCRIPTION: &'static str = "Use when the user wants to see their resting limit orders, conditional orders, or order history on dYdX. Returns orders for the subaccount with side, size, price, status, and timestamps. Filter by status or ticker to narrow.";
 
     fn run(_app: &DydxApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let client = DydxClient::new()?;
-        let sub = args.subaccount_number.unwrap_or(0);
-        let mut path = format!(
-            "/orders?address={}&subaccountNumber={}",
-            args.address, sub
-        );
-        if let Some(status) = &args.status {
-            path.push_str(&format!("&status={status}"));
-        }
-        if let Some(ticker) = &args.ticker {
-            path.push_str(&format!("&ticker={ticker}"));
-        }
-        client.get(&path)
+        rt()?.block_on(async move {
+            let client = DydxClient::new(&base_url());
+            let sub = args.subaccount_number.unwrap_or(0);
+            let r = client
+                .get_orders(
+                    &args.address,
+                    args.status.as_deref(),
+                    sub,
+                    args.ticker.as_deref(),
+                )
+                .await
+                .map_err(|e| format!("[dydx] orders {}: {e}", args.address))?
+                .into_inner();
+            ok(r)
+        })
     }
 }
 
@@ -221,19 +287,16 @@ impl DynAomiTool for GetFills {
         "Use when the user asks for their executed trades, fill history, fees paid, or realized PnL inputs on dYdX. Returns fills for the subaccount with price, size, side, fee, and timestamp.";
 
     fn run(_app: &DydxApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let client = DydxClient::new()?;
-        let sub = args.subaccount_number.unwrap_or(0);
-        let mut path = format!(
-            "/fills?address={}&subaccountNumber={}",
-            args.address, sub
-        );
-        if let Some(market) = &args.market {
-            path.push_str(&format!("&market={market}"));
-        }
-        if let Some(limit) = args.limit {
-            path.push_str(&format!("&limit={limit}"));
-        }
-        client.get(&path)
+        rt()?.block_on(async move {
+            let client = DydxClient::new(&base_url());
+            let sub = args.subaccount_number.unwrap_or(0);
+            let r = client
+                .get_fills(&args.address, nz(args.limit), args.market.as_deref(), sub)
+                .await
+                .map_err(|e| format!("[dydx] fills {}: {e}", args.address))?
+                .into_inner();
+            ok(r)
+        })
     }
 }
 
@@ -258,11 +321,14 @@ impl DynAomiTool for GetHistoricalFunding {
     const DESCRIPTION: &'static str = "Use when the user asks about funding rate history, basis trends, or whether a perp has been paying longs or shorts. Returns the per-hour funding rate series with rate, oracle price, and effective time. Rates are fractional per funding interval (typically 1 hour).";
 
     fn run(_app: &DydxApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let client = DydxClient::new()?;
-        let mut path = format!("/historical-funding/{}", args.ticker);
-        if let Some(limit) = args.limit {
-            path.push_str(&format!("?limit={limit}"));
-        }
-        client.get(&path)
+        rt()?.block_on(async move {
+            let client = DydxClient::new(&base_url());
+            let r = client
+                .get_historical_funding(&args.ticker, nz(args.limit))
+                .await
+                .map_err(|e| format!("[dydx] historical funding {}: {e}", args.ticker))?
+                .into_inner();
+            ok(r)
+        })
     }
 }

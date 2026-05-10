@@ -2984,41 +2984,18 @@ A storage unit lets you store 5000 casts, 2500 reactions and 2500 links.*/
     ///    "channel",
     ///    "embeds",
     ///    "hash",
-    ///    "mentioned_channels",
-    ///    "mentioned_channels_ranges",
-    ///    "mentioned_profiles",
-    ///    "mentioned_profiles_ranges",
     ///    "object",
-    ///    "parent_author",
     ///    "parent_hash",
     ///    "parent_url",
     ///    "reactions",
     ///    "replies",
-    ///    "root_parent_url",
     ///    "text",
     ///    "thread_hash",
     ///    "timestamp"
     ///  ],
     ///  "properties": {
-    ///    "app": {
-    ///      "oneOf": [
-    ///        {
-    ///          "type": "null"
-    ///        },
-    ///        {
-    ///          "allOf": [
-    ///            {
-    ///              "$ref": "#/components/schemas/UserDehydrated"
-    ///            }
-    ///          ]
-    ///        }
-    ///      ]
-    ///    },
     ///    "author": {
     ///      "$ref": "#/components/schemas/User"
-    ///    },
-    ///    "author_channel_context": {
-    ///      "$ref": "#/components/schemas/ChannelUserContext"
     ///    },
     ///    "channel": {
     ///      "oneOf": [
@@ -3043,59 +3020,11 @@ A storage unit lets you store 5000 casts, 2500 reactions and 2500 links.*/
     ///    "hash": {
     ///      "type": "string"
     ///    },
-    ///    "mentioned_channels": {
-    ///      "type": "array",
-    ///      "items": {
-    ///        "$ref": "#/components/schemas/ChannelDehydrated"
-    ///      }
-    ///    },
-    ///    "mentioned_channels_ranges": {
-    ///      "description": "Positions within the text (inclusive start, exclusive end) where each mention occurs.\nEach index within this list corresponds to the same-numbered index in the mentioned_channels list.",
-    ///      "type": "array",
-    ///      "items": {
-    ///        "$ref": "#/components/schemas/TextRange"
-    ///      }
-    ///    },
-    ///    "mentioned_profiles": {
-    ///      "type": "array",
-    ///      "items": {
-    ///        "$ref": "#/components/schemas/User"
-    ///      }
-    ///    },
-    ///    "mentioned_profiles_ranges": {
-    ///      "description": "Positions within the text (inclusive start, exclusive end) where each mention occurs.\nEach index within this list corresponds to the same-numbered index in the mentioned_profiles list.",
-    ///      "type": "array",
-    ///      "items": {
-    ///        "$ref": "#/components/schemas/TextRange"
-    ///      }
-    ///    },
     ///    "object": {
     ///      "type": "string",
     ///      "enum": [
     ///        "cast"
     ///      ]
-    ///    },
-    ///    "parent_author": {
-    ///      "type": "object",
-    ///      "required": [
-    ///        "fid"
-    ///      ],
-    ///      "properties": {
-    ///        "fid": {
-    ///          "oneOf": [
-    ///            {
-    ///              "type": "null"
-    ///            },
-    ///            {
-    ///              "allOf": [
-    ///                {
-    ///                  "$ref": "#/components/schemas/Fid"
-    ///                }
-    ///              ]
-    ///            }
-    ///          ]
-    ///        }
-    ///      }
     ///    },
     ///    "parent_hash": {
     ///      "type": [
@@ -3115,12 +3044,6 @@ A storage unit lets you store 5000 casts, 2500 reactions and 2500 links.*/
     ///    "replies": {
     ///      "$ref": "#/components/schemas/CastReplies"
     ///    },
-    ///    "root_parent_url": {
-    ///      "type": [
-    ///        "string",
-    ///        "null"
-    ///      ]
-    ///    },
     ///    "text": {
     ///      "type": "string"
     ///    },
@@ -3133,12 +3056,6 @@ A storage unit lets you store 5000 casts, 2500 reactions and 2500 links.*/
     ///    "timestamp": {
     ///      "type": "string",
     ///      "format": "date-time"
-    ///    },
-    ///    "type": {
-    ///      "$ref": "#/components/schemas/CastNotificationType"
-    ///    },
-    ///    "viewer_context": {
-    ///      "$ref": "#/components/schemas/CastViewerContext"
     ///    }
     ///  }
     ///}
@@ -3146,40 +3063,18 @@ A storage unit lets you store 5000 casts, 2500 reactions and 2500 links.*/
     /// </details>
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct Cast {
-        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub app: ::std::option::Option<UserDehydrated>,
         pub author: User,
-        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub author_channel_context: ::std::option::Option<ChannelUserContext>,
         pub channel: ::std::option::Option<ChannelOrChannelDehydrated>,
         pub embeds: ::std::vec::Vec<Embed>,
         pub hash: ::std::string::String,
-        pub mentioned_channels: ::std::vec::Vec<ChannelDehydrated>,
-        /**Positions within the text (inclusive start, exclusive end) where each mention occurs.
-Each index within this list corresponds to the same-numbered index in the mentioned_channels list.*/
-        pub mentioned_channels_ranges: ::std::vec::Vec<TextRange>,
-        pub mentioned_profiles: ::std::vec::Vec<User>,
-        /**Positions within the text (inclusive start, exclusive end) where each mention occurs.
-Each index within this list corresponds to the same-numbered index in the mentioned_profiles list.*/
-        pub mentioned_profiles_ranges: ::std::vec::Vec<TextRange>,
         pub object: CastObject,
-        pub parent_author: CastParentAuthor,
         pub parent_hash: ::std::option::Option<::std::string::String>,
         pub parent_url: ::std::option::Option<::std::string::String>,
         pub reactions: CastReactions,
         pub replies: CastReplies,
-        pub root_parent_url: ::std::option::Option<::std::string::String>,
         pub text: ::std::string::String,
         pub thread_hash: ::std::option::Option<::std::string::String>,
         pub timestamp: ::chrono::DateTime<::chrono::offset::Utc>,
-        #[serde(
-            rename = "type",
-            default,
-            skip_serializing_if = "::std::option::Option::is_none"
-        )]
-        pub type_: ::std::option::Option<CastNotificationType>,
-        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub viewer_context: ::std::option::Option<CastViewerContext>,
     }
     ///`CastAndConversations`
     ///
@@ -4371,39 +4266,6 @@ Each index within this list corresponds to the same-numbered index in the mentio
             self.0.fmt(f)
         }
     }
-    ///`CastParentAuthor`
-    ///
-    /// <details><summary>JSON schema</summary>
-    ///
-    /// ```json
-    ///{
-    ///  "type": "object",
-    ///  "required": [
-    ///    "fid"
-    ///  ],
-    ///  "properties": {
-    ///    "fid": {
-    ///      "oneOf": [
-    ///        {
-    ///          "type": "null"
-    ///        },
-    ///        {
-    ///          "allOf": [
-    ///            {
-    ///              "$ref": "#/components/schemas/Fid"
-    ///            }
-    ///          ]
-    ///        }
-    ///      ]
-    ///    }
-    ///  }
-    ///}
-    /// ```
-    /// </details>
-    #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
-    pub struct CastParentAuthor {
-        pub fid: ::std::option::Option<Fid>,
-    }
     ///`CastReactions`
     ///
     /// <details><summary>JSON schema</summary>
@@ -4413,31 +4275,13 @@ Each index within this list corresponds to the same-numbered index in the mentio
     ///  "title": "CastReactions",
     ///  "type": "object",
     ///  "required": [
-    ///    "likes",
     ///    "likes_count",
-    ///    "recasts",
     ///    "recasts_count"
     ///  ],
     ///  "properties": {
-    ///    "likes": {
-    ///      "description": "This has been deprecated and will always be an empty array. The property will be removed in the future",
-    ///      "deprecated": true,
-    ///      "type": "array",
-    ///      "items": {
-    ///        "$ref": "#/components/schemas/ReactionLike"
-    ///      }
-    ///    },
     ///    "likes_count": {
     ///      "type": "integer",
     ///      "format": "int32"
-    ///    },
-    ///    "recasts": {
-    ///      "description": "This has been deprecated and will always be an empty array. The property will be removed in the future",
-    ///      "deprecated": true,
-    ///      "type": "array",
-    ///      "items": {
-    ///        "$ref": "#/components/schemas/ReactionRecast"
-    ///      }
     ///    },
     ///    "recasts_count": {
     ///      "type": "integer",
@@ -4449,11 +4293,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
     /// </details>
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct CastReactions {
-        ///This has been deprecated and will always be an empty array. The property will be removed in the future
-        pub likes: ::std::vec::Vec<ReactionLike>,
         pub likes_count: i32,
-        ///This has been deprecated and will always be an empty array. The property will be removed in the future
-        pub recasts: ::std::vec::Vec<ReactionRecast>,
         pub recasts_count: i32,
     }
     ///`CastReplies`
@@ -4747,69 +4587,16 @@ Each index within this list corresponds to the same-numbered index in the mentio
     ///    "description": {
     ///      "type": "string"
     ///    },
-    ///    "description_mentioned_profiles": {
-    ///      "type": "array",
-    ///      "items": {
-    ///        "$ref": "#/components/schemas/UserDehydrated"
-    ///      }
-    ///    },
-    ///    "description_mentioned_profiles_ranges": {
-    ///      "description": "Positions within the text (inclusive start, exclusive end) where each mention occurs.",
-    ///      "type": "array",
-    ///      "items": {
-    ///        "$ref": "#/components/schemas/TextRange"
-    ///      }
-    ///    },
-    ///    "external_link": {
-    ///      "description": "Channel's external link.",
-    ///      "type": "object",
-    ///      "properties": {
-    ///        "title": {
-    ///          "type": "string"
-    ///        },
-    ///        "url": {
-    ///          "type": "string"
-    ///        }
-    ///      }
-    ///    },
     ///    "follower_count": {
     ///      "description": "Number of followers the channel has.",
     ///      "type": "number"
     ///    },
-    ///    "hosts": {
-    ///      "deprecated": true,
-    ///      "type": "array",
-    ///      "items": {
-    ///        "$ref": "#/components/schemas/User"
-    ///      }
-    ///    },
     ///    "id": {
     ///      "type": "string"
-    ///    },
-    ///    "image_url": {
-    ///      "type": "string"
-    ///    },
-    ///    "lead": {
-    ///      "$ref": "#/components/schemas/User"
     ///    },
     ///    "member_count": {
     ///      "type": "integer",
     ///      "format": "int32"
-    ///    },
-    ///    "moderator": {
-    ///      "description": "Use `lead` instead.",
-    ///      "deprecated": true,
-    ///      "allOf": [
-    ///        {
-    ///          "$ref": "#/components/schemas/User"
-    ///        }
-    ///      ]
-    ///    },
-    ///    "moderator_fids": {
-    ///      "type": "array",
-    ///      "items": {
-    ///        "$ref": "#/components/schemas/Fid"
-    ///      }
     ///    },
     ///    "name": {
     ///      "type": "string"
@@ -4824,18 +4611,8 @@ Each index within this list corresponds to the same-numbered index in the mentio
     ///      "type": "string",
     ///      "format": "uri"
     ///    },
-    ///    "pinned_cast_hash": {
-    ///      "examples": [
-    ///        "0x71d5225f77e0164388b1d4c120825f3a2c1f131c"
-    ///      ],
-    ///      "type": "string",
-    ///      "pattern": "^(0x)?[a-fA-F0-9]{40}$"
-    ///    },
     ///    "url": {
     ///      "type": "string"
-    ///    },
-    ///    "viewer_context": {
-    ///      "$ref": "#/components/schemas/ChannelUserContext"
     ///    }
     ///  }
     ///}
@@ -4846,40 +4623,18 @@ Each index within this list corresponds to the same-numbered index in the mentio
         pub created_at: ::chrono::DateTime<::chrono::offset::Utc>,
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub description: ::std::option::Option<::std::string::String>,
-        #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
-        pub description_mentioned_profiles: ::std::vec::Vec<UserDehydrated>,
-        ///Positions within the text (inclusive start, exclusive end) where each mention occurs.
-        #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
-        pub description_mentioned_profiles_ranges: ::std::vec::Vec<TextRange>,
-        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub external_link: ::std::option::Option<ChannelExternalLink>,
         ///Number of followers the channel has.
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub follower_count: ::std::option::Option<f64>,
-        #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
-        pub hosts: ::std::vec::Vec<User>,
         pub id: ::std::string::String,
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub image_url: ::std::option::Option<::std::string::String>,
-        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub lead: ::std::option::Option<User>,
-        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub member_count: ::std::option::Option<i32>,
-        ///Use `lead` instead.
-        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub moderator: ::std::option::Option<User>,
-        #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
-        pub moderator_fids: ::std::vec::Vec<Fid>,
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub name: ::std::option::Option<::std::string::String>,
         pub object: ChannelObject,
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub parent_url: ::std::option::Option<::std::string::String>,
-        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub pinned_cast_hash: ::std::option::Option<ChannelPinnedCastHash>,
         pub url: ::std::string::String,
-        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub viewer_context: ::std::option::Option<ChannelUserContext>,
     }
     ///`ChannelActivity`
     ///
@@ -5015,9 +4770,6 @@ Each index within this list corresponds to the same-numbered index in the mentio
     ///    "id": {
     ///      "type": "string"
     ///    },
-    ///    "image_url": {
-    ///      "type": "string"
-    ///    },
     ///    "name": {
     ///      "type": "string"
     ///    },
@@ -5026,9 +4778,6 @@ Each index within this list corresponds to the same-numbered index in the mentio
     ///      "enum": [
     ///        "channel_dehydrated"
     ///      ]
-    ///    },
-    ///    "viewer_context": {
-    ///      "$ref": "#/components/schemas/ChannelUserContext"
     ///    }
     ///  }
     ///}
@@ -5037,12 +4786,8 @@ Each index within this list corresponds to the same-numbered index in the mentio
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct ChannelDehydrated {
         pub id: ::std::string::String,
-        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub image_url: ::std::option::Option<::std::string::String>,
         pub name: ::std::string::String,
         pub object: ChannelDehydratedObject,
-        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub viewer_context: ::std::option::Option<ChannelUserContext>,
     }
     ///`ChannelDehydratedObject`
     ///
@@ -5113,40 +4858,6 @@ Each index within this list corresponds to the same-numbered index in the mentio
             value: ::std::string::String,
         ) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
-        }
-    }
-    ///Channel's external link.
-    ///
-    /// <details><summary>JSON schema</summary>
-    ///
-    /// ```json
-    ///{
-    ///  "description": "Channel's external link.",
-    ///  "type": "object",
-    ///  "properties": {
-    ///    "title": {
-    ///      "type": "string"
-    ///    },
-    ///    "url": {
-    ///      "type": "string"
-    ///    }
-    ///  }
-    ///}
-    /// ```
-    /// </details>
-    #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
-    pub struct ChannelExternalLink {
-        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub title: ::std::option::Option<::std::string::String>,
-        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub url: ::std::option::Option<::std::string::String>,
-    }
-    impl ::std::default::Default for ChannelExternalLink {
-        fn default() -> Self {
-            Self {
-                title: Default::default(),
-                url: Default::default(),
-            }
         }
     }
     ///`ChannelFollowReqBody`
@@ -5746,83 +5457,6 @@ Each index within this list corresponds to the same-numbered index in the mentio
     impl ::std::convert::From<ChannelDehydrated> for ChannelOrChannelDehydrated {
         fn from(value: ChannelDehydrated) -> Self {
             Self::Variant1(value)
-        }
-    }
-    ///`ChannelPinnedCastHash`
-    ///
-    /// <details><summary>JSON schema</summary>
-    ///
-    /// ```json
-    ///{
-    ///  "examples": [
-    ///    "0x71d5225f77e0164388b1d4c120825f3a2c1f131c"
-    ///  ],
-    ///  "type": "string",
-    ///  "pattern": "^(0x)?[a-fA-F0-9]{40}$"
-    ///}
-    /// ```
-    /// </details>
-    #[derive(::serde::Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-    #[serde(transparent)]
-    pub struct ChannelPinnedCastHash(::std::string::String);
-    impl ::std::ops::Deref for ChannelPinnedCastHash {
-        type Target = ::std::string::String;
-        fn deref(&self) -> &::std::string::String {
-            &self.0
-        }
-    }
-    impl ::std::convert::From<ChannelPinnedCastHash> for ::std::string::String {
-        fn from(value: ChannelPinnedCastHash) -> Self {
-            value.0
-        }
-    }
-    impl ::std::str::FromStr for ChannelPinnedCastHash {
-        type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
-            static PATTERN: ::std::sync::LazyLock<::regress::Regex> = ::std::sync::LazyLock::new(||
-            { ::regress::Regex::new("^(0x)?[a-fA-F0-9]{40}$").unwrap() });
-            if PATTERN.find(value).is_none() {
-                return Err("doesn't match pattern \"^(0x)?[a-fA-F0-9]{40}$\"".into());
-            }
-            Ok(Self(value.to_string()))
-        }
-    }
-    impl ::std::convert::TryFrom<&str> for ChannelPinnedCastHash {
-        type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
-            value.parse()
-        }
-    }
-    impl ::std::convert::TryFrom<&::std::string::String> for ChannelPinnedCastHash {
-        type Error = self::error::ConversionError;
-        fn try_from(
-            value: &::std::string::String,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
-            value.parse()
-        }
-    }
-    impl ::std::convert::TryFrom<::std::string::String> for ChannelPinnedCastHash {
-        type Error = self::error::ConversionError;
-        fn try_from(
-            value: ::std::string::String,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
-            value.parse()
-        }
-    }
-    impl<'de> ::serde::Deserialize<'de> for ChannelPinnedCastHash {
-        fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
-        where
-            D: ::serde::Deserializer<'de>,
-        {
-            ::std::string::String::deserialize(deserializer)?
-                .parse()
-                .map_err(|e: self::error::ConversionError| {
-                    <D::Error as ::serde::de::Error>::custom(e.to_string())
-                })
         }
     }
     ///`ChannelResponse`
@@ -10426,66 +10060,12 @@ Supported formats are image/jpeg, image/gif and image/png*/
     ///{
     ///  "title": "EmbedUrlMetadata",
     ///  "type": "object",
-    ///  "required": [
-    ///    "_status"
-    ///  ],
     ///  "properties": {
-    ///    "_status": {
-    ///      "type": "string"
-    ///    },
-    ///    "content_length": {
-    ///      "type": [
-    ///        "integer",
-    ///        "null"
-    ///      ]
-    ///    },
     ///    "content_type": {
     ///      "type": [
     ///        "string",
     ///        "null"
     ///      ]
-    ///    },
-    ///    "frame": {
-    ///      "$ref": "#/components/schemas/Frame"
-    ///    },
-    ///    "html": {
-    ///      "$ref": "#/components/schemas/HtmlMetadata"
-    ///    },
-    ///    "image": {
-    ///      "type": "object",
-    ///      "properties": {
-    ///        "height_px": {
-    ///          "type": "integer"
-    ///        },
-    ///        "width_px": {
-    ///          "type": "integer"
-    ///        }
-    ///      }
-    ///    },
-    ///    "video": {
-    ///      "type": "object",
-    ///      "properties": {
-    ///        "duration_s": {
-    ///          "type": "number"
-    ///        },
-    ///        "stream": {
-    ///          "type": "array",
-    ///          "items": {
-    ///            "type": "object",
-    ///            "properties": {
-    ///              "codec_name": {
-    ///                "type": "string"
-    ///              },
-    ///              "height_px": {
-    ///                "type": "integer"
-    ///              },
-    ///              "width_px": {
-    ///                "type": "integer"
-    ///              }
-    ///            }
-    ///          }
-    ///        }
-    ///      }
     ///    }
     ///  }
     ///}
@@ -10494,136 +10074,12 @@ Supported formats are image/jpeg, image/gif and image/png*/
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct EmbedUrlMetadata {
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub content_length: ::std::option::Option<i64>,
-        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub content_type: ::std::option::Option<::std::string::String>,
-        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub frame: ::std::option::Option<Frame>,
-        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub html: ::std::option::Option<HtmlMetadata>,
-        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub image: ::std::option::Option<EmbedUrlMetadataImage>,
-        #[serde(rename = "_status")]
-        pub status: ::std::string::String,
-        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub video: ::std::option::Option<EmbedUrlMetadataVideo>,
     }
-    ///`EmbedUrlMetadataImage`
-    ///
-    /// <details><summary>JSON schema</summary>
-    ///
-    /// ```json
-    ///{
-    ///  "type": "object",
-    ///  "properties": {
-    ///    "height_px": {
-    ///      "type": "integer"
-    ///    },
-    ///    "width_px": {
-    ///      "type": "integer"
-    ///    }
-    ///  }
-    ///}
-    /// ```
-    /// </details>
-    #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
-    pub struct EmbedUrlMetadataImage {
-        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub height_px: ::std::option::Option<i64>,
-        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub width_px: ::std::option::Option<i64>,
-    }
-    impl ::std::default::Default for EmbedUrlMetadataImage {
+    impl ::std::default::Default for EmbedUrlMetadata {
         fn default() -> Self {
             Self {
-                height_px: Default::default(),
-                width_px: Default::default(),
-            }
-        }
-    }
-    ///`EmbedUrlMetadataVideo`
-    ///
-    /// <details><summary>JSON schema</summary>
-    ///
-    /// ```json
-    ///{
-    ///  "type": "object",
-    ///  "properties": {
-    ///    "duration_s": {
-    ///      "type": "number"
-    ///    },
-    ///    "stream": {
-    ///      "type": "array",
-    ///      "items": {
-    ///        "type": "object",
-    ///        "properties": {
-    ///          "codec_name": {
-    ///            "type": "string"
-    ///          },
-    ///          "height_px": {
-    ///            "type": "integer"
-    ///          },
-    ///          "width_px": {
-    ///            "type": "integer"
-    ///          }
-    ///        }
-    ///      }
-    ///    }
-    ///  }
-    ///}
-    /// ```
-    /// </details>
-    #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
-    pub struct EmbedUrlMetadataVideo {
-        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub duration_s: ::std::option::Option<f64>,
-        #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
-        pub stream: ::std::vec::Vec<EmbedUrlMetadataVideoStreamItem>,
-    }
-    impl ::std::default::Default for EmbedUrlMetadataVideo {
-        fn default() -> Self {
-            Self {
-                duration_s: Default::default(),
-                stream: Default::default(),
-            }
-        }
-    }
-    ///`EmbedUrlMetadataVideoStreamItem`
-    ///
-    /// <details><summary>JSON schema</summary>
-    ///
-    /// ```json
-    ///{
-    ///  "type": "object",
-    ///  "properties": {
-    ///    "codec_name": {
-    ///      "type": "string"
-    ///    },
-    ///    "height_px": {
-    ///      "type": "integer"
-    ///    },
-    ///    "width_px": {
-    ///      "type": "integer"
-    ///    }
-    ///  }
-    ///}
-    /// ```
-    /// </details>
-    #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
-    pub struct EmbedUrlMetadataVideoStreamItem {
-        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub codec_name: ::std::option::Option<::std::string::String>,
-        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub height_px: ::std::option::Option<i64>,
-        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub width_px: ::std::option::Option<i64>,
-    }
-    impl ::std::default::Default for EmbedUrlMetadataVideoStreamItem {
-        fn default() -> Self {
-            Self {
-                codec_name: Default::default(),
-                height_px: Default::default(),
-                width_px: Default::default(),
+                content_type: Default::default(),
             }
         }
     }
@@ -37910,38 +37366,14 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     ///  "title": "User",
     ///  "type": "object",
     ///  "required": [
-    ///    "auth_addresses",
-    ///    "custody_address",
     ///    "fid",
     ///    "follower_count",
     ///    "following_count",
     ///    "object",
     ///    "profile",
-    ///    "registered_at",
-    ///    "username",
-    ///    "verifications",
-    ///    "verified_accounts",
-    ///    "verified_addresses"
+    ///    "username"
     ///  ],
     ///  "properties": {
-    ///    "auth_addresses": {
-    ///      "type": "array",
-    ///      "items": {
-    ///        "type": "object",
-    ///        "required": [
-    ///          "address",
-    ///          "app"
-    ///        ],
-    ///        "properties": {
-    ///          "address": {
-    ///            "$ref": "#/components/schemas/EthAddress"
-    ///          },
-    ///          "app": {
-    ///            "$ref": "#/components/schemas/UserDehydrated"
-    ///          }
-    ///        }
-    ///      }
-    ///    },
     ///    "custody_address": {
     ///      "$ref": "#/components/schemas/EthAddress"
     ///    },
@@ -37950,22 +37382,6 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     ///        "string",
     ///        "null"
     ///      ]
-    ///    },
-    ///    "experimental": {
-    ///      "type": "object",
-    ///      "required": [
-    ///        "neynar_user_score"
-    ///      ],
-    ///      "properties": {
-    ///        "deprecation_notice": {
-    ///          "type": "string"
-    ///        },
-    ///        "neynar_user_score": {
-    ///          "description": "Score that represents the probability that the account is not spam.",
-    ///          "type": "number",
-    ///          "format": "double"
-    ///        }
-    ///      }
     ///    },
     ///    "fid": {
     ///      "$ref": "#/components/schemas/Fid"
@@ -37986,94 +37402,22 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     ///        "user"
     ///      ]
     ///    },
-    ///    "pfp_url": {
-    ///      "description": "The URL of the user's profile picture",
-    ///      "type": [
-    ///        "string",
-    ///        "null"
-    ///      ]
-    ///    },
-    ///    "pro": {
-    ///      "type": "object",
-    ///      "required": [
-    ///        "expires_at",
-    ///        "status",
-    ///        "subscribed_at"
-    ///      ],
-    ///      "properties": {
-    ///        "expires_at": {
-    ///          "type": "string",
-    ///          "format": "date-time"
-    ///        },
-    ///        "status": {
-    ///          "description": "The subscription status of the user",
-    ///          "type": "string",
-    ///          "enum": [
-    ///            "subscribed",
-    ///            "unsubscribed"
-    ///          ]
-    ///        },
-    ///        "subscribed_at": {
-    ///          "type": "string",
-    ///          "format": "date-time"
-    ///        }
-    ///      }
-    ///    },
     ///    "profile": {
     ///      "type": "object",
     ///      "required": [
     ///        "bio"
     ///      ],
     ///      "properties": {
-    ///        "banner": {
-    ///          "type": "object",
-    ///          "properties": {
-    ///            "url": {
-    ///              "description": "The URL of the user's banner image",
-    ///              "type": "string",
-    ///              "format": "uri"
-    ///            }
-    ///          }
-    ///        },
     ///        "bio": {
     ///          "type": "object",
     ///          "required": [
     ///            "text"
     ///          ],
     ///          "properties": {
-    ///            "mentioned_channels": {
-    ///              "type": "array",
-    ///              "items": {
-    ///                "$ref": "#/components/schemas/ChannelDehydrated"
-    ///              }
-    ///            },
-    ///            "mentioned_channels_ranges": {
-    ///              "description": "Positions within the text (inclusive start, exclusive end) where each mention occurs.\nEach index within this list corresponds to the same-numbered index in the mentioned_channels list.",
-    ///              "type": "array",
-    ///              "items": {
-    ///                "$ref": "#/components/schemas/TextRange"
-    ///              }
-    ///            },
-    ///            "mentioned_profiles": {
-    ///              "type": "array",
-    ///              "items": {
-    ///                "$ref": "#/components/schemas/UserDehydrated"
-    ///              }
-    ///            },
-    ///            "mentioned_profiles_ranges": {
-    ///              "description": "Positions within the text (inclusive start, exclusive end) where each mention occurs.\nEach index within this list corresponds to the same-numbered index in the mentioned_profiles list.",
-    ///              "type": "array",
-    ///              "items": {
-    ///                "$ref": "#/components/schemas/TextRange"
-    ///              }
-    ///            },
     ///            "text": {
     ///              "type": "string"
     ///            }
     ///          }
-    ///        },
-    ///        "location": {
-    ///          "$ref": "#/components/schemas/Location"
     ///        }
     ///      }
     ///    },
@@ -38081,102 +37425,8 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     ///      "type": "string",
     ///      "format": "date-time"
     ///    },
-    ///    "score": {
-    ///      "description": "Score that represents the probability that the account is not spam.",
-    ///      "type": "number",
-    ///      "format": "double"
-    ///    },
     ///    "username": {
     ///      "type": "string"
-    ///    },
-    ///    "verifications": {
-    ///      "type": "array",
-    ///      "items": {
-    ///        "$ref": "#/components/schemas/EthAddress"
-    ///      }
-    ///    },
-    ///    "verified_accounts": {
-    ///      "type": "array",
-    ///      "items": {
-    ///        "description": "Verified accounts of the user on other platforms, currently only X is supported.",
-    ///        "type": "object",
-    ///        "properties": {
-    ///          "platform": {
-    ///            "type": "string",
-    ///            "enum": [
-    ///              "x",
-    ///              "github"
-    ///            ]
-    ///          },
-    ///          "username": {
-    ///            "type": "string"
-    ///          }
-    ///        }
-    ///      }
-    ///    },
-    ///    "verified_addresses": {
-    ///      "type": "object",
-    ///      "required": [
-    ///        "eth_addresses",
-    ///        "primary",
-    ///        "sol_addresses"
-    ///      ],
-    ///      "properties": {
-    ///        "eth_addresses": {
-    ///          "description": "List of verified Ethereum addresses of the user sorted by oldest to most recent.",
-    ///          "type": "array",
-    ///          "items": {
-    ///            "$ref": "#/components/schemas/EthAddress"
-    ///          }
-    ///        },
-    ///        "primary": {
-    ///          "type": "object",
-    ///          "required": [
-    ///            "eth_address",
-    ///            "sol_address"
-    ///          ],
-    ///          "properties": {
-    ///            "eth_address": {
-    ///              "oneOf": [
-    ///                {
-    ///                  "type": "null"
-    ///                },
-    ///                {
-    ///                  "allOf": [
-    ///                    {
-    ///                      "$ref": "#/components/schemas/EthAddress"
-    ///                    }
-    ///                  ]
-    ///                }
-    ///              ]
-    ///            },
-    ///            "sol_address": {
-    ///              "oneOf": [
-    ///                {
-    ///                  "type": "null"
-    ///                },
-    ///                {
-    ///                  "allOf": [
-    ///                    {
-    ///                      "$ref": "#/components/schemas/SolAddress"
-    ///                    }
-    ///                  ]
-    ///                }
-    ///              ]
-    ///            }
-    ///          }
-    ///        },
-    ///        "sol_addresses": {
-    ///          "description": "List of verified Solana addresses of the user sorted by oldest to most recent.",
-    ///          "type": "array",
-    ///          "items": {
-    ///            "$ref": "#/components/schemas/SolAddress"
-    ///          }
-    ///        }
-    ///      }
-    ///    },
-    ///    "viewer_context": {
-    ///      "$ref": "#/components/schemas/UserViewerContext"
     ///    }
     ///  }
     ///}
@@ -38184,61 +37434,22 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     /// </details>
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct User {
-        pub auth_addresses: ::std::vec::Vec<UserAuthAddressesItem>,
-        pub custody_address: EthAddress,
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        pub custody_address: ::std::option::Option<EthAddress>,
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub display_name: ::std::option::Option<::std::string::String>,
-        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub experimental: ::std::option::Option<UserExperimental>,
         pub fid: Fid,
         ///The number of followers the user has.
         pub follower_count: i32,
         ///The number of users the user is following.
         pub following_count: i32,
         pub object: UserObject,
-        ///The URL of the user's profile picture
-        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub pfp_url: ::std::option::Option<::std::string::String>,
-        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub pro: ::std::option::Option<UserPro>,
         pub profile: UserProfile,
-        pub registered_at: ::chrono::DateTime<::chrono::offset::Utc>,
-        ///Score that represents the probability that the account is not spam.
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub score: ::std::option::Option<f64>,
+        pub registered_at: ::std::option::Option<
+            ::chrono::DateTime<::chrono::offset::Utc>,
+        >,
         pub username: ::std::string::String,
-        pub verifications: ::std::vec::Vec<EthAddress>,
-        pub verified_accounts: ::std::vec::Vec<UserVerifiedAccountsItem>,
-        pub verified_addresses: UserVerifiedAddresses,
-        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub viewer_context: ::std::option::Option<UserViewerContext>,
-    }
-    ///`UserAuthAddressesItem`
-    ///
-    /// <details><summary>JSON schema</summary>
-    ///
-    /// ```json
-    ///{
-    ///  "type": "object",
-    ///  "required": [
-    ///    "address",
-    ///    "app"
-    ///  ],
-    ///  "properties": {
-    ///    "address": {
-    ///      "$ref": "#/components/schemas/EthAddress"
-    ///    },
-    ///    "app": {
-    ///      "$ref": "#/components/schemas/UserDehydrated"
-    ///    }
-    ///  }
-    ///}
-    /// ```
-    /// </details>
-    #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
-    pub struct UserAuthAddressesItem {
-        pub address: EthAddress,
-        pub app: UserDehydrated,
     }
     ///`UserDehydrated`
     ///
@@ -38271,15 +37482,6 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     ///        "user_dehydrated"
     ///      ]
     ///    },
-    ///    "pfp_url": {
-    ///      "type": [
-    ///        "string",
-    ///        "null"
-    ///      ]
-    ///    },
-    ///    "score": {
-    ///      "type": "number"
-    ///    },
     ///    "username": {
     ///      "type": "string"
     ///    }
@@ -38295,10 +37497,6 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
         pub display_name: ::std::option::Option<::std::string::String>,
         pub fid: Fid,
         pub object: UserDehydratedObject,
-        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub pfp_url: ::std::option::Option<::std::string::String>,
-        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub score: ::std::option::Option<f64>,
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub username: ::std::option::Option<::std::string::String>,
     }
@@ -38372,36 +37570,6 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
         ) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
-    }
-    ///`UserExperimental`
-    ///
-    /// <details><summary>JSON schema</summary>
-    ///
-    /// ```json
-    ///{
-    ///  "type": "object",
-    ///  "required": [
-    ///    "neynar_user_score"
-    ///  ],
-    ///  "properties": {
-    ///    "deprecation_notice": {
-    ///      "type": "string"
-    ///    },
-    ///    "neynar_user_score": {
-    ///      "description": "Score that represents the probability that the account is not spam.",
-    ///      "type": "number",
-    ///      "format": "double"
-    ///    }
-    ///  }
-    ///}
-    /// ```
-    /// </details>
-    #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
-    pub struct UserExperimental {
-        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub deprecation_notice: ::std::option::Option<::std::string::String>,
-        ///Score that represents the probability that the account is not spam.
-        pub neynar_user_score: f64,
     }
     ///`UserFidResponse`
     ///
@@ -38559,123 +37727,6 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
         ///List of FIDs
         pub fids: ::std::vec::Vec<Fid>,
     }
-    ///`UserPro`
-    ///
-    /// <details><summary>JSON schema</summary>
-    ///
-    /// ```json
-    ///{
-    ///  "type": "object",
-    ///  "required": [
-    ///    "expires_at",
-    ///    "status",
-    ///    "subscribed_at"
-    ///  ],
-    ///  "properties": {
-    ///    "expires_at": {
-    ///      "type": "string",
-    ///      "format": "date-time"
-    ///    },
-    ///    "status": {
-    ///      "description": "The subscription status of the user",
-    ///      "type": "string",
-    ///      "enum": [
-    ///        "subscribed",
-    ///        "unsubscribed"
-    ///      ]
-    ///    },
-    ///    "subscribed_at": {
-    ///      "type": "string",
-    ///      "format": "date-time"
-    ///    }
-    ///  }
-    ///}
-    /// ```
-    /// </details>
-    #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
-    pub struct UserPro {
-        pub expires_at: ::chrono::DateTime<::chrono::offset::Utc>,
-        ///The subscription status of the user
-        pub status: UserProStatus,
-        pub subscribed_at: ::chrono::DateTime<::chrono::offset::Utc>,
-    }
-    ///The subscription status of the user
-    ///
-    /// <details><summary>JSON schema</summary>
-    ///
-    /// ```json
-    ///{
-    ///  "description": "The subscription status of the user",
-    ///  "type": "string",
-    ///  "enum": [
-    ///    "subscribed",
-    ///    "unsubscribed"
-    ///  ]
-    ///}
-    /// ```
-    /// </details>
-    #[derive(
-        ::serde::Deserialize,
-        ::serde::Serialize,
-        Clone,
-        Copy,
-        Debug,
-        Eq,
-        Hash,
-        Ord,
-        PartialEq,
-        PartialOrd
-    )]
-    pub enum UserProStatus {
-        #[serde(rename = "subscribed")]
-        Subscribed,
-        #[serde(rename = "unsubscribed")]
-        Unsubscribed,
-    }
-    impl ::std::fmt::Display for UserProStatus {
-        fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
-            match *self {
-                Self::Subscribed => f.write_str("subscribed"),
-                Self::Unsubscribed => f.write_str("unsubscribed"),
-            }
-        }
-    }
-    impl ::std::str::FromStr for UserProStatus {
-        type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
-            match value {
-                "subscribed" => Ok(Self::Subscribed),
-                "unsubscribed" => Ok(Self::Unsubscribed),
-                _ => Err("invalid value".into()),
-            }
-        }
-    }
-    impl ::std::convert::TryFrom<&str> for UserProStatus {
-        type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
-            value.parse()
-        }
-    }
-    impl ::std::convert::TryFrom<&::std::string::String> for UserProStatus {
-        type Error = self::error::ConversionError;
-        fn try_from(
-            value: &::std::string::String,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
-            value.parse()
-        }
-    }
-    impl ::std::convert::TryFrom<::std::string::String> for UserProStatus {
-        type Error = self::error::ConversionError;
-        fn try_from(
-            value: ::std::string::String,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
-            value.parse()
-        }
-    }
     ///`UserProfile`
     ///
     /// <details><summary>JSON schema</summary>
@@ -38687,55 +37738,16 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     ///    "bio"
     ///  ],
     ///  "properties": {
-    ///    "banner": {
-    ///      "type": "object",
-    ///      "properties": {
-    ///        "url": {
-    ///          "description": "The URL of the user's banner image",
-    ///          "type": "string",
-    ///          "format": "uri"
-    ///        }
-    ///      }
-    ///    },
     ///    "bio": {
     ///      "type": "object",
     ///      "required": [
     ///        "text"
     ///      ],
     ///      "properties": {
-    ///        "mentioned_channels": {
-    ///          "type": "array",
-    ///          "items": {
-    ///            "$ref": "#/components/schemas/ChannelDehydrated"
-    ///          }
-    ///        },
-    ///        "mentioned_channels_ranges": {
-    ///          "description": "Positions within the text (inclusive start, exclusive end) where each mention occurs.\nEach index within this list corresponds to the same-numbered index in the mentioned_channels list.",
-    ///          "type": "array",
-    ///          "items": {
-    ///            "$ref": "#/components/schemas/TextRange"
-    ///          }
-    ///        },
-    ///        "mentioned_profiles": {
-    ///          "type": "array",
-    ///          "items": {
-    ///            "$ref": "#/components/schemas/UserDehydrated"
-    ///          }
-    ///        },
-    ///        "mentioned_profiles_ranges": {
-    ///          "description": "Positions within the text (inclusive start, exclusive end) where each mention occurs.\nEach index within this list corresponds to the same-numbered index in the mentioned_profiles list.",
-    ///          "type": "array",
-    ///          "items": {
-    ///            "$ref": "#/components/schemas/TextRange"
-    ///          }
-    ///        },
     ///        "text": {
     ///          "type": "string"
     ///        }
     ///      }
-    ///    },
-    ///    "location": {
-    ///      "$ref": "#/components/schemas/Location"
     ///    }
     ///  }
     ///}
@@ -38743,39 +37755,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     /// </details>
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct UserProfile {
-        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub banner: ::std::option::Option<UserProfileBanner>,
         pub bio: UserProfileBio,
-        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub location: ::std::option::Option<Location>,
-    }
-    ///`UserProfileBanner`
-    ///
-    /// <details><summary>JSON schema</summary>
-    ///
-    /// ```json
-    ///{
-    ///  "type": "object",
-    ///  "properties": {
-    ///    "url": {
-    ///      "description": "The URL of the user's banner image",
-    ///      "type": "string",
-    ///      "format": "uri"
-    ///    }
-    ///  }
-    ///}
-    /// ```
-    /// </details>
-    #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
-    pub struct UserProfileBanner {
-        ///The URL of the user's banner image
-        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub url: ::std::option::Option<::std::string::String>,
-    }
-    impl ::std::default::Default for UserProfileBanner {
-        fn default() -> Self {
-            Self { url: Default::default() }
-        }
     }
     ///`UserProfileBio`
     ///
@@ -38788,32 +37768,6 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     ///    "text"
     ///  ],
     ///  "properties": {
-    ///    "mentioned_channels": {
-    ///      "type": "array",
-    ///      "items": {
-    ///        "$ref": "#/components/schemas/ChannelDehydrated"
-    ///      }
-    ///    },
-    ///    "mentioned_channels_ranges": {
-    ///      "description": "Positions within the text (inclusive start, exclusive end) where each mention occurs.\nEach index within this list corresponds to the same-numbered index in the mentioned_channels list.",
-    ///      "type": "array",
-    ///      "items": {
-    ///        "$ref": "#/components/schemas/TextRange"
-    ///      }
-    ///    },
-    ///    "mentioned_profiles": {
-    ///      "type": "array",
-    ///      "items": {
-    ///        "$ref": "#/components/schemas/UserDehydrated"
-    ///      }
-    ///    },
-    ///    "mentioned_profiles_ranges": {
-    ///      "description": "Positions within the text (inclusive start, exclusive end) where each mention occurs.\nEach index within this list corresponds to the same-numbered index in the mentioned_profiles list.",
-    ///      "type": "array",
-    ///      "items": {
-    ///        "$ref": "#/components/schemas/TextRange"
-    ///      }
-    ///    },
     ///    "text": {
     ///      "type": "string"
     ///    }
@@ -38823,18 +37777,6 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     /// </details>
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct UserProfileBio {
-        #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
-        pub mentioned_channels: ::std::vec::Vec<ChannelDehydrated>,
-        /**Positions within the text (inclusive start, exclusive end) where each mention occurs.
-Each index within this list corresponds to the same-numbered index in the mentioned_channels list.*/
-        #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
-        pub mentioned_channels_ranges: ::std::vec::Vec<TextRange>,
-        #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
-        pub mentioned_profiles: ::std::vec::Vec<UserDehydrated>,
-        /**Positions within the text (inclusive start, exclusive end) where each mention occurs.
-Each index within this list corresponds to the same-numbered index in the mentioned_profiles list.*/
-        #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
-        pub mentioned_profiles_ranges: ::std::vec::Vec<TextRange>,
         pub text: ::std::string::String,
     }
     ///`UserResponse`
@@ -38926,247 +37868,6 @@ Each index within this list corresponds to the same-numbered index in the mentio
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub next: ::std::option::Option<NextCursor>,
         pub users: ::std::vec::Vec<User>,
-    }
-    ///Verified accounts of the user on other platforms, currently only X is supported.
-    ///
-    /// <details><summary>JSON schema</summary>
-    ///
-    /// ```json
-    ///{
-    ///  "description": "Verified accounts of the user on other platforms, currently only X is supported.",
-    ///  "type": "object",
-    ///  "properties": {
-    ///    "platform": {
-    ///      "type": "string",
-    ///      "enum": [
-    ///        "x",
-    ///        "github"
-    ///      ]
-    ///    },
-    ///    "username": {
-    ///      "type": "string"
-    ///    }
-    ///  }
-    ///}
-    /// ```
-    /// </details>
-    #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
-    pub struct UserVerifiedAccountsItem {
-        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub platform: ::std::option::Option<UserVerifiedAccountsItemPlatform>,
-        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub username: ::std::option::Option<::std::string::String>,
-    }
-    impl ::std::default::Default for UserVerifiedAccountsItem {
-        fn default() -> Self {
-            Self {
-                platform: Default::default(),
-                username: Default::default(),
-            }
-        }
-    }
-    ///`UserVerifiedAccountsItemPlatform`
-    ///
-    /// <details><summary>JSON schema</summary>
-    ///
-    /// ```json
-    ///{
-    ///  "type": "string",
-    ///  "enum": [
-    ///    "x",
-    ///    "github"
-    ///  ]
-    ///}
-    /// ```
-    /// </details>
-    #[derive(
-        ::serde::Deserialize,
-        ::serde::Serialize,
-        Clone,
-        Copy,
-        Debug,
-        Eq,
-        Hash,
-        Ord,
-        PartialEq,
-        PartialOrd
-    )]
-    pub enum UserVerifiedAccountsItemPlatform {
-        #[serde(rename = "x")]
-        X,
-        #[serde(rename = "github")]
-        Github,
-    }
-    impl ::std::fmt::Display for UserVerifiedAccountsItemPlatform {
-        fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
-            match *self {
-                Self::X => f.write_str("x"),
-                Self::Github => f.write_str("github"),
-            }
-        }
-    }
-    impl ::std::str::FromStr for UserVerifiedAccountsItemPlatform {
-        type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
-            match value {
-                "x" => Ok(Self::X),
-                "github" => Ok(Self::Github),
-                _ => Err("invalid value".into()),
-            }
-        }
-    }
-    impl ::std::convert::TryFrom<&str> for UserVerifiedAccountsItemPlatform {
-        type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
-            value.parse()
-        }
-    }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for UserVerifiedAccountsItemPlatform {
-        type Error = self::error::ConversionError;
-        fn try_from(
-            value: &::std::string::String,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
-            value.parse()
-        }
-    }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for UserVerifiedAccountsItemPlatform {
-        type Error = self::error::ConversionError;
-        fn try_from(
-            value: ::std::string::String,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
-            value.parse()
-        }
-    }
-    ///`UserVerifiedAddresses`
-    ///
-    /// <details><summary>JSON schema</summary>
-    ///
-    /// ```json
-    ///{
-    ///  "type": "object",
-    ///  "required": [
-    ///    "eth_addresses",
-    ///    "primary",
-    ///    "sol_addresses"
-    ///  ],
-    ///  "properties": {
-    ///    "eth_addresses": {
-    ///      "description": "List of verified Ethereum addresses of the user sorted by oldest to most recent.",
-    ///      "type": "array",
-    ///      "items": {
-    ///        "$ref": "#/components/schemas/EthAddress"
-    ///      }
-    ///    },
-    ///    "primary": {
-    ///      "type": "object",
-    ///      "required": [
-    ///        "eth_address",
-    ///        "sol_address"
-    ///      ],
-    ///      "properties": {
-    ///        "eth_address": {
-    ///          "oneOf": [
-    ///            {
-    ///              "type": "null"
-    ///            },
-    ///            {
-    ///              "allOf": [
-    ///                {
-    ///                  "$ref": "#/components/schemas/EthAddress"
-    ///                }
-    ///              ]
-    ///            }
-    ///          ]
-    ///        },
-    ///        "sol_address": {
-    ///          "oneOf": [
-    ///            {
-    ///              "type": "null"
-    ///            },
-    ///            {
-    ///              "allOf": [
-    ///                {
-    ///                  "$ref": "#/components/schemas/SolAddress"
-    ///                }
-    ///              ]
-    ///            }
-    ///          ]
-    ///        }
-    ///      }
-    ///    },
-    ///    "sol_addresses": {
-    ///      "description": "List of verified Solana addresses of the user sorted by oldest to most recent.",
-    ///      "type": "array",
-    ///      "items": {
-    ///        "$ref": "#/components/schemas/SolAddress"
-    ///      }
-    ///    }
-    ///  }
-    ///}
-    /// ```
-    /// </details>
-    #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
-    pub struct UserVerifiedAddresses {
-        ///List of verified Ethereum addresses of the user sorted by oldest to most recent.
-        pub eth_addresses: ::std::vec::Vec<EthAddress>,
-        pub primary: UserVerifiedAddressesPrimary,
-        ///List of verified Solana addresses of the user sorted by oldest to most recent.
-        pub sol_addresses: ::std::vec::Vec<SolAddress>,
-    }
-    ///`UserVerifiedAddressesPrimary`
-    ///
-    /// <details><summary>JSON schema</summary>
-    ///
-    /// ```json
-    ///{
-    ///  "type": "object",
-    ///  "required": [
-    ///    "eth_address",
-    ///    "sol_address"
-    ///  ],
-    ///  "properties": {
-    ///    "eth_address": {
-    ///      "oneOf": [
-    ///        {
-    ///          "type": "null"
-    ///        },
-    ///        {
-    ///          "allOf": [
-    ///            {
-    ///              "$ref": "#/components/schemas/EthAddress"
-    ///            }
-    ///          ]
-    ///        }
-    ///      ]
-    ///    },
-    ///    "sol_address": {
-    ///      "oneOf": [
-    ///        {
-    ///          "type": "null"
-    ///        },
-    ///        {
-    ///          "allOf": [
-    ///            {
-    ///              "$ref": "#/components/schemas/SolAddress"
-    ///            }
-    ///          ]
-    ///        }
-    ///      ]
-    ///    }
-    ///  }
-    ///}
-    /// ```
-    /// </details>
-    #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
-    pub struct UserVerifiedAddressesPrimary {
-        pub eth_address: ::std::option::Option<EthAddress>,
-        pub sol_address: ::std::option::Option<SolAddress>,
     }
     ///Adds context on the viewer's follow relationship with the user.
     ///

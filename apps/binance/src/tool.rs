@@ -1,15 +1,32 @@
-use aomi_ext::binance::{
-    Binance24hrStatsResponse, BinanceAccountResponse, BinanceClient, BinanceDepthResponse,
-    BinanceKlineResponse, BinanceOrderResponse, BinancePriceResponse, BinanceTradeList,
-    SPOT_BASE_URL,
-};
-use aomi_sdk::*;
+//! Curated tool layer for Binance Spot. Hand-written from the
+//! progenitor-generated client in `aomi_ext::binance` — see
+//! `ext/specs/binance.yaml` for the underlying surface and
+//! `ext/src/binance/auth.rs` for the HMAC-SHA256 signing helpers.
+//!
+//! Designed for the user story: trade BTC/ETH spot on Binance — check
+//! prices/depth/klines/24h stats, place and cancel orders, view balances and
+//! personal fill history.
+//!
+//! 8 curated tools (preserved from the prior hand-written client):
+//!   * binance_get_price        — last price for one or all spot symbols
+//!   * binance_get_depth        — order-book bids/asks
+//!   * binance_get_klines       — OHLCV candles
+//!   * binance_get_24hr_stats   — rolling 24h price-change stats
+//!   * binance_place_order      — place a spot order (signed)
+//!   * binance_cancel_order     — cancel an open order (signed)
+//!   * binance_get_account      — balances and permissions (signed)
+//!   * binance_get_trades       — personal fill history on one symbol (signed)
+
+use aomi_ext::binance::{build_query, current_timestamp_ms, sign, Client as BinanceClient};
 use aomi_sdk::schemars::JsonSchema;
+use aomi_sdk::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
+use serde_json::{json, Value};
 
 #[derive(Clone, Default)]
 pub(crate) struct BinanceApp;
+
+const BASE_URL: &str = "https://api.binance.com";
 
 // ============================================================================
 // Helpers
@@ -23,29 +40,45 @@ fn ok<T: Serialize>(value: T) -> Result<Value, String> {
             map.insert("source".to_string(), Value::String("binance".to_string()));
             Value::Object(map)
         }
-        other => serde_json::json!({ "source": "binance", "data": other }),
+        other => json!({ "source": "binance", "data": other }),
     })
 }
 
-fn resolve_binance_credentials(
+fn rt() -> Result<tokio::runtime::Runtime, String> {
+    tokio::runtime::Runtime::new().map_err(|e| format!("[binance] runtime: {e}"))
+}
+
+fn resolve_creds(
     api_key: Option<&str>,
     secret_key: Option<&str>,
 ) -> Result<(String, String), String> {
-    let api_key = resolve_secret_value(
+    let api = resolve_secret_value(
         api_key,
         "BINANCE_API_KEY",
         "[binance] missing api_key argument and BINANCE_API_KEY environment variable",
     )?;
-    let secret_key = resolve_secret_value(
+    let sec = resolve_secret_value(
         secret_key,
         "BINANCE_SECRET_KEY",
         "[binance] missing secret_key argument and BINANCE_SECRET_KEY environment variable",
     )?;
-    Ok((api_key, secret_key))
+    Ok((api, sec))
+}
+
+/// Build the canonical query string Binance signs, then compute the HMAC.
+/// `pairs` MUST be in the same order the generated client emits them on the
+/// wire (excluding `signature`, which is computed here and appended).
+fn sign_query(secret: &str, pairs: &[(&str, Option<String>)]) -> Result<(i64, String), String> {
+    let timestamp = current_timestamp_ms()?;
+    let mut all: Vec<(&str, Option<String>)> = pairs.to_vec();
+    all.push(("timestamp", Some(timestamp.to_string())));
+    let query = build_query(&all);
+    let signature = sign(secret, &query)?;
+    Ok((timestamp, signature))
 }
 
 // ============================================================================
-// Tool 1: GetPrice — GET /ticker/price (public)
+// Tool 1: GetPrice — GET /api/v3/ticker/price (public)
 // ============================================================================
 
 pub(crate) struct GetPrice;
@@ -64,17 +97,21 @@ impl DynAomiTool for GetPrice {
         "Use when the user asks the latest spot price of a pair. Returns the current price for one symbol (e.g. BTCUSDT), or every pair when symbol is omitted.";
 
     fn run(_app: &BinanceApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let client = BinanceClient::new()?;
-        let query = match &args.symbol {
-            Some(s) => format!("symbol={s}"),
-            None => String::new(),
-        };
-        ok(client.public_get::<BinancePriceResponse>(SPOT_BASE_URL, "/ticker/price", &query)?)
+        let runtime = rt()?;
+        runtime.block_on(async move {
+            let client = BinanceClient::new(BASE_URL);
+            let resp = client
+                .get_ticker_price(args.symbol.as_deref())
+                .await
+                .map_err(|e| format!("[binance] get_ticker_price: {e}"))?
+                .into_inner();
+            ok(resp)
+        })
     }
 }
 
 // ============================================================================
-// Tool 2: GetDepth — GET /depth (public)
+// Tool 2: GetDepth — GET /api/v3/depth (public)
 // ============================================================================
 
 pub(crate) struct GetDepth;
@@ -94,17 +131,22 @@ impl DynAomiTool for GetDepth {
     const DESCRIPTION: &'static str = "Use when the user wants order-book depth (top bids/asks and sizes) for a spot pair, e.g. before placing a limit order or to gauge liquidity. Default depth is 100 levels.";
 
     fn run(_app: &BinanceApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let client = BinanceClient::new()?;
-        let mut query = format!("symbol={}", args.symbol);
-        if let Some(limit) = args.limit {
-            query.push_str(&format!("&limit={limit}"));
-        }
-        ok(client.public_get::<BinanceDepthResponse>(SPOT_BASE_URL, "/depth", &query)?)
+        let runtime = rt()?;
+        runtime.block_on(async move {
+            let client = BinanceClient::new(BASE_URL);
+            let limit = args.limit.map(|l| l as i32);
+            let resp = client
+                .get_depth(limit, args.symbol.as_str())
+                .await
+                .map_err(|e| format!("[binance] get_depth: {e}"))?
+                .into_inner();
+            ok(resp)
+        })
     }
 }
 
 // ============================================================================
-// Tool 3: GetKlines — GET /klines (public)
+// Tool 3: GetKlines — GET /api/v3/klines (public)
 // ============================================================================
 
 pub(crate) struct GetKlines;
@@ -130,23 +172,24 @@ impl DynAomiTool for GetKlines {
     const DESCRIPTION: &'static str = "Use when the user asks for price history, charts, or technical analysis of a pair. Returns OHLCV candles as arrays [open_time, open, high, low, close, volume, close_time, quote_volume, trades, taker_buy_base_vol, taker_buy_quote_vol, ignore]. Default 500 candles, max 1000.";
 
     fn run(_app: &BinanceApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let client = BinanceClient::new()?;
-        let mut query = format!("symbol={}&interval={}", args.symbol, args.interval);
-        if let Some(start) = args.start_time {
-            query.push_str(&format!("&startTime={start}"));
-        }
-        if let Some(end) = args.end_time {
-            query.push_str(&format!("&endTime={end}"));
-        }
-        if let Some(limit) = args.limit {
-            query.push_str(&format!("&limit={limit}"));
-        }
-        ok(client.public_get::<BinanceKlineResponse>(SPOT_BASE_URL, "/klines", &query)?)
+        let runtime = rt()?;
+        runtime.block_on(async move {
+            let client = BinanceClient::new(BASE_URL);
+            let limit = args.limit.map(|l| l as i32);
+            let start = args.start_time.map(|t| t as i64);
+            let end = args.end_time.map(|t| t as i64);
+            let resp = client
+                .get_klines(end, args.interval.as_str(), limit, start, args.symbol.as_str())
+                .await
+                .map_err(|e| format!("[binance] get_klines: {e}"))?
+                .into_inner();
+            ok(resp)
+        })
     }
 }
 
 // ============================================================================
-// Tool 4: Get24hrStats — GET /ticker/24hr (public)
+// Tool 4: Get24hrStats — GET /api/v3/ticker/24hr (public)
 // ============================================================================
 
 pub(crate) struct Get24hrStats;
@@ -164,17 +207,21 @@ impl DynAomiTool for Get24hrStats {
     const DESCRIPTION: &'static str = "Use when the user asks how a pair has moved over the past 24 hours (price change %, high/low, volume). Returns rolling 24h stats for one symbol, or all pairs when symbol is omitted.";
 
     fn run(_app: &BinanceApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let client = BinanceClient::new()?;
-        let query = match &args.symbol {
-            Some(s) => format!("symbol={s}"),
-            None => String::new(),
-        };
-        ok(client.public_get::<Binance24hrStatsResponse>(SPOT_BASE_URL, "/ticker/24hr", &query)?)
+        let runtime = rt()?;
+        runtime.block_on(async move {
+            let client = BinanceClient::new(BASE_URL);
+            let resp = client
+                .get24hr_stats(args.symbol.as_deref())
+                .await
+                .map_err(|e| format!("[binance] get24hr_stats: {e}"))?
+                .into_inner();
+            ok(resp)
+        })
     }
 }
 
 // ============================================================================
-// Tool 5: PlaceOrder — POST /order (signed)
+// Tool 5: PlaceOrder — POST /api/v3/order (signed)
 // ============================================================================
 
 pub(crate) struct PlaceOrder;
@@ -206,34 +253,46 @@ impl DynAomiTool for PlaceOrder {
     const DESCRIPTION: &'static str = "Use when the user wants to place a spot order. Supports LIMIT (set price + GTC/IOC/FOK), MARKET (omit price/time_in_force), STOP_LOSS_LIMIT, TAKE_PROFIT_LIMIT. Reads BINANCE_API_KEY/BINANCE_SECRET_KEY from env if api_key/secret_key args are omitted.";
 
     fn run(_app: &BinanceApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let client = BinanceClient::new()?;
         let (api_key, secret_key) =
-            resolve_binance_credentials(args.api_key.as_deref(), args.secret_key.as_deref())?;
-        let mut query = format!(
-            "symbol={}&side={}&type={}",
-            args.symbol, args.side, args.order_type
-        );
-        if let Some(ref tif) = args.time_in_force {
-            query.push_str(&format!("&timeInForce={tif}"));
-        }
-        if let Some(ref qty) = args.quantity {
-            query.push_str(&format!("&quantity={qty}"));
-        }
-        if let Some(ref price) = args.price {
-            query.push_str(&format!("&price={price}"));
-        }
-        ok(client.signed_post::<BinanceOrderResponse>(
-            SPOT_BASE_URL,
-            "/order",
-            &api_key,
-            &secret_key,
-            &query,
-        )?)
+            resolve_creds(args.api_key.as_deref(), args.secret_key.as_deref())?;
+        // Order MUST match the order the generated client emits these on the
+        // wire, EXCLUDING `signature` (computed here) and `timestamp` (appended
+        // by sign_query). See client.rs::place_order for the canonical order:
+        // price, quantity, side, [signature], symbol, timeInForce, timestamp, type.
+        let pairs: Vec<(&str, Option<String>)> = vec![
+            ("price", args.price.clone()),
+            ("quantity", args.quantity.clone()),
+            ("side", Some(args.side.clone())),
+            ("symbol", Some(args.symbol.clone())),
+            ("timeInForce", args.time_in_force.clone()),
+            ("type", Some(args.order_type.clone())),
+        ];
+        let (timestamp, signature) = sign_query(&secret_key, &pairs)?;
+        let runtime = rt()?;
+        runtime.block_on(async move {
+            let client = BinanceClient::new(BASE_URL);
+            let resp = client
+                .place_order(
+                    args.price.as_deref(),
+                    args.quantity.as_deref(),
+                    args.side.as_str(),
+                    signature.as_str(),
+                    args.symbol.as_str(),
+                    args.time_in_force.as_deref(),
+                    timestamp,
+                    args.order_type.as_str(),
+                    api_key.as_str(),
+                )
+                .await
+                .map_err(|e| format!("[binance] place_order: {e}"))?
+                .into_inner();
+            ok(resp)
+        })
     }
 }
 
 // ============================================================================
-// Tool 6: CancelOrder — DELETE /order (signed)
+// Tool 6: CancelOrder — DELETE /api/v3/order (signed)
 // ============================================================================
 
 pub(crate) struct CancelOrder;
@@ -259,28 +318,38 @@ impl DynAomiTool for CancelOrder {
     const DESCRIPTION: &'static str = "Use when the user wants to cancel an open spot order. Provide either order_id (preferred — returned by place_order) or orig_client_order_id. Reads credentials from BINANCE_API_KEY/BINANCE_SECRET_KEY if not passed.";
 
     fn run(_app: &BinanceApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let client = BinanceClient::new()?;
         let (api_key, secret_key) =
-            resolve_binance_credentials(args.api_key.as_deref(), args.secret_key.as_deref())?;
-        let mut query = format!("symbol={}", args.symbol);
-        if let Some(oid) = args.order_id {
-            query.push_str(&format!("&orderId={oid}"));
-        }
-        if let Some(ref cid) = args.orig_client_order_id {
-            query.push_str(&format!("&origClientOrderId={cid}"));
-        }
-        ok(client.signed_delete::<BinanceOrderResponse>(
-            SPOT_BASE_URL,
-            "/order",
-            &api_key,
-            &secret_key,
-            &query,
-        )?)
+            resolve_creds(args.api_key.as_deref(), args.secret_key.as_deref())?;
+        // wire order from cancel_order: orderId, origClientOrderId, [signature], symbol, timestamp.
+        let pairs: Vec<(&str, Option<String>)> = vec![
+            ("orderId", args.order_id.map(|v| v.to_string())),
+            ("origClientOrderId", args.orig_client_order_id.clone()),
+            ("symbol", Some(args.symbol.clone())),
+        ];
+        let (timestamp, signature) = sign_query(&secret_key, &pairs)?;
+        let order_id_i64 = args.order_id.map(|v| v as i64);
+        let runtime = rt()?;
+        runtime.block_on(async move {
+            let client = BinanceClient::new(BASE_URL);
+            let resp = client
+                .cancel_order(
+                    order_id_i64,
+                    args.orig_client_order_id.as_deref(),
+                    signature.as_str(),
+                    args.symbol.as_str(),
+                    timestamp,
+                    api_key.as_str(),
+                )
+                .await
+                .map_err(|e| format!("[binance] cancel_order: {e}"))?
+                .into_inner();
+            ok(resp)
+        })
     }
 }
 
 // ============================================================================
-// Tool 7: GetAccount — GET /account (signed)
+// Tool 7: GetAccount — GET /api/v3/account (signed)
 // ============================================================================
 
 pub(crate) struct GetAccount;
@@ -300,21 +369,25 @@ impl DynAomiTool for GetAccount {
     const DESCRIPTION: &'static str = "Use when the user asks about their Binance balances or account state. Returns free/locked balances for every asset and account-level permissions. Reads BINANCE_API_KEY/BINANCE_SECRET_KEY from env if not passed.";
 
     fn run(_app: &BinanceApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let client = BinanceClient::new()?;
         let (api_key, secret_key) =
-            resolve_binance_credentials(args.api_key.as_deref(), args.secret_key.as_deref())?;
-        ok(client.signed_get::<BinanceAccountResponse>(
-            SPOT_BASE_URL,
-            "/account",
-            &api_key,
-            &secret_key,
-            "",
-        )?)
+            resolve_creds(args.api_key.as_deref(), args.secret_key.as_deref())?;
+        let pairs: Vec<(&str, Option<String>)> = vec![];
+        let (timestamp, signature) = sign_query(&secret_key, &pairs)?;
+        let runtime = rt()?;
+        runtime.block_on(async move {
+            let client = BinanceClient::new(BASE_URL);
+            let resp = client
+                .get_account(signature.as_str(), timestamp, api_key.as_str())
+                .await
+                .map_err(|e| format!("[binance] get_account: {e}"))?
+                .into_inner();
+            ok(resp)
+        })
     }
 }
 
 // ============================================================================
-// Tool 8: GetTrades — GET /myTrades (signed)
+// Tool 8: GetTrades — GET /api/v3/myTrades (signed)
 // ============================================================================
 
 pub(crate) struct GetTrades;
@@ -345,28 +418,39 @@ impl DynAomiTool for GetTrades {
         "Use when the user asks for their personal fill history on a pair (price, qty, fee, timestamp). Pair-scoped — must specify symbol. Default 500 trades, max 1000. Reads credentials from BINANCE_API_KEY/BINANCE_SECRET_KEY if not passed.";
 
     fn run(_app: &BinanceApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let client = BinanceClient::new()?;
         let (api_key, secret_key) =
-            resolve_binance_credentials(args.api_key.as_deref(), args.secret_key.as_deref())?;
-        let mut query = format!("symbol={}", args.symbol);
-        if let Some(from_id) = args.from_id {
-            query.push_str(&format!("&fromId={from_id}"));
-        }
-        if let Some(start) = args.start_time {
-            query.push_str(&format!("&startTime={start}"));
-        }
-        if let Some(end) = args.end_time {
-            query.push_str(&format!("&endTime={end}"));
-        }
-        if let Some(limit) = args.limit {
-            query.push_str(&format!("&limit={limit}"));
-        }
-        ok(client.signed_get::<BinanceTradeList>(
-            SPOT_BASE_URL,
-            "/myTrades",
-            &api_key,
-            &secret_key,
-            &query,
-        )?)
+            resolve_creds(args.api_key.as_deref(), args.secret_key.as_deref())?;
+        // wire order from get_my_trades: endTime, fromId, limit, [signature], startTime, symbol, timestamp.
+        let pairs: Vec<(&str, Option<String>)> = vec![
+            ("endTime", args.end_time.map(|v| v.to_string())),
+            ("fromId", args.from_id.map(|v| v.to_string())),
+            ("limit", args.limit.map(|v| v.to_string())),
+            ("startTime", args.start_time.map(|v| v.to_string())),
+            ("symbol", Some(args.symbol.clone())),
+        ];
+        let (timestamp, signature) = sign_query(&secret_key, &pairs)?;
+        let end = args.end_time.map(|v| v as i64);
+        let from = args.from_id.map(|v| v as i64);
+        let limit = args.limit.map(|v| v as i32);
+        let start = args.start_time.map(|v| v as i64);
+        let runtime = rt()?;
+        runtime.block_on(async move {
+            let client = BinanceClient::new(BASE_URL);
+            let resp = client
+                .get_my_trades(
+                    end,
+                    from,
+                    limit,
+                    signature.as_str(),
+                    start,
+                    args.symbol.as_str(),
+                    timestamp,
+                    api_key.as_str(),
+                )
+                .await
+                .map_err(|e| format!("[binance] get_my_trades: {e}"))?
+                .into_inner();
+            ok(resp)
+        })
     }
 }

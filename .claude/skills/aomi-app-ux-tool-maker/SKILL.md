@@ -108,6 +108,70 @@ The spec's parameter list is an API contract; the user's mental model is much sm
 
 If you find yourself writing more than 6 fields on an Args struct, stop and ask: which 4 of these would the user actually care about? Hardcode or compute the rest.
 
+#### Trim at the spec, not the tool
+
+The generated client returns **typed** responses (e.g. `Vec<Chain>`, `SearchTokensResponse { data: Vec<Token> }`, `BuildDepositResponse`) — not `Value`. The tool body should forward the typed value directly: `ok(response)` or `ok(json!({ "k": response }))`.
+
+If the response is too noisy for the LLM (logoURIs, audit blobs, extension maps, …), **delete those fields from `ext/specs/<platform>.yaml` and regenerate the client.** Don't add a projection layer in `tool.rs`.
+
+Why:
+- **Single source of truth.** The spec describes the API surface the LLM sees. The Rust type IS the slim type.
+- **No drift.** When the spec evolves, the typed struct evolves with it — no parallel `*Summary` struct to keep in sync.
+- **No `From` impls to maintain.** `tool.rs` stays one line per response.
+- **serde silently drops unlisted fields on deserialize**, so trimming the spec produces clean typed responses without breaking deserialization of real (richer) live JSON.
+
+```yaml
+# ❌ Spec includes everything the API actually returns
+Token:
+  type: object
+  properties:
+    chainId:    { type: integer, format: int64 }
+    address:    { type: string }
+    symbol:     { type: string }
+    decimals:   { type: integer }
+    name:       { type: string }
+    logoURI:    { type: string, format: uri }      # UI-only
+    extensions: { type: object, additionalProperties: true }  # loose blob
+
+# ✅ Spec restricted to fields the LLM acts on
+Token:
+  type: object
+  required: [address, chainId, symbol, decimals]
+  properties:
+    chainId:  { type: integer, format: int64 }
+    address:  { type: string }
+    symbol:   { type: string }
+    decimals: { type: integer }
+    name:     { type: string }
+```
+
+```rust
+// Tool body stays trivial after trimming — the typed response IS the slim shape.
+let response = client.search_tokens(...).await?.into_inner();
+ok(response)
+```
+
+Workflow:
+1. Spot a tool that returns more fields than the LLM needs.
+2. Edit `ext/specs/<platform>.yaml` to drop the unwanted fields from the response schema.
+3. `aomi-build gen-client <platform> --shared --force` (or omit `--shared` for app-local).
+4. `cargo build -p <platform>` — typed access just works.
+
+What to trim at the spec layer:
+- **UI-only fields**: `logoURI`, `iconUrl`, `description` HTML, `audits`, `extensions`.
+- **Dev-tooling metadata**: `rpcUrls`, `contracts`, `formatters`, `serializers`, `blockTime`.
+- **Pagination metadata** the tool consumed internally: `totalCount`, `nextCursor` when the tool always returns one page.
+- **Fields that duplicate** something already in the response: don't keep both `chain_id` AND a nested `chain` object with rpcUrls.
+
+What to KEEP in the spec:
+- IDs / addresses / status enums the LLM uses for follow-up tool calls.
+- Numeric amounts the LLM might compare or arithmetic on.
+- One human-readable label per item (`name` or `symbol`) for assistant explanations.
+
+When the spec marks a response as `additionalProperties: true`, the client returns `Map<String, Value>` (genuinely untyped) — Value-walking is unavoidable there. **The fix is `aomi-build tighten-spec <platform>`**: capture real responses to `ext/specs/<platform>.samples/` and run tighten-spec to infer concrete schemas. Then trim what you don't want as above.
+
+The escape hatch (one endpoint serves multiple tool intents needing different shapes) is to add a `*Summary` struct in `tool.rs` — but that's an exception that needs justification, not the default.
+
 #### Code patterns
 
 - Keep the `<Platform>App` marker struct (it's the type the macro references).
@@ -154,6 +218,27 @@ If it fails:
 - Second most likely: missing `&` / `.as_str()` / `.as_deref()` for string args, since progenitor's API takes `&'a str` not `String`.
 - Fix and re-run. Iterate until clean.
 
+### 6.5. Seed the e2e test
+
+Write `apps/<platform>/test.json` with **just** the user_story portion:
+
+```json
+{
+  "user_story": "<one-sentence happy path that exercises the highest-value composite tool>"
+}
+```
+
+The user_story should be a **terse, natural-language scenario the user might actually type**, exercising the most important user-facing flow you just built. Aim for one sentence:
+- Swap/bridge: "Swap 100 USDC for ETH on Ethereum mainnet"
+- Lending/yield: "Find the best USDC lending APY across morpho's blue markets"
+- Read-only data: "Get the current TVL of Aave"
+- Prediction: "Search Polymarket for an active election market and show me the YES price"
+- Perps: "Show my Hyperliquid positions for 0xdead..."
+
+Don't write the full test (turns, expected_tools, final_assertion) — the `aomi-app-e2e-tester` skill expands those. Your job is just the seed.
+
+If `apps/<platform>/test.json` already exists with a `user_story`, leave it alone (the human or test author may have refined it).
+
 ### 7. Report
 
 Print a tight summary:
@@ -161,8 +246,9 @@ Print a tight summary:
 - Names of new composite tools (these are the highest-value additions).
 - Names of dropped endpoints (and one-line reasons).
 - One sentence on what the user can now do that they couldn't before.
+- The seed user_story you wrote to `test.json`.
 
-Suggest the user run `cargo test -p <platform>` if there are tests, or load the dylib and try a tool from the Aomi CLI.
+Suggest the user run **`/aomi-app-e2e-tester <platform>`** to expand the test and verify the app works end-to-end.
 
 ## Anti-patterns
 
@@ -175,6 +261,7 @@ Suggest the user run `cargo test -p <platform>` if there are tests, or load the 
 - ❌ **Skipping the user-intent question.** Without intent, tools will be generic and probably miss the point.
 - ❌ **Touching `ext/src/<platform>/`.** Generated client is regenerated by `aomi-build gen-client`; never hand-edit it.
 - ❌ **Asking the user (LLM) for values you can compute.** Timestamps, polling intervals, page sizes, default chains, retry budgets — derive these in Rust.
+- ❌ **Adding `*Summary` projection structs in `tool.rs` to drop fields the LLM doesn't need.** Trim those fields **at the spec layer** instead — delete them from `ext/specs/<platform>.yaml` and `aomi-build gen-client --force`. The typed Rust struct then IS the slim shape, and `tool.rs` stays `ok(response)`. The exception (one endpoint serving multiple tool intents needing different shapes) is rare and needs justification.
 - ❌ **Unbounded loops.** Every poll loop has a deadline AND an iteration cap. No `loop { … sleep(2).await }` without an exit condition that fires on a wall-clock deadline.
 - ❌ **PREAMBLE drift.** Don't write tool descriptions and forget to update PREAMBLE. After each tool change, re-read PREAMBLE and confirm it still describes what you shipped.
 

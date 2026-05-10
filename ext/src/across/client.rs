@@ -1,232 +1,628 @@
-use serde::de::DeserializeOwned;
-use std::time::Duration;
-
-use super::types::{
-    AcrossDepositStatus, AcrossLimits, AcrossRoute, AcrossSuggestedFees, AcrossTokenPrice,
-};
-
-// ============================================================================
-// Across HTTP Client (blocking)
-// ============================================================================
-
-pub const DEFAULT_ACROSS_API: &str = "https://app.across.to/api";
-
-#[derive(Clone)]
-pub struct AcrossClient {
-    pub http: reqwest::blocking::Client,
-    pub api_endpoint: String,
+#[allow(unused_imports)]
+pub use progenitor_client::{ByteStream, ClientInfo, Error, ResponseValue};
+#[allow(unused_imports)]
+use progenitor_client::{encode_path, ClientHooks, OperationInfo, RequestBuilderExt};
+/// Types used as operation parameters and responses.
+#[allow(clippy::all)]
+pub mod types {
+    /// Error types.
+    pub mod error {
+        /// Error from a `TryFrom` or `FromStr` implementation.
+        pub struct ConversionError(::std::borrow::Cow<'static, str>);
+        impl ::std::error::Error for ConversionError {}
+        impl ::std::fmt::Display for ConversionError {
+            fn fmt(
+                &self,
+                f: &mut ::std::fmt::Formatter<'_>,
+            ) -> Result<(), ::std::fmt::Error> {
+                ::std::fmt::Display::fmt(&self.0, f)
+            }
+        }
+        impl ::std::fmt::Debug for ConversionError {
+            fn fmt(
+                &self,
+                f: &mut ::std::fmt::Formatter<'_>,
+            ) -> Result<(), ::std::fmt::Error> {
+                ::std::fmt::Debug::fmt(&self.0, f)
+            }
+        }
+        impl From<&'static str> for ConversionError {
+            fn from(value: &'static str) -> Self {
+                Self(value.into())
+            }
+        }
+        impl From<String> for ConversionError {
+            fn from(value: String) -> Self {
+                Self(value.into())
+            }
+        }
+    }
+    ///`AcrossDepositStatus`
+    ///
+    /// <details><summary>JSON schema</summary>
+    ///
+    /// ```json
+    ///{
+    ///  "type": "object",
+    ///  "required": [
+    ///    "status"
+    ///  ],
+    ///  "properties": {
+    ///    "status": {
+    ///      "type": "string"
+    ///    }
+    ///  },
+    ///  "additionalProperties": true
+    ///}
+    /// ```
+    /// </details>
+    #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+    pub struct AcrossDepositStatus {
+        pub status: ::std::string::String,
+    }
+    ///`AcrossFeeComponent`
+    ///
+    /// <details><summary>JSON schema</summary>
+    ///
+    /// ```json
+    ///{
+    ///  "type": "object",
+    ///  "required": [
+    ///    "pct",
+    ///    "total"
+    ///  ],
+    ///  "properties": {
+    ///    "pct": {
+    ///      "type": "string"
+    ///    },
+    ///    "total": {
+    ///      "type": "string"
+    ///    }
+    ///  }
+    ///}
+    /// ```
+    /// </details>
+    #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+    pub struct AcrossFeeComponent {
+        pub pct: ::std::string::String,
+        pub total: ::std::string::String,
+    }
+    ///`AcrossLimits`
+    ///
+    /// <details><summary>JSON schema</summary>
+    ///
+    /// ```json
+    ///{
+    ///  "type": "object",
+    ///  "required": [
+    ///    "maxDeposit",
+    ///    "maxDepositInstant",
+    ///    "maxDepositShortDelay",
+    ///    "minDeposit",
+    ///    "recommendedDepositInstant"
+    ///  ],
+    ///  "properties": {
+    ///    "maxDeposit": {
+    ///      "type": "string"
+    ///    },
+    ///    "maxDepositInstant": {
+    ///      "type": "string"
+    ///    },
+    ///    "maxDepositShortDelay": {
+    ///      "type": "string"
+    ///    },
+    ///    "minDeposit": {
+    ///      "type": "string"
+    ///    },
+    ///    "recommendedDepositInstant": {
+    ///      "type": "string"
+    ///    }
+    ///  },
+    ///  "additionalProperties": true
+    ///}
+    /// ```
+    /// </details>
+    #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+    pub struct AcrossLimits {
+        #[serde(rename = "maxDeposit")]
+        pub max_deposit: ::std::string::String,
+        #[serde(rename = "maxDepositInstant")]
+        pub max_deposit_instant: ::std::string::String,
+        #[serde(rename = "maxDepositShortDelay")]
+        pub max_deposit_short_delay: ::std::string::String,
+        #[serde(rename = "minDeposit")]
+        pub min_deposit: ::std::string::String,
+        #[serde(rename = "recommendedDepositInstant")]
+        pub recommended_deposit_instant: ::std::string::String,
+    }
+    ///`AcrossRoute`
+    ///
+    /// <details><summary>JSON schema</summary>
+    ///
+    /// ```json
+    ///{
+    ///  "type": "object",
+    ///  "required": [
+    ///    "destinationChainId",
+    ///    "destinationToken",
+    ///    "originChainId",
+    ///    "originToken"
+    ///  ],
+    ///  "properties": {
+    ///    "destinationChainId": {
+    ///      "type": "integer",
+    ///      "format": "int64"
+    ///    },
+    ///    "destinationToken": {
+    ///      "type": "string"
+    ///    },
+    ///    "destinationTokenSymbol": {
+    ///      "type": [
+    ///        "string",
+    ///        "null"
+    ///      ]
+    ///    },
+    ///    "isNative": {
+    ///      "type": [
+    ///        "boolean",
+    ///        "null"
+    ///      ]
+    ///    },
+    ///    "originChainId": {
+    ///      "type": "integer",
+    ///      "format": "int64"
+    ///    },
+    ///    "originToken": {
+    ///      "type": "string"
+    ///    },
+    ///    "originTokenSymbol": {
+    ///      "type": [
+    ///        "string",
+    ///        "null"
+    ///      ]
+    ///    }
+    ///  },
+    ///  "additionalProperties": true
+    ///}
+    /// ```
+    /// </details>
+    #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+    pub struct AcrossRoute {
+        #[serde(rename = "destinationChainId")]
+        pub destination_chain_id: i64,
+        #[serde(rename = "destinationToken")]
+        pub destination_token: ::std::string::String,
+        #[serde(
+            rename = "destinationTokenSymbol",
+            default,
+            skip_serializing_if = "::std::option::Option::is_none"
+        )]
+        pub destination_token_symbol: ::std::option::Option<::std::string::String>,
+        #[serde(
+            rename = "isNative",
+            default,
+            skip_serializing_if = "::std::option::Option::is_none"
+        )]
+        pub is_native: ::std::option::Option<bool>,
+        #[serde(rename = "originChainId")]
+        pub origin_chain_id: i64,
+        #[serde(rename = "originToken")]
+        pub origin_token: ::std::string::String,
+        #[serde(
+            rename = "originTokenSymbol",
+            default,
+            skip_serializing_if = "::std::option::Option::is_none"
+        )]
+        pub origin_token_symbol: ::std::option::Option<::std::string::String>,
+    }
+    ///`AcrossSuggestedFees`
+    ///
+    /// <details><summary>JSON schema</summary>
+    ///
+    /// ```json
+    ///{
+    ///  "type": "object",
+    ///  "required": [
+    ///    "inputToken",
+    ///    "lpFee",
+    ///    "outputAmount",
+    ///    "outputToken",
+    ///    "relayerCapitalFee",
+    ///    "relayerGasFee",
+    ///    "totalRelayFee"
+    ///  ],
+    ///  "properties": {
+    ///    "estimatedFillTimeSec": {
+    ///      "type": [
+    ///        "integer",
+    ///        "null"
+    ///      ],
+    ///      "format": "int64"
+    ///    },
+    ///    "inputToken": {
+    ///      "$ref": "#/components/schemas/AcrossTokenRef"
+    ///    },
+    ///    "limits": {
+    ///      "oneOf": [
+    ///        {
+    ///          "type": "null"
+    ///        },
+    ///        {
+    ///          "allOf": [
+    ///            {
+    ///              "$ref": "#/components/schemas/AcrossLimits"
+    ///            }
+    ///          ]
+    ///        }
+    ///      ]
+    ///    },
+    ///    "lpFee": {
+    ///      "$ref": "#/components/schemas/AcrossFeeComponent"
+    ///    },
+    ///    "outputAmount": {
+    ///      "type": "string"
+    ///    },
+    ///    "outputToken": {
+    ///      "$ref": "#/components/schemas/AcrossTokenRef"
+    ///    },
+    ///    "relayerCapitalFee": {
+    ///      "$ref": "#/components/schemas/AcrossFeeComponent"
+    ///    },
+    ///    "relayerGasFee": {
+    ///      "$ref": "#/components/schemas/AcrossFeeComponent"
+    ///    },
+    ///    "totalRelayFee": {
+    ///      "$ref": "#/components/schemas/AcrossFeeComponent"
+    ///    }
+    ///  },
+    ///  "additionalProperties": true
+    ///}
+    /// ```
+    /// </details>
+    #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+    pub struct AcrossSuggestedFees {
+        #[serde(
+            rename = "estimatedFillTimeSec",
+            default,
+            skip_serializing_if = "::std::option::Option::is_none"
+        )]
+        pub estimated_fill_time_sec: ::std::option::Option<i64>,
+        #[serde(rename = "inputToken")]
+        pub input_token: AcrossTokenRef,
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        pub limits: ::std::option::Option<AcrossLimits>,
+        #[serde(rename = "lpFee")]
+        pub lp_fee: AcrossFeeComponent,
+        #[serde(rename = "outputAmount")]
+        pub output_amount: ::std::string::String,
+        #[serde(rename = "outputToken")]
+        pub output_token: AcrossTokenRef,
+        #[serde(rename = "relayerCapitalFee")]
+        pub relayer_capital_fee: AcrossFeeComponent,
+        #[serde(rename = "relayerGasFee")]
+        pub relayer_gas_fee: AcrossFeeComponent,
+        #[serde(rename = "totalRelayFee")]
+        pub total_relay_fee: AcrossFeeComponent,
+    }
+    ///`AcrossTokenRef`
+    ///
+    /// <details><summary>JSON schema</summary>
+    ///
+    /// ```json
+    ///{
+    ///  "type": "object",
+    ///  "required": [
+    ///    "address",
+    ///    "chainId",
+    ///    "decimals",
+    ///    "symbol"
+    ///  ],
+    ///  "properties": {
+    ///    "address": {
+    ///      "type": "string"
+    ///    },
+    ///    "chainId": {
+    ///      "type": "integer",
+    ///      "format": "int64"
+    ///    },
+    ///    "decimals": {
+    ///      "type": "integer",
+    ///      "format": "int64"
+    ///    },
+    ///    "symbol": {
+    ///      "type": "string"
+    ///    }
+    ///  }
+    ///}
+    /// ```
+    /// </details>
+    #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+    pub struct AcrossTokenRef {
+        pub address: ::std::string::String,
+        #[serde(rename = "chainId")]
+        pub chain_id: i64,
+        pub decimals: i64,
+        pub symbol: ::std::string::String,
+    }
 }
+#[derive(Clone, Debug)]
+/**Client for Across Protocol API
 
-impl AcrossClient {
-    pub fn new() -> Result<Self, String> {
-        let http = reqwest::blocking::Client::builder()
-            .timeout(Duration::from_secs(30))
-            .build()
-            .map_err(|e| format!("[across] failed to build HTTP client: {e}"))?;
-        Ok(Self {
-            http,
-            api_endpoint: std::env::var("ACROSS_API_ENDPOINT")
-                .unwrap_or_else(|_| DEFAULT_ACROSS_API.to_string()),
-        })
-    }
+Across Protocol bridge REST API — public, no auth required.
 
-    fn get_json<T: DeserializeOwned>(
-        &self,
-        request: reqwest::blocking::RequestBuilder,
-        op: &str,
-    ) -> Result<T, String> {
-        let response = request
-            .send()
-            .map_err(|e| format!("[across] {op} failed: {e}"))?;
+Covers the four endpoints used by the Aomi `across` app:
+  - GET /available-routes
+  - GET /limits
+  - GET /suggested-fees
+  - GET /deposit/status
 
-        let status = response.status();
-        let body = response.text().unwrap_or_default();
-        if !status.is_success() {
-            return Err(format!("[across] {op} failed: {status} {body}"));
-        }
+Default host is `https://app.across.to/api`. All endpoints are unauthenticated.
 
-        serde_json::from_str::<T>(&body)
-            .map_err(|e| format!("[across] {op} decode failed: {e}; body: {body}"))
-    }
 
-    #[allow(clippy::too_many_arguments)]
-    pub fn get_suggested_fees(
-        &self,
-        input_token: &str,
-        output_token: &str,
-        origin_chain_id: u64,
-        destination_chain_id: u64,
-        amount: &str,
-        recipient: Option<&str>,
-        message: Option<&str>,
-    ) -> Result<AcrossSuggestedFees, String> {
-        let mut request = self
-            .http
-            .get(format!("{}/suggested-fees", self.api_endpoint))
-            .query(&[
-                ("inputToken", input_token),
-                ("outputToken", output_token),
-                ("amount", amount),
-            ])
-            .query(&[
-                ("originChainId", origin_chain_id),
-                ("destinationChainId", destination_chain_id),
-            ]);
-
-        if let Some(r) = recipient {
-            request = request.query(&[("recipient", r)]);
-        }
-        if let Some(m) = message {
-            request = request.query(&[("message", m)]);
-        }
-
-        self.get_json(request, "suggested-fees")
-    }
-
-    pub fn get_limits(
-        &self,
-        input_token: &str,
-        output_token: &str,
-        origin_chain_id: u64,
-        destination_chain_id: u64,
-    ) -> Result<AcrossLimits, String> {
-        let request = self
-            .http
-            .get(format!("{}/limits", self.api_endpoint))
-            .query(&[("inputToken", input_token), ("outputToken", output_token)])
-            .query(&[
-                ("originChainId", origin_chain_id),
-                ("destinationChainId", destination_chain_id),
-            ]);
-
-        self.get_json(request, "limits")
-    }
-
-    pub fn get_deposit_status(
-        &self,
-        origin_chain_id: u64,
-        deposit_id: u64,
-    ) -> Result<AcrossDepositStatus, String> {
-        let request = self
-            .http
-            .get(format!("{}/deposit/status", self.api_endpoint))
-            .query(&[
-                ("originChainId", origin_chain_id),
-                ("depositId", deposit_id),
-            ]);
-
-        self.get_json(request, "deposit status")
-    }
-
-    pub fn get_available_routes(
-        &self,
-        origin_chain_id: Option<u64>,
-        destination_chain_id: Option<u64>,
-        origin_token: Option<&str>,
-        destination_token: Option<&str>,
-    ) -> Result<Vec<AcrossRoute>, String> {
-        let mut request = self
-            .http
-            .get(format!("{}/available-routes", self.api_endpoint));
-
-        if let Some(id) = origin_chain_id {
-            request = request.query(&[("originChainId", id)]);
-        }
-        if let Some(id) = destination_chain_id {
-            request = request.query(&[("destinationChainId", id)]);
-        }
-        if let Some(t) = origin_token {
-            request = request.query(&[("originToken", t)]);
-        }
-        if let Some(t) = destination_token {
-            request = request.query(&[("destinationToken", t)]);
-        }
-
-        self.get_json(request, "available routes")
-    }
-
-    pub fn get_coingecko_price(
-        &self,
-        l1_token: Option<&str>,
-        l2_token: Option<&str>,
-    ) -> Result<AcrossTokenPrice, String> {
-        let mut request = self.http.get(format!("{}/coingecko", self.api_endpoint));
-
-        if let Some(t) = l1_token {
-            request = request.query(&[("l1Token", t)]);
-        }
-        if let Some(t) = l2_token {
-            request = request.query(&[("l2Token", t)]);
-        }
-
-        self.get_json(request, "token price")
-    }
+Version: 1.0*/
+pub struct Client {
+    pub(crate) baseurl: String,
+    pub(crate) client: reqwest::Client,
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    const USDC_ETH: &str = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
-    const USDC_ARB: &str = "0xaf88d065e77c8cC2239327C5EDb3A432268e5831";
-    const WETH_ETH: &str = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
-    const WETH_ARB: &str = "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1";
-    const WETH_BASE: &str = "0x4200000000000000000000000000000000000006";
-
-    #[test]
-    fn bridge_usdc_workflow() {
-        let client = AcrossClient::new().expect("failed to create AcrossClient");
-
-        let routes = client
-            .get_available_routes(Some(1), Some(42161), Some(USDC_ETH), None)
-            .expect("get_available_routes failed");
-        assert!(!routes.is_empty());
-
-        let limits = client
-            .get_limits(USDC_ETH, USDC_ARB, 1, 42161)
-            .expect("get_limits failed");
-        assert!(!limits.min_deposit.is_empty());
-        assert!(!limits.max_deposit.is_empty());
-
-        let amount = "5000000000";
-        let fees = client
-            .get_suggested_fees(USDC_ETH, USDC_ARB, 1, 42161, amount, None, None)
-            .expect("get_suggested_fees failed");
-        assert!(!fees.total_relay_fee.total.is_empty());
-    }
-
-    #[test]
-    fn cheapest_bridge_route_workflow() {
-        let client = AcrossClient::new().expect("failed to create AcrossClient");
-
-        let routes = client
-            .get_available_routes(Some(1), None, Some(WETH_ETH), None)
-            .expect("get_available_routes failed");
-        assert!(!routes.is_empty());
-
-        let amount = "10000000000000000000";
-        let fees_arb = client
-            .get_suggested_fees(WETH_ETH, WETH_ARB, 1, 42161, amount, None, None)
-            .expect("get_suggested_fees for Arbitrum failed");
-
-        let fees_base = client
-            .get_suggested_fees(WETH_ETH, WETH_BASE, 1, 8453, amount, None, None)
-            .expect("get_suggested_fees for Base failed");
-
-        let arb_val = fees_arb
-            .total_relay_fee
-            .total
-            .parse::<u128>()
-            .expect("failed to parse Arbitrum fee");
-        let base_val = fees_base
-            .total_relay_fee
-            .total
-            .parse::<u128>()
-            .expect("failed to parse Base fee");
-        let _cheapest = if arb_val <= base_val {
-            "Arbitrum"
-        } else {
-            "Base"
+impl Client {
+    /// Create a new client.
+    ///
+    /// `baseurl` is the base URL provided to the internal
+    /// `reqwest::Client`, and should include a scheme and hostname,
+    /// as well as port and a path stem if applicable.
+    pub fn new(baseurl: &str) -> Self {
+        #[cfg(not(target_arch = "wasm32"))]
+        let client = {
+            let dur = ::std::time::Duration::from_secs(15u64);
+            reqwest::ClientBuilder::new().connect_timeout(dur).timeout(dur)
         };
+        #[cfg(target_arch = "wasm32")]
+        let client = reqwest::ClientBuilder::new();
+        Self::new_with_client(baseurl, client.build().unwrap())
     }
+    /// Construct a new client with an existing `reqwest::Client`,
+    /// allowing more control over its configuration.
+    ///
+    /// `baseurl` is the base URL provided to the internal
+    /// `reqwest::Client`, and should include a scheme and hostname,
+    /// as well as port and a path stem if applicable.
+    pub fn new_with_client(baseurl: &str, client: reqwest::Client) -> Self {
+        Self {
+            baseurl: baseurl.to_string(),
+            client,
+        }
+    }
+}
+impl ClientInfo<()> for Client {
+    fn api_version() -> &'static str {
+        "1.0"
+    }
+    fn baseurl(&self) -> &str {
+        self.baseurl.as_str()
+    }
+    fn client(&self) -> &reqwest::Client {
+        &self.client
+    }
+    fn inner(&self) -> &() {
+        &()
+    }
+}
+impl ClientHooks<()> for &Client {}
+#[allow(clippy::all)]
+impl Client {
+    /**List supported bridge routes (origin → destination token pairs)
+
+Sends a `GET` request to `/available-routes`
+
+*/
+    pub async fn get_available_routes<'a>(
+        &'a self,
+        destination_chain_id: Option<i64>,
+        destination_token: Option<&'a str>,
+        origin_chain_id: Option<i64>,
+        origin_token: Option<&'a str>,
+    ) -> Result<ResponseValue<::std::vec::Vec<types::AcrossRoute>>, Error<()>> {
+        let url = format!("{}/available-routes", self.baseurl,);
+        let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
+        header_map
+            .append(
+                ::reqwest::header::HeaderName::from_static("api-version"),
+                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+            );
+        #[allow(unused_mut)]
+        let mut request = self
+            .client
+            .get(url)
+            .header(
+                ::reqwest::header::ACCEPT,
+                ::reqwest::header::HeaderValue::from_static("application/json"),
+            )
+            .query(
+                &progenitor_client::QueryParam::new(
+                    "destinationChainId",
+                    &destination_chain_id,
+                ),
+            )
+            .query(
+                &progenitor_client::QueryParam::new(
+                    "destinationToken",
+                    &destination_token,
+                ),
+            )
+            .query(
+                &progenitor_client::QueryParam::new("originChainId", &origin_chain_id),
+            )
+            .query(&progenitor_client::QueryParam::new("originToken", &origin_token))
+            .headers(header_map)
+            .build()?;
+        let info = OperationInfo {
+            operation_id: "get_available_routes",
+        };
+        self.pre(&mut request, &info).await?;
+        let result = self.exec(request, &info).await;
+        self.post(&result, &info).await?;
+        let response = result?;
+        match response.status().as_u16() {
+            200u16 => ResponseValue::from_response(response).await,
+            _ => Err(Error::UnexpectedResponse(response)),
+        }
+    }
+    /**Min/max bridge amounts and instant-fill caps for a route
+
+Sends a `GET` request to `/limits`
+
+*/
+    pub async fn get_limits<'a>(
+        &'a self,
+        destination_chain_id: i64,
+        input_token: &'a str,
+        origin_chain_id: i64,
+        output_token: &'a str,
+    ) -> Result<ResponseValue<types::AcrossLimits>, Error<()>> {
+        let url = format!("{}/limits", self.baseurl,);
+        let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
+        header_map
+            .append(
+                ::reqwest::header::HeaderName::from_static("api-version"),
+                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+            );
+        #[allow(unused_mut)]
+        let mut request = self
+            .client
+            .get(url)
+            .header(
+                ::reqwest::header::ACCEPT,
+                ::reqwest::header::HeaderValue::from_static("application/json"),
+            )
+            .query(
+                &progenitor_client::QueryParam::new(
+                    "destinationChainId",
+                    &destination_chain_id,
+                ),
+            )
+            .query(&progenitor_client::QueryParam::new("inputToken", &input_token))
+            .query(
+                &progenitor_client::QueryParam::new("originChainId", &origin_chain_id),
+            )
+            .query(&progenitor_client::QueryParam::new("outputToken", &output_token))
+            .headers(header_map)
+            .build()?;
+        let info = OperationInfo {
+            operation_id: "get_limits",
+        };
+        self.pre(&mut request, &info).await?;
+        let result = self.exec(request, &info).await;
+        self.post(&result, &info).await?;
+        let response = result?;
+        match response.status().as_u16() {
+            200u16 => ResponseValue::from_response(response).await,
+            _ => Err(Error::UnexpectedResponse(response)),
+        }
+    }
+    /**Fee quote and relayer parameters for a bridge
+
+Sends a `GET` request to `/suggested-fees`
+
+*/
+    pub async fn get_suggested_fees<'a>(
+        &'a self,
+        amount: &'a str,
+        destination_chain_id: i64,
+        input_token: &'a str,
+        message: Option<&'a str>,
+        origin_chain_id: i64,
+        output_token: &'a str,
+        recipient: Option<&'a str>,
+    ) -> Result<ResponseValue<types::AcrossSuggestedFees>, Error<()>> {
+        let url = format!("{}/suggested-fees", self.baseurl,);
+        let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
+        header_map
+            .append(
+                ::reqwest::header::HeaderName::from_static("api-version"),
+                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+            );
+        #[allow(unused_mut)]
+        let mut request = self
+            .client
+            .get(url)
+            .header(
+                ::reqwest::header::ACCEPT,
+                ::reqwest::header::HeaderValue::from_static("application/json"),
+            )
+            .query(&progenitor_client::QueryParam::new("amount", &amount))
+            .query(
+                &progenitor_client::QueryParam::new(
+                    "destinationChainId",
+                    &destination_chain_id,
+                ),
+            )
+            .query(&progenitor_client::QueryParam::new("inputToken", &input_token))
+            .query(&progenitor_client::QueryParam::new("message", &message))
+            .query(
+                &progenitor_client::QueryParam::new("originChainId", &origin_chain_id),
+            )
+            .query(&progenitor_client::QueryParam::new("outputToken", &output_token))
+            .query(&progenitor_client::QueryParam::new("recipient", &recipient))
+            .headers(header_map)
+            .build()?;
+        let info = OperationInfo {
+            operation_id: "get_suggested_fees",
+        };
+        self.pre(&mut request, &info).await?;
+        let result = self.exec(request, &info).await;
+        self.post(&result, &info).await?;
+        let response = result?;
+        match response.status().as_u16() {
+            200u16 => ResponseValue::from_response(response).await,
+            _ => Err(Error::UnexpectedResponse(response)),
+        }
+    }
+    /**Current fill status for a submitted deposit
+
+Sends a `GET` request to `/deposit/status`
+
+*/
+    pub async fn get_deposit_status<'a>(
+        &'a self,
+        deposit_id: i64,
+        origin_chain_id: i64,
+    ) -> Result<ResponseValue<types::AcrossDepositStatus>, Error<()>> {
+        let url = format!("{}/deposit/status", self.baseurl,);
+        let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
+        header_map
+            .append(
+                ::reqwest::header::HeaderName::from_static("api-version"),
+                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+            );
+        #[allow(unused_mut)]
+        let mut request = self
+            .client
+            .get(url)
+            .header(
+                ::reqwest::header::ACCEPT,
+                ::reqwest::header::HeaderValue::from_static("application/json"),
+            )
+            .query(&progenitor_client::QueryParam::new("depositId", &deposit_id))
+            .query(
+                &progenitor_client::QueryParam::new("originChainId", &origin_chain_id),
+            )
+            .headers(header_map)
+            .build()?;
+        let info = OperationInfo {
+            operation_id: "get_deposit_status",
+        };
+        self.pre(&mut request, &info).await?;
+        let result = self.exec(request, &info).await;
+        self.post(&result, &info).await?;
+        let response = result?;
+        match response.status().as_u16() {
+            200u16 => ResponseValue::from_response(response).await,
+            _ => Err(Error::UnexpectedResponse(response)),
+        }
+    }
+}
+/// Items consumers will typically use such as the Client.
+pub mod prelude {
+    #[allow(unused_imports)]
+    pub use super::Client;
 }

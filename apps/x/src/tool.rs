@@ -1,15 +1,25 @@
-use aomi_ext::x::{
-    AdvancedSearchQuery, Post, PostsData, TrendsData, TrendsQuery, TweetInfoQuery, User,
-    UserInfoQuery, UserLastTweetsQuery, XClient, XPostsView, XSearchResultsView, XTrendsView,
-    format_post, format_trend, format_user,
-};
-use aomi_sdk::schemars::JsonSchema;
+//! Curated tool layer for the twitterapi.io read-only X (Twitter) API.
+//!
+//! Wraps the generated client in `aomi_ext::x` (see `ext/specs/x.yaml`).
+//! Five user-centric read tools, all behind a single `X-API-Key` header that
+//! is wired through the shared reqwest client.
+
+use aomi_ext::x::Client as GenClient;
 use aomi_sdk::*;
+use aomi_sdk::schemars::JsonSchema;
+use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use std::time::Duration;
 
 #[derive(Clone, Default)]
 pub(crate) struct XApp;
+
+const BASE_URL: &str = "https://api.twitterapi.io";
+
+// ============================================================================
+// Helpers
+// ============================================================================
 
 fn ok<T: Serialize>(value: T) -> Result<Value, String> {
     let value = serde_json::to_value(value)
@@ -23,13 +33,28 @@ fn ok<T: Serialize>(value: T) -> Result<Value, String> {
     })
 }
 
-fn x_client(api_key: Option<&str>) -> Result<XClient, String> {
+fn rt() -> Result<tokio::runtime::Runtime, String> {
+    tokio::runtime::Runtime::new().map_err(|e| format!("[x] runtime: {e}"))
+}
+
+fn make_client(api_key: Option<&str>) -> Result<GenClient, String> {
     let api_key = resolve_secret_value(
         api_key,
         "X_API_KEY",
         "[x] missing api_key argument and X_API_KEY environment variable",
     )?;
-    XClient::new(api_key)
+    let mut headers = HeaderMap::new();
+    let mut value =
+        HeaderValue::from_str(&api_key).map_err(|e| format!("[x] invalid api_key: {e}"))?;
+    value.set_sensitive(true);
+    headers.insert(HeaderName::from_static("x-api-key"), value);
+
+    let http = reqwest::ClientBuilder::new()
+        .timeout(Duration::from_secs(30))
+        .default_headers(headers)
+        .build()
+        .map_err(|e| format!("[x] failed to build HTTP client: {e}"))?;
+    Ok(GenClient::new_with_client(BASE_URL, http))
 }
 
 // ============================================================================
@@ -51,18 +76,20 @@ impl DynAomiTool for GetXUser {
     type App = XApp;
     type Args = GetXUserArgs;
     const NAME: &'static str = "get_x_user";
-    const DESCRIPTION: &'static str = "Use when the user asks about an X account (followers, bio, verification, account age). Pass the handle without the @ — e.g. \"elonmusk\". Returns the profile object.";
+    const DESCRIPTION: &'static str = "Use when the user asks about an X account (followers, bio, account age, post count). Pass the handle without the @ — e.g. \"elonmusk\". Returns the profile object.";
 
     fn run(_app: &XApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let client = x_client(args.api_key.as_deref())?;
-        let username = args.username.trim_start_matches('@');
-        let user: User = client.get(
-            "/twitter/user/info",
-            &UserInfoQuery {
-                user_name: username,
-            },
-        )?;
-        ok(format_user(&user))
+        let client = make_client(args.api_key.as_deref())?;
+        let username = args.username.trim_start_matches('@').to_string();
+        let runtime = rt()?;
+        let response = runtime.block_on(async move {
+            client
+                .get_user_info(username.as_str())
+                .await
+                .map_err(|e| format!("[x] get_user_info: {e}"))
+                .map(|r| r.into_inner())
+        })?;
+        ok(response)
     }
 }
 
@@ -87,26 +114,25 @@ impl DynAomiTool for GetXUserPosts {
     type App = XApp;
     type Args = GetXUserPostsArgs;
     const NAME: &'static str = "get_x_user_posts";
-    const DESCRIPTION: &'static str = "Use when the user asks \"what has @handle been posting recently\". Returns one page of recent posts (text + engagement) plus a `cursor` for pagination. Pass the handle without the @.";
+    const DESCRIPTION: &'static str = "Use when the user asks \"what has @handle been posting recently\". Returns one page of recent posts (text + engagement) plus a `next_cursor` for pagination. Pass the handle without the @.";
 
     fn run(_app: &XApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let client = x_client(args.api_key.as_deref())?;
-        let username = args.username.trim_start_matches('@');
-        let data: PostsData = client.get(
-            "/twitter/user/last_tweets",
-            &UserLastTweetsQuery {
-                user_name: username,
-                cursor: args.cursor.as_deref().filter(|cursor| !cursor.is_empty()),
-            },
-        )?;
-        let posts = data.tweets.unwrap_or_default();
-        let formatted = posts.iter().map(format_post).collect::<Vec<_>>();
-        ok(XPostsView {
-            posts_count: formatted.len(),
-            posts: formatted,
-            cursor: data.next_cursor,
-            has_more: data.has_next_page.unwrap_or(false),
-        })
+        let client = make_client(args.api_key.as_deref())?;
+        let username = args.username.trim_start_matches('@').to_string();
+        let cursor = args
+            .cursor
+            .as_deref()
+            .filter(|c| !c.is_empty())
+            .map(str::to_string);
+        let runtime = rt()?;
+        let response = runtime.block_on(async move {
+            client
+                .get_user_last_tweets(cursor.as_deref(), username.as_str())
+                .await
+                .map_err(|e| format!("[x] get_user_last_tweets: {e}"))
+                .map(|r| r.into_inner())
+        })?;
+        ok(response)
     }
 }
 
@@ -136,26 +162,27 @@ impl DynAomiTool for SearchX {
     const DESCRIPTION: &'static str = "Use when the user wants posts about a topic, hashtag, or from a specific account combined with filters. Supports advanced operators (from:, #tag, lang:en, since:YYYY-MM-DD, min_faves:N, filter:media). `query_type=Latest` for chronological, `Top` for most-engaged. Returns posts + cursor.";
 
     fn run(_app: &XApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let client = x_client(args.api_key.as_deref())?;
-        let query_type = args.query_type.as_deref().unwrap_or("Latest");
-        let data: PostsData = client.get(
-            "/twitter/tweet/advanced_search",
-            &AdvancedSearchQuery {
-                query: args.query.as_str(),
-                query_type,
-                cursor: args.cursor.as_deref().filter(|cursor| !cursor.is_empty()),
-            },
-        )?;
-        let posts = data.tweets.unwrap_or_default();
-        let formatted = posts.iter().map(format_post).collect::<Vec<_>>();
-        ok(XSearchResultsView {
-            query: args.query,
-            query_type: query_type.to_string(),
-            results_count: formatted.len(),
-            posts: formatted,
-            cursor: data.next_cursor,
-            has_more: data.has_next_page.unwrap_or(false),
-        })
+        let client = make_client(args.api_key.as_deref())?;
+        let query_type = args
+            .query_type
+            .clone()
+            .unwrap_or_else(|| "Latest".to_string());
+        let cursor = args
+            .cursor
+            .as_deref()
+            .filter(|c| !c.is_empty())
+            .map(str::to_string);
+        let query = args.query.clone();
+        let qt = query_type.clone();
+        let runtime = rt()?;
+        let response = runtime.block_on(async move {
+            client
+                .search_tweets(cursor.as_deref(), query.as_str(), qt.as_str())
+                .await
+                .map_err(|e| format!("[x] search_tweets: {e}"))
+                .map(|r| r.into_inner())
+        })?;
+        ok(response)
     }
 }
 
@@ -185,20 +212,18 @@ impl DynAomiTool for GetXTrends {
     const DESCRIPTION: &'static str = "Use when the user asks \"what's trending on X\". `woeid` is the Yahoo location id (1=worldwide, 23424977=US, 23424975=UK). Defaults to worldwide when omitted.";
 
     fn run(_app: &XApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let client = x_client(args.api_key.as_deref())?;
-        let data: TrendsData = client.get(
-            "/twitter/trends",
-            &TrendsQuery {
-                woeid: args.woeid,
-                count: args.count,
-            },
-        )?;
-        let trends = data.trends.unwrap_or_default();
-        let formatted = trends.iter().map(format_trend).collect::<Vec<_>>();
-        ok(XTrendsView {
-            trends_count: formatted.len(),
-            trends: formatted,
-        })
+        let client = make_client(args.api_key.as_deref())?;
+        let count = args.count.map(|v| v as i64);
+        let woeid = args.woeid.map(|v| v as i64);
+        let runtime = rt()?;
+        let response = runtime.block_on(async move {
+            client
+                .get_trends(count, woeid)
+                .await
+                .map_err(|e| format!("[x] get_trends: {e}"))
+                .map(|r| r.into_inner())
+        })?;
+        ok(response)
     }
 }
 
@@ -224,13 +249,16 @@ impl DynAomiTool for GetXPost {
     const DESCRIPTION: &'static str = "Use when the user shares an X post URL or numeric post id and wants full content + engagement. The id is the trailing number in `https://x.com/<user>/status/<id>`.";
 
     fn run(_app: &XApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let client = x_client(args.api_key.as_deref())?;
-        let post: Post = client.get(
-            "/twitter/tweet/info",
-            &TweetInfoQuery {
-                tweet_id: args.post_id.as_str(),
-            },
-        )?;
-        ok(format_post(&post))
+        let client = make_client(args.api_key.as_deref())?;
+        let post_id = args.post_id.clone();
+        let runtime = rt()?;
+        let response = runtime.block_on(async move {
+            client
+                .get_tweet_info(post_id.as_str())
+                .await
+                .map_err(|e| format!("[x] get_tweet_info: {e}"))
+                .map(|r| r.into_inner())
+        })?;
+        ok(response)
     }
 }

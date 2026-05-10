@@ -1,118 +1,638 @@
-use serde_json::Value;
-use std::time::Duration;
-
-pub const BASE_URL: &str = "https://indexer.dydx.trade/v4";
-
-#[derive(Clone)]
-pub struct DydxClient {
-    pub http: reqwest::blocking::Client,
-    pub base_url: String,
-}
-
-impl DydxClient {
-    pub fn new() -> Result<Self, String> {
-        let base_url = std::env::var("DYDX_INDEXER_URL").unwrap_or_else(|_| BASE_URL.to_string());
-        let http = reqwest::blocking::Client::builder()
-            .timeout(Duration::from_secs(30))
-            .build()
-            .map_err(|e| format!("[dydx] failed to build HTTP client: {e}"))?;
-        Ok(Self { http, base_url })
-    }
-
-    pub fn get(&self, path: &str) -> Result<Value, String> {
-        let url = format!("{}{path}", self.base_url);
-        let resp = self
-            .http
-            .get(&url)
-            .send()
-            .map_err(|e| format!("[dydx] request failed: {e}"))?;
-        if !resp.status().is_success() {
-            let status = resp.status();
-            let text = resp.text().unwrap_or_default();
-            return Err(format!("[dydx] API error {status}: {text}"));
+#[allow(unused_imports)]
+pub use progenitor_client::{ByteStream, ClientInfo, Error, ResponseValue};
+#[allow(unused_imports)]
+use progenitor_client::{encode_path, ClientHooks, OperationInfo, RequestBuilderExt};
+/// Types used as operation parameters and responses.
+#[allow(clippy::all)]
+pub mod types {
+    /// Error types.
+    pub mod error {
+        /// Error from a `TryFrom` or `FromStr` implementation.
+        pub struct ConversionError(::std::borrow::Cow<'static, str>);
+        impl ::std::error::Error for ConversionError {}
+        impl ::std::fmt::Display for ConversionError {
+            fn fmt(
+                &self,
+                f: &mut ::std::fmt::Formatter<'_>,
+            ) -> Result<(), ::std::fmt::Error> {
+                ::std::fmt::Display::fmt(&self.0, f)
+            }
         }
-        resp.json()
-            .map_err(|e| format!("[dydx] decode failed: {e}"))
+        impl ::std::fmt::Debug for ConversionError {
+            fn fmt(
+                &self,
+                f: &mut ::std::fmt::Formatter<'_>,
+            ) -> Result<(), ::std::fmt::Error> {
+                ::std::fmt::Debug::fmt(&self.0, f)
+            }
+        }
+        impl From<&'static str> for ConversionError {
+            fn from(value: &'static str) -> Self {
+                Self(value.into())
+            }
+        }
+        impl From<String> for ConversionError {
+            fn from(value: String) -> Self {
+                Self(value.into())
+            }
+        }
+    }
+    ///`CandlesResponse`
+    ///
+    /// <details><summary>JSON schema</summary>
+    ///
+    /// ```json
+    ///{
+    ///  "type": "object",
+    ///  "properties": {
+    ///    "candles": {
+    ///      "type": "array",
+    ///      "items": {
+    ///        "type": "object",
+    ///        "additionalProperties": true
+    ///      }
+    ///    }
+    ///  },
+    ///  "additionalProperties": true
+    ///}
+    /// ```
+    /// </details>
+    #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+    pub struct CandlesResponse {
+        #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
+        pub candles: ::std::vec::Vec<
+            ::serde_json::Map<::std::string::String, ::serde_json::Value>,
+        >,
+    }
+    impl ::std::default::Default for CandlesResponse {
+        fn default() -> Self {
+            Self {
+                candles: Default::default(),
+            }
+        }
+    }
+    ///`OrderbookLevel`
+    ///
+    /// <details><summary>JSON schema</summary>
+    ///
+    /// ```json
+    ///{
+    ///  "type": "object",
+    ///  "properties": {
+    ///    "price": {
+    ///      "type": "string"
+    ///    },
+    ///    "size": {
+    ///      "type": "string"
+    ///    }
+    ///  },
+    ///  "additionalProperties": true
+    ///}
+    /// ```
+    /// </details>
+    #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+    pub struct OrderbookLevel {
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        pub price: ::std::option::Option<::std::string::String>,
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        pub size: ::std::option::Option<::std::string::String>,
+    }
+    impl ::std::default::Default for OrderbookLevel {
+        fn default() -> Self {
+            Self {
+                price: Default::default(),
+                size: Default::default(),
+            }
+        }
+    }
+    ///`OrderbookResponse`
+    ///
+    /// <details><summary>JSON schema</summary>
+    ///
+    /// ```json
+    ///{
+    ///  "type": "object",
+    ///  "properties": {
+    ///    "asks": {
+    ///      "type": "array",
+    ///      "items": {
+    ///        "$ref": "#/components/schemas/OrderbookLevel"
+    ///      }
+    ///    },
+    ///    "bids": {
+    ///      "type": "array",
+    ///      "items": {
+    ///        "$ref": "#/components/schemas/OrderbookLevel"
+    ///      }
+    ///    }
+    ///  },
+    ///  "additionalProperties": true
+    ///}
+    /// ```
+    /// </details>
+    #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+    pub struct OrderbookResponse {
+        #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
+        pub asks: ::std::vec::Vec<OrderbookLevel>,
+        #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
+        pub bids: ::std::vec::Vec<OrderbookLevel>,
+    }
+    impl ::std::default::Default for OrderbookResponse {
+        fn default() -> Self {
+            Self {
+                asks: Default::default(),
+                bids: Default::default(),
+            }
+        }
+    }
+    ///`PerpetualMarketsResponse`
+    ///
+    /// <details><summary>JSON schema</summary>
+    ///
+    /// ```json
+    ///{
+    ///  "type": "object",
+    ///  "properties": {
+    ///    "markets": {
+    ///      "type": "object",
+    ///      "additionalProperties": true
+    ///    }
+    ///  },
+    ///  "additionalProperties": true
+    ///}
+    /// ```
+    /// </details>
+    #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+    pub struct PerpetualMarketsResponse {
+        #[serde(default, skip_serializing_if = "::serde_json::Map::is_empty")]
+        pub markets: ::serde_json::Map<::std::string::String, ::serde_json::Value>,
+    }
+    impl ::std::default::Default for PerpetualMarketsResponse {
+        fn default() -> Self {
+            Self {
+                markets: Default::default(),
+            }
+        }
     }
 }
+#[derive(Clone, Debug)]
+/**Client for dYdX v4 Indexer API
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+Read-only public Indexer API for dYdX v4 (Cosmos-based perpetual futures DEX).
 
-    /// Story: "Put on a funding rate arb — short the high-funding perp"
-    #[test]
-    fn funding_rate_arb_workflow() {
-        let client = DydxClient::new().expect("failed to build dYdX client");
+## Auth
+All endpoints in this spec are unauthenticated. Trades / orders are placed
+via signed Cosmos transactions and are explicitly out of scope.
 
-        let markets_resp = client
-            .get("/perpetualMarkets")
-            .expect("failed to fetch perpetual markets");
-        let markets_map = markets_resp
-            .get("markets")
-            .expect("response should contain a 'markets' key")
-            .as_object()
-            .expect("'markets' should be an object");
-        assert!(
-            !markets_map.is_empty(),
-            "markets map should contain at least one market"
-        );
+## Notes
+Response bodies are typed loosely (`additionalProperties: true`) for fields
+that the upstream docs do not strictly schematize — the curated tool layer
+surfaces the JSON to callers verbatim, so partial typing is intentional.
 
-        let ticker_with_funding = markets_map
-            .iter()
-            .find(|(_ticker, info)| info.get("nextFundingRate").is_some())
-            .map(|(ticker, _)| ticker.clone());
-        assert!(
-            ticker_with_funding.is_some(),
-            "at least one market should expose funding-rate data"
-        );
 
-        let orderbook = client
-            .get("/orderbooks/perpetualMarket/BTC-USD")
-            .expect("failed to fetch BTC-USD orderbook");
-        let bids = orderbook.get("bids").expect("orderbook should contain 'bids'");
-        let asks = orderbook.get("asks").expect("orderbook should contain 'asks'");
-        assert!(!bids.as_array().unwrap().is_empty());
-        assert!(!asks.as_array().unwrap().is_empty());
-
-        let candles_resp = client
-            .get("/candles/perpetualMarkets/BTC-USD?resolution=1HOUR&limit=10")
-            .expect("failed to fetch BTC-USD candles");
-        let candles_arr = candles_resp
-            .get("candles")
-            .expect("candles response should contain 'candles' key")
-            .as_array()
-            .expect("candles should be an array");
-        assert!(!candles_arr.is_empty(), "should receive at least one candle");
+Version: 1.0*/
+pub struct Client {
+    pub(crate) baseurl: String,
+    pub(crate) client: reqwest::Client,
+}
+impl Client {
+    /// Create a new client.
+    ///
+    /// `baseurl` is the base URL provided to the internal
+    /// `reqwest::Client`, and should include a scheme and hostname,
+    /// as well as port and a path stem if applicable.
+    pub fn new(baseurl: &str) -> Self {
+        #[cfg(not(target_arch = "wasm32"))]
+        let client = {
+            let dur = ::std::time::Duration::from_secs(15u64);
+            reqwest::ClientBuilder::new().connect_timeout(dur).timeout(dur)
+        };
+        #[cfg(target_arch = "wasm32")]
+        let client = reqwest::ClientBuilder::new();
+        Self::new_with_client(baseurl, client.build().unwrap())
     }
-
-    /// Story: "Rebalance my dYdX subaccount — cut losers, add to winners"
-    #[test]
-    fn rebalance_subaccount_workflow() {
-        let client = DydxClient::new().expect("failed to build dYdX client");
-        let address = "0x0000000000000000000000000000000000000000";
-
-        // The API may return an error for a non-existent address; that is
-        // acceptable — we just need to confirm we got *a* response.
-        let account_result = client.get(&format!("/addresses/{address}/subaccountNumber/0"));
-        let account_responded = match &account_result {
-            Ok(val) => val.is_object() || val.is_null(),
-            Err(e) => !e.is_empty(),
-        };
-        assert!(account_responded, "account endpoint should respond");
-
-        let orders_result = client.get(&format!("/orders?address={address}&subaccountNumber=0"));
-        let orders_responded = match &orders_result {
-            Ok(val) => val.is_object() || val.is_array(),
-            Err(e) => !e.is_empty(),
-        };
-        assert!(orders_responded, "orders endpoint should respond");
-
-        let fills_result = client.get(&format!("/fills?address={address}&subaccountNumber=0"));
-        let fills_responded = match &fills_result {
-            Ok(val) => val.is_object() || val.is_array(),
-            Err(e) => !e.is_empty(),
-        };
-        assert!(fills_responded, "fills endpoint should respond");
+    /// Construct a new client with an existing `reqwest::Client`,
+    /// allowing more control over its configuration.
+    ///
+    /// `baseurl` is the base URL provided to the internal
+    /// `reqwest::Client`, and should include a scheme and hostname,
+    /// as well as port and a path stem if applicable.
+    pub fn new_with_client(baseurl: &str, client: reqwest::Client) -> Self {
+        Self {
+            baseurl: baseurl.to_string(),
+            client,
+        }
     }
+}
+impl ClientInfo<()> for Client {
+    fn api_version() -> &'static str {
+        "1.0"
+    }
+    fn baseurl(&self) -> &str {
+        self.baseurl.as_str()
+    }
+    fn client(&self) -> &reqwest::Client {
+        &self.client
+    }
+    fn inner(&self) -> &() {
+        &()
+    }
+}
+impl ClientHooks<()> for &Client {}
+#[allow(clippy::all)]
+impl Client {
+    /**List all perpetual markets, optionally filtered by ticker
+
+Sends a `GET` request to `/perpetualMarkets`
+
+Arguments:
+- `ticker`: Optional ticker filter (e.g. "BTC-USD").
+*/
+    pub async fn get_perpetual_markets<'a>(
+        &'a self,
+        ticker: Option<&'a str>,
+    ) -> Result<ResponseValue<types::PerpetualMarketsResponse>, Error<()>> {
+        let url = format!("{}/perpetualMarkets", self.baseurl,);
+        let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
+        header_map
+            .append(
+                ::reqwest::header::HeaderName::from_static("api-version"),
+                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+            );
+        #[allow(unused_mut)]
+        let mut request = self
+            .client
+            .get(url)
+            .header(
+                ::reqwest::header::ACCEPT,
+                ::reqwest::header::HeaderValue::from_static("application/json"),
+            )
+            .query(&progenitor_client::QueryParam::new("ticker", &ticker))
+            .headers(header_map)
+            .build()?;
+        let info = OperationInfo {
+            operation_id: "get_perpetual_markets",
+        };
+        self.pre(&mut request, &info).await?;
+        let result = self.exec(request, &info).await;
+        self.post(&result, &info).await?;
+        let response = result?;
+        match response.status().as_u16() {
+            200u16 => ResponseValue::from_response(response).await,
+            _ => Err(Error::UnexpectedResponse(response)),
+        }
+    }
+    /**L2 orderbook snapshot for a perpetual market
+
+Sends a `GET` request to `/orderbooks/perpetualMarket/{ticker}`
+
+Arguments:
+- `ticker`: Market ticker (e.g. "BTC-USD").
+*/
+    pub async fn get_orderbook<'a>(
+        &'a self,
+        ticker: &'a str,
+    ) -> Result<ResponseValue<types::OrderbookResponse>, Error<()>> {
+        let url = format!(
+            "{}/orderbooks/perpetualMarket/{}", self.baseurl, encode_path(& ticker
+            .to_string()),
+        );
+        let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
+        header_map
+            .append(
+                ::reqwest::header::HeaderName::from_static("api-version"),
+                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+            );
+        #[allow(unused_mut)]
+        let mut request = self
+            .client
+            .get(url)
+            .header(
+                ::reqwest::header::ACCEPT,
+                ::reqwest::header::HeaderValue::from_static("application/json"),
+            )
+            .headers(header_map)
+            .build()?;
+        let info = OperationInfo {
+            operation_id: "get_orderbook",
+        };
+        self.pre(&mut request, &info).await?;
+        let result = self.exec(request, &info).await;
+        self.post(&result, &info).await?;
+        let response = result?;
+        match response.status().as_u16() {
+            200u16 => ResponseValue::from_response(response).await,
+            _ => Err(Error::UnexpectedResponse(response)),
+        }
+    }
+    /**OHLCV candles for a perpetual market
+
+Sends a `GET` request to `/candles/perpetualMarkets/{ticker}`
+
+Arguments:
+- `ticker`: Market ticker (e.g. "BTC-USD").
+- `limit`
+- `resolution`: One of 1MIN, 5MINS, 15MINS, 30MINS, 1HOUR, 4HOURS, 1DAY.
+*/
+    pub async fn get_candles<'a>(
+        &'a self,
+        ticker: &'a str,
+        limit: Option<::std::num::NonZeroU32>,
+        resolution: &'a str,
+    ) -> Result<ResponseValue<types::CandlesResponse>, Error<()>> {
+        let url = format!(
+            "{}/candles/perpetualMarkets/{}", self.baseurl, encode_path(& ticker
+            .to_string()),
+        );
+        let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
+        header_map
+            .append(
+                ::reqwest::header::HeaderName::from_static("api-version"),
+                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+            );
+        #[allow(unused_mut)]
+        let mut request = self
+            .client
+            .get(url)
+            .header(
+                ::reqwest::header::ACCEPT,
+                ::reqwest::header::HeaderValue::from_static("application/json"),
+            )
+            .query(&progenitor_client::QueryParam::new("limit", &limit))
+            .query(&progenitor_client::QueryParam::new("resolution", &resolution))
+            .headers(header_map)
+            .build()?;
+        let info = OperationInfo {
+            operation_id: "get_candles",
+        };
+        self.pre(&mut request, &info).await?;
+        let result = self.exec(request, &info).await;
+        self.post(&result, &info).await?;
+        let response = result?;
+        match response.status().as_u16() {
+            200u16 => ResponseValue::from_response(response).await,
+            _ => Err(Error::UnexpectedResponse(response)),
+        }
+    }
+    /**Recent public trades for a perpetual market
+
+Sends a `GET` request to `/trades/perpetualMarket/{ticker}`
+
+Arguments:
+- `ticker`: Market ticker (e.g. "BTC-USD").
+- `limit`
+*/
+    pub async fn get_trades<'a>(
+        &'a self,
+        ticker: &'a str,
+        limit: Option<::std::num::NonZeroU32>,
+    ) -> Result<
+        ResponseValue<::serde_json::Map<::std::string::String, ::serde_json::Value>>,
+        Error<()>,
+    > {
+        let url = format!(
+            "{}/trades/perpetualMarket/{}", self.baseurl, encode_path(& ticker
+            .to_string()),
+        );
+        let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
+        header_map
+            .append(
+                ::reqwest::header::HeaderName::from_static("api-version"),
+                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+            );
+        #[allow(unused_mut)]
+        let mut request = self
+            .client
+            .get(url)
+            .header(
+                ::reqwest::header::ACCEPT,
+                ::reqwest::header::HeaderValue::from_static("application/json"),
+            )
+            .query(&progenitor_client::QueryParam::new("limit", &limit))
+            .headers(header_map)
+            .build()?;
+        let info = OperationInfo {
+            operation_id: "get_trades",
+        };
+        self.pre(&mut request, &info).await?;
+        let result = self.exec(request, &info).await;
+        self.post(&result, &info).await?;
+        let response = result?;
+        match response.status().as_u16() {
+            200u16 => ResponseValue::from_response(response).await,
+            _ => Err(Error::UnexpectedResponse(response)),
+        }
+    }
+    /**Get a subaccount snapshot for an address
+
+Sends a `GET` request to `/addresses/{address}/subaccountNumber/{subaccountNumber}`
+
+Arguments:
+- `address`: dYdX bech32 address (e.g. dydx1...).
+- `subaccount_number`
+*/
+    pub async fn get_subaccount<'a>(
+        &'a self,
+        address: &'a str,
+        subaccount_number: u32,
+    ) -> Result<
+        ResponseValue<::serde_json::Map<::std::string::String, ::serde_json::Value>>,
+        Error<()>,
+    > {
+        let url = format!(
+            "{}/addresses/{}/subaccountNumber/{}", self.baseurl, encode_path(& address
+            .to_string()), encode_path(& subaccount_number.to_string()),
+        );
+        let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
+        header_map
+            .append(
+                ::reqwest::header::HeaderName::from_static("api-version"),
+                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+            );
+        #[allow(unused_mut)]
+        let mut request = self
+            .client
+            .get(url)
+            .header(
+                ::reqwest::header::ACCEPT,
+                ::reqwest::header::HeaderValue::from_static("application/json"),
+            )
+            .headers(header_map)
+            .build()?;
+        let info = OperationInfo {
+            operation_id: "get_subaccount",
+        };
+        self.pre(&mut request, &info).await?;
+        let result = self.exec(request, &info).await;
+        self.post(&result, &info).await?;
+        let response = result?;
+        match response.status().as_u16() {
+            200u16 => ResponseValue::from_response(response).await,
+            _ => Err(Error::UnexpectedResponse(response)),
+        }
+    }
+    /**Orders for a subaccount, optionally filtered by status / ticker
+
+Sends a `GET` request to `/orders`
+
+Arguments:
+- `address`
+- `status`: One of OPEN, FILLED, CANCELED, BEST_EFFORT_CANCELED, UNTRIGGERED.
+- `subaccount_number`
+- `ticker`
+*/
+    pub async fn get_orders<'a>(
+        &'a self,
+        address: &'a str,
+        status: Option<&'a str>,
+        subaccount_number: u32,
+        ticker: Option<&'a str>,
+    ) -> Result<
+        ResponseValue<::serde_json::Map<::std::string::String, ::serde_json::Value>>,
+        Error<()>,
+    > {
+        let url = format!("{}/orders", self.baseurl,);
+        let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
+        header_map
+            .append(
+                ::reqwest::header::HeaderName::from_static("api-version"),
+                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+            );
+        #[allow(unused_mut)]
+        let mut request = self
+            .client
+            .get(url)
+            .header(
+                ::reqwest::header::ACCEPT,
+                ::reqwest::header::HeaderValue::from_static("application/json"),
+            )
+            .query(&progenitor_client::QueryParam::new("address", &address))
+            .query(&progenitor_client::QueryParam::new("status", &status))
+            .query(
+                &progenitor_client::QueryParam::new(
+                    "subaccountNumber",
+                    &subaccount_number,
+                ),
+            )
+            .query(&progenitor_client::QueryParam::new("ticker", &ticker))
+            .headers(header_map)
+            .build()?;
+        let info = OperationInfo {
+            operation_id: "get_orders",
+        };
+        self.pre(&mut request, &info).await?;
+        let result = self.exec(request, &info).await;
+        self.post(&result, &info).await?;
+        let response = result?;
+        match response.status().as_u16() {
+            200u16 => ResponseValue::from_response(response).await,
+            _ => Err(Error::UnexpectedResponse(response)),
+        }
+    }
+    /**Fills (executed trades) for a subaccount
+
+Sends a `GET` request to `/fills`
+
+*/
+    pub async fn get_fills<'a>(
+        &'a self,
+        address: &'a str,
+        limit: Option<::std::num::NonZeroU32>,
+        market: Option<&'a str>,
+        subaccount_number: u32,
+    ) -> Result<
+        ResponseValue<::serde_json::Map<::std::string::String, ::serde_json::Value>>,
+        Error<()>,
+    > {
+        let url = format!("{}/fills", self.baseurl,);
+        let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
+        header_map
+            .append(
+                ::reqwest::header::HeaderName::from_static("api-version"),
+                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+            );
+        #[allow(unused_mut)]
+        let mut request = self
+            .client
+            .get(url)
+            .header(
+                ::reqwest::header::ACCEPT,
+                ::reqwest::header::HeaderValue::from_static("application/json"),
+            )
+            .query(&progenitor_client::QueryParam::new("address", &address))
+            .query(&progenitor_client::QueryParam::new("limit", &limit))
+            .query(&progenitor_client::QueryParam::new("market", &market))
+            .query(
+                &progenitor_client::QueryParam::new(
+                    "subaccountNumber",
+                    &subaccount_number,
+                ),
+            )
+            .headers(header_map)
+            .build()?;
+        let info = OperationInfo {
+            operation_id: "get_fills",
+        };
+        self.pre(&mut request, &info).await?;
+        let result = self.exec(request, &info).await;
+        self.post(&result, &info).await?;
+        let response = result?;
+        match response.status().as_u16() {
+            200u16 => ResponseValue::from_response(response).await,
+            _ => Err(Error::UnexpectedResponse(response)),
+        }
+    }
+    /**Per-hour historical funding rate series for a market
+
+Sends a `GET` request to `/historicalFunding/{ticker}`
+
+Arguments:
+- `ticker`: Market ticker (e.g. "BTC-USD").
+- `limit`
+*/
+    pub async fn get_historical_funding<'a>(
+        &'a self,
+        ticker: &'a str,
+        limit: Option<::std::num::NonZeroU32>,
+    ) -> Result<
+        ResponseValue<::serde_json::Map<::std::string::String, ::serde_json::Value>>,
+        Error<()>,
+    > {
+        let url = format!(
+            "{}/historicalFunding/{}", self.baseurl, encode_path(& ticker.to_string()),
+        );
+        let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
+        header_map
+            .append(
+                ::reqwest::header::HeaderName::from_static("api-version"),
+                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+            );
+        #[allow(unused_mut)]
+        let mut request = self
+            .client
+            .get(url)
+            .header(
+                ::reqwest::header::ACCEPT,
+                ::reqwest::header::HeaderValue::from_static("application/json"),
+            )
+            .query(&progenitor_client::QueryParam::new("limit", &limit))
+            .headers(header_map)
+            .build()?;
+        let info = OperationInfo {
+            operation_id: "get_historical_funding",
+        };
+        self.pre(&mut request, &info).await?;
+        let result = self.exec(request, &info).await;
+        self.post(&result, &info).await?;
+        let response = result?;
+        match response.status().as_u16() {
+            200u16 => ResponseValue::from_response(response).await,
+            _ => Err(Error::UnexpectedResponse(response)),
+        }
+    }
+}
+/// Items consumers will typically use such as the Client.
+pub mod prelude {
+    #[allow(unused_imports)]
+    pub use super::Client;
 }

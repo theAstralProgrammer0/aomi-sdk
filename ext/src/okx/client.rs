@@ -1,278 +1,731 @@
-use base64::{Engine as _, engine::general_purpose::STANDARD as BASE64};
-use hmac::{Hmac, Mac};
-use serde::Serialize;
-use serde_json::Value;
-use sha2::Sha256;
-use std::time::Duration;
-
-pub const BASE_URL: &str = "https://www.okx.com/api/v5";
-
-type HmacSha256 = Hmac<Sha256>;
-
-pub struct OkxClient {
-    pub http: reqwest::blocking::Client,
-}
-
-impl OkxClient {
-    pub fn new() -> Result<Self, String> {
-        let http = reqwest::blocking::Client::builder()
-            .timeout(Duration::from_secs(30))
-            .build()
-            .map_err(|e| format!("[okx] failed to build HTTP client: {e}"))?;
-        Ok(Self { http })
-    }
-
-    /// Generate OKX API signature: HMAC-SHA256(timestamp + method + requestPath + body), base64-encoded.
-    pub fn sign(
-        secret_key: &str,
-        timestamp: &str,
-        method: &str,
-        request_path: &str,
-        body: &str,
-    ) -> Result<String, String> {
-        let prehash = format!("{timestamp}{method}{request_path}{body}");
-        let mut mac = HmacSha256::new_from_slice(secret_key.as_bytes())
-            .map_err(|e| format!("[okx] HMAC key error: {e}"))?;
-        mac.update(prehash.as_bytes());
-        let result = mac.finalize();
-        Ok(BASE64.encode(result.into_bytes()))
-    }
-
-    pub fn iso_timestamp() -> String {
-        // OKX expects ISO 8601 timestamp e.g. 2024-01-01T00:00:00.000Z
-        let now = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap_or_default();
-        let secs = now.as_secs();
-        let millis = now.subsec_millis();
-        let days_since_epoch = secs / 86400;
-        let time_of_day = secs % 86400;
-        let hours = time_of_day / 3600;
-        let minutes = (time_of_day % 3600) / 60;
-        let seconds = time_of_day % 60;
-
-        let (year, month, day) = days_to_ymd(days_since_epoch);
-        format!("{year:04}-{month:02}-{day:02}T{hours:02}:{minutes:02}:{seconds:02}.{millis:03}Z")
-    }
-
-    /// Public GET request (no auth).
-    pub fn public_get(&self, path: &str) -> Result<Value, String> {
-        let url = format!("{BASE_URL}{path}");
-        let resp = self
-            .http
-            .get(&url)
-            .send()
-            .map_err(|e| format!("[okx] request failed: {e}"))?;
-        Self::parse_response(resp)
-    }
-
-    /// Authenticated GET request.
-    pub fn auth_get(
-        &self,
-        path: &str,
-        api_key: &str,
-        secret_key: &str,
-        passphrase: &str,
-    ) -> Result<Value, String> {
-        let timestamp = Self::iso_timestamp();
-        let sign = Self::sign(secret_key, &timestamp, "GET", path, "")?;
-        let url = format!("{BASE_URL}{path}");
-        let resp = self
-            .http
-            .get(&url)
-            .header("OK-ACCESS-KEY", api_key)
-            .header("OK-ACCESS-SIGN", sign)
-            .header("OK-ACCESS-TIMESTAMP", &timestamp)
-            .header("OK-ACCESS-PASSPHRASE", passphrase)
-            .send()
-            .map_err(|e| format!("[okx] request failed: {e}"))?;
-        Self::parse_response(resp)
-    }
-
-    /// Authenticated POST request.
-    pub fn auth_post<B: Serialize>(
-        &self,
-        path: &str,
-        body: &B,
-        api_key: &str,
-        secret_key: &str,
-        passphrase: &str,
-    ) -> Result<Value, String> {
-        let timestamp = Self::iso_timestamp();
-        let body_str = serde_json::to_string(body)
-            .map_err(|e| format!("[okx] failed to serialize body: {e}"))?;
-        let sign = Self::sign(secret_key, &timestamp, "POST", path, &body_str)?;
-        let url = format!("{BASE_URL}{path}");
-        let resp = self
-            .http
-            .post(&url)
-            .header("OK-ACCESS-KEY", api_key)
-            .header("OK-ACCESS-SIGN", sign)
-            .header("OK-ACCESS-TIMESTAMP", &timestamp)
-            .header("OK-ACCESS-PASSPHRASE", passphrase)
-            .header("Content-Type", "application/json")
-            .body(body_str)
-            .send()
-            .map_err(|e| format!("[okx] request failed: {e}"))?;
-        Self::parse_response(resp)
-    }
-
-    fn parse_response(resp: reqwest::blocking::Response) -> Result<Value, String> {
-        let status = resp.status();
-        let text = resp.text().unwrap_or_default();
-        if !status.is_success() {
-            return Err(format!("[okx] HTTP {status}: {text}"));
+#[allow(unused_imports)]
+pub use progenitor_client::{ByteStream, ClientInfo, Error, ResponseValue};
+#[allow(unused_imports)]
+use progenitor_client::{encode_path, ClientHooks, OperationInfo, RequestBuilderExt};
+/// Types used as operation parameters and responses.
+#[allow(clippy::all)]
+pub mod types {
+    /// Error types.
+    pub mod error {
+        /// Error from a `TryFrom` or `FromStr` implementation.
+        pub struct ConversionError(::std::borrow::Cow<'static, str>);
+        impl ::std::error::Error for ConversionError {}
+        impl ::std::fmt::Display for ConversionError {
+            fn fmt(
+                &self,
+                f: &mut ::std::fmt::Formatter<'_>,
+            ) -> Result<(), ::std::fmt::Error> {
+                ::std::fmt::Display::fmt(&self.0, f)
+            }
         }
-        let parsed: Value = serde_json::from_str(&text)
-            .map_err(|e| format!("[okx] failed to parse response: {e}"))?;
-        // OKX returns { "code": "0", "msg": "", "data": [...] } on success
-        let code = parsed.get("code").and_then(|c| c.as_str()).unwrap_or("");
-        if code != "0" {
-            let msg = parsed
-                .get("msg")
-                .and_then(|m| m.as_str())
-                .unwrap_or("unknown error");
-            return Err(format!("[okx] API error (code {code}): {msg}"));
+        impl ::std::fmt::Debug for ConversionError {
+            fn fmt(
+                &self,
+                f: &mut ::std::fmt::Formatter<'_>,
+            ) -> Result<(), ::std::fmt::Error> {
+                ::std::fmt::Debug::fmt(&self.0, f)
+            }
         }
-        Ok(parsed)
+        impl From<&'static str> for ConversionError {
+            fn from(value: &'static str) -> Self {
+                Self(value.into())
+            }
+        }
+        impl From<String> for ConversionError {
+            fn from(value: String) -> Self {
+                Self(value.into())
+            }
+        }
+    }
+    ///`CancelOrderRequest`
+    ///
+    /// <details><summary>JSON schema</summary>
+    ///
+    /// ```json
+    ///{
+    ///  "type": "object",
+    ///  "required": [
+    ///    "instId",
+    ///    "ordId"
+    ///  ],
+    ///  "properties": {
+    ///    "instId": {
+    ///      "type": "string"
+    ///    },
+    ///    "ordId": {
+    ///      "type": "string"
+    ///    }
+    ///  }
+    ///}
+    /// ```
+    /// </details>
+    #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+    pub struct CancelOrderRequest {
+        #[serde(rename = "instId")]
+        pub inst_id: ::std::string::String,
+        #[serde(rename = "ordId")]
+        pub ord_id: ::std::string::String,
+    }
+    ///`EnvelopeResponse`
+    ///
+    /// <details><summary>JSON schema</summary>
+    ///
+    /// ```json
+    ///{
+    ///  "type": "object",
+    ///  "properties": {
+    ///    "code": {
+    ///      "type": "string"
+    ///    },
+    ///    "data": {
+    ///      "type": "array",
+    ///      "items": {
+    ///        "type": "object",
+    ///        "additionalProperties": true
+    ///      }
+    ///    },
+    ///    "msg": {
+    ///      "type": "string"
+    ///    }
+    ///  },
+    ///  "additionalProperties": true
+    ///}
+    /// ```
+    /// </details>
+    #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+    pub struct EnvelopeResponse {
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        pub code: ::std::option::Option<::std::string::String>,
+        #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
+        pub data: ::std::vec::Vec<
+            ::serde_json::Map<::std::string::String, ::serde_json::Value>,
+        >,
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        pub msg: ::std::option::Option<::std::string::String>,
+    }
+    impl ::std::default::Default for EnvelopeResponse {
+        fn default() -> Self {
+            Self {
+                code: Default::default(),
+                data: Default::default(),
+                msg: Default::default(),
+            }
+        }
+    }
+    ///`PlaceOrderRequest`
+    ///
+    /// <details><summary>JSON schema</summary>
+    ///
+    /// ```json
+    ///{
+    ///  "type": "object",
+    ///  "required": [
+    ///    "instId",
+    ///    "ordType",
+    ///    "side",
+    ///    "sz",
+    ///    "tdMode"
+    ///  ],
+    ///  "properties": {
+    ///    "instId": {
+    ///      "type": "string"
+    ///    },
+    ///    "ordType": {
+    ///      "description": "`market`, `limit`, `post_only`, `fok`, `ioc`.",
+    ///      "type": "string"
+    ///    },
+    ///    "px": {
+    ///      "description": "Price (required for limit orders).",
+    ///      "type": "string"
+    ///    },
+    ///    "side": {
+    ///      "description": "`buy` or `sell`.",
+    ///      "type": "string"
+    ///    },
+    ///    "sz": {
+    ///      "type": "string"
+    ///    },
+    ///    "tdMode": {
+    ///      "description": "`cash` (spot) / `cross` / `isolated`.",
+    ///      "type": "string"
+    ///    }
+    ///  }
+    ///}
+    /// ```
+    /// </details>
+    #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+    pub struct PlaceOrderRequest {
+        #[serde(rename = "instId")]
+        pub inst_id: ::std::string::String,
+        ///`market`, `limit`, `post_only`, `fok`, `ioc`.
+        #[serde(rename = "ordType")]
+        pub ord_type: ::std::string::String,
+        ///Price (required for limit orders).
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        pub px: ::std::option::Option<::std::string::String>,
+        ///`buy` or `sell`.
+        pub side: ::std::string::String,
+        pub sz: ::std::string::String,
+        ///`cash` (spot) / `cross` / `isolated`.
+        #[serde(rename = "tdMode")]
+        pub td_mode: ::std::string::String,
+    }
+    ///`SetLeverageRequest`
+    ///
+    /// <details><summary>JSON schema</summary>
+    ///
+    /// ```json
+    ///{
+    ///  "type": "object",
+    ///  "required": [
+    ///    "instId",
+    ///    "lever",
+    ///    "mgnMode"
+    ///  ],
+    ///  "properties": {
+    ///    "instId": {
+    ///      "type": "string"
+    ///    },
+    ///    "lever": {
+    ///      "type": "string"
+    ///    },
+    ///    "mgnMode": {
+    ///      "description": "`cross` or `isolated`.",
+    ///      "type": "string"
+    ///    }
+    ///  }
+    ///}
+    /// ```
+    /// </details>
+    #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+    pub struct SetLeverageRequest {
+        #[serde(rename = "instId")]
+        pub inst_id: ::std::string::String,
+        pub lever: ::std::string::String,
+        ///`cross` or `isolated`.
+        #[serde(rename = "mgnMode")]
+        pub mgn_mode: ::std::string::String,
     }
 }
+#[derive(Clone, Debug)]
+/**Client for OKX V5 API
 
-/// Convert days since Unix epoch to (year, month, day).
-fn days_to_ymd(days: u64) -> (u64, u64, u64) {
-    // Algorithm from http://howardhinnant.github.io/date_algorithms.html
-    let z = days + 719468;
-    let era = z / 146097;
-    let doe = z - era * 146097;
-    let yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365;
-    let y = yoe + era * 400;
-    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
-    let mp = (5 * doy + 2) / 153;
-    let d = doy - (153 * mp + 2) / 5 + 1;
-    let m = if mp < 10 { mp + 3 } else { mp - 9 };
-    let y = if m <= 2 { y + 1 } else { y };
-    (y, m, d)
+OKX V5 REST API surface used by the Aomi `okx` app.
+
+Only the endpoints actually called by `apps/okx/src/tool.rs` are
+described here — public market data (tickers/books/candles) plus signed
+account/order endpoints.
+
+## Auth
+Signed endpoints require these request headers, sent on every signed call:
+  - `OK-ACCESS-KEY`        — your API key
+  - `OK-ACCESS-SIGN`       — base64(HMAC-SHA256(secret, prehash))
+  - `OK-ACCESS-TIMESTAMP`  — ISO-8601 timestamp e.g. 2024-01-01T00:00:00.000Z
+  - `OK-ACCESS-PASSPHRASE` — the passphrase set when the API key was created
+
+The prehash is `timestamp + method + requestPath + body` where `requestPath`
+includes the query string. The HMAC key is the API secret. The signing logic
+is hand-written in `ext/src/okx/auth.rs` — this spec only describes the
+resulting headers for codegen purposes. The curated tool layer in
+`apps/okx/src/tool.rs` computes the signature before calling the generated
+method.
+
+All responses share an envelope: `{ code: "0", msg: "", data: [...] }`.
+Non-zero `code` indicates a logical error even on HTTP 200.
+
+
+Version: 5.0*/
+pub struct Client {
+    pub(crate) baseurl: String,
+    pub(crate) client: reqwest::Client,
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    /// Story: "Sell spot ETH and go short on the SWAP"
-    #[test]
-    fn spot_to_swap_workflow() {
-        let client = OkxClient::new().expect("failed to create OkxClient");
-
-        let spot_resp = client
-            .public_get("/market/tickers?instType=SPOT")
-            .expect("failed to fetch SPOT tickers");
-        let spot_data = spot_resp["data"]
-            .as_array()
-            .expect("SPOT tickers data should be an array");
-        assert!(!spot_data.is_empty(), "SPOT tickers should not be empty");
-        let btc_spot = spot_data
-            .iter()
-            .find(|t| t["instId"].as_str() == Some("BTC-USDT"))
-            .expect("BTC-USDT should exist in SPOT tickers");
-        assert!(
-            btc_spot["last"].as_str().is_some(),
-            "BTC-USDT spot ticker should have a last price"
-        );
-
-        let swap_resp = client
-            .public_get("/market/tickers?instType=SWAP")
-            .expect("failed to fetch SWAP tickers");
-        let swap_data = swap_resp["data"]
-            .as_array()
-            .expect("SWAP tickers data should be an array");
-        assert!(!swap_data.is_empty(), "SWAP tickers should not be empty");
-        let btc_swap = swap_data
-            .iter()
-            .find(|t| t["instId"].as_str() == Some("BTC-USDT-SWAP"))
-            .expect("BTC-USDT-SWAP should exist in SWAP tickers");
-        assert!(
-            btc_swap["last"].as_str().is_some(),
-            "BTC-USDT-SWAP ticker should have a last price"
-        );
-
-        let book_resp = client
-            .public_get("/market/books?instId=BTC-USDT")
-            .expect("failed to fetch BTC-USDT order book");
-        let book_data = book_resp["data"]
-            .as_array()
-            .expect("order book data should be an array");
-        assert!(!book_data.is_empty(), "order book data should not be empty");
-        let book = &book_data[0];
-        let bids = book["bids"]
-            .as_array()
-            .expect("order book should have bids");
-        let asks = book["asks"]
-            .as_array()
-            .expect("order book should have asks");
-        assert!(!bids.is_empty(), "bids should not be empty");
-        assert!(!asks.is_empty(), "asks should not be empty");
-
-        let spot_price = btc_spot["last"].as_str().expect("spot last price missing");
-        let swap_price = btc_swap["last"].as_str().expect("swap last price missing");
-        let spot_f: f64 = spot_price.parse().expect("spot price should parse as f64");
-        let swap_f: f64 = swap_price.parse().expect("swap price should parse as f64");
-        assert!(spot_f > 0.0, "spot price should be positive");
-        assert!(swap_f > 0.0, "swap price should be positive");
+impl Client {
+    /// Create a new client.
+    ///
+    /// `baseurl` is the base URL provided to the internal
+    /// `reqwest::Client`, and should include a scheme and hostname,
+    /// as well as port and a path stem if applicable.
+    pub fn new(baseurl: &str) -> Self {
+        #[cfg(not(target_arch = "wasm32"))]
+        let client = {
+            let dur = ::std::time::Duration::from_secs(15u64);
+            reqwest::ClientBuilder::new().connect_timeout(dur).timeout(dur)
+        };
+        #[cfg(target_arch = "wasm32")]
+        let client = reqwest::ClientBuilder::new();
+        Self::new_with_client(baseurl, client.build().unwrap())
     }
-
-    /// Story: "Tighten leverage on all my open positions to reduce liquidation risk"
-    #[test]
-    fn tighten_leverage_workflow() {
-        let client = OkxClient::new().expect("failed to create OkxClient");
-
-        let swap_resp = client
-            .public_get("/market/tickers?instType=SWAP")
-            .expect("failed to fetch SWAP tickers");
-        let swap_data = swap_resp["data"]
-            .as_array()
-            .expect("SWAP tickers data should be an array");
-        assert!(
-            swap_data.len() > 1,
-            "should have multiple SWAP instruments, got {}",
-            swap_data.len()
-        );
-
-        let candle_resp = client
-            .public_get("/market/candles?instId=BTC-USDT-SWAP")
-            .expect("failed to fetch BTC-USDT-SWAP candles");
-        let candle_data = candle_resp["data"]
-            .as_array()
-            .expect("candle data should be an array");
-        assert!(
-            !candle_data.is_empty(),
-            "should have at least one candle for BTC-USDT-SWAP"
-        );
-        let first_candle = candle_data[0]
-            .as_array()
-            .expect("each candle should be an array");
-        assert!(
-            first_candle.len() >= 5,
-            "candle should have at least 5 elements (ts, o, h, l, c)"
-        );
-
-        let book_resp = client
-            .public_get("/market/books?instId=ETH-USDT-SWAP")
-            .expect("failed to fetch ETH-USDT-SWAP order book");
-        let book_data = book_resp["data"]
-            .as_array()
-            .expect("order book data should be an array");
-        assert!(
-            !book_data.is_empty(),
-            "ETH-USDT-SWAP order book should not be empty"
-        );
-        let book = &book_data[0];
-        let bids = book["bids"]
-            .as_array()
-            .expect("order book should have bids");
-        let asks = book["asks"]
-            .as_array()
-            .expect("order book should have asks");
-        assert!(!bids.is_empty(), "ETH-USDT-SWAP bids should not be empty");
-        assert!(!asks.is_empty(), "ETH-USDT-SWAP asks should not be empty");
+    /// Construct a new client with an existing `reqwest::Client`,
+    /// allowing more control over its configuration.
+    ///
+    /// `baseurl` is the base URL provided to the internal
+    /// `reqwest::Client`, and should include a scheme and hostname,
+    /// as well as port and a path stem if applicable.
+    pub fn new_with_client(baseurl: &str, client: reqwest::Client) -> Self {
+        Self {
+            baseurl: baseurl.to_string(),
+            client,
+        }
     }
+}
+impl ClientInfo<()> for Client {
+    fn api_version() -> &'static str {
+        "5.0"
+    }
+    fn baseurl(&self) -> &str {
+        self.baseurl.as_str()
+    }
+    fn client(&self) -> &reqwest::Client {
+        &self.client
+    }
+    fn inner(&self) -> &() {
+        &()
+    }
+}
+impl ClientHooks<()> for &Client {}
+#[allow(clippy::all)]
+impl Client {
+    /**Latest ticker snapshot for instruments of a given type
+
+Public endpoint. Returns last price, 24h volume, best bid/ask, etc. for
+every instrument of the given type (SPOT, SWAP, FUTURES, OPTION).
+
+
+Sends a `GET` request to `/api/v5/market/tickers`
+
+Arguments:
+- `inst_type`: `SPOT`, `SWAP`, `FUTURES`, or `OPTION`.
+*/
+    pub async fn get_tickers<'a>(
+        &'a self,
+        inst_type: &'a str,
+    ) -> Result<ResponseValue<types::EnvelopeResponse>, Error<()>> {
+        let url = format!("{}/api/v5/market/tickers", self.baseurl,);
+        let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
+        header_map
+            .append(
+                ::reqwest::header::HeaderName::from_static("api-version"),
+                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+            );
+        #[allow(unused_mut)]
+        let mut request = self
+            .client
+            .get(url)
+            .header(
+                ::reqwest::header::ACCEPT,
+                ::reqwest::header::HeaderValue::from_static("application/json"),
+            )
+            .query(&progenitor_client::QueryParam::new("instType", &inst_type))
+            .headers(header_map)
+            .build()?;
+        let info = OperationInfo {
+            operation_id: "get_tickers",
+        };
+        self.pre(&mut request, &info).await?;
+        let result = self.exec(request, &info).await;
+        self.post(&result, &info).await?;
+        let response = result?;
+        match response.status().as_u16() {
+            200u16 => ResponseValue::from_response(response).await,
+            _ => Err(Error::UnexpectedResponse(response)),
+        }
+    }
+    /**Order-book bids and asks for an instrument
+
+Public endpoint. Returns bids/asks at the requested depth.
+
+
+Sends a `GET` request to `/api/v5/market/books`
+
+Arguments:
+- `inst_id`: Instrument ID e.g. `BTC-USDT`, `BTC-USDT-SWAP`.
+- `sz`: Depth — max 400; default 1.
+*/
+    pub async fn get_order_book<'a>(
+        &'a self,
+        inst_id: &'a str,
+        sz: Option<&'a str>,
+    ) -> Result<ResponseValue<types::EnvelopeResponse>, Error<()>> {
+        let url = format!("{}/api/v5/market/books", self.baseurl,);
+        let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
+        header_map
+            .append(
+                ::reqwest::header::HeaderName::from_static("api-version"),
+                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+            );
+        #[allow(unused_mut)]
+        let mut request = self
+            .client
+            .get(url)
+            .header(
+                ::reqwest::header::ACCEPT,
+                ::reqwest::header::HeaderValue::from_static("application/json"),
+            )
+            .query(&progenitor_client::QueryParam::new("instId", &inst_id))
+            .query(&progenitor_client::QueryParam::new("sz", &sz))
+            .headers(header_map)
+            .build()?;
+        let info = OperationInfo {
+            operation_id: "get_order_book",
+        };
+        self.pre(&mut request, &info).await?;
+        let result = self.exec(request, &info).await;
+        self.post(&result, &info).await?;
+        let response = result?;
+        match response.status().as_u16() {
+            200u16 => ResponseValue::from_response(response).await,
+            _ => Err(Error::UnexpectedResponse(response)),
+        }
+    }
+    /**OHLCV candles for an instrument
+
+Public endpoint. Returns candle arrays for the given instrument.
+
+
+Sends a `GET` request to `/api/v5/market/candles`
+
+Arguments:
+- `after`: Pagination — return records newer than this ms timestamp.
+- `bar`: Bar size — `1m`, `3m`, `5m`, `15m`, `30m`, `1H`, `4H`, `1D`, `1W`, `1M`.
+- `before`: Pagination — return records older than this ms timestamp.
+- `inst_id`
+- `limit`: Max 300, default 100.
+*/
+    pub async fn get_candles<'a>(
+        &'a self,
+        after: Option<&'a str>,
+        bar: Option<&'a str>,
+        before: Option<&'a str>,
+        inst_id: &'a str,
+        limit: Option<&'a str>,
+    ) -> Result<ResponseValue<types::EnvelopeResponse>, Error<()>> {
+        let url = format!("{}/api/v5/market/candles", self.baseurl,);
+        let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
+        header_map
+            .append(
+                ::reqwest::header::HeaderName::from_static("api-version"),
+                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+            );
+        #[allow(unused_mut)]
+        let mut request = self
+            .client
+            .get(url)
+            .header(
+                ::reqwest::header::ACCEPT,
+                ::reqwest::header::HeaderValue::from_static("application/json"),
+            )
+            .query(&progenitor_client::QueryParam::new("after", &after))
+            .query(&progenitor_client::QueryParam::new("bar", &bar))
+            .query(&progenitor_client::QueryParam::new("before", &before))
+            .query(&progenitor_client::QueryParam::new("instId", &inst_id))
+            .query(&progenitor_client::QueryParam::new("limit", &limit))
+            .headers(header_map)
+            .build()?;
+        let info = OperationInfo {
+            operation_id: "get_candles",
+        };
+        self.pre(&mut request, &info).await?;
+        let result = self.exec(request, &info).await;
+        self.post(&result, &info).await?;
+        let response = result?;
+        match response.status().as_u16() {
+            200u16 => ResponseValue::from_response(response).await,
+            _ => Err(Error::UnexpectedResponse(response)),
+        }
+    }
+    /**Place a new order (signed)
+
+Signed endpoint. JSON body. The curated tool computes the HMAC over
+`timestamp + "POST" + "/api/v5/trade/order" + body_json` and passes the
+signature/timestamp/api-key/passphrase as headers.
+
+
+Sends a `POST` request to `/api/v5/trade/order`
+
+*/
+    pub async fn place_order<'a>(
+        &'a self,
+        ok_access_key: &'a str,
+        ok_access_passphrase: &'a str,
+        ok_access_sign: &'a str,
+        ok_access_timestamp: &'a str,
+        body: &'a types::PlaceOrderRequest,
+    ) -> Result<ResponseValue<types::EnvelopeResponse>, Error<()>> {
+        let url = format!("{}/api/v5/trade/order", self.baseurl,);
+        let mut header_map = ::reqwest::header::HeaderMap::with_capacity(5usize);
+        header_map
+            .append(
+                ::reqwest::header::HeaderName::from_static("api-version"),
+                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+            );
+        header_map.append("OK-ACCESS-KEY", ok_access_key.to_string().try_into()?);
+        header_map
+            .append(
+                "OK-ACCESS-PASSPHRASE",
+                ok_access_passphrase.to_string().try_into()?,
+            );
+        header_map.append("OK-ACCESS-SIGN", ok_access_sign.to_string().try_into()?);
+        header_map
+            .append("OK-ACCESS-TIMESTAMP", ok_access_timestamp.to_string().try_into()?);
+        #[allow(unused_mut)]
+        let mut request = self
+            .client
+            .post(url)
+            .header(
+                ::reqwest::header::ACCEPT,
+                ::reqwest::header::HeaderValue::from_static("application/json"),
+            )
+            .json(&body)
+            .headers(header_map)
+            .build()?;
+        let info = OperationInfo {
+            operation_id: "place_order",
+        };
+        self.pre(&mut request, &info).await?;
+        let result = self.exec(request, &info).await;
+        self.post(&result, &info).await?;
+        let response = result?;
+        match response.status().as_u16() {
+            200u16 => ResponseValue::from_response(response).await,
+            _ => Err(Error::UnexpectedResponse(response)),
+        }
+    }
+    /**Cancel an open order (signed)
+
+Signed endpoint. JSON body.
+
+Sends a `POST` request to `/api/v5/trade/cancel-order`
+
+*/
+    pub async fn cancel_order<'a>(
+        &'a self,
+        ok_access_key: &'a str,
+        ok_access_passphrase: &'a str,
+        ok_access_sign: &'a str,
+        ok_access_timestamp: &'a str,
+        body: &'a types::CancelOrderRequest,
+    ) -> Result<ResponseValue<types::EnvelopeResponse>, Error<()>> {
+        let url = format!("{}/api/v5/trade/cancel-order", self.baseurl,);
+        let mut header_map = ::reqwest::header::HeaderMap::with_capacity(5usize);
+        header_map
+            .append(
+                ::reqwest::header::HeaderName::from_static("api-version"),
+                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+            );
+        header_map.append("OK-ACCESS-KEY", ok_access_key.to_string().try_into()?);
+        header_map
+            .append(
+                "OK-ACCESS-PASSPHRASE",
+                ok_access_passphrase.to_string().try_into()?,
+            );
+        header_map.append("OK-ACCESS-SIGN", ok_access_sign.to_string().try_into()?);
+        header_map
+            .append("OK-ACCESS-TIMESTAMP", ok_access_timestamp.to_string().try_into()?);
+        #[allow(unused_mut)]
+        let mut request = self
+            .client
+            .post(url)
+            .header(
+                ::reqwest::header::ACCEPT,
+                ::reqwest::header::HeaderValue::from_static("application/json"),
+            )
+            .json(&body)
+            .headers(header_map)
+            .build()?;
+        let info = OperationInfo {
+            operation_id: "cancel_order",
+        };
+        self.pre(&mut request, &info).await?;
+        let result = self.exec(request, &info).await;
+        self.post(&result, &info).await?;
+        let response = result?;
+        match response.status().as_u16() {
+            200u16 => ResponseValue::from_response(response).await,
+            _ => Err(Error::UnexpectedResponse(response)),
+        }
+    }
+    /**Account balances (signed)
+
+Signed endpoint. Returns unified-account balances; optional `ccy` is a
+comma-separated currency list.
+
+
+Sends a `GET` request to `/api/v5/account/balance`
+
+Arguments:
+- `ccy`: Comma-separated currency list, e.g. `BTC,USDT`.
+- `ok_access_key`
+- `ok_access_passphrase`
+- `ok_access_sign`
+- `ok_access_timestamp`
+*/
+    pub async fn get_balance<'a>(
+        &'a self,
+        ccy: Option<&'a str>,
+        ok_access_key: &'a str,
+        ok_access_passphrase: &'a str,
+        ok_access_sign: &'a str,
+        ok_access_timestamp: &'a str,
+    ) -> Result<ResponseValue<types::EnvelopeResponse>, Error<()>> {
+        let url = format!("{}/api/v5/account/balance", self.baseurl,);
+        let mut header_map = ::reqwest::header::HeaderMap::with_capacity(5usize);
+        header_map
+            .append(
+                ::reqwest::header::HeaderName::from_static("api-version"),
+                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+            );
+        header_map.append("OK-ACCESS-KEY", ok_access_key.to_string().try_into()?);
+        header_map
+            .append(
+                "OK-ACCESS-PASSPHRASE",
+                ok_access_passphrase.to_string().try_into()?,
+            );
+        header_map.append("OK-ACCESS-SIGN", ok_access_sign.to_string().try_into()?);
+        header_map
+            .append("OK-ACCESS-TIMESTAMP", ok_access_timestamp.to_string().try_into()?);
+        #[allow(unused_mut)]
+        let mut request = self
+            .client
+            .get(url)
+            .header(
+                ::reqwest::header::ACCEPT,
+                ::reqwest::header::HeaderValue::from_static("application/json"),
+            )
+            .query(&progenitor_client::QueryParam::new("ccy", &ccy))
+            .headers(header_map)
+            .build()?;
+        let info = OperationInfo {
+            operation_id: "get_balance",
+        };
+        self.pre(&mut request, &info).await?;
+        let result = self.exec(request, &info).await;
+        self.post(&result, &info).await?;
+        let response = result?;
+        match response.status().as_u16() {
+            200u16 => ResponseValue::from_response(response).await,
+            _ => Err(Error::UnexpectedResponse(response)),
+        }
+    }
+    /**Open derivative positions (signed)
+
+Signed endpoint.
+
+Sends a `GET` request to `/api/v5/account/positions`
+
+Arguments:
+- `inst_id`
+- `inst_type`: `SPOT`, `SWAP`, `FUTURES`, or `OPTION`.
+- `ok_access_key`
+- `ok_access_passphrase`
+- `ok_access_sign`
+- `ok_access_timestamp`
+*/
+    pub async fn get_positions<'a>(
+        &'a self,
+        inst_id: Option<&'a str>,
+        inst_type: Option<&'a str>,
+        ok_access_key: &'a str,
+        ok_access_passphrase: &'a str,
+        ok_access_sign: &'a str,
+        ok_access_timestamp: &'a str,
+    ) -> Result<ResponseValue<types::EnvelopeResponse>, Error<()>> {
+        let url = format!("{}/api/v5/account/positions", self.baseurl,);
+        let mut header_map = ::reqwest::header::HeaderMap::with_capacity(5usize);
+        header_map
+            .append(
+                ::reqwest::header::HeaderName::from_static("api-version"),
+                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+            );
+        header_map.append("OK-ACCESS-KEY", ok_access_key.to_string().try_into()?);
+        header_map
+            .append(
+                "OK-ACCESS-PASSPHRASE",
+                ok_access_passphrase.to_string().try_into()?,
+            );
+        header_map.append("OK-ACCESS-SIGN", ok_access_sign.to_string().try_into()?);
+        header_map
+            .append("OK-ACCESS-TIMESTAMP", ok_access_timestamp.to_string().try_into()?);
+        #[allow(unused_mut)]
+        let mut request = self
+            .client
+            .get(url)
+            .header(
+                ::reqwest::header::ACCEPT,
+                ::reqwest::header::HeaderValue::from_static("application/json"),
+            )
+            .query(&progenitor_client::QueryParam::new("instId", &inst_id))
+            .query(&progenitor_client::QueryParam::new("instType", &inst_type))
+            .headers(header_map)
+            .build()?;
+        let info = OperationInfo {
+            operation_id: "get_positions",
+        };
+        self.pre(&mut request, &info).await?;
+        let result = self.exec(request, &info).await;
+        self.post(&result, &info).await?;
+        let response = result?;
+        match response.status().as_u16() {
+            200u16 => ResponseValue::from_response(response).await,
+            _ => Err(Error::UnexpectedResponse(response)),
+        }
+    }
+    /**Set per-instrument leverage (signed)
+
+Signed endpoint. JSON body.
+
+Sends a `POST` request to `/api/v5/account/set-leverage`
+
+*/
+    pub async fn set_leverage<'a>(
+        &'a self,
+        ok_access_key: &'a str,
+        ok_access_passphrase: &'a str,
+        ok_access_sign: &'a str,
+        ok_access_timestamp: &'a str,
+        body: &'a types::SetLeverageRequest,
+    ) -> Result<ResponseValue<types::EnvelopeResponse>, Error<()>> {
+        let url = format!("{}/api/v5/account/set-leverage", self.baseurl,);
+        let mut header_map = ::reqwest::header::HeaderMap::with_capacity(5usize);
+        header_map
+            .append(
+                ::reqwest::header::HeaderName::from_static("api-version"),
+                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+            );
+        header_map.append("OK-ACCESS-KEY", ok_access_key.to_string().try_into()?);
+        header_map
+            .append(
+                "OK-ACCESS-PASSPHRASE",
+                ok_access_passphrase.to_string().try_into()?,
+            );
+        header_map.append("OK-ACCESS-SIGN", ok_access_sign.to_string().try_into()?);
+        header_map
+            .append("OK-ACCESS-TIMESTAMP", ok_access_timestamp.to_string().try_into()?);
+        #[allow(unused_mut)]
+        let mut request = self
+            .client
+            .post(url)
+            .header(
+                ::reqwest::header::ACCEPT,
+                ::reqwest::header::HeaderValue::from_static("application/json"),
+            )
+            .json(&body)
+            .headers(header_map)
+            .build()?;
+        let info = OperationInfo {
+            operation_id: "set_leverage",
+        };
+        self.pre(&mut request, &info).await?;
+        let result = self.exec(request, &info).await;
+        self.post(&result, &info).await?;
+        let response = result?;
+        match response.status().as_u16() {
+            200u16 => ResponseValue::from_response(response).await,
+            _ => Err(Error::UnexpectedResponse(response)),
+        }
+    }
+}
+/// Items consumers will typically use such as the Client.
+pub mod prelude {
+    #[allow(unused_imports)]
+    pub use super::Client;
 }

@@ -227,6 +227,21 @@ pub(crate) struct Op {
     /// True when the success response is NOT JSON (e.g. text/csv, octet-stream).
     /// Such ops return ByteStream from progenitor — we skip JSON-style codegen.
     pub non_json_response: bool,
+    /// Best-effort summary of the success-response Rust type, for the
+    /// "typed projection" TODO comment in the rendered tool body.
+    pub response_summary: ResponseSummary,
+}
+
+#[derive(Debug, Clone)]
+pub(crate) enum ResponseSummary {
+    /// Response is a typed Rust struct/enum (e.g. `SearchTokensResponse`,
+    /// `Vec<Chain>`). Project before forwarding to the LLM.
+    Typed { rust_type: String },
+    /// Response is `Map<String, Value>` (spec marked `additionalProperties: true`).
+    /// Tightening the spec gives the curator typed access.
+    Loose,
+    /// Response is bytes (e.g. text/csv, application/octet-stream) or unknown.
+    Bytes,
 }
 
 #[derive(Debug, Clone)]
@@ -322,6 +337,11 @@ fn collect_ops(spec: &openapiv3::OpenAPI) -> Vec<Op> {
             let non_json_response = first_success_content_type(op)
                 .map(|ct| !ct.starts_with("application/json"))
                 .unwrap_or(false);
+            let response_summary = if non_json_response {
+                ResponseSummary::Bytes
+            } else {
+                derive_response_summary(op, &operation_id)
+            };
             out.push(Op {
                 operation_id,
                 method,
@@ -333,6 +353,7 @@ fn collect_ops(spec: &openapiv3::OpenAPI) -> Vec<Op> {
                 has_request_body: op.request_body.is_some(),
                 tool_marker,
                 non_json_response,
+                response_summary,
             });
         }
     }
@@ -410,6 +431,107 @@ fn path_param_order(path: &str) -> Vec<&str> {
         i += 1;
     }
     out
+}
+
+/// Inspect the operation's first 2xx JSON response and derive a best-effort
+/// Rust type name matching what progenitor would emit. Used purely as a
+/// human-readable comment in the generated tool body — never as a real type.
+fn derive_response_summary(op: &openapiv3::Operation, operation_id: &str) -> ResponseSummary {
+    use openapiv3::ReferenceOr;
+    for (code, resp_ref) in &op.responses.responses {
+        let is_2xx = matches!(code, openapiv3::StatusCode::Code(c) if (200..300).contains(c))
+            || matches!(code, openapiv3::StatusCode::Range(2));
+        if !is_2xx {
+            continue;
+        }
+        let ReferenceOr::Item(resp) = resp_ref else {
+            continue;
+        };
+        let Some(media) = resp
+            .content
+            .iter()
+            .find(|(ct, _)| ct.starts_with("application/json"))
+            .map(|(_, m)| m)
+        else {
+            continue;
+        };
+        let Some(schema_ref) = &media.schema else {
+            continue;
+        };
+        return summarise_schema(schema_ref, operation_id);
+    }
+    ResponseSummary::Bytes
+}
+
+fn summarise_schema(
+    schema_ref: &openapiv3::ReferenceOr<openapiv3::Schema>,
+    operation_id: &str,
+) -> ResponseSummary {
+    use openapiv3::{ReferenceOr, SchemaKind, Type};
+    match schema_ref {
+        ReferenceOr::Reference { reference } => {
+            // "#/components/schemas/Foo" → "Foo"
+            let name = reference.rsplit('/').next().unwrap_or(reference);
+            ResponseSummary::Typed {
+                rust_type: pascal_case(name),
+            }
+        }
+        ReferenceOr::Item(schema) => match &schema.schema_kind {
+            SchemaKind::Type(Type::Array(arr)) => {
+                let inner = match &arr.items {
+                    Some(boxed) => match boxed.clone().unbox() {
+                        ReferenceOr::Reference { reference } => reference
+                            .rsplit('/')
+                            .next()
+                            .map(pascal_case)
+                            .unwrap_or_else(|| "Value".into()),
+                        ReferenceOr::Item(_) => "Value".into(),
+                    },
+                    None => "Value".into(),
+                };
+                ResponseSummary::Typed {
+                    rust_type: format!("Vec<{inner}>"),
+                }
+            }
+            SchemaKind::Type(Type::Object(obj)) => {
+                let is_loose = matches!(
+                    obj.additional_properties,
+                    Some(openapiv3::AdditionalProperties::Any(true))
+                ) || (obj.properties.is_empty()
+                    && matches!(
+                        obj.additional_properties,
+                        Some(openapiv3::AdditionalProperties::Schema(_))
+                    ));
+                if is_loose && obj.properties.is_empty() {
+                    ResponseSummary::Loose
+                } else {
+                    // Inline object → progenitor synthesises `<OperationId>Response`.
+                    ResponseSummary::Typed {
+                        rust_type: format!("{}Response", pascal_case(operation_id)),
+                    }
+                }
+            }
+            SchemaKind::Type(Type::String(_)) => ResponseSummary::Typed {
+                rust_type: "String".into(),
+            },
+            SchemaKind::Type(Type::Number(_)) => ResponseSummary::Typed {
+                rust_type: "f64".into(),
+            },
+            SchemaKind::Type(Type::Integer(_)) => ResponseSummary::Typed {
+                rust_type: "i64".into(),
+            },
+            SchemaKind::Type(Type::Boolean(_)) => ResponseSummary::Typed {
+                rust_type: "bool".into(),
+            },
+            SchemaKind::OneOf { .. } | SchemaKind::AnyOf { .. } | SchemaKind::AllOf { .. } => {
+                // Progenitor emits a synthesised enum/struct named after the op.
+                ResponseSummary::Typed {
+                    rust_type: format!("{}Response", pascal_case(operation_id)),
+                }
+            }
+            _ => ResponseSummary::Loose,
+        },
+    }
 }
 
 fn first_success_content_type(op: &openapiv3::Operation) -> Option<String> {

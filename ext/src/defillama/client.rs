@@ -325,6 +325,155 @@ pub mod types {
         pub date: i64,
         pub tvl: f64,
     }
+    ///`YieldPool`
+    ///
+    /// <details><summary>JSON schema</summary>
+    ///
+    /// ```json
+    ///{
+    ///  "type": "object",
+    ///  "required": [
+    ///    "chain",
+    ///    "pool",
+    ///    "project",
+    ///    "symbol"
+    ///  ],
+    ///  "properties": {
+    ///    "apy": {
+    ///      "type": [
+    ///        "number",
+    ///        "null"
+    ///      ]
+    ///    },
+    ///    "apyBase": {
+    ///      "type": [
+    ///        "number",
+    ///        "null"
+    ///      ]
+    ///    },
+    ///    "apyReward": {
+    ///      "type": [
+    ///        "number",
+    ///        "null"
+    ///      ]
+    ///    },
+    ///    "chain": {
+    ///      "type": "string"
+    ///    },
+    ///    "exposure": {
+    ///      "description": "\"single\" or \"multi\".",
+    ///      "type": [
+    ///        "string",
+    ///        "null"
+    ///      ]
+    ///    },
+    ///    "ilRisk": {
+    ///      "description": "\"yes\" or \"no\".",
+    ///      "type": [
+    ///        "string",
+    ///        "null"
+    ///      ]
+    ///    },
+    ///    "pool": {
+    ///      "description": "Pool UUID; feed to /chart/{pool}.",
+    ///      "type": "string"
+    ///    },
+    ///    "project": {
+    ///      "type": "string"
+    ///    },
+    ///    "stablecoin": {
+    ///      "type": [
+    ///        "boolean",
+    ///        "null"
+    ///      ]
+    ///    },
+    ///    "symbol": {
+    ///      "type": "string"
+    ///    },
+    ///    "tvlUsd": {
+    ///      "type": [
+    ///        "number",
+    ///        "null"
+    ///      ]
+    ///    }
+    ///  },
+    ///  "additionalProperties": true
+    ///}
+    /// ```
+    /// </details>
+    #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+    pub struct YieldPool {
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        pub apy: ::std::option::Option<f64>,
+        #[serde(
+            rename = "apyBase",
+            default,
+            skip_serializing_if = "::std::option::Option::is_none"
+        )]
+        pub apy_base: ::std::option::Option<f64>,
+        #[serde(
+            rename = "apyReward",
+            default,
+            skip_serializing_if = "::std::option::Option::is_none"
+        )]
+        pub apy_reward: ::std::option::Option<f64>,
+        pub chain: ::std::string::String,
+        ///"single" or "multi".
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        pub exposure: ::std::option::Option<::std::string::String>,
+        ///"yes" or "no".
+        #[serde(
+            rename = "ilRisk",
+            default,
+            skip_serializing_if = "::std::option::Option::is_none"
+        )]
+        pub il_risk: ::std::option::Option<::std::string::String>,
+        ///Pool UUID; feed to /chart/{pool}.
+        pub pool: ::std::string::String,
+        pub project: ::std::string::String,
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        pub stablecoin: ::std::option::Option<bool>,
+        pub symbol: ::std::string::String,
+        #[serde(
+            rename = "tvlUsd",
+            default,
+            skip_serializing_if = "::std::option::Option::is_none"
+        )]
+        pub tvl_usd: ::std::option::Option<f64>,
+    }
+    ///`YieldPoolList`
+    ///
+    /// <details><summary>JSON schema</summary>
+    ///
+    /// ```json
+    ///{
+    ///  "type": "object",
+    ///  "required": [
+    ///    "data"
+    ///  ],
+    ///  "properties": {
+    ///    "data": {
+    ///      "type": "array",
+    ///      "items": {
+    ///        "$ref": "#/components/schemas/YieldPool"
+    ///      }
+    ///    },
+    ///    "status": {
+    ///      "type": [
+    ///        "string",
+    ///        "null"
+    ///      ]
+    ///    }
+    ///  }
+    ///}
+    /// ```
+    /// </details>
+    #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+    pub struct YieldPoolList {
+        pub data: ::std::vec::Vec<YieldPool>,
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        pub status: ::std::option::Option<::std::string::String>,
+    }
 }
 #[derive(Clone, Debug)]
 /**Client for DefiLlama API
@@ -1075,10 +1224,7 @@ Sends a `GET` request to `/pools`
         &'a self,
         chain: Option<&'a str>,
         project: Option<&'a str>,
-    ) -> Result<
-        ResponseValue<::serde_json::Map<::std::string::String, ::serde_json::Value>>,
-        Error<()>,
-    > {
+    ) -> Result<ResponseValue<types::YieldPoolList>, Error<()>> {
         let url = format!("{}/pools", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
         header_map

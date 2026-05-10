@@ -17,7 +17,8 @@
 
 use aomi_ext::khalani::Client as KhalaniClient;
 use aomi_ext::khalani::types::{
-    DepositBuildRequest, DepositSubmitRequest, QuoteRequest, QuoteRequestTradeType,
+    BuildDepositResponse, BuildDepositResponseApprovalsItem, DepositBuildRequest,
+    DepositSubmitRequest, QuoteRequest, QuoteRequestTradeType,
 };
 use aomi_sdk::schemars::JsonSchema;
 use aomi_sdk::*;
@@ -77,70 +78,51 @@ struct StagedTx {
 }
 
 fn extract_staged_txs(
-    build_response: &Map<String, Value>,
+    build_response: &BuildDepositResponse,
     quote_id: &str,
 ) -> Result<Vec<StagedTx>, String> {
-    let approvals = build_response
-        .get("approvals")
-        .and_then(Value::as_array)
-        .ok_or_else(|| {
-            "[khalani] build response missing `approvals` — is this an EIP-712 route? not yet supported"
-                .to_string()
-        })?;
-
     let mut staged = Vec::new();
-    for entry in approvals {
-        let req = entry.get("request").and_then(Value::as_object);
-        let method = req
-            .and_then(|r| r.get("method"))
-            .and_then(Value::as_str)
-            .unwrap_or("");
-        if method != "eth_sendTransaction" {
+    for entry in &build_response.approvals {
+        if entry.request.method != "eth_sendTransaction" {
             continue;
         }
-        let params = req
-            .and_then(|r| r.get("params"))
-            .and_then(Value::as_array)
-            .and_then(|a| a.first())
-            .and_then(Value::as_object)
-            .ok_or_else(|| "[khalani] eth_sendTransaction missing params[0]".to_string())?;
-
-        let to = params
-            .get("to")
-            .and_then(Value::as_str)
-            .ok_or_else(|| "[khalani] tx missing `to`".to_string())?
-            .to_string();
-        let data = params
-            .get("data")
-            .and_then(Value::as_str)
-            .unwrap_or("0x")
-            .to_string();
-        let value = match params.get("value") {
-            Some(Value::String(s)) => s.clone(),
-            Some(Value::Number(n)) => n.to_string(),
-            _ => "0".to_string(),
-        };
-
-        let is_deposit = entry.get("deposit").and_then(Value::as_bool).unwrap_or(false);
-        let description = if is_deposit {
-            format!("Khalani deposit for quote {quote_id}")
-        } else {
-            format!("Khalani approval for quote {quote_id}")
-        };
-        staged.push(StagedTx {
-            to,
-            value,
-            data,
-            description,
-        });
+        staged.push(stage_tx_from_entry(entry, quote_id)?);
     }
-
     if staged.is_empty() {
         return Err(
             "[khalani] build response had no eth_sendTransaction entries to stage".to_string(),
         );
     }
     Ok(staged)
+}
+
+fn stage_tx_from_entry(
+    entry: &BuildDepositResponseApprovalsItem,
+    quote_id: &str,
+) -> Result<StagedTx, String> {
+    let params = entry
+        .request
+        .params
+        .first()
+        .ok_or_else(|| "[khalani] eth_sendTransaction missing params[0]".to_string())?;
+    let to = params
+        .to
+        .clone()
+        .ok_or_else(|| "[khalani] tx missing `to`".to_string())?;
+    let data = params.data.clone().unwrap_or_else(|| "0x".to_string());
+    let value = params.value.clone().unwrap_or_else(|| "0".to_string());
+    let is_deposit = entry.deposit.unwrap_or(false);
+    let description = if is_deposit {
+        format!("Khalani deposit for quote {quote_id}")
+    } else {
+        format!("Khalani approval for quote {quote_id}")
+    };
+    Ok(StagedTx {
+        to,
+        value,
+        data,
+        description,
+    })
 }
 
 // ============================================================================
@@ -250,7 +232,6 @@ impl DynAomiTool for BuildDeposit {
             .block_on(async { client().build_deposit(&body).await })
             .map_err(|e| format!("[khalani] build_deposit: {e}"))?
             .into_inner();
-
         let staged = extract_staged_txs(&response, &args.quote_id)?;
 
         let submit_template = json!({
@@ -433,6 +414,9 @@ impl DynAomiTool for ListChains {
 
     fn run(_app: &KhalaniApp, _args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let runtime = rt()?;
+        // The `Chain` schema in ext/specs/khalani.yaml is already trimmed to
+        // id/name/nativeCurrency — fields not in the spec are silently dropped
+        // on deserialise, so the typed response IS the slim shape.
         let response = runtime
             .block_on(async { client().list_chains().await })
             .map_err(|e| format!("[khalani] list_chains: {e}"))?
@@ -468,6 +452,9 @@ impl DynAomiTool for SearchTokens {
     fn run(_app: &KhalaniApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let limit = Some(args.limit.unwrap_or(20));
         let runtime = rt()?;
+        // `Token` in ext/specs/khalani.yaml is trimmed to address/chainId/
+        // symbol/decimals/name — logoURI and extensions are dropped on
+        // deserialise, so we forward the typed response directly.
         let response = runtime
             .block_on(async {
                 client()

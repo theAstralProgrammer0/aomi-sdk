@@ -37,6 +37,325 @@ pub mod types {
             }
         }
     }
+    ///`BuildDepositResponse`
+    ///
+    /// <details><summary>JSON schema</summary>
+    ///
+    /// ```json
+    ///{
+    ///  "type": "object",
+    ///  "required": [
+    ///    "approvals",
+    ///    "kind"
+    ///  ],
+    ///  "properties": {
+    ///    "approvals": {
+    ///      "type": "array",
+    ///      "items": {
+    ///        "type": "object",
+    ///        "required": [
+    ///          "request",
+    ///          "type"
+    ///        ],
+    ///        "properties": {
+    ///          "deposit": {
+    ///            "description": "True iff this approval IS the deposit transaction (the final one in the array). Other entries are wallet chain switch + ERC-20 approvals.",
+    ///            "type": "boolean"
+    ///          },
+    ///          "request": {
+    ///            "type": "object",
+    ///            "required": [
+    ///              "method",
+    ///              "params"
+    ///            ],
+    ///            "properties": {
+    ///              "method": {
+    ///                "description": "EIP-1193 method. Common values:\n  - `wallet_switchEthereumChain` (params: [{chainId}])\n  - `eth_sendTransaction`        (params: [{from,to,data,value?,chainId?}])\n",
+    ///                "type": "string"
+    ///              },
+    ///              "params": {
+    ///                "type": "array",
+    ///                "items": {
+    ///                  "type": "object",
+    ///                  "properties": {
+    ///                    "chainId": {
+    ///                      "description": "Hex chain id (e.g. \"0x1\" for Ethereum). Present on wallet_switchEthereumChain AND eth_sendTransaction.",
+    ///                      "type": "string"
+    ///                    },
+    ///                    "data": {
+    ///                      "description": "0x-prefixed calldata. Only on eth_sendTransaction.",
+    ///                      "type": "string"
+    ///                    },
+    ///                    "from": {
+    ///                      "description": "Sender EVM address (0x…). Only on eth_sendTransaction.",
+    ///                      "type": "string"
+    ///                    },
+    ///                    "gas": {
+    ///                      "description": "Optional gas limit hint as a string.",
+    ///                      "type": "string"
+    ///                    },
+    ///                    "to": {
+    ///                      "description": "Target EVM address (0x…). Only on eth_sendTransaction.",
+    ///                      "type": "string"
+    ///                    },
+    ///                    "value": {
+    ///                      "description": "Wei amount as a string. Only on eth_sendTransaction.",
+    ///                      "type": "string"
+    ///                    }
+    ///                  }
+    ///                }
+    ///              }
+    ///            }
+    ///          },
+    ///          "type": {
+    ///            "description": "Always `eip1193_request` today.",
+    ///            "type": "string"
+    ///          },
+    ///          "waitForReceipt": {
+    ///            "description": "True iff the host should wait for the tx receipt before continuing to the next approval.",
+    ///            "type": "boolean"
+    ///          }
+    ///        }
+    ///      }
+    ///    },
+    ///    "kind": {
+    ///      "description": "Deposit method dispatched by Khalani: CONTRACT_CALL, TRANSFER, etc.",
+    ///      "type": "string"
+    ///    }
+    ///  }
+    ///}
+    /// ```
+    /// </details>
+    #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+    pub struct BuildDepositResponse {
+        pub approvals: ::std::vec::Vec<BuildDepositResponseApprovalsItem>,
+        ///Deposit method dispatched by Khalani: CONTRACT_CALL, TRANSFER, etc.
+        pub kind: ::std::string::String,
+    }
+    ///`BuildDepositResponseApprovalsItem`
+    ///
+    /// <details><summary>JSON schema</summary>
+    ///
+    /// ```json
+    ///{
+    ///  "type": "object",
+    ///  "required": [
+    ///    "request",
+    ///    "type"
+    ///  ],
+    ///  "properties": {
+    ///    "deposit": {
+    ///      "description": "True iff this approval IS the deposit transaction (the final one in the array). Other entries are wallet chain switch + ERC-20 approvals.",
+    ///      "type": "boolean"
+    ///    },
+    ///    "request": {
+    ///      "type": "object",
+    ///      "required": [
+    ///        "method",
+    ///        "params"
+    ///      ],
+    ///      "properties": {
+    ///        "method": {
+    ///          "description": "EIP-1193 method. Common values:\n  - `wallet_switchEthereumChain` (params: [{chainId}])\n  - `eth_sendTransaction`        (params: [{from,to,data,value?,chainId?}])\n",
+    ///          "type": "string"
+    ///        },
+    ///        "params": {
+    ///          "type": "array",
+    ///          "items": {
+    ///            "type": "object",
+    ///            "properties": {
+    ///              "chainId": {
+    ///                "description": "Hex chain id (e.g. \"0x1\" for Ethereum). Present on wallet_switchEthereumChain AND eth_sendTransaction.",
+    ///                "type": "string"
+    ///              },
+    ///              "data": {
+    ///                "description": "0x-prefixed calldata. Only on eth_sendTransaction.",
+    ///                "type": "string"
+    ///              },
+    ///              "from": {
+    ///                "description": "Sender EVM address (0x…). Only on eth_sendTransaction.",
+    ///                "type": "string"
+    ///              },
+    ///              "gas": {
+    ///                "description": "Optional gas limit hint as a string.",
+    ///                "type": "string"
+    ///              },
+    ///              "to": {
+    ///                "description": "Target EVM address (0x…). Only on eth_sendTransaction.",
+    ///                "type": "string"
+    ///              },
+    ///              "value": {
+    ///                "description": "Wei amount as a string. Only on eth_sendTransaction.",
+    ///                "type": "string"
+    ///              }
+    ///            }
+    ///          }
+    ///        }
+    ///      }
+    ///    },
+    ///    "type": {
+    ///      "description": "Always `eip1193_request` today.",
+    ///      "type": "string"
+    ///    },
+    ///    "waitForReceipt": {
+    ///      "description": "True iff the host should wait for the tx receipt before continuing to the next approval.",
+    ///      "type": "boolean"
+    ///    }
+    ///  }
+    ///}
+    /// ```
+    /// </details>
+    #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+    pub struct BuildDepositResponseApprovalsItem {
+        ///True iff this approval IS the deposit transaction (the final one in the array). Other entries are wallet chain switch + ERC-20 approvals.
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        pub deposit: ::std::option::Option<bool>,
+        pub request: BuildDepositResponseApprovalsItemRequest,
+        ///Always `eip1193_request` today.
+        #[serde(rename = "type")]
+        pub type_: ::std::string::String,
+        ///True iff the host should wait for the tx receipt before continuing to the next approval.
+        #[serde(
+            rename = "waitForReceipt",
+            default,
+            skip_serializing_if = "::std::option::Option::is_none"
+        )]
+        pub wait_for_receipt: ::std::option::Option<bool>,
+    }
+    ///`BuildDepositResponseApprovalsItemRequest`
+    ///
+    /// <details><summary>JSON schema</summary>
+    ///
+    /// ```json
+    ///{
+    ///  "type": "object",
+    ///  "required": [
+    ///    "method",
+    ///    "params"
+    ///  ],
+    ///  "properties": {
+    ///    "method": {
+    ///      "description": "EIP-1193 method. Common values:\n  - `wallet_switchEthereumChain` (params: [{chainId}])\n  - `eth_sendTransaction`        (params: [{from,to,data,value?,chainId?}])\n",
+    ///      "type": "string"
+    ///    },
+    ///    "params": {
+    ///      "type": "array",
+    ///      "items": {
+    ///        "type": "object",
+    ///        "properties": {
+    ///          "chainId": {
+    ///            "description": "Hex chain id (e.g. \"0x1\" for Ethereum). Present on wallet_switchEthereumChain AND eth_sendTransaction.",
+    ///            "type": "string"
+    ///          },
+    ///          "data": {
+    ///            "description": "0x-prefixed calldata. Only on eth_sendTransaction.",
+    ///            "type": "string"
+    ///          },
+    ///          "from": {
+    ///            "description": "Sender EVM address (0x…). Only on eth_sendTransaction.",
+    ///            "type": "string"
+    ///          },
+    ///          "gas": {
+    ///            "description": "Optional gas limit hint as a string.",
+    ///            "type": "string"
+    ///          },
+    ///          "to": {
+    ///            "description": "Target EVM address (0x…). Only on eth_sendTransaction.",
+    ///            "type": "string"
+    ///          },
+    ///          "value": {
+    ///            "description": "Wei amount as a string. Only on eth_sendTransaction.",
+    ///            "type": "string"
+    ///          }
+    ///        }
+    ///      }
+    ///    }
+    ///  }
+    ///}
+    /// ```
+    /// </details>
+    #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+    pub struct BuildDepositResponseApprovalsItemRequest {
+        /**EIP-1193 method. Common values:
+  - `wallet_switchEthereumChain` (params: [{chainId}])
+  - `eth_sendTransaction`        (params: [{from,to,data,value?,chainId?}])
+*/
+        pub method: ::std::string::String,
+        pub params: ::std::vec::Vec<BuildDepositResponseApprovalsItemRequestParamsItem>,
+    }
+    ///`BuildDepositResponseApprovalsItemRequestParamsItem`
+    ///
+    /// <details><summary>JSON schema</summary>
+    ///
+    /// ```json
+    ///{
+    ///  "type": "object",
+    ///  "properties": {
+    ///    "chainId": {
+    ///      "description": "Hex chain id (e.g. \"0x1\" for Ethereum). Present on wallet_switchEthereumChain AND eth_sendTransaction.",
+    ///      "type": "string"
+    ///    },
+    ///    "data": {
+    ///      "description": "0x-prefixed calldata. Only on eth_sendTransaction.",
+    ///      "type": "string"
+    ///    },
+    ///    "from": {
+    ///      "description": "Sender EVM address (0x…). Only on eth_sendTransaction.",
+    ///      "type": "string"
+    ///    },
+    ///    "gas": {
+    ///      "description": "Optional gas limit hint as a string.",
+    ///      "type": "string"
+    ///    },
+    ///    "to": {
+    ///      "description": "Target EVM address (0x…). Only on eth_sendTransaction.",
+    ///      "type": "string"
+    ///    },
+    ///    "value": {
+    ///      "description": "Wei amount as a string. Only on eth_sendTransaction.",
+    ///      "type": "string"
+    ///    }
+    ///  }
+    ///}
+    /// ```
+    /// </details>
+    #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+    pub struct BuildDepositResponseApprovalsItemRequestParamsItem {
+        ///Hex chain id (e.g. "0x1" for Ethereum). Present on wallet_switchEthereumChain AND eth_sendTransaction.
+        #[serde(
+            rename = "chainId",
+            default,
+            skip_serializing_if = "::std::option::Option::is_none"
+        )]
+        pub chain_id: ::std::option::Option<::std::string::String>,
+        ///0x-prefixed calldata. Only on eth_sendTransaction.
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        pub data: ::std::option::Option<::std::string::String>,
+        ///Sender EVM address (0x…). Only on eth_sendTransaction.
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        pub from: ::std::option::Option<::std::string::String>,
+        ///Optional gas limit hint as a string.
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        pub gas: ::std::option::Option<::std::string::String>,
+        ///Target EVM address (0x…). Only on eth_sendTransaction.
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        pub to: ::std::option::Option<::std::string::String>,
+        ///Wei amount as a string. Only on eth_sendTransaction.
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        pub value: ::std::option::Option<::std::string::String>,
+    }
+    impl ::std::default::Default for BuildDepositResponseApprovalsItemRequestParamsItem {
+        fn default() -> Self {
+            Self {
+                chain_id: Default::default(),
+                data: Default::default(),
+                from: Default::default(),
+                gas: Default::default(),
+                to: Default::default(),
+                value: Default::default(),
+            }
+        }
+    }
     /**Viem-style chain config. Keys vary across chains; only `id` and `name`
 are reliably present.
 */
@@ -48,13 +367,6 @@ are reliably present.
     ///  "description": "Viem-style chain config. Keys vary across chains; only `id` and `name`\nare reliably present.\n",
     ///  "type": "object",
     ///  "properties": {
-    ///    "blockTime": {
-    ///      "type": "integer"
-    ///    },
-    ///    "contracts": {
-    ///      "type": "object",
-    ///      "additionalProperties": true
-    ///    },
     ///    "id": {
     ///      "type": "integer",
     ///      "format": "int64"
@@ -75,26 +387,13 @@ are reliably present.
     ///          "type": "string"
     ///        }
     ///      }
-    ///    },
-    ///    "rpcUrls": {
-    ///      "type": "object",
-    ///      "additionalProperties": true
     ///    }
-    ///  },
-    ///  "additionalProperties": true
+    ///  }
     ///}
     /// ```
     /// </details>
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct Chain {
-        #[serde(
-            rename = "blockTime",
-            default,
-            skip_serializing_if = "::std::option::Option::is_none"
-        )]
-        pub block_time: ::std::option::Option<i64>,
-        #[serde(default, skip_serializing_if = "::serde_json::Map::is_empty")]
-        pub contracts: ::serde_json::Map<::std::string::String, ::serde_json::Value>,
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub id: ::std::option::Option<i64>,
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
@@ -105,22 +404,13 @@ are reliably present.
             skip_serializing_if = "::std::option::Option::is_none"
         )]
         pub native_currency: ::std::option::Option<ChainNativeCurrency>,
-        #[serde(
-            rename = "rpcUrls",
-            default,
-            skip_serializing_if = "::serde_json::Map::is_empty"
-        )]
-        pub rpc_urls: ::serde_json::Map<::std::string::String, ::serde_json::Value>,
     }
     impl ::std::default::Default for Chain {
         fn default() -> Self {
             Self {
-                block_time: Default::default(),
-                contracts: Default::default(),
                 id: Default::default(),
                 name: Default::default(),
                 native_currency: Default::default(),
-                rpc_urls: Default::default(),
             }
         }
     }
@@ -358,6 +648,290 @@ server dispatches by which fields are present.
                 tx_hash: Default::default(),
             }
         }
+    }
+    ///`GetOrdersByAddressResponse`
+    ///
+    /// <details><summary>JSON schema</summary>
+    ///
+    /// ```json
+    ///{
+    ///  "type": "object",
+    ///  "required": [
+    ///    "data"
+    ///  ],
+    ///  "properties": {
+    ///    "data": {
+    ///      "type": "array",
+    ///      "items": {
+    ///        "type": "object",
+    ///        "additionalProperties": true
+    ///      }
+    ///    }
+    ///  }
+    ///}
+    /// ```
+    /// </details>
+    #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+    pub struct GetOrdersByAddressResponse {
+        pub data: ::std::vec::Vec<
+            ::serde_json::Map<::std::string::String, ::serde_json::Value>,
+        >,
+    }
+    ///`GetQuoteResponse`
+    ///
+    /// <details><summary>JSON schema</summary>
+    ///
+    /// ```json
+    ///{
+    ///  "type": "object",
+    ///  "required": [
+    ///    "quoteId",
+    ///    "routes"
+    ///  ],
+    ///  "properties": {
+    ///    "quoteId": {
+    ///      "type": "string"
+    ///    },
+    ///    "routes": {
+    ///      "type": "array",
+    ///      "items": {
+    ///        "type": "object",
+    ///        "required": [
+    ///          "depositMethods",
+    ///          "exactOutMethod",
+    ///          "icon",
+    ///          "quote",
+    ///          "routeId",
+    ///          "type"
+    ///        ],
+    ///        "properties": {
+    ///          "depositMethods": {
+    ///            "type": "array",
+    ///            "items": {
+    ///              "type": "string"
+    ///            }
+    ///          },
+    ///          "exactOutMethod": {
+    ///            "type": "string"
+    ///          },
+    ///          "icon": {
+    ///            "type": "string"
+    ///          },
+    ///          "quote": {
+    ///            "type": "object",
+    ///            "required": [
+    ///              "amountIn",
+    ///              "amountOut",
+    ///              "expectedDurationSeconds",
+    ///              "quoteExpiresAt",
+    ///              "supportedDepositMethods",
+    ///              "tags",
+    ///              "validBefore"
+    ///            ],
+    ///            "properties": {
+    ///              "amountIn": {
+    ///                "type": "string"
+    ///              },
+    ///              "amountOut": {
+    ///                "type": "string"
+    ///              },
+    ///              "expectedDurationSeconds": {
+    ///                "type": "integer"
+    ///              },
+    ///              "quoteExpiresAt": {
+    ///                "type": "integer"
+    ///              },
+    ///              "supportedDepositMethods": {
+    ///                "type": "array",
+    ///                "items": {
+    ///                  "type": "string"
+    ///                }
+    ///              },
+    ///              "tags": {
+    ///                "type": "array",
+    ///                "items": {
+    ///                  "type": "string"
+    ///                }
+    ///              },
+    ///              "validBefore": {
+    ///                "type": "integer"
+    ///              }
+    ///            }
+    ///          },
+    ///          "routeId": {
+    ///            "type": "string"
+    ///          },
+    ///          "type": {
+    ///            "type": "string"
+    ///          }
+    ///        }
+    ///      }
+    ///    }
+    ///  }
+    ///}
+    /// ```
+    /// </details>
+    #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+    pub struct GetQuoteResponse {
+        #[serde(rename = "quoteId")]
+        pub quote_id: ::std::string::String,
+        pub routes: ::std::vec::Vec<GetQuoteResponseRoutesItem>,
+    }
+    ///`GetQuoteResponseRoutesItem`
+    ///
+    /// <details><summary>JSON schema</summary>
+    ///
+    /// ```json
+    ///{
+    ///  "type": "object",
+    ///  "required": [
+    ///    "depositMethods",
+    ///    "exactOutMethod",
+    ///    "icon",
+    ///    "quote",
+    ///    "routeId",
+    ///    "type"
+    ///  ],
+    ///  "properties": {
+    ///    "depositMethods": {
+    ///      "type": "array",
+    ///      "items": {
+    ///        "type": "string"
+    ///      }
+    ///    },
+    ///    "exactOutMethod": {
+    ///      "type": "string"
+    ///    },
+    ///    "icon": {
+    ///      "type": "string"
+    ///    },
+    ///    "quote": {
+    ///      "type": "object",
+    ///      "required": [
+    ///        "amountIn",
+    ///        "amountOut",
+    ///        "expectedDurationSeconds",
+    ///        "quoteExpiresAt",
+    ///        "supportedDepositMethods",
+    ///        "tags",
+    ///        "validBefore"
+    ///      ],
+    ///      "properties": {
+    ///        "amountIn": {
+    ///          "type": "string"
+    ///        },
+    ///        "amountOut": {
+    ///          "type": "string"
+    ///        },
+    ///        "expectedDurationSeconds": {
+    ///          "type": "integer"
+    ///        },
+    ///        "quoteExpiresAt": {
+    ///          "type": "integer"
+    ///        },
+    ///        "supportedDepositMethods": {
+    ///          "type": "array",
+    ///          "items": {
+    ///            "type": "string"
+    ///          }
+    ///        },
+    ///        "tags": {
+    ///          "type": "array",
+    ///          "items": {
+    ///            "type": "string"
+    ///          }
+    ///        },
+    ///        "validBefore": {
+    ///          "type": "integer"
+    ///        }
+    ///      }
+    ///    },
+    ///    "routeId": {
+    ///      "type": "string"
+    ///    },
+    ///    "type": {
+    ///      "type": "string"
+    ///    }
+    ///  }
+    ///}
+    /// ```
+    /// </details>
+    #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+    pub struct GetQuoteResponseRoutesItem {
+        #[serde(rename = "depositMethods")]
+        pub deposit_methods: ::std::vec::Vec<::std::string::String>,
+        #[serde(rename = "exactOutMethod")]
+        pub exact_out_method: ::std::string::String,
+        pub icon: ::std::string::String,
+        pub quote: GetQuoteResponseRoutesItemQuote,
+        #[serde(rename = "routeId")]
+        pub route_id: ::std::string::String,
+        #[serde(rename = "type")]
+        pub type_: ::std::string::String,
+    }
+    ///`GetQuoteResponseRoutesItemQuote`
+    ///
+    /// <details><summary>JSON schema</summary>
+    ///
+    /// ```json
+    ///{
+    ///  "type": "object",
+    ///  "required": [
+    ///    "amountIn",
+    ///    "amountOut",
+    ///    "expectedDurationSeconds",
+    ///    "quoteExpiresAt",
+    ///    "supportedDepositMethods",
+    ///    "tags",
+    ///    "validBefore"
+    ///  ],
+    ///  "properties": {
+    ///    "amountIn": {
+    ///      "type": "string"
+    ///    },
+    ///    "amountOut": {
+    ///      "type": "string"
+    ///    },
+    ///    "expectedDurationSeconds": {
+    ///      "type": "integer"
+    ///    },
+    ///    "quoteExpiresAt": {
+    ///      "type": "integer"
+    ///    },
+    ///    "supportedDepositMethods": {
+    ///      "type": "array",
+    ///      "items": {
+    ///        "type": "string"
+    ///      }
+    ///    },
+    ///    "tags": {
+    ///      "type": "array",
+    ///      "items": {
+    ///        "type": "string"
+    ///      }
+    ///    },
+    ///    "validBefore": {
+    ///      "type": "integer"
+    ///    }
+    ///  }
+    ///}
+    /// ```
+    /// </details>
+    #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+    pub struct GetQuoteResponseRoutesItemQuote {
+        #[serde(rename = "amountIn")]
+        pub amount_in: ::std::string::String,
+        #[serde(rename = "amountOut")]
+        pub amount_out: ::std::string::String,
+        #[serde(rename = "expectedDurationSeconds")]
+        pub expected_duration_seconds: i64,
+        #[serde(rename = "quoteExpiresAt")]
+        pub quote_expires_at: i64,
+        #[serde(rename = "supportedDepositMethods")]
+        pub supported_deposit_methods: ::std::vec::Vec<::std::string::String>,
+        pub tags: ::std::vec::Vec<::std::string::String>,
+        #[serde(rename = "validBefore")]
+        pub valid_before: i64,
     }
     ///`ListTokensResponse`
     ///
@@ -622,14 +1196,6 @@ server dispatches by which fields are present.
     ///      "type": "integer",
     ///      "maximum": 36.0
     ///    },
-    ///    "extensions": {
-    ///      "type": "object",
-    ///      "additionalProperties": true
-    ///    },
-    ///    "logoURI": {
-    ///      "type": "string",
-    ///      "format": "uri"
-    ///    },
     ///    "name": {
     ///      "type": "string"
     ///    },
@@ -647,14 +1213,6 @@ server dispatches by which fields are present.
         #[serde(rename = "chainId")]
         pub chain_id: i64,
         pub decimals: i64,
-        #[serde(default, skip_serializing_if = "::serde_json::Map::is_empty")]
-        pub extensions: ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-        #[serde(
-            rename = "logoURI",
-            default,
-            skip_serializing_if = "::std::option::Option::is_none"
-        )]
-        pub logo_uri: ::std::option::Option<::std::string::String>,
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub name: ::std::option::Option<::std::string::String>,
         pub symbol: ::std::string::String,
@@ -741,10 +1299,7 @@ Sends a `POST` request to `/v1/quotes`
     pub async fn get_quote<'a>(
         &'a self,
         body: &'a types::QuoteRequest,
-    ) -> Result<
-        ResponseValue<::serde_json::Map<::std::string::String, ::serde_json::Value>>,
-        Error<()>,
-    > {
+    ) -> Result<ResponseValue<types::GetQuoteResponse>, Error<()>> {
         let url = format!("{}/v1/quotes", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
         header_map
@@ -788,10 +1343,7 @@ Sends a `POST` request to `/v1/deposit/build`
     pub async fn build_deposit<'a>(
         &'a self,
         body: &'a types::DepositBuildRequest,
-    ) -> Result<
-        ResponseValue<::serde_json::Map<::std::string::String, ::serde_json::Value>>,
-        Error<()>,
-    > {
+    ) -> Result<ResponseValue<types::BuildDepositResponse>, Error<()>> {
         let url = format!("{}/v1/deposit/build", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
         header_map
@@ -886,10 +1438,7 @@ Arguments:
         offset: Option<i64>,
         order_ids: Option<&'a str>,
         status: Option<&'a str>,
-    ) -> Result<
-        ResponseValue<::serde_json::Map<::std::string::String, ::serde_json::Value>>,
-        Error<()>,
-    > {
+    ) -> Result<ResponseValue<types::GetOrdersByAddressResponse>, Error<()>> {
         let url = format!(
             "{}/v1/orders/{}", self.baseurl, encode_path(& address.to_string()),
         );
