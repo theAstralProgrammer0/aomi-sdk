@@ -5,8 +5,8 @@
 use crate::client::Client as GenClient;
 #[allow(unused_imports)]
 use crate::client::types::*;
-use aomi_sdk::*;
 use aomi_sdk::schemars::JsonSchema;
+use aomi_sdk::*;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -35,8 +35,7 @@ fn rt() -> Result<tokio::runtime::Runtime, String> {
 pub(crate) struct Health;
 
 #[derive(Debug, Deserialize, JsonSchema)]
-pub(crate) struct HealthArgs {
-}
+pub(crate) struct HealthArgs {}
 
 impl DynAomiTool for Health {
     type App = PelagosApp;
@@ -44,16 +43,15 @@ impl DynAomiTool for Health {
     const NAME: &'static str = "pelagos_health";
     const DESCRIPTION: &'static str = "Liveness check for a Pelagos appchain node";
 
-    fn run(_app: &PelagosApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
+    fn run(_app: &PelagosApp, _args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let client = GenClient::new("http://localhost:8080");
         let runtime = rt()?;
-        let result = runtime.block_on(async move {
-            client.health().await
-        }).map_err(|e| format!("[pelagos] health: {e}"))?;
+        let result = runtime
+            .block_on(async move { client.health().await })
+            .map_err(|e| format!("[pelagos] health: {e}"))?;
         // Response: `HealthResponse` (typed). Project into a slim summary struct
         // before forwarding — every byte costs the LLM attention. Drop UI-only
         // fields (logoURI, audits, extensions); keep IDs / amounts / labels.
         ok(result.into_inner())
     }
 }
-

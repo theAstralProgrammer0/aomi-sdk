@@ -58,10 +58,6 @@ dyn_aomi_app!(
     name = "para",
     version = "0.1.0",
     preamble = PREAMBLE,
-    tools = [
-        tool::CreateWallet,
-        tool::GetWallet,
-        tool::SignPayload,
-    ],
+    tools = [tool::CreateWallet, tool::GetWallet, tool::SignPayload,],
     namespaces = ["evm-core"]
 );

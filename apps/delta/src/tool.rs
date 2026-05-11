@@ -17,7 +17,7 @@ use crate::client::types::{CreateQuoteRequest, FeedEvidence, FillQuoteRequest};
 use aomi_sdk::schemars::JsonSchema;
 use aomi_sdk::*;
 use serde::{Deserialize, Serialize};
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 #[derive(Clone, Default)]
 pub(crate) struct DeltaApp;
@@ -269,33 +269,28 @@ impl DynAomiTool for GetQuote {
         let include_receipts = args.include_receipts.unwrap_or(false);
         let quote_id = args.quote_id.clone();
         let runtime = rt()?;
-        let result = runtime
-            .block_on(async move {
-                let client = GenClient::new(&base_url());
-                let quote = client
-                    .get_quote(quote_id.as_str())
+        let result = runtime.block_on(async move {
+            let client = GenClient::new(&base_url());
+            let quote = client
+                .get_quote(quote_id.as_str())
+                .await
+                .map_err(|e| format!("[delta] get_quote {quote_id}: {e}"))?
+                .into_inner();
+            let receipts = if include_receipts {
+                let r = client
+                    .get_receipts(quote_id.as_str())
                     .await
-                    .map_err(|e| format!("[delta] get_quote {quote_id}: {e}"))?
+                    .map_err(|e| format!("[delta] get_receipts {quote_id}: {e}"))?
                     .into_inner();
-                let receipts = if include_receipts {
-                    let r = client
-                        .get_receipts(quote_id.as_str())
-                        .await
-                        .map_err(|e| format!("[delta] get_receipts {quote_id}: {e}"))?
-                        .into_inner();
-                    Some(
-                        r.into_iter()
-                            .map(ReceiptSummary::from)
-                            .collect::<Vec<_>>(),
-                    )
-                } else {
-                    None
-                };
-                Ok::<_, String>(json!({
-                    "quote": QuoteSummary::from(quote),
-                    "receipts": receipts,
-                }))
-            })?;
+                Some(r.into_iter().map(ReceiptSummary::from).collect::<Vec<_>>())
+            } else {
+                None
+            };
+            Ok::<_, String>(json!({
+                "quote": QuoteSummary::from(quote),
+                "receipts": receipts,
+            }))
+        })?;
         ok(result)
     }
 }
@@ -330,7 +325,9 @@ impl DynAomiTool for FillQuote {
 
     fn run(_app: &DeltaApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         if args.feed_evidence.is_empty() {
-            return Err("[delta] fill_quote: feed_evidence must contain at least one signed feed".into());
+            return Err(
+                "[delta] fill_quote: feed_evidence must contain at least one signed feed".into(),
+            );
         }
         let body = FillQuoteRequest {
             feed_evidence: args.feed_evidence.into_iter().map(Into::into).collect(),
@@ -341,26 +338,25 @@ impl DynAomiTool for FillQuote {
         };
         let quote_id = args.quote_id.clone();
         let runtime = rt()?;
-        let result = runtime
-            .block_on(async move {
-                let client = GenClient::new(&base_url());
-                let fill = client
-                    .fill_quote(quote_id.as_str(), &body)
-                    .await
-                    .map_err(|e| format!("[delta] fill_quote {quote_id}: {e}"))?
-                    .into_inner();
-                let receipts = client
-                    .get_receipts(quote_id.as_str())
-                    .await
-                    .map_err(|e| format!("[delta] post-fill receipts {quote_id}: {e}"))?
-                    .into_inner();
-                let receipts: Vec<ReceiptSummary> =
-                    receipts.into_iter().map(ReceiptSummary::from).collect();
-                Ok::<_, String>(json!({
-                    "fill": fill,
-                    "receipts": receipts,
-                }))
-            })?;
+        let result = runtime.block_on(async move {
+            let client = GenClient::new(&base_url());
+            let fill = client
+                .fill_quote(quote_id.as_str(), &body)
+                .await
+                .map_err(|e| format!("[delta] fill_quote {quote_id}: {e}"))?
+                .into_inner();
+            let receipts = client
+                .get_receipts(quote_id.as_str())
+                .await
+                .map_err(|e| format!("[delta] post-fill receipts {quote_id}: {e}"))?
+                .into_inner();
+            let receipts: Vec<ReceiptSummary> =
+                receipts.into_iter().map(ReceiptSummary::from).collect();
+            Ok::<_, String>(json!({
+                "fill": fill,
+                "receipts": receipts,
+            }))
+        })?;
         ok(result)
     }
 }

@@ -12,17 +12,16 @@
 //! `place_limit_order` and `place_market_order` so the LLM can't mix
 //! up which fields to fill).
 
-use aomi_ext::bybit::{
-    build_query, current_timestamp_ms, sign_body, sign_query, Client as BybitClient,
-    RECV_WINDOW,
-};
 use aomi_ext::bybit::types::{
     AmendOrderRequest, CancelOrderRequest, CreateOrderRequest, SetLeverageRequest,
+};
+use aomi_ext::bybit::{
+    Client as BybitClient, RECV_WINDOW, build_query, current_timestamp_ms, sign_body, sign_query,
 };
 use aomi_sdk::schemars::JsonSchema;
 use aomi_sdk::*;
 use serde::{Deserialize, Serialize};
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 #[derive(Clone, Default)]
 pub(crate) struct BybitApp;
@@ -69,7 +68,11 @@ fn resolve_creds(
 /// We serialise the body once with `serde_json::to_string` to compute the
 /// signature; the generated client then re-serialises the same value via
 /// `.json(&body)` (also `serde_json`), producing the identical bytes.
-fn sign_post<T: Serialize>(api_key: &str, secret: &str, body: &T) -> Result<(String, String), String> {
+fn sign_post<T: Serialize>(
+    api_key: &str,
+    secret: &str,
+    body: &T,
+) -> Result<(String, String), String> {
     let body_str =
         serde_json::to_string(body).map_err(|e| format!("[bybit] serialise body: {e}"))?;
     let ts = current_timestamp_ms();
@@ -522,7 +525,13 @@ impl DynAomiTool for PlaceLimitOrder {
         runtime.block_on(async move {
             let client = BybitClient::new(BASE_URL);
             let resp = client
-                .create_order(api_key.as_str(), RECV_WINDOW, sig.as_str(), ts.as_str(), &body)
+                .create_order(
+                    api_key.as_str(),
+                    RECV_WINDOW,
+                    sig.as_str(),
+                    ts.as_str(),
+                    &body,
+                )
                 .await
                 .map_err(|e| format!("[bybit] create_order (limit): {e}"))?
                 .into_inner();
@@ -579,7 +588,13 @@ impl DynAomiTool for PlaceMarketOrder {
         runtime.block_on(async move {
             let client = BybitClient::new(BASE_URL);
             let resp = client
-                .create_order(api_key.as_str(), RECV_WINDOW, sig.as_str(), ts.as_str(), &body)
+                .create_order(
+                    api_key.as_str(),
+                    RECV_WINDOW,
+                    sig.as_str(),
+                    ts.as_str(),
+                    &body,
+                )
                 .await
                 .map_err(|e| format!("[bybit] create_order (market): {e}"))?
                 .into_inner();
@@ -625,7 +640,13 @@ impl DynAomiTool for CancelOrder {
         runtime.block_on(async move {
             let client = BybitClient::new(BASE_URL);
             let resp = client
-                .cancel_order(api_key.as_str(), RECV_WINDOW, sig.as_str(), ts.as_str(), &body)
+                .cancel_order(
+                    api_key.as_str(),
+                    RECV_WINDOW,
+                    sig.as_str(),
+                    ts.as_str(),
+                    &body,
+                )
                 .await
                 .map_err(|e| format!("[bybit] cancel_order: {e}"))?
                 .into_inner();
@@ -680,7 +701,13 @@ impl DynAomiTool for AmendOrder {
         runtime.block_on(async move {
             let client = BybitClient::new(BASE_URL);
             let resp = client
-                .amend_order(api_key.as_str(), RECV_WINDOW, sig.as_str(), ts.as_str(), &body)
+                .amend_order(
+                    api_key.as_str(),
+                    RECV_WINDOW,
+                    sig.as_str(),
+                    ts.as_str(),
+                    &body,
+                )
                 .await
                 .map_err(|e| format!("[bybit] amend_order: {e}"))?
                 .into_inner();
@@ -729,7 +756,13 @@ impl DynAomiTool for SetLeverage {
         runtime.block_on(async move {
             let client = BybitClient::new(BASE_URL);
             let resp = client
-                .set_leverage(api_key.as_str(), RECV_WINDOW, sig.as_str(), ts.as_str(), &body)
+                .set_leverage(
+                    api_key.as_str(),
+                    RECV_WINDOW,
+                    sig.as_str(),
+                    ts.as_str(),
+                    &body,
+                )
                 .await
                 .map_err(|e| format!("[bybit] set_leverage: {e}"))?
                 .into_inner();

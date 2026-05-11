@@ -15,11 +15,9 @@
 //!   * `get_cow_native_price`   — token native price (GET /token/{token}/native_price)
 
 use aomi_ext::cow::Client as CowClient;
-use aomi_ext::cow::types::{
-    Address, OrderCancellations, OrderCreation, OrderQuoteRequest, Uid,
-};
-use aomi_sdk::*;
+use aomi_ext::cow::types::{Address, OrderCancellations, OrderCreation, OrderQuoteRequest, Uid};
 use aomi_sdk::schemars::JsonSchema;
+use aomi_sdk::*;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use std::time::Duration;
@@ -88,8 +86,7 @@ fn make_client(chain: &str) -> Result<CowClient, String> {
 }
 
 fn from_value<T: serde::de::DeserializeOwned>(name: &str, value: Value) -> Result<T, String> {
-    serde_json::from_value::<T>(value)
-        .map_err(|e| format!("[cow] failed to decode {name}: {e}"))
+    serde_json::from_value::<T>(value).map_err(|e| format!("[cow] failed to decode {name}: {e}"))
 }
 
 // ============================================================================

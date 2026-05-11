@@ -364,10 +364,9 @@ impl DynAomiTool for SubmitSwap {
 
     fn run(_app: &Self::App, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         validate_confirmation(args.confirmation.as_deref())?;
-        let signed = args
-            .signed_tx
-            .as_deref()
-            .ok_or_else(|| "[byreal] signed_tx missing — wait for sign_tx_solana callback".to_string())?;
+        let signed = args.signed_tx.as_deref().ok_or_else(|| {
+            "[byreal] signed_tx missing — wait for sign_tx_solana callback".to_string()
+        })?;
         let client = spot_client()?;
         let resp = match args.router_type.as_str() {
             "RFQ" => {

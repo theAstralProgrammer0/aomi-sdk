@@ -1,7 +1,7 @@
 #[allow(unused_imports)]
 pub use progenitor_client::{ByteStream, ClientInfo, Error, ResponseValue};
 #[allow(unused_imports)]
-use progenitor_client::{encode_path, ClientHooks, OperationInfo, RequestBuilderExt};
+use progenitor_client::{ClientHooks, OperationInfo, RequestBuilderExt, encode_path};
 /// Types used as operation parameters and responses.
 #[allow(clippy::all)]
 pub mod types {
@@ -11,18 +11,12 @@ pub mod types {
         pub struct ConversionError(::std::borrow::Cow<'static, str>);
         impl ::std::error::Error for ConversionError {}
         impl ::std::fmt::Display for ConversionError {
-            fn fmt(
-                &self,
-                f: &mut ::std::fmt::Formatter<'_>,
-            ) -> Result<(), ::std::fmt::Error> {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> Result<(), ::std::fmt::Error> {
                 ::std::fmt::Display::fmt(&self.0, f)
             }
         }
         impl ::std::fmt::Debug for ConversionError {
-            fn fmt(
-                &self,
-                f: &mut ::std::fmt::Formatter<'_>,
-            ) -> Result<(), ::std::fmt::Error> {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> Result<(), ::std::fmt::Error> {
                 ::std::fmt::Debug::fmt(&self.0, f)
             }
         }
@@ -141,7 +135,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum CreateWalletRequestScheme {
         #[serde(rename = "DKLS")]
@@ -162,9 +156,7 @@ pub mod types {
     }
     impl ::std::str::FromStr for CreateWalletRequestScheme {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "DKLS" => Ok(Self::Dkls),
                 "CGGMP" => Ok(Self::Cggmp),
@@ -175,9 +167,7 @@ pub mod types {
     }
     impl ::std::convert::TryFrom<&str> for CreateWalletRequestScheme {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -223,7 +213,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum CreateWalletRequestType {
         #[serde(rename = "EVM")]
@@ -244,9 +234,7 @@ pub mod types {
     }
     impl ::std::str::FromStr for CreateWalletRequestType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "EVM" => Ok(Self::Evm),
                 "SOLANA" => Ok(Self::Solana),
@@ -257,9 +245,7 @@ pub mod types {
     }
     impl ::std::convert::TryFrom<&str> for CreateWalletRequestType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -309,7 +295,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum CreateWalletRequestUserIdentifierType {
         #[serde(rename = "EMAIL")]
@@ -342,9 +328,7 @@ pub mod types {
     }
     impl ::std::str::FromStr for CreateWalletRequestUserIdentifierType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "EMAIL" => Ok(Self::Email),
                 "PHONE" => Ok(Self::Phone),
@@ -359,14 +343,11 @@ pub mod types {
     }
     impl ::std::convert::TryFrom<&str> for CreateWalletRequestUserIdentifierType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for CreateWalletRequestUserIdentifierType {
+    impl ::std::convert::TryFrom<&::std::string::String> for CreateWalletRequestUserIdentifierType {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -374,8 +355,7 @@ pub mod types {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for CreateWalletRequestUserIdentifierType {
+    impl ::std::convert::TryFrom<::std::string::String> for CreateWalletRequestUserIdentifierType {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -477,11 +457,9 @@ pub mod types {
     }
     impl ::std::str::FromStr for SignRawRequestData {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
-            static PATTERN: ::std::sync::LazyLock<::regress::Regex> = ::std::sync::LazyLock::new(||
-            { ::regress::Regex::new("^0x[0-9a-fA-F]+$").unwrap() });
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+            static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+                ::std::sync::LazyLock::new(|| ::regress::Regex::new("^0x[0-9a-fA-F]+$").unwrap());
             if PATTERN.find(value).is_none() {
                 return Err("doesn't match pattern \"^0x[0-9a-fA-F]+$\"".into());
             }
@@ -490,9 +468,7 @@ pub mod types {
     }
     impl ::std::convert::TryFrom<&str> for SignRawRequestData {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -525,8 +501,8 @@ pub mod types {
         }
     }
     /**MPC signature payload. Exact shape depends on scheme; spec uses a
-permissive object so the generated client surfaces the raw JSON.
-*/
+    permissive object so the generated client surfaces the raw JSON.
+    */
     ///
     /// <details><summary>JSON schema</summary>
     ///
@@ -637,8 +613,8 @@ permissive object so the generated client surfaces the raw JSON.
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub scheme: ::std::option::Option<::std::string::String>,
         /**Wallet lifecycle status. Observed values include `creating`,
-`ready`, and `error`; other values may exist.
-*/
+        `ready`, and `error`; other values may exist.
+        */
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub status: ::std::option::Option<::std::string::String>,
         ///Wallet chain family
@@ -706,7 +682,9 @@ impl Client {
         #[cfg(not(target_arch = "wasm32"))]
         let client = {
             let dur = ::std::time::Duration::from_secs(15u64);
-            reqwest::ClientBuilder::new().connect_timeout(dur).timeout(dur)
+            reqwest::ClientBuilder::new()
+                .connect_timeout(dur)
+                .timeout(dur)
         };
         #[cfg(target_arch = "wasm32")]
         let client = reqwest::ClientBuilder::new();
@@ -744,17 +722,17 @@ impl ClientHooks<()> for &Client {}
 impl Client {
     /**Create a new MPC wallet
 
-Create a Para MPC wallet for the given user identifier. Wallet creation
-is asynchronous: the response typically has `status = "creating"` and
-the wallet must be polled until `status = "ready"` before signing.
+    Create a Para MPC wallet for the given user identifier. Wallet creation
+    is asynchronous: the response typically has `status = "creating"` and
+    the wallet must be polled until `status = "ready"` before signing.
 
 
-Sends a `POST` request to `/v1/wallets`
+    Sends a `POST` request to `/v1/wallets`
 
-Arguments:
-- `x_request_id`: Optional UUID for request tracing / idempotency
-- `body`
-*/
+    Arguments:
+    - `x_request_id`: Optional UUID for request tracing / idempotency
+    - `body`
+    */
     pub async fn create_wallet<'a>(
         &'a self,
         x_request_id: Option<&'a ::uuid::Uuid>,
@@ -762,11 +740,10 @@ Arguments:
     ) -> Result<ResponseValue<types::Wallet>, Error<()>> {
         let url = format!("{}/v1/wallets", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         if let Some(value) = x_request_id {
             header_map.append("X-Request-Id", value.to_string().try_into()?);
         }
@@ -795,26 +772,27 @@ Arguments:
     }
     /**Fetch a single wallet by ID
 
-Sends a `GET` request to `/v1/wallets/{walletId}`
+    Sends a `GET` request to `/v1/wallets/{walletId}`
 
-Arguments:
-- `wallet_id`: Para wallet identifier
-- `x_request_id`: Optional UUID for request tracing / idempotency
-*/
+    Arguments:
+    - `wallet_id`: Para wallet identifier
+    - `x_request_id`: Optional UUID for request tracing / idempotency
+    */
     pub async fn get_wallet<'a>(
         &'a self,
         wallet_id: &'a str,
         x_request_id: Option<&'a ::uuid::Uuid>,
     ) -> Result<ResponseValue<types::Wallet>, Error<()>> {
         let url = format!(
-            "{}/v1/wallets/{}", self.baseurl, encode_path(& wallet_id.to_string()),
+            "{}/v1/wallets/{}",
+            self.baseurl,
+            encode_path(&wallet_id.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         if let Some(value) = x_request_id {
             header_map.append("X-Request-Id", value.to_string().try_into()?);
         }
@@ -842,19 +820,19 @@ Arguments:
     }
     /**MPC-sign raw 0x-prefixed hex data
 
-Produce a distributed MPC signature over the supplied raw bytes.
-The wallet must have `status = "ready"` before signing. Response
-shape varies slightly by signing scheme; minimally includes a
-`signature` (or `sig`) field.
+    Produce a distributed MPC signature over the supplied raw bytes.
+    The wallet must have `status = "ready"` before signing. Response
+    shape varies slightly by signing scheme; minimally includes a
+    `signature` (or `sig`) field.
 
 
-Sends a `POST` request to `/v1/wallets/{walletId}/sign-raw`
+    Sends a `POST` request to `/v1/wallets/{walletId}/sign-raw`
 
-Arguments:
-- `wallet_id`: Para wallet identifier
-- `x_request_id`: Optional UUID for request tracing / idempotency
-- `body`
-*/
+    Arguments:
+    - `wallet_id`: Para wallet identifier
+    - `x_request_id`: Optional UUID for request tracing / idempotency
+    - `body`
+    */
     pub async fn sign_raw<'a>(
         &'a self,
         wallet_id: &'a str,
@@ -862,15 +840,15 @@ Arguments:
         body: &'a types::SignRawRequest,
     ) -> Result<ResponseValue<types::SignRawResponse>, Error<()>> {
         let url = format!(
-            "{}/v1/wallets/{}/sign-raw", self.baseurl, encode_path(& wallet_id
-            .to_string()),
+            "{}/v1/wallets/{}/sign-raw",
+            self.baseurl,
+            encode_path(&wallet_id.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         if let Some(value) = x_request_id {
             header_map.append("X-Request-Id", value.to_string().try_into()?);
         }

@@ -1,1 +1,2 @@
-include!("../../defi/src/tool.rs");
+#[derive(Clone, Default)]
+pub(crate) struct ParaConsumerApp;

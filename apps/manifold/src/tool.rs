@@ -6,11 +6,11 @@
 
 use aomi_ext::manifold::Client as GenClient;
 use aomi_ext::manifold::types::{CreateMarketRequest, PlaceBetRequest};
-use aomi_sdk::*;
 use aomi_sdk::schemars::JsonSchema;
-use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
+use aomi_sdk::*;
+use reqwest::header::{AUTHORIZATION, HeaderMap, HeaderValue};
 use serde::{Deserialize, Serialize};
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use std::num::NonZeroU32;
 use std::time::Duration;
 
@@ -100,15 +100,14 @@ impl DynAomiTool for ListMarkets {
         let topics = args.topics.clone();
 
         let runtime = rt()?;
-        let markets = runtime
-            .block_on(async move {
-                let client = public_client()?;
-                client
-                    .list_markets(Some(limit), Some(sort.as_str()), topics.as_deref())
-                    .await
-                    .map_err(|e| format!("[manifold] list_markets: {e}"))
-                    .map(|r| r.into_inner())
-            })?;
+        let markets = runtime.block_on(async move {
+            let client = public_client()?;
+            client
+                .list_markets(Some(limit), Some(sort.as_str()), topics.as_deref())
+                .await
+                .map_err(|e| format!("[manifold] list_markets: {e}"))
+                .map(|r| r.into_inner())
+        })?;
 
         ok(json!({ "markets_count": markets.len(), "markets": markets }))
     }

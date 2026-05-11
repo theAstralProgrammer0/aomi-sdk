@@ -4,10 +4,10 @@
 //!
 //!   * `khalani_quote`            — POST /v1/quotes
 //!   * `khalani_build_deposit`    — POST /v1/deposit/build, emits the routed
-//!                                  stage_tx → enforce(simulate_batch +
-//!                                  commit_txs) → submit_khalani_order chain.
-//!   * `submit_khalani_order`     — PUT /v1/deposit/submit (fired by the
-//!                                  OnBoundEvent continuation).
+//!     `stage_tx → enforce(simulate_batch + commit_txs) →
+//!     submit_khalani_order` chain.
+//!   * `submit_khalani_order`     — PUT /v1/deposit/submit, fired by the
+//!     `OnBoundEvent` continuation.
 //!   * `khalani_order_status`     — GET /v1/orders/{address}
 //!   * `khalani_list_chains`      — GET /v1/chains
 //!   * `khalani_search_tokens`    — GET /v1/tokens/search

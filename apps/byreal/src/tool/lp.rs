@@ -188,7 +188,8 @@ impl DynAomiTool for BuildClaimRewards {
         }
         let wallet = resolve_address(args.wallet, &ctx, "svm")?;
 
-        let encoded = lp_client()?.encode_reward(&wallet, &args.position_addresses, args.bonus_type)?;
+        let encoded =
+            lp_client()?.encode_reward(&wallet, &args.position_addresses, args.bonus_type)?;
 
         let order_code = encoded
             .get("orderCode")

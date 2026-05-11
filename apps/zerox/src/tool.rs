@@ -13,8 +13,8 @@
 
 use aomi_ext::zerox::Client as GenClient;
 use aomi_ext::zerox::types::{GaslessSubmitRequest, SwapQuote};
-use aomi_sdk::*;
 use aomi_sdk::schemars::JsonSchema;
+use aomi_sdk::*;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use std::time::Duration;
@@ -59,17 +59,13 @@ fn make_client(api_key: &str) -> Result<GenClient, String> {
     let mut key = reqwest::header::HeaderValue::from_str(api_key)
         .map_err(|e| format!("[0x] invalid api_key: {e}"))?;
     key.set_sensitive(true);
-    headers.insert(
-        reqwest::header::HeaderName::from_static("0x-api-key"),
-        key,
-    );
+    headers.insert(reqwest::header::HeaderName::from_static("0x-api-key"), key);
     headers.insert(
         reqwest::header::HeaderName::from_static("0x-version"),
         reqwest::header::HeaderValue::from_static("v2"),
     );
 
-    let endpoint =
-        std::env::var("ZEROX_API_ENDPOINT").unwrap_or_else(|_| BASE_URL.to_string());
+    let endpoint = std::env::var("ZEROX_API_ENDPOINT").unwrap_or_else(|_| BASE_URL.to_string());
     let http = reqwest::ClientBuilder::new()
         .timeout(Duration::from_secs(30))
         .default_headers(headers)
@@ -389,7 +385,9 @@ impl DynAomiTool for ZeroxSubmitGaslessSwap {
         };
         let approval_map = match args.approval {
             Some(Value::Object(m)) => m,
-            Some(_) => return Err("[0x] `approval` must be a JSON object when provided".to_string()),
+            Some(_) => {
+                return Err("[0x] `approval` must be a JSON object when provided".to_string());
+            }
             None => serde_json::Map::new(),
         };
         let body = GaslessSubmitRequest {

@@ -6,8 +6,8 @@
 //! constructs a `Client` against the host that matches the requested chain.
 
 use aomi_ext::gmx::Client as GmxClient;
-use aomi_sdk::*;
 use aomi_sdk::schemars::JsonSchema;
+use aomi_sdk::*;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 
@@ -36,8 +36,9 @@ fn base_url_for(chain: Option<&str>) -> String {
     match chain.map(|s| s.to_lowercase()).as_deref() {
         Some("avalanche") | Some("avax") => std::env::var("GMX_AVALANCHE_API_ENDPOINT")
             .unwrap_or_else(|_| AVALANCHE_API.to_string()),
-        _ => std::env::var("GMX_ARBITRUM_API_ENDPOINT")
-            .unwrap_or_else(|_| ARBITRUM_API.to_string()),
+        _ => {
+            std::env::var("GMX_ARBITRUM_API_ENDPOINT").unwrap_or_else(|_| ARBITRUM_API.to_string())
+        }
     }
 }
 

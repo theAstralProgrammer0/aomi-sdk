@@ -17,11 +17,11 @@
 //!   * binance_get_account      — balances and permissions (signed)
 //!   * binance_get_trades       — personal fill history on one symbol (signed)
 
-use aomi_ext::binance::{build_query, current_timestamp_ms, sign, Client as BinanceClient};
+use aomi_ext::binance::{Client as BinanceClient, build_query, current_timestamp_ms, sign};
 use aomi_sdk::schemars::JsonSchema;
 use aomi_sdk::*;
 use serde::{Deserialize, Serialize};
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 #[derive(Clone, Default)]
 pub(crate) struct BinanceApp;
@@ -93,8 +93,7 @@ impl DynAomiTool for GetPrice {
     type App = BinanceApp;
     type Args = GetPriceArgs;
     const NAME: &'static str = "binance_get_price";
-    const DESCRIPTION: &'static str =
-        "Use when the user asks the latest spot price of a pair. Returns the current price for one symbol (e.g. BTCUSDT), or every pair when symbol is omitted.";
+    const DESCRIPTION: &'static str = "Use when the user asks the latest spot price of a pair. Returns the current price for one symbol (e.g. BTCUSDT), or every pair when symbol is omitted.";
 
     fn run(_app: &BinanceApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let runtime = rt()?;
@@ -179,7 +178,13 @@ impl DynAomiTool for GetKlines {
             let start = args.start_time.map(|t| t as i64);
             let end = args.end_time.map(|t| t as i64);
             let resp = client
-                .get_klines(end, args.interval.as_str(), limit, start, args.symbol.as_str())
+                .get_klines(
+                    end,
+                    args.interval.as_str(),
+                    limit,
+                    start,
+                    args.symbol.as_str(),
+                )
                 .await
                 .map_err(|e| format!("[binance] get_klines: {e}"))?
                 .into_inner();
@@ -414,8 +419,7 @@ impl DynAomiTool for GetTrades {
     type App = BinanceApp;
     type Args = GetTradesArgs;
     const NAME: &'static str = "binance_get_trades";
-    const DESCRIPTION: &'static str =
-        "Use when the user asks for their personal fill history on a pair (price, qty, fee, timestamp). Pair-scoped — must specify symbol. Default 500 trades, max 1000. Reads credentials from BINANCE_API_KEY/BINANCE_SECRET_KEY if not passed.";
+    const DESCRIPTION: &'static str = "Use when the user asks for their personal fill history on a pair (price, qty, fee, timestamp). Pair-scoped — must specify symbol. Default 500 trades, max 1000. Reads credentials from BINANCE_API_KEY/BINANCE_SECRET_KEY if not passed.";
 
     fn run(_app: &BinanceApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let (api_key, secret_key) =

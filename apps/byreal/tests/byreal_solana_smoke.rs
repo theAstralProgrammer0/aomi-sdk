@@ -68,8 +68,8 @@ fn swap_quote_returns_unsigned_tx() {
 #[test]
 #[ignore = "hits live byreal mainnet API; run with --ignored"]
 fn copy_farming_top_performers_returns_records() {
-    let v = smoke_byreal_lp_top_performers()
-        .expect("byreal_lp_top_performers smoke should succeed");
+    let v =
+        smoke_byreal_lp_top_performers().expect("byreal_lp_top_performers smoke should succeed");
     println!(
         "{}",
         serde_json::to_string_pretty(&v).expect("result should serialize")

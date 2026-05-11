@@ -13,8 +13,8 @@
 //! yields.
 
 use aomi_ext::defillama::Client as DefiLlamaClient;
-use aomi_sdk::*;
 use aomi_sdk::schemars::JsonSchema;
+use aomi_sdk::*;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 
@@ -30,8 +30,7 @@ const YIELDS_HOST: &str = "https://yields.llama.fi";
 // ============================================================================
 
 fn ok<T: Serialize>(value: T) -> Result<Value, String> {
-    let value = serde_json::to_value(value)
-        .map_err(|e| format!("[defillama] serialize: {e}"))?;
+    let value = serde_json::to_value(value).map_err(|e| format!("[defillama] serialize: {e}"))?;
     Ok(match value {
         Value::Object(mut m) => {
             m.insert("source".into(), Value::String("defillama".into()));
@@ -179,7 +178,9 @@ impl DynAomiTool for ListProtocols {
                 .map_err(|e| format!("[defillama] list protocols: {e}"))?
                 .into_inner();
             protocols.sort_by(|a, b| {
-                b.tvl.partial_cmp(&a.tvl).unwrap_or(std::cmp::Ordering::Equal)
+                b.tvl
+                    .partial_cmp(&a.tvl)
+                    .unwrap_or(std::cmp::Ordering::Equal)
             });
             protocols.truncate(limit);
             ok(protocols)
@@ -284,7 +285,9 @@ impl DynAomiTool for TopYieldPools {
                     && (!stables_only || p.stablecoin.unwrap_or(false))
             });
             response.data.sort_by(|a, b| {
-                b.apy.unwrap_or(0.0).partial_cmp(&a.apy.unwrap_or(0.0))
+                b.apy
+                    .unwrap_or(0.0)
+                    .partial_cmp(&a.apy.unwrap_or(0.0))
                     .unwrap_or(std::cmp::Ordering::Equal)
             });
             response.data.truncate(limit);
@@ -339,7 +342,9 @@ impl DynAomiTool for GetChainTvl {
                         .map_err(|e| format!("[defillama] chains tvl: {e}"))?
                         .into_inner();
                     chains.sort_by(|a, b| {
-                        b.tvl.partial_cmp(&a.tvl).unwrap_or(std::cmp::Ordering::Equal)
+                        b.tvl
+                            .partial_cmp(&a.tvl)
+                            .unwrap_or(std::cmp::Ordering::Equal)
                     });
                     chains.truncate(limit);
                     ok(chains)

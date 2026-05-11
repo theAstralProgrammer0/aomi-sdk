@@ -1,7 +1,7 @@
 #[allow(unused_imports)]
 pub use progenitor_client::{ByteStream, ClientInfo, Error, ResponseValue};
 #[allow(unused_imports)]
-use progenitor_client::{encode_path, ClientHooks, OperationInfo, RequestBuilderExt};
+use progenitor_client::{ClientHooks, OperationInfo, RequestBuilderExt, encode_path};
 /// Types used as operation parameters and responses.
 #[allow(clippy::all)]
 pub mod types {
@@ -11,18 +11,12 @@ pub mod types {
         pub struct ConversionError(::std::borrow::Cow<'static, str>);
         impl ::std::error::Error for ConversionError {}
         impl ::std::fmt::Display for ConversionError {
-            fn fmt(
-                &self,
-                f: &mut ::std::fmt::Formatter<'_>,
-            ) -> Result<(), ::std::fmt::Error> {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> Result<(), ::std::fmt::Error> {
                 ::std::fmt::Display::fmt(&self.0, f)
             }
         }
         impl ::std::fmt::Debug for ConversionError {
-            fn fmt(
-                &self,
-                f: &mut ::std::fmt::Formatter<'_>,
-            ) -> Result<(), ::std::fmt::Error> {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> Result<(), ::std::fmt::Error> {
                 ::std::fmt::Debug::fmt(&self.0, f)
             }
         }
@@ -75,8 +69,8 @@ pub mod types {
         ///Maker's shard number.
         pub maker_shard: i64,
         /**Natural-language quote (e.g. "Buy 10 dETH at most 2000 USDD,
-expires in 5 minutes"). The backend compiles this into a Local Law.
-*/
+        expires in 5 minutes"). The backend compiles this into a Local Law.
+        */
         pub text: ::std::string::String,
     }
     ///`FeedEvidence`
@@ -250,22 +244,19 @@ expires in 5 minutes"). The backend compiles this into a Local Law.
     pub struct FillResponse {
         ///Constraint-violation details when success=false. Opaque shape.
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub error: ::std::option::Option<
-            ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-        >,
+        pub error:
+            ::std::option::Option<::serde_json::Map<::std::string::String, ::serde_json::Value>>,
         pub fill_id: ::std::string::String,
         pub message: ::std::string::String,
         ///ZK proof artifact emitted on success. Opaque shape.
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub proof: ::std::option::Option<
-            ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-        >,
+        pub proof:
+            ::std::option::Option<::serde_json::Map<::std::string::String, ::serde_json::Value>>,
         pub quote_id: ::std::string::String,
         ///Embedded receipt object on success. Opaque shape.
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub receipt: ::std::option::Option<
-            ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-        >,
+        pub receipt:
+            ::std::option::Option<::serde_json::Map<::std::string::String, ::serde_json::Value>>,
         pub success: bool,
     }
     ///`Quote`
@@ -381,12 +372,11 @@ expires in 5 minutes"). The backend compiles this into a Local Law.
         pub expires_at: i64,
         pub id: ::std::string::String,
         /**Compiled Local-Law document. Internal shape is opaque and may
-evolve across backend versions; treated as a JSON passthrough.
-*/
+        evolve across backend versions; treated as a JSON passthrough.
+        */
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub local_law: ::std::option::Option<
-            ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-        >,
+        pub local_law:
+            ::std::option::Option<::serde_json::Map<::std::string::String, ::serde_json::Value>>,
         pub maker_owner_id: ::std::string::String,
         pub maker_shard: i64,
         ///Optional informational message from the backend.
@@ -540,7 +530,9 @@ impl Client {
         #[cfg(not(target_arch = "wasm32"))]
         let client = {
             let dur = ::std::time::Duration::from_secs(15u64);
-            reqwest::ClientBuilder::new().connect_timeout(dur).timeout(dur)
+            reqwest::ClientBuilder::new()
+                .connect_timeout(dur)
+                .timeout(dur)
         };
         #[cfg(target_arch = "wasm32")]
         let client = reqwest::ClientBuilder::new();
@@ -578,19 +570,18 @@ impl ClientHooks<()> for &Client {}
 impl Client {
     /**List all active quotes in the arena
 
-Sends a `GET` request to `/quotes`
+    Sends a `GET` request to `/quotes`
 
-*/
+    */
     pub async fn list_quotes<'a>(
         &'a self,
     ) -> Result<ResponseValue<::std::vec::Vec<types::Quote>>, Error<()>> {
         let url = format!("{}/quotes", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -615,25 +606,24 @@ Sends a `GET` request to `/quotes`
     }
     /**Create a new RFQ quote from natural language
 
-Submit a plain-English quote (e.g. "Buy 10 dETH at most 2000 USDD,
-expires in 5 minutes"). The backend parses the text and compiles a
-Local Law that subsequent fill attempts must satisfy.
+    Submit a plain-English quote (e.g. "Buy 10 dETH at most 2000 USDD,
+    expires in 5 minutes"). The backend parses the text and compiles a
+    Local Law that subsequent fill attempts must satisfy.
 
 
-Sends a `POST` request to `/quotes`
+    Sends a `POST` request to `/quotes`
 
-*/
+    */
     pub async fn create_quote<'a>(
         &'a self,
         body: &'a types::CreateQuoteRequest,
     ) -> Result<ResponseValue<types::Quote>, Error<()>> {
         let url = format!("{}/quotes", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -659,24 +649,25 @@ Sends a `POST` request to `/quotes`
     }
     /**Get detailed information about a specific quote
 
-Sends a `GET` request to `/quotes/{quote_id}`
+    Sends a `GET` request to `/quotes/{quote_id}`
 
-Arguments:
-- `quote_id`: Identifier of a quote in the arena.
-*/
+    Arguments:
+    - `quote_id`: Identifier of a quote in the arena.
+    */
     pub async fn get_quote<'a>(
         &'a self,
         quote_id: &'a str,
     ) -> Result<ResponseValue<types::Quote>, Error<()>> {
         let url = format!(
-            "{}/quotes/{}", self.baseurl, encode_path(& quote_id.to_string()),
+            "{}/quotes/{}",
+            self.baseurl,
+            encode_path(&quote_id.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -701,32 +692,33 @@ Arguments:
     }
     /**Attempt to fill a quote with price-feed evidence
 
-Submit a fill proposal with size, price and a list of signed price
-feeds. The fill succeeds only if it satisfies all Local-Law
-constraints attached to the quote; otherwise the response carries
-an error describing the violated constraint.
+    Submit a fill proposal with size, price and a list of signed price
+    feeds. The fill succeeds only if it satisfies all Local-Law
+    constraints attached to the quote; otherwise the response carries
+    an error describing the violated constraint.
 
 
-Sends a `POST` request to `/quotes/{quote_id}/fill`
+    Sends a `POST` request to `/quotes/{quote_id}/fill`
 
-Arguments:
-- `quote_id`: Identifier of a quote in the arena.
-- `body`
-*/
+    Arguments:
+    - `quote_id`: Identifier of a quote in the arena.
+    - `body`
+    */
     pub async fn fill_quote<'a>(
         &'a self,
         quote_id: &'a str,
         body: &'a types::FillQuoteRequest,
     ) -> Result<ResponseValue<types::FillResponse>, Error<()>> {
         let url = format!(
-            "{}/quotes/{}/fill", self.baseurl, encode_path(& quote_id.to_string()),
+            "{}/quotes/{}/fill",
+            self.baseurl,
+            encode_path(&quote_id.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -752,26 +744,27 @@ Arguments:
     }
     /**Get all fill receipts for a quote
 
-Each receipt records one fill attempt, success or failure.
+    Each receipt records one fill attempt, success or failure.
 
-Sends a `GET` request to `/quotes/{quote_id}/receipts`
+    Sends a `GET` request to `/quotes/{quote_id}/receipts`
 
-Arguments:
-- `quote_id`: Identifier of a quote in the arena.
-*/
+    Arguments:
+    - `quote_id`: Identifier of a quote in the arena.
+    */
     pub async fn get_receipts<'a>(
         &'a self,
         quote_id: &'a str,
     ) -> Result<ResponseValue<::std::vec::Vec<types::Receipt>>, Error<()>> {
         let url = format!(
-            "{}/quotes/{}/receipts", self.baseurl, encode_path(& quote_id.to_string()),
+            "{}/quotes/{}/receipts",
+            self.baseurl,
+            encode_path(&quote_id.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client

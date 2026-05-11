@@ -5,8 +5,8 @@
 //! is wired through the shared reqwest client.
 
 use aomi_ext::x::Client as GenClient;
-use aomi_sdk::*;
 use aomi_sdk::schemars::JsonSchema;
+use aomi_sdk::*;
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;

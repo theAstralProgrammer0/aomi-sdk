@@ -1,6 +1,5 @@
 use aomi_sdk::*;
 
-
 mod tool;
 
 const PREAMBLE: &str = r#"## Role

@@ -7,8 +7,8 @@
 //! body and forwards it to `client.post_info(&body)`.
 
 use aomi_ext::hyperliquid::Client as HyperliquidClient;
-use aomi_sdk::*;
 use aomi_sdk::schemars::JsonSchema;
+use aomi_sdk::*;
 use serde::Deserialize;
 use serde_json::{Map, Value, json};
 
@@ -145,7 +145,11 @@ impl DynAomiTool for GetMeta {
     const NAME: &'static str = "get_meta";
     const DESCRIPTION: &'static str = "Get exchange metadata including the universe of tradeable perpetual assets and their size decimals.";
 
-    fn run(_app: &HyperliquidApp, _args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
+    fn run(
+        _app: &HyperliquidApp,
+        _args: Self::Args,
+        _ctx: DynToolCallCtx,
+    ) -> Result<Value, String> {
         post_info(json!({"type": "meta"}))
     }
 }
@@ -157,7 +161,11 @@ impl DynAomiTool for GetAllMids {
     const DESCRIPTION: &'static str =
         "Get current mid-prices for all listed assets on Hyperliquid.";
 
-    fn run(_app: &HyperliquidApp, _args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
+    fn run(
+        _app: &HyperliquidApp,
+        _args: Self::Args,
+        _ctx: DynToolCallCtx,
+    ) -> Result<Value, String> {
         post_info(json!({"type": "allMids"}))
     }
 }

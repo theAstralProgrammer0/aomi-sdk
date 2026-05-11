@@ -5,8 +5,8 @@
 //! Across is unauthenticated; the client just takes a base URL.
 
 use aomi_ext::across::Client as AcrossClient;
-use aomi_sdk::*;
 use aomi_sdk::schemars::JsonSchema;
+use aomi_sdk::*;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 

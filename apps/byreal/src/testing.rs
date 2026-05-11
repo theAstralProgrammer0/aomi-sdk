@@ -239,7 +239,7 @@ pub fn smoke_byreal_swap_quote(wallet: &str) -> Result<Value, String> {
     let sol_mint = "So11111111111111111111111111111111111111112";
     let quote = spot_client()?.get_swap_quote(
         usdc_mint, sol_mint, "1000000", // 1 USDC
-        "in", 100,    // 1% slippage
+        "in", 100, // 1% slippage
         wallet,
     )?;
     let tx = quote

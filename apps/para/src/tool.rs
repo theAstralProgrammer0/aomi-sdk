@@ -19,8 +19,8 @@ use crate::client::types::{
     CreateWalletRequest, CreateWalletRequestScheme, CreateWalletRequestType,
     CreateWalletRequestUserIdentifierType, SignRawRequest, SignRawRequestData,
 };
-use aomi_sdk::*;
 use aomi_sdk::schemars::JsonSchema;
+use aomi_sdk::*;
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
@@ -63,8 +63,8 @@ fn resolve_key(arg: Option<&str>) -> Result<String, String> {
 /// Para's spec only declares the header name; we wire the value in here.
 fn make_client(api_key: &str) -> Result<GenClient, String> {
     let mut headers = HeaderMap::new();
-    let mut key = HeaderValue::from_str(api_key)
-        .map_err(|e| format!("[para] invalid api_key: {e}"))?;
+    let mut key =
+        HeaderValue::from_str(api_key).map_err(|e| format!("[para] invalid api_key: {e}"))?;
     key.set_sensitive(true);
     let name = HeaderName::from_static("x-api-key");
     headers.insert(name, key);
@@ -79,11 +79,8 @@ fn make_client(api_key: &str) -> Result<GenClient, String> {
 }
 
 fn parse_chain(s: &str) -> Result<CreateWalletRequestType, String> {
-    CreateWalletRequestType::from_str(s).map_err(|_| {
-        format!(
-            "[para] invalid chain {s:?}; expected one of EVM, SOLANA, COSMOS"
-        )
-    })
+    CreateWalletRequestType::from_str(s)
+        .map_err(|_| format!("[para] invalid chain {s:?}; expected one of EVM, SOLANA, COSMOS"))
 }
 
 fn parse_identifier_type(s: &str) -> Result<CreateWalletRequestUserIdentifierType, String> {
@@ -95,9 +92,8 @@ fn parse_identifier_type(s: &str) -> Result<CreateWalletRequestUserIdentifierTyp
 }
 
 fn parse_scheme(s: &str) -> Result<CreateWalletRequestScheme, String> {
-    CreateWalletRequestScheme::from_str(s).map_err(|_| {
-        format!("[para] invalid scheme {s:?}; expected one of DKLS, CGGMP, ED25519")
-    })
+    CreateWalletRequestScheme::from_str(s)
+        .map_err(|_| format!("[para] invalid scheme {s:?}; expected one of DKLS, CGGMP, ED25519"))
 }
 
 // ============================================================================
@@ -239,9 +235,8 @@ impl DynAomiTool for SignPayload {
 
     fn run(_app: &ParaApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let api_key = resolve_key(args.api_key.as_deref())?;
-        let data = SignRawRequestData::from_str(&args.data).map_err(|e| {
-            format!("[para] data must be 0x-prefixed hex: {e}")
-        })?;
+        let data = SignRawRequestData::from_str(&args.data)
+            .map_err(|e| format!("[para] data must be 0x-prefixed hex: {e}"))?;
         let body = SignRawRequest { data };
         let client = make_client(&api_key)?;
         let runtime = rt()?;

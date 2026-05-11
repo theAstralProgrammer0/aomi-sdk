@@ -21,8 +21,8 @@
 //! drop the UI-only fields from the inferred YAML and regenerate.
 
 use aomi_ext::lifi::Client as GenClient;
-use aomi_sdk::*;
 use aomi_sdk::schemars::JsonSchema;
+use aomi_sdk::*;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use std::time::Duration;
@@ -67,8 +67,7 @@ fn make_client() -> Result<GenClient, String> {
         );
         builder = builder.default_headers(headers);
     }
-    let endpoint =
-        std::env::var("LIFI_API_ENDPOINT").unwrap_or_else(|_| BASE_URL.to_string());
+    let endpoint = std::env::var("LIFI_API_ENDPOINT").unwrap_or_else(|_| BASE_URL.to_string());
     let http = builder
         .build()
         .map_err(|e| format!("[lifi] failed to build HTTP client: {e}"))?;
@@ -349,8 +348,8 @@ impl DynAomiTool for LifiBuildSwapTx {
                 .map_err(|e| format!("[lifi] get_quote: {e}"))
                 .map(|r| r.into_inner())
         })?;
-        let payload = serde_json::to_value(&quote)
-            .map_err(|e| format!("[lifi] serialize quote: {e}"))?;
+        let payload =
+            serde_json::to_value(&quote).map_err(|e| format!("[lifi] serialize quote: {e}"))?;
         let main_tx = extract_main_tx(&payload);
         let approval_tx = extract_approval_tx(&payload, &from_addr, &amount_wei);
 

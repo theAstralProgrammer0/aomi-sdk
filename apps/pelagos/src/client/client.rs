@@ -1,7 +1,7 @@
 #[allow(unused_imports)]
 pub use progenitor_client::{ByteStream, ClientInfo, Error, ResponseValue};
 #[allow(unused_imports)]
-use progenitor_client::{encode_path, ClientHooks, OperationInfo, RequestBuilderExt};
+use progenitor_client::{ClientHooks, OperationInfo, RequestBuilderExt, encode_path};
 /// Types used as operation parameters and responses.
 #[allow(clippy::all)]
 pub mod types {
@@ -11,18 +11,12 @@ pub mod types {
         pub struct ConversionError(::std::borrow::Cow<'static, str>);
         impl ::std::error::Error for ConversionError {}
         impl ::std::fmt::Display for ConversionError {
-            fn fmt(
-                &self,
-                f: &mut ::std::fmt::Formatter<'_>,
-            ) -> Result<(), ::std::fmt::Error> {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> Result<(), ::std::fmt::Error> {
                 ::std::fmt::Display::fmt(&self.0, f)
             }
         }
         impl ::std::fmt::Debug for ConversionError {
-            fn fmt(
-                &self,
-                f: &mut ::std::fmt::Formatter<'_>,
-            ) -> Result<(), ::std::fmt::Error> {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> Result<(), ::std::fmt::Error> {
                 ::std::fmt::Debug::fmt(&self.0, f)
             }
         }
@@ -69,8 +63,8 @@ pub mod types {
         pub user: ::std::string::String,
     }
     /**Token balance value. Schema is loose because the underlying response
-format is not publicly documented.
-*/
+    format is not publicly documented.
+    */
     ///
     /// <details><summary>JSON schema</summary>
     ///
@@ -257,7 +251,7 @@ format is not publicly documented.
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum GetBalanceBodyJsonrpc {
         #[serde(rename = "2.0")]
@@ -272,9 +266,7 @@ format is not publicly documented.
     }
     impl ::std::str::FromStr for GetBalanceBodyJsonrpc {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "2.0" => Ok(Self::X20),
                 _ => Err("invalid value".into()),
@@ -283,9 +275,7 @@ format is not publicly documented.
     }
     impl ::std::convert::TryFrom<&str> for GetBalanceBodyJsonrpc {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -328,7 +318,7 @@ format is not publicly documented.
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum GetBalanceBodyMethod {
         #[serde(rename = "getBalance")]
@@ -343,9 +333,7 @@ format is not publicly documented.
     }
     impl ::std::str::FromStr for GetBalanceBodyMethod {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "getBalance" => Ok(Self::GetBalance),
                 _ => Err("invalid value".into()),
@@ -354,9 +342,7 @@ format is not publicly documented.
     }
     impl ::std::convert::TryFrom<&str> for GetBalanceBodyMethod {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -467,7 +453,7 @@ format is not publicly documented.
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum GetBalanceResponseJsonrpc {
         #[serde(rename = "2.0")]
@@ -482,9 +468,7 @@ format is not publicly documented.
     }
     impl ::std::str::FromStr for GetBalanceResponseJsonrpc {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "2.0" => Ok(Self::X20),
                 _ => Err("invalid value".into()),
@@ -493,9 +477,7 @@ format is not publicly documented.
     }
     impl ::std::convert::TryFrom<&str> for GetBalanceResponseJsonrpc {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -617,7 +599,7 @@ format is not publicly documented.
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum GetTransactionReceiptBodyJsonrpc {
         #[serde(rename = "2.0")]
@@ -632,9 +614,7 @@ format is not publicly documented.
     }
     impl ::std::str::FromStr for GetTransactionReceiptBodyJsonrpc {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "2.0" => Ok(Self::X20),
                 _ => Err("invalid value".into()),
@@ -643,14 +623,11 @@ format is not publicly documented.
     }
     impl ::std::convert::TryFrom<&str> for GetTransactionReceiptBodyJsonrpc {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for GetTransactionReceiptBodyJsonrpc {
+    impl ::std::convert::TryFrom<&::std::string::String> for GetTransactionReceiptBodyJsonrpc {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -658,8 +635,7 @@ format is not publicly documented.
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for GetTransactionReceiptBodyJsonrpc {
+    impl ::std::convert::TryFrom<::std::string::String> for GetTransactionReceiptBodyJsonrpc {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -690,7 +666,7 @@ format is not publicly documented.
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum GetTransactionReceiptBodyMethod {
         #[serde(rename = "getTransactionReceipt")]
@@ -705,9 +681,7 @@ format is not publicly documented.
     }
     impl ::std::str::FromStr for GetTransactionReceiptBodyMethod {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "getTransactionReceipt" => Ok(Self::GetTransactionReceipt),
                 _ => Err("invalid value".into()),
@@ -716,14 +690,11 @@ format is not publicly documented.
     }
     impl ::std::convert::TryFrom<&str> for GetTransactionReceiptBodyMethod {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for GetTransactionReceiptBodyMethod {
+    impl ::std::convert::TryFrom<&::std::string::String> for GetTransactionReceiptBodyMethod {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -731,8 +702,7 @@ format is not publicly documented.
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for GetTransactionReceiptBodyMethod {
+    impl ::std::convert::TryFrom<::std::string::String> for GetTransactionReceiptBodyMethod {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -831,7 +801,7 @@ format is not publicly documented.
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum GetTransactionReceiptResponseJsonrpc {
         #[serde(rename = "2.0")]
@@ -846,9 +816,7 @@ format is not publicly documented.
     }
     impl ::std::str::FromStr for GetTransactionReceiptResponseJsonrpc {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "2.0" => Ok(Self::X20),
                 _ => Err("invalid value".into()),
@@ -857,14 +825,11 @@ format is not publicly documented.
     }
     impl ::std::convert::TryFrom<&str> for GetTransactionReceiptResponseJsonrpc {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for GetTransactionReceiptResponseJsonrpc {
+    impl ::std::convert::TryFrom<&::std::string::String> for GetTransactionReceiptResponseJsonrpc {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -872,8 +837,7 @@ format is not publicly documented.
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for GetTransactionReceiptResponseJsonrpc {
+    impl ::std::convert::TryFrom<::std::string::String> for GetTransactionReceiptResponseJsonrpc {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -983,7 +947,7 @@ format is not publicly documented.
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum GetTransactionStatusBodyJsonrpc {
         #[serde(rename = "2.0")]
@@ -998,9 +962,7 @@ format is not publicly documented.
     }
     impl ::std::str::FromStr for GetTransactionStatusBodyJsonrpc {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "2.0" => Ok(Self::X20),
                 _ => Err("invalid value".into()),
@@ -1009,14 +971,11 @@ format is not publicly documented.
     }
     impl ::std::convert::TryFrom<&str> for GetTransactionStatusBodyJsonrpc {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for GetTransactionStatusBodyJsonrpc {
+    impl ::std::convert::TryFrom<&::std::string::String> for GetTransactionStatusBodyJsonrpc {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -1024,8 +983,7 @@ format is not publicly documented.
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for GetTransactionStatusBodyJsonrpc {
+    impl ::std::convert::TryFrom<::std::string::String> for GetTransactionStatusBodyJsonrpc {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -1056,7 +1014,7 @@ format is not publicly documented.
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum GetTransactionStatusBodyMethod {
         #[serde(rename = "getTransactionStatus")]
@@ -1071,9 +1029,7 @@ format is not publicly documented.
     }
     impl ::std::str::FromStr for GetTransactionStatusBodyMethod {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "getTransactionStatus" => Ok(Self::GetTransactionStatus),
                 _ => Err("invalid value".into()),
@@ -1082,14 +1038,11 @@ format is not publicly documented.
     }
     impl ::std::convert::TryFrom<&str> for GetTransactionStatusBodyMethod {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for GetTransactionStatusBodyMethod {
+    impl ::std::convert::TryFrom<&::std::string::String> for GetTransactionStatusBodyMethod {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -1097,8 +1050,7 @@ format is not publicly documented.
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for GetTransactionStatusBodyMethod {
+    impl ::std::convert::TryFrom<::std::string::String> for GetTransactionStatusBodyMethod {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -1197,7 +1149,7 @@ format is not publicly documented.
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum GetTransactionStatusResponseJsonrpc {
         #[serde(rename = "2.0")]
@@ -1212,9 +1164,7 @@ format is not publicly documented.
     }
     impl ::std::str::FromStr for GetTransactionStatusResponseJsonrpc {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "2.0" => Ok(Self::X20),
                 _ => Err("invalid value".into()),
@@ -1223,14 +1173,11 @@ format is not publicly documented.
     }
     impl ::std::convert::TryFrom<&str> for GetTransactionStatusResponseJsonrpc {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for GetTransactionStatusResponseJsonrpc {
+    impl ::std::convert::TryFrom<&::std::string::String> for GetTransactionStatusResponseJsonrpc {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -1238,8 +1185,7 @@ format is not publicly documented.
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for GetTransactionStatusResponseJsonrpc {
+    impl ::std::convert::TryFrom<::std::string::String> for GetTransactionStatusResponseJsonrpc {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -1248,8 +1194,8 @@ format is not publicly documented.
         }
     }
     /**Health check response. Shape is not formally specified; the Aomi
-client falls back to wrapping non-JSON bodies in `{ raw: "..." }`.
-*/
+    client falls back to wrapping non-JSON bodies in `{ raw: "..." }`.
+    */
     ///
     /// <details><summary>JSON schema</summary>
     ///
@@ -1429,7 +1375,7 @@ client falls back to wrapping non-JSON bodies in `{ raw: "..." }`.
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum RpcRequestEnvelopeJsonrpc {
         #[serde(rename = "2.0")]
@@ -1444,9 +1390,7 @@ client falls back to wrapping non-JSON bodies in `{ raw: "..." }`.
     }
     impl ::std::str::FromStr for RpcRequestEnvelopeJsonrpc {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "2.0" => Ok(Self::X20),
                 _ => Err("invalid value".into()),
@@ -1455,9 +1399,7 @@ client falls back to wrapping non-JSON bodies in `{ raw: "..." }`.
     }
     impl ::std::convert::TryFrom<&str> for RpcRequestEnvelopeJsonrpc {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -1570,7 +1512,7 @@ client falls back to wrapping non-JSON bodies in `{ raw: "..." }`.
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum RpcRequestGenericJsonrpc {
         #[serde(rename = "2.0")]
@@ -1585,9 +1527,7 @@ client falls back to wrapping non-JSON bodies in `{ raw: "..." }`.
     }
     impl ::std::str::FromStr for RpcRequestGenericJsonrpc {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "2.0" => Ok(Self::X20),
                 _ => Err("invalid value".into()),
@@ -1596,9 +1536,7 @@ client falls back to wrapping non-JSON bodies in `{ raw: "..." }`.
     }
     impl ::std::convert::TryFrom<&str> for RpcRequestGenericJsonrpc {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -1721,7 +1659,7 @@ client falls back to wrapping non-JSON bodies in `{ raw: "..." }`.
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum RpcResponseEnvelopeJsonrpc {
         #[serde(rename = "2.0")]
@@ -1736,9 +1674,7 @@ client falls back to wrapping non-JSON bodies in `{ raw: "..." }`.
     }
     impl ::std::str::FromStr for RpcResponseEnvelopeJsonrpc {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "2.0" => Ok(Self::X20),
                 _ => Err("invalid value".into()),
@@ -1747,9 +1683,7 @@ client falls back to wrapping non-JSON bodies in `{ raw: "..." }`.
     }
     impl ::std::convert::TryFrom<&str> for RpcResponseEnvelopeJsonrpc {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -1861,7 +1795,7 @@ client falls back to wrapping non-JSON bodies in `{ raw: "..." }`.
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum RpcResponseGenericJsonrpc {
         #[serde(rename = "2.0")]
@@ -1876,9 +1810,7 @@ client falls back to wrapping non-JSON bodies in `{ raw: "..." }`.
     }
     impl ::std::str::FromStr for RpcResponseGenericJsonrpc {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "2.0" => Ok(Self::X20),
                 _ => Err("invalid value".into()),
@@ -1887,9 +1819,7 @@ client falls back to wrapping non-JSON bodies in `{ raw: "..." }`.
     }
     impl ::std::convert::TryFrom<&str> for RpcResponseGenericJsonrpc {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -2010,7 +1940,7 @@ client falls back to wrapping non-JSON bodies in `{ raw: "..." }`.
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum SendTransactionBodyJsonrpc {
         #[serde(rename = "2.0")]
@@ -2025,9 +1955,7 @@ client falls back to wrapping non-JSON bodies in `{ raw: "..." }`.
     }
     impl ::std::str::FromStr for SendTransactionBodyJsonrpc {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "2.0" => Ok(Self::X20),
                 _ => Err("invalid value".into()),
@@ -2036,9 +1964,7 @@ client falls back to wrapping non-JSON bodies in `{ raw: "..." }`.
     }
     impl ::std::convert::TryFrom<&str> for SendTransactionBodyJsonrpc {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -2081,7 +2007,7 @@ client falls back to wrapping non-JSON bodies in `{ raw: "..." }`.
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum SendTransactionBodyMethod {
         #[serde(rename = "sendTransaction")]
@@ -2096,9 +2022,7 @@ client falls back to wrapping non-JSON bodies in `{ raw: "..." }`.
     }
     impl ::std::str::FromStr for SendTransactionBodyMethod {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "sendTransaction" => Ok(Self::SendTransaction),
                 _ => Err("invalid value".into()),
@@ -2107,9 +2031,7 @@ client falls back to wrapping non-JSON bodies in `{ raw: "..." }`.
     }
     impl ::std::convert::TryFrom<&str> for SendTransactionBodyMethod {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -2220,7 +2142,7 @@ client falls back to wrapping non-JSON bodies in `{ raw: "..." }`.
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum SendTransactionResponseJsonrpc {
         #[serde(rename = "2.0")]
@@ -2235,9 +2157,7 @@ client falls back to wrapping non-JSON bodies in `{ raw: "..." }`.
     }
     impl ::std::str::FromStr for SendTransactionResponseJsonrpc {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "2.0" => Ok(Self::X20),
                 _ => Err("invalid value".into()),
@@ -2246,14 +2166,11 @@ client falls back to wrapping non-JSON bodies in `{ raw: "..." }`.
     }
     impl ::std::convert::TryFrom<&str> for SendTransactionResponseJsonrpc {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for SendTransactionResponseJsonrpc {
+    impl ::std::convert::TryFrom<&::std::string::String> for SendTransactionResponseJsonrpc {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -2261,8 +2178,7 @@ client falls back to wrapping non-JSON bodies in `{ raw: "..." }`.
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for SendTransactionResponseJsonrpc {
+    impl ::std::convert::TryFrom<::std::string::String> for SendTransactionResponseJsonrpc {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -2271,8 +2187,8 @@ client falls back to wrapping non-JSON bodies in `{ raw: "..." }`.
         }
     }
     /**Result of submitting a transaction. Shape is not publicly documented;
-treated as a permissive object.
-*/
+    treated as a permissive object.
+    */
     ///
     /// <details><summary>JSON schema</summary>
     ///
@@ -2308,8 +2224,8 @@ treated as a permissive object.
         }
     }
     /**Finalized transaction receipt. Shape is not publicly documented;
-permissive object until a real spec is available.
-*/
+    permissive object until a real spec is available.
+    */
     ///
     /// <details><summary>JSON schema</summary>
     ///
@@ -2341,21 +2257,19 @@ permissive object until a real spec is available.
             &self.0
         }
     }
-    impl ::std::convert::From<TransactionReceipt>
-    for ::std::option::Option<TransactionReceiptInner> {
+    impl ::std::convert::From<TransactionReceipt> for ::std::option::Option<TransactionReceiptInner> {
         fn from(value: TransactionReceipt) -> Self {
             value.0
         }
     }
-    impl ::std::convert::From<::std::option::Option<TransactionReceiptInner>>
-    for TransactionReceipt {
+    impl ::std::convert::From<::std::option::Option<TransactionReceiptInner>> for TransactionReceipt {
         fn from(value: ::std::option::Option<TransactionReceiptInner>) -> Self {
             Self(value)
         }
     }
     /**Finalized transaction receipt. Shape is not publicly documented;
-permissive object until a real spec is available.
-*/
+    permissive object until a real spec is available.
+    */
     ///
     /// <details><summary>JSON schema</summary>
     ///
@@ -2391,8 +2305,8 @@ permissive object until a real spec is available.
         }
     }
     /**Transaction lifecycle state. Observed values include "pending",
-"batched", "processed", "failed".
-*/
+    "batched", "processed", "failed".
+    */
     ///
     /// <details><summary>JSON schema</summary>
     ///
@@ -2522,7 +2436,9 @@ impl Client {
         #[cfg(not(target_arch = "wasm32"))]
         let client = {
             let dur = ::std::time::Duration::from_secs(15u64);
-            reqwest::ClientBuilder::new().connect_timeout(dur).timeout(dur)
+            reqwest::ClientBuilder::new()
+                .connect_timeout(dur)
+                .timeout(dur)
         };
         #[cfg(target_arch = "wasm32")]
         let client = reqwest::ClientBuilder::new();
@@ -2560,23 +2476,20 @@ impl ClientHooks<()> for &Client {}
 impl Client {
     /**Liveness check for a Pelagos appchain node
 
-Returns a 2xx response when the node is reachable. Body shape is
-not formally specified; clients should treat any 2xx as healthy.
+    Returns a 2xx response when the node is reachable. Body shape is
+    not formally specified; clients should treat any 2xx as healthy.
 
 
-Sends a `GET` request to `/health`
+    Sends a `GET` request to `/health`
 
-*/
-    pub async fn health<'a>(
-        &'a self,
-    ) -> Result<ResponseValue<types::HealthResponse>, Error<()>> {
+    */
+    pub async fn health<'a>(&'a self) -> Result<ResponseValue<types::HealthResponse>, Error<()>> {
         let url = format!("{}/health", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -2601,26 +2514,25 @@ Sends a `GET` request to `/health`
     }
     /**Generic JSON-RPC entrypoint
 
-Catch-all JSON-RPC 2.0 endpoint. Send `{ jsonrpc: "2.0", id, method,
-params }`. The Aomi client also models known methods as dedicated
-operations below for ergonomic codegen; both routes hit this same
-path on the wire.
+    Catch-all JSON-RPC 2.0 endpoint. Send `{ jsonrpc: "2.0", id, method,
+    params }`. The Aomi client also models known methods as dedicated
+    operations below for ergonomic codegen; both routes hit this same
+    path on the wire.
 
 
-Sends a `POST` request to `/rpc`
+    Sends a `POST` request to `/rpc`
 
-*/
+    */
     pub async fn rpc<'a>(
         &'a self,
         body: &'a types::RpcRequestGeneric,
     ) -> Result<ResponseValue<types::RpcResponseGeneric>, Error<()>> {
         let url = format!("{}/rpc", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -2646,24 +2558,23 @@ Sends a `POST` request to `/rpc`
     }
     /**Get a user's token balance on the appchain
 
-Wire-level: POST /rpc with method = "getBalance" and
-params = [{ user, token }].
+    Wire-level: POST /rpc with method = "getBalance" and
+    params = [{ user, token }].
 
 
-Sends a `POST` request to `/rpc#getBalance`
+    Sends a `POST` request to `/rpc#getBalance`
 
-*/
+    */
     pub async fn get_balance<'a>(
         &'a self,
         body: &'a types::GetBalanceBody,
     ) -> Result<ResponseValue<types::GetBalanceResponse>, Error<()>> {
         let url = format!("{}/rpc#getBalance", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -2689,24 +2600,23 @@ Sends a `POST` request to `/rpc#getBalance`
     }
     /**Look up the lifecycle state of a transaction by hash
 
-Wire-level: POST /rpc with method = "getTransactionStatus" and
-params = [hash].
+    Wire-level: POST /rpc with method = "getTransactionStatus" and
+    params = [hash].
 
 
-Sends a `POST` request to `/rpc#getTransactionStatus`
+    Sends a `POST` request to `/rpc#getTransactionStatus`
 
-*/
+    */
     pub async fn get_transaction_status<'a>(
         &'a self,
         body: &'a types::GetTransactionStatusBody,
     ) -> Result<ResponseValue<types::GetTransactionStatusResponse>, Error<()>> {
         let url = format!("{}/rpc#getTransactionStatus", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -2732,24 +2642,23 @@ Sends a `POST` request to `/rpc#getTransactionStatus`
     }
     /**Fetch the finalized execution receipt for a settled transaction
 
-Wire-level: POST /rpc with method = "getTransactionReceipt" and
-params = [hash]. Returns null for transactions not yet processed.
+    Wire-level: POST /rpc with method = "getTransactionReceipt" and
+    params = [hash]. Returns null for transactions not yet processed.
 
 
-Sends a `POST` request to `/rpc#getTransactionReceipt`
+    Sends a `POST` request to `/rpc#getTransactionReceipt`
 
-*/
+    */
     pub async fn get_transaction_receipt<'a>(
         &'a self,
         body: &'a types::GetTransactionReceiptBody,
     ) -> Result<ResponseValue<types::GetTransactionReceiptResponse>, Error<()>> {
         let url = format!("{}/rpc#getTransactionReceipt", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -2775,24 +2684,23 @@ Sends a `POST` request to `/rpc#getTransactionReceipt`
     }
     /**Submit a token transfer transaction
 
-Wire-level: POST /rpc with method = "sendTransaction" and
-params = [TransferTransaction]. Caller supplies a unique `hash`.
+    Wire-level: POST /rpc with method = "sendTransaction" and
+    params = [TransferTransaction]. Caller supplies a unique `hash`.
 
 
-Sends a `POST` request to `/rpc#sendTransaction`
+    Sends a `POST` request to `/rpc#sendTransaction`
 
-*/
+    */
     pub async fn send_transaction<'a>(
         &'a self,
         body: &'a types::SendTransactionBody,
     ) -> Result<ResponseValue<types::SendTransactionResponse>, Error<()>> {
         let url = format!("{}/rpc#sendTransaction", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client

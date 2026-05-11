@@ -14,11 +14,11 @@
 //!   * `oneinch_list_tokens`      — supported token list for a chain
 
 use aomi_ext::oneinch::Client as GenClient;
-use aomi_sdk::*;
 use aomi_sdk::schemars::JsonSchema;
-use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
+use aomi_sdk::*;
+use reqwest::header::{AUTHORIZATION, HeaderMap, HeaderValue};
 use serde::{Deserialize, Serialize};
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use std::time::Duration;
 
 #[derive(Clone, Default)]
@@ -198,67 +198,67 @@ impl DynAomiTool for BuildSwapTx {
         let amount = args.amount.clone();
         let from = args.from.clone();
 
-        let result = runtime
-            .block_on(async move {
-                // 1. Quote.
-                let quote = client
-                    .get_quote(chain_id, amount.as_str(), dst.as_str(), None, src.as_str())
-                    .await
-                    .map_err(|e| format!("[1inch] quote step: {e}"))?
-                    .into_inner();
+        let result = runtime.block_on(async move {
+            // 1. Quote.
+            let quote = client
+                .get_quote(chain_id, amount.as_str(), dst.as_str(), None, src.as_str())
+                .await
+                .map_err(|e| format!("[1inch] quote step: {e}"))?
+                .into_inner();
 
-                // 2. Allowance + optional approve_tx (skip for native sells).
-                let mut approve_tx: Option<Value> = None;
-                let mut allowance_value: Option<String> = None;
-                if !is_native(&src) {
-                    let allow = client
-                        .get_allowance(chain_id, src.as_str(), from.as_str())
+            // 2. Allowance + optional approve_tx (skip for native sells).
+            let mut approve_tx: Option<Value> = None;
+            let mut allowance_value: Option<String> = None;
+            if !is_native(&src) {
+                let allow = client
+                    .get_allowance(chain_id, src.as_str(), from.as_str())
+                    .await
+                    .map_err(|e| format!("[1inch] allowance step: {e}"))?
+                    .into_inner();
+                let current = allow.allowance.clone().unwrap_or_default();
+                allowance_value = Some(current.clone());
+
+                let needs_approve = match current.parse::<u128>() {
+                    Ok(v) => v < amount_u,
+                    Err(_) => true, // unparseable -> assume insufficient
+                };
+                if needs_approve {
+                    let approve = client
+                        .get_approve_transaction(chain_id, Some(amount.as_str()), src.as_str())
                         .await
-                        .map_err(|e| format!("[1inch] allowance step: {e}"))?
+                        .map_err(|e| format!("[1inch] approve_tx step: {e}"))?
                         .into_inner();
-                    let current = allow.allowance.clone().unwrap_or_default();
-                    allowance_value = Some(current.clone());
-
-                    let needs_approve = match current.parse::<u128>() {
-                        Ok(v) => v < amount_u,
-                        Err(_) => true, // unparseable -> assume insufficient
-                    };
-                    if needs_approve {
-                        let approve = client
-                            .get_approve_transaction(chain_id, Some(amount.as_str()), src.as_str())
-                            .await
-                            .map_err(|e| format!("[1inch] approve_tx step: {e}"))?
-                            .into_inner();
-                        approve_tx = Some(serde_json::to_value(approve).map_err(|e| {
-                            format!("[1inch] approve_tx serialize: {e}")
-                        })?);
-                    }
+                    approve_tx = Some(
+                        serde_json::to_value(approve)
+                            .map_err(|e| format!("[1inch] approve_tx serialize: {e}"))?,
+                    );
                 }
+            }
 
-                // 3. Swap tx.
-                let swap = client
-                    .get_swap(
-                        chain_id,
-                        amount.as_str(),
-                        dst.as_str(),
-                        from.as_str(),
-                        None,
-                        slippage,
-                        src.as_str(),
-                    )
-                    .await
-                    .map_err(|e| format!("[1inch] swap step: {e}"))?
-                    .into_inner();
+            // 3. Swap tx.
+            let swap = client
+                .get_swap(
+                    chain_id,
+                    amount.as_str(),
+                    dst.as_str(),
+                    from.as_str(),
+                    None,
+                    slippage,
+                    src.as_str(),
+                )
+                .await
+                .map_err(|e| format!("[1inch] swap step: {e}"))?
+                .into_inner();
 
-                Ok::<_, String>(json!({
-                    "chain_id": chain_id,
-                    "slippage": slippage,
-                    "quote": quote,
-                    "allowance": allowance_value,
-                    "approve_tx": approve_tx,
-                    "swap": swap,
-                }))
-            })?;
+            Ok::<_, String>(json!({
+                "chain_id": chain_id,
+                "slippage": slippage,
+                "quote": quote,
+                "allowance": allowance_value,
+                "approve_tx": approve_tx,
+                "swap": swap,
+            }))
+        })?;
 
         ok(result)
     }

@@ -14,8 +14,8 @@
 
 use aomi_ext::dune::Client as DuneClient;
 use aomi_ext::dune::types::{ModelsExecuteSqlRequest, ModelsExecuteSqlRequestPerformance};
-use aomi_sdk::*;
 use aomi_sdk::schemars::JsonSchema;
+use aomi_sdk::*;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use std::time::{Duration, Instant};
@@ -206,7 +206,12 @@ impl DynAomiTool for RunSql {
     fn run(_app: &DuneApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let api_key = resolve_key(args.api_key.as_deref())?;
         let max_wait = Duration::from_secs(args.max_wait_seconds.unwrap_or(DEFAULT_MAX_WAIT_SECS));
-        let perf = match args.performance.as_deref().map(str::to_ascii_lowercase).as_deref() {
+        let perf = match args
+            .performance
+            .as_deref()
+            .map(str::to_ascii_lowercase)
+            .as_deref()
+        {
             Some("medium") => Some(ModelsExecuteSqlRequestPerformance::Medium),
             Some("large") => Some(ModelsExecuteSqlRequestPerformance::Large),
             Some("small") | None => Some(ModelsExecuteSqlRequestPerformance::Small),

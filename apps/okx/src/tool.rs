@@ -18,11 +18,11 @@
 //!   * okx_set_leverage    — change leverage on an instrument (signed)
 
 use aomi_ext::okx::types::{CancelOrderRequest, PlaceOrderRequest, SetLeverageRequest};
-use aomi_ext::okx::{iso_timestamp, sign, Client as OkxClient};
+use aomi_ext::okx::{Client as OkxClient, iso_timestamp, sign};
 use aomi_sdk::schemars::JsonSchema;
 use aomi_sdk::*;
 use serde::{Deserialize, Serialize};
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 #[derive(Clone, Default)]
 pub(crate) struct OkxApp;
@@ -148,8 +148,7 @@ impl DynAomiTool for GetOrderBook {
     type App = OkxApp;
     type Args = GetOrderBookArgs;
     const NAME: &'static str = "okx_get_order_book";
-    const DESCRIPTION: &'static str =
-        "Use when the user wants order-book depth for an OKX instrument (e.g. before a limit order). Returns bid/ask levels with sizes. sz is depth (max 400; default 1 — pass e.g. \"50\" for a useful snapshot).";
+    const DESCRIPTION: &'static str = "Use when the user wants order-book depth for an OKX instrument (e.g. before a limit order). Returns bid/ask levels with sizes. sz is depth (max 400; default 1 — pass e.g. \"50\" for a useful snapshot).";
 
     fn run(_app: &OkxApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let runtime = rt()?;
@@ -262,7 +261,13 @@ impl DynAomiTool for PlaceOrder {
         let body_str =
             serde_json::to_string(&body).map_err(|e| format!("[okx] serialize body: {e}"))?;
         let timestamp = iso_timestamp();
-        let signature = sign(&secret_key, &timestamp, "POST", "/api/v5/trade/order", &body_str)?;
+        let signature = sign(
+            &secret_key,
+            &timestamp,
+            "POST",
+            "/api/v5/trade/order",
+            &body_str,
+        )?;
         let runtime = rt()?;
         runtime.block_on(async move {
             let client = OkxClient::new(BASE_URL);
@@ -303,8 +308,7 @@ impl DynAomiTool for CancelOrder {
     type App = OkxApp;
     type Args = CancelOrderArgs;
     const NAME: &'static str = "okx_cancel_order";
-    const DESCRIPTION: &'static str =
-        "Use when the user wants to cancel an open OKX order. Pass instId and the ordId returned by place_order. Reads OKX credentials from env if not passed.";
+    const DESCRIPTION: &'static str = "Use when the user wants to cancel an open OKX order. Pass instId and the ordId returned by place_order. Reads OKX credentials from env if not passed.";
 
     fn run(_app: &OkxApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let (api_key, secret_key, passphrase) = resolve_creds(

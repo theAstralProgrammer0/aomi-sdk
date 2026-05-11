@@ -16,8 +16,8 @@
 //!   * `dydx_get_historical_funding`  — per-hour funding series
 
 use aomi_ext::dydx::Client as DydxClient;
-use aomi_sdk::*;
 use aomi_sdk::schemars::JsonSchema;
+use aomi_sdk::*;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use std::num::NonZeroU32;
@@ -283,8 +283,7 @@ impl DynAomiTool for GetFills {
     type App = DydxApp;
     type Args = GetFillsArgs;
     const NAME: &'static str = "dydx_get_fills";
-    const DESCRIPTION: &'static str =
-        "Use when the user asks for their executed trades, fill history, fees paid, or realized PnL inputs on dYdX. Returns fills for the subaccount with price, size, side, fee, and timestamp.";
+    const DESCRIPTION: &'static str = "Use when the user asks for their executed trades, fill history, fees paid, or realized PnL inputs on dYdX. Returns fills for the subaccount with price, size, side, fee, and timestamp.";
 
     fn run(_app: &DydxApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         rt()?.block_on(async move {

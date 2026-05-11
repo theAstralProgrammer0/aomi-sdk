@@ -6,8 +6,8 @@
 
 use aomi_ext::yearn::Client as YearnClient;
 use aomi_ext::yearn::types::YearnVault;
-use aomi_sdk::*;
 use aomi_sdk::schemars::JsonSchema;
+use aomi_sdk::*;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 
@@ -120,7 +120,10 @@ impl DynAomiTool for GetVaultDetail {
                 .get_vault_detail(args.chain_id, args.address.as_str())
                 .await
                 .map_err(|e| {
-                    format!("[yearn] get_vault_detail {} {}: {e}", args.chain_id, args.address)
+                    format!(
+                        "[yearn] get_vault_detail {} {}: {e}",
+                        args.chain_id, args.address
+                    )
                 })?
                 .into_inner();
             ok(json!({ "chain_id": args.chain_id, "data": detail }))

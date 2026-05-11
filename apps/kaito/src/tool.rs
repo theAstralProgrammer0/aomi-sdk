@@ -13,8 +13,8 @@
 //! 4 endpoints map to 4 user-centric tools:
 //!
 //!   * `kaito_get_yapper_score`     — per-yapper Yaps score (typed).
-//!   * `kaito_search`               — semantic search the corpus for
-//!                                    yapper activity on a topic.
+//!   * `kaito_search`               — semantic search the corpus for yapper
+//!     activity on a topic.
 //!   * `kaito_trending_narratives`  — currently trending narratives.
 //!   * `kaito_get_token_mindshare`  — attention metrics for a token.
 //!
@@ -26,9 +26,9 @@
 use aomi_ext::kaito::Client as GenClient;
 use aomi_sdk::schemars::JsonSchema;
 use aomi_sdk::*;
-use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
+use reqwest::header::{AUTHORIZATION, HeaderMap, HeaderValue};
 use serde::{Deserialize, Serialize};
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use std::num::NonZeroU32;
 use std::time::Duration;
 

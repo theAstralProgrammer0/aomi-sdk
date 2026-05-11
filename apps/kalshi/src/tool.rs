@@ -27,8 +27,8 @@
 
 use aomi_ext::kalshi::Client as SimmerClient;
 use aomi_ext::kalshi::types::{ImportKalshiMarketRequest, RegisterAgentRequest, TradeRequest};
-use aomi_sdk::*;
 use aomi_sdk::schemars::JsonSchema;
+use aomi_sdk::*;
 use chrono::Local;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
@@ -128,8 +128,7 @@ impl DynAomiTool for SimmerRegister {
     type App = KalshiApp;
     type Args = SimmerRegisterArgs;
     const NAME: &'static str = "simmer_register";
-    const DESCRIPTION: &'static str =
-        "Use when the user has no Simmer API key yet and wants to start trading Kalshi markets. Returns an api_key (must be saved with /apikey simmer <key>), a claim_url for identity verification, and a sandbox starting balance. One-time setup.";
+    const DESCRIPTION: &'static str = "Use when the user has no Simmer API key yet and wants to start trading Kalshi markets. Returns an api_key (must be saved with /apikey simmer <key>), a claim_url for identity verification, and a sandbox starting balance. One-time setup.";
 
     fn run(_app: &KalshiApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let body = RegisterAgentRequest {
@@ -461,7 +460,9 @@ impl DynAomiTool for SimmerGetPositions {
         let result = runtime
             .block_on(async move {
                 let client = SimmerClient::new(BASE_URL);
-                client.get_positions(Some(venue.as_str()), auth.as_str()).await
+                client
+                    .get_positions(Some(venue.as_str()), auth.as_str())
+                    .await
             })
             .map_err(|e| format!("[simmer] get_positions: {e}"))?
             .into_inner();
@@ -484,8 +485,7 @@ impl DynAomiTool for SimmerGetPortfolio {
     type App = KalshiApp;
     type Args = SimmerGetPortfolioArgs;
     const NAME: &'static str = "simmer_get_portfolio";
-    const DESCRIPTION: &'static str =
-        "Use when the user asks 'what's my account worth?'. Returns cash balance, currency, positions value, total value, and realized/unrealized PnL across the linked Kalshi account.";
+    const DESCRIPTION: &'static str = "Use when the user asks 'what's my account worth?'. Returns cash balance, currency, positions value, total value, and realized/unrealized PnL across the linked Kalshi account.";
 
     fn run(_app: &KalshiApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let api_key = resolve_simmer_api_key(args.api_key.as_deref())?;

@@ -16,8 +16,6 @@ dyn_aomi_app!(
     name = "pelagos",
     version = "0.1.0",
     preamble = PREAMBLE,
-    tools = [
-        tool::Health,
-    ],
+    tools = [tool::Health,],
     namespaces = ["evm-core"]
 );
