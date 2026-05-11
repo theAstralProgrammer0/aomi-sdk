@@ -123,11 +123,7 @@ pub fn run(args: GenClientArgs) -> Result<()> {
 /// Ensure apps/<platform>/Cargo.toml has the runtime deps the generated
 /// client needs: progenitor-client, chrono, uuid, regress (per detection),
 /// reqwest, serde, etc. Returns true iff the file was modified.
-fn wire_into_app(
-    root: &std::path::Path,
-    platform: &str,
-    deps: &DetectedDeps,
-) -> Result<bool> {
+fn wire_into_app(root: &std::path::Path, platform: &str, deps: &DetectedDeps) -> Result<bool> {
     let cargo_path = root.join("apps").join(platform).join("Cargo.toml");
     if !cargo_path.exists() {
         // No app crate yet — gen-tool will create the Cargo.toml with the
@@ -264,9 +260,7 @@ fn wire_into_ext(
     // Merge: union of (existing line's deps) + (newly detected deps). This
     // preserves hand-added deps (like `dep:hmac` for HMAC-signing platforms)
     // when re-running gen-client.
-    let merged_line = if let Some(existing) = cargo
-        .lines()
-        .find(|l| l.trim().starts_with(&stub_re))
+    let merged_line = if let Some(existing) = cargo.lines().find(|l| l.trim().starts_with(&stub_re))
     {
         let mut all: Vec<String> = parse_feature_deps(existing)
             .into_iter()
@@ -300,11 +294,7 @@ fn wire_into_ext(
                 .join("\n")
                 + "\n"
         } else {
-            cargo.replacen(
-                "default = []",
-                &format!("default = []\n{merged_line}"),
-                1,
-            )
+            cargo.replacen("default = []", &format!("default = []\n{merged_line}"), 1)
         };
         std::fs::write(&cargo_path, new_cargo)?;
         up.cargo_toml = true;
@@ -323,8 +313,9 @@ fn wire_into_ext(
 }
 
 fn format_tokens(raw: String) -> Result<String> {
-    let parsed: syn::File = syn::parse_str(&raw)
-        .with_context(|| "progenitor produced unparseable Rust — this is a bug in the spec or the generator")?;
+    let parsed: syn::File = syn::parse_str(&raw).with_context(
+        || "progenitor produced unparseable Rust — this is a bug in the spec or the generator",
+    )?;
     Ok(prettyplease::unparse(&parsed))
 }
 

@@ -1,7 +1,7 @@
 #[allow(unused_imports)]
 pub use progenitor_client::{ByteStream, ClientInfo, Error, ResponseValue};
 #[allow(unused_imports)]
-use progenitor_client::{encode_path, ClientHooks, OperationInfo, RequestBuilderExt};
+use progenitor_client::{ClientHooks, OperationInfo, RequestBuilderExt, encode_path};
 /// Types used as operation parameters and responses.
 #[allow(clippy::all)]
 pub mod types {
@@ -11,18 +11,12 @@ pub mod types {
         pub struct ConversionError(::std::borrow::Cow<'static, str>);
         impl ::std::error::Error for ConversionError {}
         impl ::std::fmt::Display for ConversionError {
-            fn fmt(
-                &self,
-                f: &mut ::std::fmt::Formatter<'_>,
-            ) -> Result<(), ::std::fmt::Error> {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> Result<(), ::std::fmt::Error> {
                 ::std::fmt::Display::fmt(&self.0, f)
             }
         }
         impl ::std::fmt::Debug for ConversionError {
-            fn fmt(
-                &self,
-                f: &mut ::std::fmt::Formatter<'_>,
-            ) -> Result<(), ::std::fmt::Error> {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> Result<(), ::std::fmt::Error> {
                 ::std::fmt::Debug::fmt(&self.0, f)
             }
         }
@@ -374,7 +368,9 @@ impl Client {
         #[cfg(not(target_arch = "wasm32"))]
         let client = {
             let dur = ::std::time::Duration::from_secs(15u64);
-            reqwest::ClientBuilder::new().connect_timeout(dur).timeout(dur)
+            reqwest::ClientBuilder::new()
+                .connect_timeout(dur)
+                .timeout(dur)
         };
         #[cfg(target_arch = "wasm32")]
         let client = reqwest::ClientBuilder::new();
@@ -412,9 +408,9 @@ impl ClientHooks<()> for &Client {}
 impl Client {
     /**List supported bridge routes (origin → destination token pairs)
 
-Sends a `GET` request to `/available-routes`
+    Sends a `GET` request to `/available-routes`
 
-*/
+    */
     pub async fn get_available_routes<'a>(
         &'a self,
         destination_chain_id: Option<i64>,
@@ -424,11 +420,10 @@ Sends a `GET` request to `/available-routes`
     ) -> Result<ResponseValue<::std::vec::Vec<types::AcrossRoute>>, Error<()>> {
         let url = format!("{}/available-routes", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -437,22 +432,22 @@ Sends a `GET` request to `/available-routes`
                 ::reqwest::header::ACCEPT,
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
-            .query(
-                &progenitor_client::QueryParam::new(
-                    "destinationChainId",
-                    &destination_chain_id,
-                ),
-            )
-            .query(
-                &progenitor_client::QueryParam::new(
-                    "destinationToken",
-                    &destination_token,
-                ),
-            )
-            .query(
-                &progenitor_client::QueryParam::new("originChainId", &origin_chain_id),
-            )
-            .query(&progenitor_client::QueryParam::new("originToken", &origin_token))
+            .query(&progenitor_client::QueryParam::new(
+                "destinationChainId",
+                &destination_chain_id,
+            ))
+            .query(&progenitor_client::QueryParam::new(
+                "destinationToken",
+                &destination_token,
+            ))
+            .query(&progenitor_client::QueryParam::new(
+                "originChainId",
+                &origin_chain_id,
+            ))
+            .query(&progenitor_client::QueryParam::new(
+                "originToken",
+                &origin_token,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -469,9 +464,9 @@ Sends a `GET` request to `/available-routes`
     }
     /**Min/max bridge amounts and instant-fill caps for a route
 
-Sends a `GET` request to `/limits`
+    Sends a `GET` request to `/limits`
 
-*/
+    */
     pub async fn get_limits<'a>(
         &'a self,
         destination_chain_id: i64,
@@ -481,11 +476,10 @@ Sends a `GET` request to `/limits`
     ) -> Result<ResponseValue<types::AcrossLimits>, Error<()>> {
         let url = format!("{}/limits", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -494,17 +488,22 @@ Sends a `GET` request to `/limits`
                 ::reqwest::header::ACCEPT,
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
-            .query(
-                &progenitor_client::QueryParam::new(
-                    "destinationChainId",
-                    &destination_chain_id,
-                ),
-            )
-            .query(&progenitor_client::QueryParam::new("inputToken", &input_token))
-            .query(
-                &progenitor_client::QueryParam::new("originChainId", &origin_chain_id),
-            )
-            .query(&progenitor_client::QueryParam::new("outputToken", &output_token))
+            .query(&progenitor_client::QueryParam::new(
+                "destinationChainId",
+                &destination_chain_id,
+            ))
+            .query(&progenitor_client::QueryParam::new(
+                "inputToken",
+                &input_token,
+            ))
+            .query(&progenitor_client::QueryParam::new(
+                "originChainId",
+                &origin_chain_id,
+            ))
+            .query(&progenitor_client::QueryParam::new(
+                "outputToken",
+                &output_token,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -521,9 +520,9 @@ Sends a `GET` request to `/limits`
     }
     /**Fee quote and relayer parameters for a bridge
 
-Sends a `GET` request to `/suggested-fees`
+    Sends a `GET` request to `/suggested-fees`
 
-*/
+    */
     pub async fn get_suggested_fees<'a>(
         &'a self,
         amount: &'a str,
@@ -536,11 +535,10 @@ Sends a `GET` request to `/suggested-fees`
     ) -> Result<ResponseValue<types::AcrossSuggestedFees>, Error<()>> {
         let url = format!("{}/suggested-fees", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -550,18 +548,23 @@ Sends a `GET` request to `/suggested-fees`
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
             .query(&progenitor_client::QueryParam::new("amount", &amount))
-            .query(
-                &progenitor_client::QueryParam::new(
-                    "destinationChainId",
-                    &destination_chain_id,
-                ),
-            )
-            .query(&progenitor_client::QueryParam::new("inputToken", &input_token))
+            .query(&progenitor_client::QueryParam::new(
+                "destinationChainId",
+                &destination_chain_id,
+            ))
+            .query(&progenitor_client::QueryParam::new(
+                "inputToken",
+                &input_token,
+            ))
             .query(&progenitor_client::QueryParam::new("message", &message))
-            .query(
-                &progenitor_client::QueryParam::new("originChainId", &origin_chain_id),
-            )
-            .query(&progenitor_client::QueryParam::new("outputToken", &output_token))
+            .query(&progenitor_client::QueryParam::new(
+                "originChainId",
+                &origin_chain_id,
+            ))
+            .query(&progenitor_client::QueryParam::new(
+                "outputToken",
+                &output_token,
+            ))
             .query(&progenitor_client::QueryParam::new("recipient", &recipient))
             .headers(header_map)
             .build()?;
@@ -579,9 +582,9 @@ Sends a `GET` request to `/suggested-fees`
     }
     /**Current fill status for a submitted deposit
 
-Sends a `GET` request to `/deposit/status`
+    Sends a `GET` request to `/deposit/status`
 
-*/
+    */
     pub async fn get_deposit_status<'a>(
         &'a self,
         deposit_id: i64,
@@ -589,11 +592,10 @@ Sends a `GET` request to `/deposit/status`
     ) -> Result<ResponseValue<types::AcrossDepositStatus>, Error<()>> {
         let url = format!("{}/deposit/status", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -602,10 +604,14 @@ Sends a `GET` request to `/deposit/status`
                 ::reqwest::header::ACCEPT,
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
-            .query(&progenitor_client::QueryParam::new("depositId", &deposit_id))
-            .query(
-                &progenitor_client::QueryParam::new("originChainId", &origin_chain_id),
-            )
+            .query(&progenitor_client::QueryParam::new(
+                "depositId",
+                &deposit_id,
+            ))
+            .query(&progenitor_client::QueryParam::new(
+                "originChainId",
+                &origin_chain_id,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {

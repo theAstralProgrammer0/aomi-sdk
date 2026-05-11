@@ -3,8 +3,8 @@ use eyre::{Context, Result};
 use std::process::Command;
 
 use crate::client::GenClientArgs;
-use crate::specs::{GenSpecsArgs, Source};
 use crate::specs::workspace_root;
+use crate::specs::{GenSpecsArgs, Source};
 use crate::tool::GenToolArgs;
 
 #[derive(Args, Debug)]
@@ -64,7 +64,9 @@ pub fn run(args: NewAppArgs) -> Result<()> {
 
     if args.no_tool {
         println!();
-        println!("Stopped before gen-tool (--no-tool). Run `aomi-build gen-tool {platform}` to scaffold.");
+        println!(
+            "Stopped before gen-tool (--no-tool). Run `aomi-build gen-tool {platform}` to scaffold."
+        );
         return Ok(());
     }
 

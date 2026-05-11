@@ -28,10 +28,7 @@ pub fn find(platform: &str) -> Result<Option<SpecHit>> {
         serde_json::from_str(&list_text).context("apis-guru list is not valid JSON")?;
 
     let needle = platform.to_lowercase();
-    let candidates: Vec<&String> = list
-        .keys()
-        .filter(|id| matches(id, &needle))
-        .collect();
+    let candidates: Vec<&String> = list.keys().filter(|id| matches(id, &needle)).collect();
 
     let id = match candidates.as_slice() {
         [] => return Ok(None),

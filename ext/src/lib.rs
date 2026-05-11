@@ -21,8 +21,12 @@ pub mod dydx;
 pub mod gmx;
 #[cfg(feature = "hyperliquid")]
 pub mod hyperliquid;
+#[cfg(feature = "kaito")]
+pub mod kaito;
 #[cfg(feature = "kalshi")]
 pub mod kalshi;
+#[cfg(feature = "khalani")]
+pub mod khalani;
 #[cfg(feature = "lifi")]
 pub mod lifi;
 #[cfg(feature = "manifold")]
@@ -41,7 +45,3 @@ pub mod x;
 pub mod yearn;
 #[cfg(feature = "zerox")]
 pub mod zerox;
-#[cfg(feature = "khalani")]
-pub mod khalani;
-#[cfg(feature = "kaito")]
-pub mod kaito;

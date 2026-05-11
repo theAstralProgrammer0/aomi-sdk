@@ -1,7 +1,7 @@
 #[allow(unused_imports)]
 pub use progenitor_client::{ByteStream, ClientInfo, Error, ResponseValue};
 #[allow(unused_imports)]
-use progenitor_client::{encode_path, ClientHooks, OperationInfo, RequestBuilderExt};
+use progenitor_client::{ClientHooks, OperationInfo, RequestBuilderExt, encode_path};
 /// Types used as operation parameters and responses.
 #[allow(clippy::all)]
 pub mod types {
@@ -11,18 +11,12 @@ pub mod types {
         pub struct ConversionError(::std::borrow::Cow<'static, str>);
         impl ::std::error::Error for ConversionError {}
         impl ::std::fmt::Display for ConversionError {
-            fn fmt(
-                &self,
-                f: &mut ::std::fmt::Formatter<'_>,
-            ) -> Result<(), ::std::fmt::Error> {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> Result<(), ::std::fmt::Error> {
                 ::std::fmt::Display::fmt(&self.0, f)
             }
         }
         impl ::std::fmt::Debug for ConversionError {
-            fn fmt(
-                &self,
-                f: &mut ::std::fmt::Formatter<'_>,
-            ) -> Result<(), ::std::fmt::Error> {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> Result<(), ::std::fmt::Error> {
                 ::std::fmt::Debug::fmt(&self.0, f)
             }
         }
@@ -55,24 +49,21 @@ pub mod types {
     );
     impl ::std::ops::Deref for LifiChainsResponse {
         type Target = ::serde_json::Map<::std::string::String, ::serde_json::Value>;
-        fn deref(
-            &self,
-        ) -> &::serde_json::Map<::std::string::String, ::serde_json::Value> {
+        fn deref(&self) -> &::serde_json::Map<::std::string::String, ::serde_json::Value> {
             &self.0
         }
     }
     impl ::std::convert::From<LifiChainsResponse>
-    for ::serde_json::Map<::std::string::String, ::serde_json::Value> {
+        for ::serde_json::Map<::std::string::String, ::serde_json::Value>
+    {
         fn from(value: LifiChainsResponse) -> Self {
             value.0
         }
     }
-    impl ::std::convert::From<
-        ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-    > for LifiChainsResponse {
-        fn from(
-            value: ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-        ) -> Self {
+    impl ::std::convert::From<::serde_json::Map<::std::string::String, ::serde_json::Value>>
+        for LifiChainsResponse
+    {
+        fn from(value: ::serde_json::Map<::std::string::String, ::serde_json::Value>) -> Self {
             Self(value)
         }
     }
@@ -89,37 +80,32 @@ pub mod types {
     /// </details>
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     #[serde(transparent)]
-    pub struct LifiError(
-        pub ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-    );
+    pub struct LifiError(pub ::serde_json::Map<::std::string::String, ::serde_json::Value>);
     impl ::std::ops::Deref for LifiError {
         type Target = ::serde_json::Map<::std::string::String, ::serde_json::Value>;
-        fn deref(
-            &self,
-        ) -> &::serde_json::Map<::std::string::String, ::serde_json::Value> {
+        fn deref(&self) -> &::serde_json::Map<::std::string::String, ::serde_json::Value> {
             &self.0
         }
     }
     impl ::std::convert::From<LifiError>
-    for ::serde_json::Map<::std::string::String, ::serde_json::Value> {
+        for ::serde_json::Map<::std::string::String, ::serde_json::Value>
+    {
         fn from(value: LifiError) -> Self {
             value.0
         }
     }
-    impl ::std::convert::From<
-        ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-    > for LifiError {
-        fn from(
-            value: ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-        ) -> Self {
+    impl ::std::convert::From<::serde_json::Map<::std::string::String, ::serde_json::Value>>
+        for LifiError
+    {
+        fn from(value: ::serde_json::Map<::std::string::String, ::serde_json::Value>) -> Self {
             Self(value)
         }
     }
     /**LI.FI quote response. Contains `id`, `tool`, `action`, `estimate`,
-`transactionRequest` (when an executable route was found), and
-`includedSteps`. The shape varies per route so we expose it as a
-loose object — the curated tool layer extracts what it needs.
-*/
+    `transactionRequest` (when an executable route was found), and
+    `includedSteps`. The shape varies per route so we expose it as a
+    loose object — the curated tool layer extracts what it needs.
+    */
     ///
     /// <details><summary>JSON schema</summary>
     ///
@@ -133,29 +119,24 @@ loose object — the curated tool layer extracts what it needs.
     /// </details>
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     #[serde(transparent)]
-    pub struct LifiQuote(
-        pub ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-    );
+    pub struct LifiQuote(pub ::serde_json::Map<::std::string::String, ::serde_json::Value>);
     impl ::std::ops::Deref for LifiQuote {
         type Target = ::serde_json::Map<::std::string::String, ::serde_json::Value>;
-        fn deref(
-            &self,
-        ) -> &::serde_json::Map<::std::string::String, ::serde_json::Value> {
+        fn deref(&self) -> &::serde_json::Map<::std::string::String, ::serde_json::Value> {
             &self.0
         }
     }
     impl ::std::convert::From<LifiQuote>
-    for ::serde_json::Map<::std::string::String, ::serde_json::Value> {
+        for ::serde_json::Map<::std::string::String, ::serde_json::Value>
+    {
         fn from(value: LifiQuote) -> Self {
             value.0
         }
     }
-    impl ::std::convert::From<
-        ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-    > for LifiQuote {
-        fn from(
-            value: ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-        ) -> Self {
+    impl ::std::convert::From<::serde_json::Map<::std::string::String, ::serde_json::Value>>
+        for LifiQuote
+    {
+        fn from(value: ::serde_json::Map<::std::string::String, ::serde_json::Value>) -> Self {
             Self(value)
         }
     }
@@ -172,29 +153,24 @@ loose object — the curated tool layer extracts what it needs.
     /// </details>
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     #[serde(transparent)]
-    pub struct LifiStatus(
-        pub ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-    );
+    pub struct LifiStatus(pub ::serde_json::Map<::std::string::String, ::serde_json::Value>);
     impl ::std::ops::Deref for LifiStatus {
         type Target = ::serde_json::Map<::std::string::String, ::serde_json::Value>;
-        fn deref(
-            &self,
-        ) -> &::serde_json::Map<::std::string::String, ::serde_json::Value> {
+        fn deref(&self) -> &::serde_json::Map<::std::string::String, ::serde_json::Value> {
             &self.0
         }
     }
     impl ::std::convert::From<LifiStatus>
-    for ::serde_json::Map<::std::string::String, ::serde_json::Value> {
+        for ::serde_json::Map<::std::string::String, ::serde_json::Value>
+    {
         fn from(value: LifiStatus) -> Self {
             value.0
         }
     }
-    impl ::std::convert::From<
-        ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-    > for LifiStatus {
-        fn from(
-            value: ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-        ) -> Self {
+    impl ::std::convert::From<::serde_json::Map<::std::string::String, ::serde_json::Value>>
+        for LifiStatus
+    {
+        fn from(value: ::serde_json::Map<::std::string::String, ::serde_json::Value>) -> Self {
             Self(value)
         }
     }
@@ -216,24 +192,21 @@ loose object — the curated tool layer extracts what it needs.
     );
     impl ::std::ops::Deref for LifiTokensResponse {
         type Target = ::serde_json::Map<::std::string::String, ::serde_json::Value>;
-        fn deref(
-            &self,
-        ) -> &::serde_json::Map<::std::string::String, ::serde_json::Value> {
+        fn deref(&self) -> &::serde_json::Map<::std::string::String, ::serde_json::Value> {
             &self.0
         }
     }
     impl ::std::convert::From<LifiTokensResponse>
-    for ::serde_json::Map<::std::string::String, ::serde_json::Value> {
+        for ::serde_json::Map<::std::string::String, ::serde_json::Value>
+    {
         fn from(value: LifiTokensResponse) -> Self {
             value.0
         }
     }
-    impl ::std::convert::From<
-        ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-    > for LifiTokensResponse {
-        fn from(
-            value: ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-        ) -> Self {
+    impl ::std::convert::From<::serde_json::Map<::std::string::String, ::serde_json::Value>>
+        for LifiTokensResponse
+    {
+        fn from(value: ::serde_json::Map<::std::string::String, ::serde_json::Value>) -> Self {
             Self(value)
         }
     }
@@ -267,7 +240,9 @@ impl Client {
         #[cfg(not(target_arch = "wasm32"))]
         let client = {
             let dur = ::std::time::Duration::from_secs(15u64);
-            reqwest::ClientBuilder::new().connect_timeout(dur).timeout(dur)
+            reqwest::ClientBuilder::new()
+                .connect_timeout(dur)
+                .timeout(dur)
         };
         #[cfg(target_arch = "wasm32")]
         let client = reqwest::ClientBuilder::new();
@@ -305,18 +280,18 @@ impl ClientHooks<()> for &Client {}
 impl Client {
     /**Get a same-chain or cross-chain swap quote with executable transaction
 
-Sends a `GET` request to `/v1/quote`
+    Sends a `GET` request to `/v1/quote`
 
-Arguments:
-- `from_address`: Sender wallet address.
-- `from_amount`: Sell amount in source-token base units (decimal string).
-- `from_chain`: Source chain id or canonical name (e.g. "1" or "ETH").
-- `from_token`: Source token contract address (or sentinel for native).
-- `slippage`: Slippage tolerance as a decimal (0.005 = 0.5%).
-- `to_address`: Receiver wallet address. Defaults to fromAddress.
-- `to_chain`: Destination chain id or canonical name.
-- `to_token`: Destination token contract address (or sentinel for native).
-*/
+    Arguments:
+    - `from_address`: Sender wallet address.
+    - `from_amount`: Sell amount in source-token base units (decimal string).
+    - `from_chain`: Source chain id or canonical name (e.g. "1" or "ETH").
+    - `from_token`: Source token contract address (or sentinel for native).
+    - `slippage`: Slippage tolerance as a decimal (0.005 = 0.5%).
+    - `to_address`: Receiver wallet address. Defaults to fromAddress.
+    - `to_chain`: Destination chain id or canonical name.
+    - `to_token`: Destination token contract address (or sentinel for native).
+    */
     pub async fn get_quote<'a>(
         &'a self,
         from_address: &'a str,
@@ -330,11 +305,10 @@ Arguments:
     ) -> Result<ResponseValue<types::LifiQuote>, Error<()>> {
         let url = format!("{}/v1/quote", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -343,12 +317,27 @@ Arguments:
                 ::reqwest::header::ACCEPT,
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
-            .query(&progenitor_client::QueryParam::new("fromAddress", &from_address))
-            .query(&progenitor_client::QueryParam::new("fromAmount", &from_amount))
-            .query(&progenitor_client::QueryParam::new("fromChain", &from_chain))
-            .query(&progenitor_client::QueryParam::new("fromToken", &from_token))
+            .query(&progenitor_client::QueryParam::new(
+                "fromAddress",
+                &from_address,
+            ))
+            .query(&progenitor_client::QueryParam::new(
+                "fromAmount",
+                &from_amount,
+            ))
+            .query(&progenitor_client::QueryParam::new(
+                "fromChain",
+                &from_chain,
+            ))
+            .query(&progenitor_client::QueryParam::new(
+                "fromToken",
+                &from_token,
+            ))
             .query(&progenitor_client::QueryParam::new("slippage", &slippage))
-            .query(&progenitor_client::QueryParam::new("toAddress", &to_address))
+            .query(&progenitor_client::QueryParam::new(
+                "toAddress",
+                &to_address,
+            ))
             .query(&progenitor_client::QueryParam::new("toChain", &to_chain))
             .query(&progenitor_client::QueryParam::new("toToken", &to_token))
             .headers(header_map)
@@ -367,9 +356,9 @@ Arguments:
     }
     /**Track the lifecycle of a cross-chain transfer by source-chain tx hash
 
-Sends a `GET` request to `/v1/status`
+    Sends a `GET` request to `/v1/status`
 
-*/
+    */
     pub async fn get_status<'a>(
         &'a self,
         bridge: Option<&'a str>,
@@ -379,11 +368,10 @@ Sends a `GET` request to `/v1/status`
     ) -> Result<ResponseValue<types::LifiStatus>, Error<()>> {
         let url = format!("{}/v1/status", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -393,7 +381,10 @@ Sends a `GET` request to `/v1/status`
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
             .query(&progenitor_client::QueryParam::new("bridge", &bridge))
-            .query(&progenitor_client::QueryParam::new("fromChain", &from_chain))
+            .query(&progenitor_client::QueryParam::new(
+                "fromChain",
+                &from_chain,
+            ))
             .query(&progenitor_client::QueryParam::new("toChain", &to_chain))
             .query(&progenitor_client::QueryParam::new("txHash", &tx_hash))
             .headers(header_map)
@@ -412,22 +403,21 @@ Sends a `GET` request to `/v1/status`
     }
     /**List supported chains
 
-Sends a `GET` request to `/v1/chains`
+    Sends a `GET` request to `/v1/chains`
 
-Arguments:
-- `chain_types`: Comma-separated chain types (EVM, SVM).
-*/
+    Arguments:
+    - `chain_types`: Comma-separated chain types (EVM, SVM).
+    */
     pub async fn get_chains<'a>(
         &'a self,
         chain_types: Option<&'a str>,
     ) -> Result<ResponseValue<types::LifiChainsResponse>, Error<()>> {
         let url = format!("{}/v1/chains", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -436,7 +426,10 @@ Arguments:
                 ::reqwest::header::ACCEPT,
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
-            .query(&progenitor_client::QueryParam::new("chainTypes", &chain_types))
+            .query(&progenitor_client::QueryParam::new(
+                "chainTypes",
+                &chain_types,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -453,12 +446,12 @@ Arguments:
     }
     /**List supported tokens, optionally filtered by chain
 
-Sends a `GET` request to `/v1/tokens`
+    Sends a `GET` request to `/v1/tokens`
 
-Arguments:
-- `chain_types`: Comma-separated chain types (EVM, SVM).
-- `chains`: Comma-separated chain IDs (e.g. "1,137,8453").
-*/
+    Arguments:
+    - `chain_types`: Comma-separated chain types (EVM, SVM).
+    - `chains`: Comma-separated chain IDs (e.g. "1,137,8453").
+    */
     pub async fn get_tokens<'a>(
         &'a self,
         chain_types: Option<&'a str>,
@@ -466,11 +459,10 @@ Arguments:
     ) -> Result<ResponseValue<types::LifiTokensResponse>, Error<()>> {
         let url = format!("{}/v1/tokens", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -479,7 +471,10 @@ Arguments:
                 ::reqwest::header::ACCEPT,
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
-            .query(&progenitor_client::QueryParam::new("chainTypes", &chain_types))
+            .query(&progenitor_client::QueryParam::new(
+                "chainTypes",
+                &chain_types,
+            ))
             .query(&progenitor_client::QueryParam::new("chains", &chains))
             .headers(header_map)
             .build()?;

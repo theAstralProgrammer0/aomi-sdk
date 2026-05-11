@@ -35,11 +35,15 @@ pub fn load_and_preprocess(spec_path: &Path) -> Result<openapiv3::OpenAPI> {
     }
     let n = drop_multipart_ops(&mut spec);
     if n > 0 {
-        println!("  dropped {n} operation(s) with multipart request bodies (progenitor doesn't support multipart)");
+        println!(
+            "  dropped {n} operation(s) with multipart request bodies (progenitor doesn't support multipart)"
+        );
     }
     let n = collapse_request_body_to_json(&mut spec);
     if n > 0 {
-        println!("  collapsed {n} request body/ies to application/json only (progenitor allows one media type)");
+        println!(
+            "  collapsed {n} request body/ies to application/json only (progenitor allows one media type)"
+        );
     }
     let n = collapse_response_content_to_json(&mut spec);
     if n > 0 {
@@ -147,12 +151,8 @@ fn collapse_request_body_to_json(spec: &mut openapiv3::OpenAPI) -> usize {
                 rb.content.keys().next().cloned()
             };
             if let Some(keep) = preferred {
-                let other_keys: Vec<String> = rb
-                    .content
-                    .keys()
-                    .filter(|k| **k != keep)
-                    .cloned()
-                    .collect();
+                let other_keys: Vec<String> =
+                    rb.content.keys().filter(|k| **k != keep).cloned().collect();
                 for k in &other_keys {
                     rb.content.shift_remove(k);
                 }
@@ -436,9 +436,9 @@ pub fn snake_case(s: &str) -> String {
 /// Append `_` if `s` is a Rust 2024 keyword (matches progenitor's convention).
 pub fn escape_keyword(s: &str) -> String {
     const KEYWORDS: &[&str] = &[
-        "as", "async", "await", "break", "const", "continue", "crate", "do", "dyn", "else",
-        "enum", "extern", "false", "fn", "for", "gen", "if", "impl", "in", "let", "loop", "match",
-        "mod", "move", "mut", "pub", "ref", "return", "self", "Self", "static", "struct", "super",
+        "as", "async", "await", "break", "const", "continue", "crate", "do", "dyn", "else", "enum",
+        "extern", "false", "fn", "for", "gen", "if", "impl", "in", "let", "loop", "match", "mod",
+        "move", "mut", "pub", "ref", "return", "self", "Self", "static", "struct", "super",
         "trait", "true", "try", "type", "typeof", "union", "unsafe", "unsized", "use", "virtual",
         "where", "while", "yield",
     ];

@@ -1,7 +1,7 @@
 #[allow(unused_imports)]
 pub use progenitor_client::{ByteStream, ClientInfo, Error, ResponseValue};
 #[allow(unused_imports)]
-use progenitor_client::{encode_path, ClientHooks, OperationInfo, RequestBuilderExt};
+use progenitor_client::{ClientHooks, OperationInfo, RequestBuilderExt, encode_path};
 /// Types used as operation parameters and responses.
 #[allow(clippy::all)]
 pub mod types {
@@ -11,18 +11,12 @@ pub mod types {
         pub struct ConversionError(::std::borrow::Cow<'static, str>);
         impl ::std::error::Error for ConversionError {}
         impl ::std::fmt::Display for ConversionError {
-            fn fmt(
-                &self,
-                f: &mut ::std::fmt::Formatter<'_>,
-            ) -> Result<(), ::std::fmt::Error> {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> Result<(), ::std::fmt::Error> {
                 ::std::fmt::Display::fmt(&self.0, f)
             }
         }
         impl ::std::fmt::Debug for ConversionError {
-            fn fmt(
-                &self,
-                f: &mut ::std::fmt::Formatter<'_>,
-            ) -> Result<(), ::std::fmt::Error> {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> Result<(), ::std::fmt::Error> {
                 ::std::fmt::Debug::fmt(&self.0, f)
             }
         }
@@ -484,7 +478,9 @@ impl Client {
         #[cfg(not(target_arch = "wasm32"))]
         let client = {
             let dur = ::std::time::Duration::from_secs(15u64);
-            reqwest::ClientBuilder::new().connect_timeout(dur).timeout(dur)
+            reqwest::ClientBuilder::new()
+                .connect_timeout(dur)
+                .timeout(dur)
         };
         #[cfg(target_arch = "wasm32")]
         let client = reqwest::ClientBuilder::new();
@@ -522,9 +518,9 @@ impl ClientHooks<()> for &Client {}
 impl Client {
     /**List markets (newest / hottest)
 
-Sends a `GET` request to `/markets`
+    Sends a `GET` request to `/markets`
 
-*/
+    */
     pub async fn list_markets<'a>(
         &'a self,
         limit: Option<i32>,
@@ -533,11 +529,10 @@ Sends a `GET` request to `/markets`
     ) -> Result<ResponseValue<::std::vec::Vec<types::LiteMarket>>, Error<()>> {
         let url = format!("{}/markets", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -565,9 +560,9 @@ Sends a `GET` request to `/markets`
     }
     /**Keyword search across markets
 
-Sends a `GET` request to `/search-markets`
+    Sends a `GET` request to `/search-markets`
 
-*/
+    */
     pub async fn search_markets<'a>(
         &'a self,
         filter: Option<&'a str>,
@@ -576,11 +571,10 @@ Sends a `GET` request to `/search-markets`
     ) -> Result<ResponseValue<::std::vec::Vec<types::LiteMarket>>, Error<()>> {
         let url = format!("{}/search-markets", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -608,22 +602,23 @@ Sends a `GET` request to `/search-markets`
     }
     /**Get a market by id or slug
 
-Sends a `GET` request to `/market/{idOrSlug}`
+    Sends a `GET` request to `/market/{idOrSlug}`
 
-*/
+    */
     pub async fn get_market<'a>(
         &'a self,
         id_or_slug: &'a str,
     ) -> Result<ResponseValue<types::FullMarket>, Error<()>> {
         let url = format!(
-            "{}/market/{}", self.baseurl, encode_path(& id_or_slug.to_string()),
+            "{}/market/{}",
+            self.baseurl,
+            encode_path(&id_or_slug.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -648,30 +643,28 @@ Sends a `GET` request to `/market/{idOrSlug}`
     }
     /**Get top positions for a market
 
-Sends a `GET` request to `/market/{idOrSlug}/positions`
+    Sends a `GET` request to `/market/{idOrSlug}/positions`
 
-*/
+    */
     pub async fn get_market_positions<'a>(
         &'a self,
         id_or_slug: &'a str,
     ) -> Result<
         ResponseValue<
-            ::std::vec::Vec<
-                ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-            >,
+            ::std::vec::Vec<::serde_json::Map<::std::string::String, ::serde_json::Value>>,
         >,
         Error<()>,
     > {
         let url = format!(
-            "{}/market/{}/positions", self.baseurl, encode_path(& id_or_slug
-            .to_string()),
+            "{}/market/{}/positions",
+            self.baseurl,
+            encode_path(&id_or_slug.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -696,20 +689,19 @@ Sends a `GET` request to `/market/{idOrSlug}/positions`
     }
     /**Place a bet on a binary market
 
-Sends a `POST` request to `/bet`
+    Sends a `POST` request to `/bet`
 
-*/
+    */
     pub async fn place_bet<'a>(
         &'a self,
         body: &'a types::PlaceBetRequest,
     ) -> Result<ResponseValue<types::PlaceBetResponse>, Error<()>> {
         let url = format!("{}/bet", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -735,20 +727,19 @@ Sends a `POST` request to `/bet`
     }
     /**Create a new market
 
-Sends a `POST` request to `/market`
+    Sends a `POST` request to `/market`
 
-*/
+    */
     pub async fn create_market<'a>(
         &'a self,
         body: &'a types::CreateMarketRequest,
     ) -> Result<ResponseValue<types::CreateMarketResponse>, Error<()>> {
         let url = format!("{}/market", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client

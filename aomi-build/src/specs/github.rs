@@ -74,9 +74,12 @@ pub fn find(platform: &str) -> Result<Option<SpecHit>> {
         })
         .collect();
 
-    let pick = Select::new("github match — pick a candidate (esc to skip):", labels.clone())
-        .prompt_skippable()
-        .context("github picker failed")?;
+    let pick = Select::new(
+        "github match — pick a candidate (esc to skip):",
+        labels.clone(),
+    )
+    .prompt_skippable()
+    .context("github picker failed")?;
 
     let Some(label) = pick else {
         return Ok(None);

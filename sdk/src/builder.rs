@@ -3,7 +3,9 @@ use std::collections::{BTreeMap, BTreeSet};
 use serde::Serialize;
 use serde_json::Value;
 
-use crate::route::{Enforcement, EnforcementPolicy, EnforcementStep, RouteStep, RouteTrigger, ToolReturn};
+use crate::route::{
+    Enforcement, EnforcementPolicy, EnforcementStep, RouteStep, RouteTrigger, ToolReturn,
+};
 use crate::types::DynAomiTool;
 
 /// Type-level convenience for naming a routed target tool. The blanket impl
@@ -152,14 +154,12 @@ impl RouteBuilder {
             .count();
         if enforced_producer_count > 1 {
             self.errors.push(
-                "RouteBuilder v1 supports at most one enforced producer in `next(...)`"
-                    .to_string(),
+                "RouteBuilder v1 supports at most one enforced producer in `next(...)`".to_string(),
             );
         }
         for step in &self.next_steps {
             *tool_counts.entry(step.tool.as_str()).or_default() += 1;
-            if let Some(alias) = step.bind_as.as_deref()
-            {
+            if let Some(alias) = step.bind_as.as_deref() {
                 record_route_alias(&mut aliases, &mut self.errors, alias);
             }
             if let Some(enforcement) = step.enforcement.as_ref() {
@@ -327,10 +327,7 @@ impl<'a> NextStepBuilder<'a> {
         let mut steps = Vec::new();
         let mut builder = EnforcementBuilder { steps: &mut steps };
         f(&mut builder);
-        self.route.next_steps[self.index].enforcement = Some(Enforcement {
-            steps,
-            on_failure,
-        });
+        self.route.next_steps[self.index].enforcement = Some(Enforcement { steps, on_failure });
         self
     }
 }

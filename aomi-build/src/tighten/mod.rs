@@ -48,10 +48,11 @@ pub struct TightenSpecArgs {
 
 pub fn run(args: TightenSpecArgs) -> Result<()> {
     let root = workspace_root()?;
-    let spec_path = args
-        .spec
-        .clone()
-        .unwrap_or_else(|| root.join("ext").join("specs").join(format!("{}.yaml", args.platform)));
+    let spec_path = args.spec.clone().unwrap_or_else(|| {
+        root.join("ext")
+            .join("specs")
+            .join(format!("{}.yaml", args.platform))
+    });
     let samples_dir = args.samples.clone().unwrap_or_else(|| {
         root.join("ext")
             .join("specs")
@@ -92,7 +93,11 @@ pub fn run(args: TightenSpecArgs) -> Result<()> {
                 "  ✓ {} {} → typed schema inferred from {}",
                 sample.operation_id,
                 sample.status,
-                sample.path.file_name().unwrap_or_default().to_string_lossy()
+                sample
+                    .path
+                    .file_name()
+                    .unwrap_or_default()
+                    .to_string_lossy()
             )),
             Ok(false) => println!(
                 "  - {} {}: no matching loose response in spec, skipped",
@@ -116,10 +121,7 @@ pub fn run(args: TightenSpecArgs) -> Result<()> {
         std::fs::write(&spec_path, &new_text)
             .with_context(|| format!("failed to write {}", spec_path.display()))?;
         println!("\n✓ wrote {}", spec_path.display());
-        println!(
-            "\nNext: aomi-build gen-client {} --force",
-            args.platform
-        );
+        println!("\nNext: aomi-build gen-client {} --force", args.platform);
     } else {
         // Cheap diff: just count lines changed. Avoids pulling in a diff crate.
         let before_lines = spec_text.lines().count();
@@ -178,8 +180,8 @@ fn collect_samples(dir: &std::path::Path) -> Result<Vec<Sample>> {
 /// iff a schema was replaced.
 fn tighten_one(spec: &mut serde_yaml::Value, sample: &Sample) -> Result<bool> {
     let inferred = infer_schema(&sample.body);
-    let inferred_yaml: serde_yaml::Value = serde_yaml::to_value(&inferred)
-        .context("inferred schema is not serialisable as YAML")?;
+    let inferred_yaml: serde_yaml::Value =
+        serde_yaml::to_value(&inferred).context("inferred schema is not serialisable as YAML")?;
 
     let Some(paths) = spec
         .get_mut("paths")

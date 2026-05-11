@@ -1,7 +1,7 @@
 #[allow(unused_imports)]
 pub use progenitor_client::{ByteStream, ClientInfo, Error, ResponseValue};
 #[allow(unused_imports)]
-use progenitor_client::{encode_path, ClientHooks, OperationInfo, RequestBuilderExt};
+use progenitor_client::{ClientHooks, OperationInfo, RequestBuilderExt, encode_path};
 /// Types used as operation parameters and responses.
 #[allow(clippy::all)]
 pub mod types {
@@ -11,18 +11,12 @@ pub mod types {
         pub struct ConversionError(::std::borrow::Cow<'static, str>);
         impl ::std::error::Error for ConversionError {}
         impl ::std::fmt::Display for ConversionError {
-            fn fmt(
-                &self,
-                f: &mut ::std::fmt::Formatter<'_>,
-            ) -> Result<(), ::std::fmt::Error> {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> Result<(), ::std::fmt::Error> {
                 ::std::fmt::Display::fmt(&self.0, f)
             }
         }
         impl ::std::fmt::Debug for ConversionError {
-            fn fmt(
-                &self,
-                f: &mut ::std::fmt::Formatter<'_>,
-            ) -> Result<(), ::std::fmt::Error> {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> Result<(), ::std::fmt::Error> {
                 ::std::fmt::Debug::fmt(&self.0, f)
             }
         }
@@ -304,7 +298,9 @@ impl Client {
         #[cfg(not(target_arch = "wasm32"))]
         let client = {
             let dur = ::std::time::Duration::from_secs(15u64);
-            reqwest::ClientBuilder::new().connect_timeout(dur).timeout(dur)
+            reqwest::ClientBuilder::new()
+                .connect_timeout(dur)
+                .timeout(dur)
         };
         #[cfg(target_arch = "wasm32")]
         let client = reqwest::ClientBuilder::new();
@@ -342,15 +338,15 @@ impl ClientHooks<()> for &Client {}
 impl Client {
     /**Latest spot price for one or all symbols
 
-Public endpoint. Returns the latest price for a single symbol when
-`symbol` is provided, or for every spot pair when omitted.
+    Public endpoint. Returns the latest price for a single symbol when
+    `symbol` is provided, or for every spot pair when omitted.
 
 
-Sends a `GET` request to `/api/v3/ticker/price`
+    Sends a `GET` request to `/api/v3/ticker/price`
 
-Arguments:
-- `symbol`: Symbol like `BTCUSDT`. Omit for all symbols.
-*/
+    Arguments:
+    - `symbol`: Symbol like `BTCUSDT`. Omit for all symbols.
+    */
     pub async fn get_ticker_price<'a>(
         &'a self,
         symbol: Option<&'a str>,
@@ -360,11 +356,10 @@ Arguments:
     > {
         let url = format!("{}/api/v3/ticker/price", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -390,15 +385,15 @@ Arguments:
     }
     /**Order-book bids and asks for a symbol
 
-Public endpoint. Returns the top N price levels for the given symbol.
+    Public endpoint. Returns the top N price levels for the given symbol.
 
 
-Sends a `GET` request to `/api/v3/depth`
+    Sends a `GET` request to `/api/v3/depth`
 
-Arguments:
-- `limit`: Number of levels — 5, 10, 20, 50, 100 (default), 500, 1000, 5000.
-- `symbol`
-*/
+    Arguments:
+    - `limit`: Number of levels — 5, 10, 20, 50, 100 (default), 500, 1000, 5000.
+    - `symbol`
+    */
     pub async fn get_depth<'a>(
         &'a self,
         limit: Option<i32>,
@@ -406,11 +401,10 @@ Arguments:
     ) -> Result<ResponseValue<types::DepthResponse>, Error<()>> {
         let url = format!("{}/api/v3/depth", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -437,20 +431,20 @@ Arguments:
     }
     /**OHLCV candles for a symbol at a given interval
 
-Public endpoint. Each candle is a 12-element array
-`[open_time, open, high, low, close, volume, close_time, quote_volume,
-trades, taker_buy_base_vol, taker_buy_quote_vol, ignore]`.
+    Public endpoint. Each candle is a 12-element array
+    `[open_time, open, high, low, close, volume, close_time, quote_volume,
+    trades, taker_buy_base_vol, taker_buy_quote_vol, ignore]`.
 
 
-Sends a `GET` request to `/api/v3/klines`
+    Sends a `GET` request to `/api/v3/klines`
 
-Arguments:
-- `end_time`: End time in millis since epoch.
-- `interval`: Candle interval — `1m`, `5m`, `15m`, `1h`, `4h`, `1d`, `1w`, `1M`, etc.
-- `limit`: Default 500, max 1000.
-- `start_time`: Start time in millis since epoch.
-- `symbol`
-*/
+    Arguments:
+    - `end_time`: End time in millis since epoch.
+    - `interval`: Candle interval — `1m`, `5m`, `15m`, `1h`, `4h`, `1d`, `1w`, `1M`, etc.
+    - `limit`: Default 500, max 1000.
+    - `start_time`: Start time in millis since epoch.
+    - `symbol`
+    */
     pub async fn get_klines<'a>(
         &'a self,
         end_time: Option<i64>,
@@ -461,20 +455,17 @@ Arguments:
     ) -> Result<
         ResponseValue<
             ::std::vec::Vec<
-                ::std::vec::Vec<
-                    ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-                >,
+                ::std::vec::Vec<::serde_json::Map<::std::string::String, ::serde_json::Value>>,
             >,
         >,
         Error<()>,
     > {
         let url = format!("{}/api/v3/klines", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -486,7 +477,10 @@ Arguments:
             .query(&progenitor_client::QueryParam::new("endTime", &end_time))
             .query(&progenitor_client::QueryParam::new("interval", &interval))
             .query(&progenitor_client::QueryParam::new("limit", &limit))
-            .query(&progenitor_client::QueryParam::new("startTime", &start_time))
+            .query(&progenitor_client::QueryParam::new(
+                "startTime",
+                &start_time,
+            ))
             .query(&progenitor_client::QueryParam::new("symbol", &symbol))
             .headers(header_map)
             .build()?;
@@ -504,13 +498,13 @@ Arguments:
     }
     /**Rolling 24h price-change stats
 
-Public endpoint. Returns 24h volume, high/low, and percent change for
-a single symbol or every spot pair.
+    Public endpoint. Returns 24h volume, high/low, and percent change for
+    a single symbol or every spot pair.
 
 
-Sends a `GET` request to `/api/v3/ticker/24hr`
+    Sends a `GET` request to `/api/v3/ticker/24hr`
 
-*/
+    */
     pub async fn get24hr_stats<'a>(
         &'a self,
         symbol: Option<&'a str>,
@@ -520,11 +514,10 @@ Sends a `GET` request to `/api/v3/ticker/24hr`
     > {
         let url = format!("{}/api/v3/ticker/24hr", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -550,25 +543,25 @@ Sends a `GET` request to `/api/v3/ticker/24hr`
     }
     /**Place a new spot order (signed)
 
-Signed endpoint. The body is sent as URL-encoded query parameters
-(Binance's convention even for POST). The curated tool builds the query
-string, computes the HMAC signature, and passes both `signature` and
-`timestamp` as query params.
+    Signed endpoint. The body is sent as URL-encoded query parameters
+    (Binance's convention even for POST). The curated tool builds the query
+    string, computes the HMAC signature, and passes both `signature` and
+    `timestamp` as query params.
 
 
-Sends a `POST` request to `/api/v3/order`
+    Sends a `POST` request to `/api/v3/order`
 
-Arguments:
-- `price`
-- `quantity`
-- `side`: `BUY` or `SELL`.
-- `signature`: HMAC-SHA256 hex of the encoded query string (without `signature`).
-- `symbol`
-- `time_in_force`: `GTC`, `IOC`, `FOK` (required for LIMIT orders).
-- `timestamp`: Millis since epoch (server-side validity window applies).
-- `type_`: `LIMIT`, `MARKET`, `STOP_LOSS_LIMIT`, `TAKE_PROFIT_LIMIT`.
-- `x_mbx_apikey`: Binance API key.
-*/
+    Arguments:
+    - `price`
+    - `quantity`
+    - `side`: `BUY` or `SELL`.
+    - `signature`: HMAC-SHA256 hex of the encoded query string (without `signature`).
+    - `symbol`
+    - `time_in_force`: `GTC`, `IOC`, `FOK` (required for LIMIT orders).
+    - `timestamp`: Millis since epoch (server-side validity window applies).
+    - `type_`: `LIMIT`, `MARKET`, `STOP_LOSS_LIMIT`, `TAKE_PROFIT_LIMIT`.
+    - `x_mbx_apikey`: Binance API key.
+    */
     pub async fn place_order<'a>(
         &'a self,
         price: Option<&'a str>,
@@ -583,11 +576,10 @@ Arguments:
     ) -> Result<ResponseValue<types::OrderResponse>, Error<()>> {
         let url = format!("{}/api/v3/order", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-MBX-APIKEY", x_mbx_apikey.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -602,7 +594,10 @@ Arguments:
             .query(&progenitor_client::QueryParam::new("side", &side))
             .query(&progenitor_client::QueryParam::new("signature", &signature))
             .query(&progenitor_client::QueryParam::new("symbol", &symbol))
-            .query(&progenitor_client::QueryParam::new("timeInForce", &time_in_force))
+            .query(&progenitor_client::QueryParam::new(
+                "timeInForce",
+                &time_in_force,
+            ))
             .query(&progenitor_client::QueryParam::new("timestamp", &timestamp))
             .query(&progenitor_client::QueryParam::new("type", &type_))
             .headers(header_map)
@@ -621,20 +616,20 @@ Arguments:
     }
     /**Cancel an open spot order (signed)
 
-Signed endpoint. Pass either `orderId` (preferred) or
-`origClientOrderId`.
+    Signed endpoint. Pass either `orderId` (preferred) or
+    `origClientOrderId`.
 
 
-Sends a `DELETE` request to `/api/v3/order`
+    Sends a `DELETE` request to `/api/v3/order`
 
-Arguments:
-- `order_id`
-- `orig_client_order_id`
-- `signature`
-- `symbol`
-- `timestamp`
-- `x_mbx_apikey`: Binance API key.
-*/
+    Arguments:
+    - `order_id`
+    - `orig_client_order_id`
+    - `signature`
+    - `symbol`
+    - `timestamp`
+    - `x_mbx_apikey`: Binance API key.
+    */
     pub async fn cancel_order<'a>(
         &'a self,
         order_id: Option<i64>,
@@ -646,11 +641,10 @@ Arguments:
     ) -> Result<ResponseValue<types::OrderResponse>, Error<()>> {
         let url = format!("{}/api/v3/order", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-MBX-APIKEY", x_mbx_apikey.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -661,12 +655,10 @@ Arguments:
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
             .query(&progenitor_client::QueryParam::new("orderId", &order_id))
-            .query(
-                &progenitor_client::QueryParam::new(
-                    "origClientOrderId",
-                    &orig_client_order_id,
-                ),
-            )
+            .query(&progenitor_client::QueryParam::new(
+                "origClientOrderId",
+                &orig_client_order_id,
+            ))
             .query(&progenitor_client::QueryParam::new("signature", &signature))
             .query(&progenitor_client::QueryParam::new("symbol", &symbol))
             .query(&progenitor_client::QueryParam::new("timestamp", &timestamp))
@@ -686,17 +678,17 @@ Arguments:
     }
     /**Account balances and permissions (signed)
 
-Signed endpoint. Returns free / locked balances per asset and account
-permissions.
+    Signed endpoint. Returns free / locked balances per asset and account
+    permissions.
 
 
-Sends a `GET` request to `/api/v3/account`
+    Sends a `GET` request to `/api/v3/account`
 
-Arguments:
-- `signature`
-- `timestamp`
-- `x_mbx_apikey`: Binance API key.
-*/
+    Arguments:
+    - `signature`
+    - `timestamp`
+    - `x_mbx_apikey`: Binance API key.
+    */
     pub async fn get_account<'a>(
         &'a self,
         signature: &'a str,
@@ -705,11 +697,10 @@ Arguments:
     ) -> Result<ResponseValue<types::AccountResponse>, Error<()>> {
         let url = format!("{}/api/v3/account", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-MBX-APIKEY", x_mbx_apikey.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -737,21 +728,21 @@ Arguments:
     }
     /**Personal fill history for one symbol (signed)
 
-Signed endpoint. Returns the user's recent trades on the given symbol.
+    Signed endpoint. Returns the user's recent trades on the given symbol.
 
 
-Sends a `GET` request to `/api/v3/myTrades`
+    Sends a `GET` request to `/api/v3/myTrades`
 
-Arguments:
-- `end_time`
-- `from_id`
-- `limit`: Default 500, max 1000.
-- `signature`
-- `start_time`
-- `symbol`
-- `timestamp`
-- `x_mbx_apikey`: Binance API key.
-*/
+    Arguments:
+    - `end_time`
+    - `from_id`
+    - `limit`: Default 500, max 1000.
+    - `signature`
+    - `start_time`
+    - `symbol`
+    - `timestamp`
+    - `x_mbx_apikey`: Binance API key.
+    */
     pub async fn get_my_trades<'a>(
         &'a self,
         end_time: Option<i64>,
@@ -765,11 +756,10 @@ Arguments:
     ) -> Result<ResponseValue<::std::vec::Vec<types::Trade>>, Error<()>> {
         let url = format!("{}/api/v3/myTrades", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-MBX-APIKEY", x_mbx_apikey.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -783,7 +773,10 @@ Arguments:
             .query(&progenitor_client::QueryParam::new("fromId", &from_id))
             .query(&progenitor_client::QueryParam::new("limit", &limit))
             .query(&progenitor_client::QueryParam::new("signature", &signature))
-            .query(&progenitor_client::QueryParam::new("startTime", &start_time))
+            .query(&progenitor_client::QueryParam::new(
+                "startTime",
+                &start_time,
+            ))
             .query(&progenitor_client::QueryParam::new("symbol", &symbol))
             .query(&progenitor_client::QueryParam::new("timestamp", &timestamp))
             .headers(header_map)

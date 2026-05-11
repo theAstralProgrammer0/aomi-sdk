@@ -58,7 +58,9 @@ pub struct GenSpecsArgs {
 impl GenSpecsArgs {
     pub fn default_spec_path(&self, root: &Path) -> PathBuf {
         if self.shared {
-            root.join("ext").join("specs").join(format!("{}.yaml", self.platform))
+            root.join("ext")
+                .join("specs")
+                .join(format!("{}.yaml", self.platform))
         } else {
             root.join("apps").join(&self.platform).join("openapi.yaml")
         }
@@ -198,7 +200,10 @@ pub(crate) fn workspace_root() -> Result<PathBuf> {
             }
         }
         if !cur.pop() {
-            bail!("could not locate workspace root from {:?}", std::env::current_dir()?);
+            bail!(
+                "could not locate workspace root from {:?}",
+                std::env::current_dir()?
+            );
         }
     }
 }
@@ -206,7 +211,10 @@ pub(crate) fn workspace_root() -> Result<PathBuf> {
 #[allow(dead_code)]
 pub(crate) fn fetch_text(url: &str) -> Result<String> {
     let client = http_client()?;
-    let resp = client.get(url).send().with_context(|| format!("GET {url}"))?;
+    let resp = client
+        .get(url)
+        .send()
+        .with_context(|| format!("GET {url}"))?;
     let status = resp.status();
     let text = resp.text()?;
     if !status.is_success() {

@@ -1,7 +1,7 @@
 #[allow(unused_imports)]
 pub use progenitor_client::{ByteStream, ClientInfo, Error, ResponseValue};
 #[allow(unused_imports)]
-use progenitor_client::{encode_path, ClientHooks, OperationInfo, RequestBuilderExt};
+use progenitor_client::{ClientHooks, OperationInfo, RequestBuilderExt, encode_path};
 /// Types used as operation parameters and responses.
 #[allow(clippy::all)]
 pub mod types {
@@ -11,18 +11,12 @@ pub mod types {
         pub struct ConversionError(::std::borrow::Cow<'static, str>);
         impl ::std::error::Error for ConversionError {}
         impl ::std::fmt::Display for ConversionError {
-            fn fmt(
-                &self,
-                f: &mut ::std::fmt::Formatter<'_>,
-            ) -> Result<(), ::std::fmt::Error> {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> Result<(), ::std::fmt::Error> {
                 ::std::fmt::Display::fmt(&self.0, f)
             }
         }
         impl ::std::fmt::Debug for ConversionError {
-            fn fmt(
-                &self,
-                f: &mut ::std::fmt::Formatter<'_>,
-            ) -> Result<(), ::std::fmt::Error> {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> Result<(), ::std::fmt::Error> {
                 ::std::fmt::Debug::fmt(&self.0, f)
             }
         }
@@ -509,7 +503,9 @@ pub mod types {
     }
     impl ::std::default::Default for TrendsData {
         fn default() -> Self {
-            Self { trends: Default::default() }
+            Self {
+                trends: Default::default(),
+            }
         }
     }
     ///`TrendsResponse`
@@ -786,7 +782,9 @@ impl Client {
         #[cfg(not(target_arch = "wasm32"))]
         let client = {
             let dur = ::std::time::Duration::from_secs(15u64);
-            reqwest::ClientBuilder::new().connect_timeout(dur).timeout(dur)
+            reqwest::ClientBuilder::new()
+                .connect_timeout(dur)
+                .timeout(dur)
         };
         #[cfg(target_arch = "wasm32")]
         let client = reqwest::ClientBuilder::new();
@@ -824,20 +822,19 @@ impl ClientHooks<()> for &Client {}
 impl Client {
     /**Look up a user by handle
 
-Sends a `GET` request to `/twitter/user/info`
+    Sends a `GET` request to `/twitter/user/info`
 
-*/
+    */
     pub async fn get_user_info<'a>(
         &'a self,
         user_name: &'a str,
     ) -> Result<ResponseValue<types::UserResponse>, Error<()>> {
         let url = format!("{}/twitter/user/info", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -863,9 +860,9 @@ Sends a `GET` request to `/twitter/user/info`
     }
     /**Recent posts from a single user
 
-Sends a `GET` request to `/twitter/user/last_tweets`
+    Sends a `GET` request to `/twitter/user/last_tweets`
 
-*/
+    */
     pub async fn get_user_last_tweets<'a>(
         &'a self,
         cursor: Option<&'a str>,
@@ -873,11 +870,10 @@ Sends a `GET` request to `/twitter/user/last_tweets`
     ) -> Result<ResponseValue<types::PostsResponse>, Error<()>> {
         let url = format!("{}/twitter/user/last_tweets", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -904,9 +900,9 @@ Sends a `GET` request to `/twitter/user/last_tweets`
     }
     /**Advanced search across posts
 
-Sends a `GET` request to `/twitter/tweet/advanced_search`
+    Sends a `GET` request to `/twitter/tweet/advanced_search`
 
-*/
+    */
     pub async fn search_tweets<'a>(
         &'a self,
         cursor: Option<&'a str>,
@@ -915,11 +911,10 @@ Sends a `GET` request to `/twitter/tweet/advanced_search`
     ) -> Result<ResponseValue<types::PostsResponse>, Error<()>> {
         let url = format!("{}/twitter/tweet/advanced_search", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -930,7 +925,10 @@ Sends a `GET` request to `/twitter/tweet/advanced_search`
             )
             .query(&progenitor_client::QueryParam::new("cursor", &cursor))
             .query(&progenitor_client::QueryParam::new("query", &query))
-            .query(&progenitor_client::QueryParam::new("queryType", &query_type))
+            .query(&progenitor_client::QueryParam::new(
+                "queryType",
+                &query_type,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -947,9 +945,9 @@ Sends a `GET` request to `/twitter/tweet/advanced_search`
     }
     /**Trending topics
 
-Sends a `GET` request to `/twitter/trends`
+    Sends a `GET` request to `/twitter/trends`
 
-*/
+    */
     pub async fn get_trends<'a>(
         &'a self,
         count: Option<i64>,
@@ -957,11 +955,10 @@ Sends a `GET` request to `/twitter/trends`
     ) -> Result<ResponseValue<types::TrendsResponse>, Error<()>> {
         let url = format!("{}/twitter/trends", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -988,20 +985,19 @@ Sends a `GET` request to `/twitter/trends`
     }
     /**One post by id
 
-Sends a `GET` request to `/twitter/tweet/info`
+    Sends a `GET` request to `/twitter/tweet/info`
 
-*/
+    */
     pub async fn get_tweet_info<'a>(
         &'a self,
         tweet_id: &'a str,
     ) -> Result<ResponseValue<types::PostResponse>, Error<()>> {
         let url = format!("{}/twitter/tweet/info", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client

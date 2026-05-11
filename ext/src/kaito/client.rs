@@ -1,7 +1,7 @@
 #[allow(unused_imports)]
 pub use progenitor_client::{ByteStream, ClientInfo, Error, ResponseValue};
 #[allow(unused_imports)]
-use progenitor_client::{encode_path, ClientHooks, OperationInfo, RequestBuilderExt};
+use progenitor_client::{ClientHooks, OperationInfo, RequestBuilderExt, encode_path};
 /// Types used as operation parameters and responses.
 #[allow(clippy::all)]
 pub mod types {
@@ -11,18 +11,12 @@ pub mod types {
         pub struct ConversionError(::std::borrow::Cow<'static, str>);
         impl ::std::error::Error for ConversionError {}
         impl ::std::fmt::Display for ConversionError {
-            fn fmt(
-                &self,
-                f: &mut ::std::fmt::Formatter<'_>,
-            ) -> Result<(), ::std::fmt::Error> {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> Result<(), ::std::fmt::Error> {
                 ::std::fmt::Display::fmt(&self.0, f)
             }
         }
         impl ::std::fmt::Debug for ConversionError {
-            fn fmt(
-                &self,
-                f: &mut ::std::fmt::Formatter<'_>,
-            ) -> Result<(), ::std::fmt::Error> {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> Result<(), ::std::fmt::Error> {
                 ::std::fmt::Debug::fmt(&self.0, f)
             }
         }
@@ -38,10 +32,10 @@ pub mod types {
         }
     }
     /**Opaque JSON response. The Kaito public docs do not currently
-publish per-field response shapes for /search, /trending, and
-/mindshare, so this spec passes those responses through as
-untyped objects. Refine when official docs are released.
-*/
+    publish per-field response shapes for /search, /trending, and
+    /mindshare, so this spec passes those responses through as
+    untyped objects. Refine when official docs are released.
+    */
     ///
     /// <details><summary>JSON schema</summary>
     ///
@@ -55,35 +49,30 @@ untyped objects. Refine when official docs are released.
     /// </details>
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     #[serde(transparent)]
-    pub struct JsonObject(
-        pub ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-    );
+    pub struct JsonObject(pub ::serde_json::Map<::std::string::String, ::serde_json::Value>);
     impl ::std::ops::Deref for JsonObject {
         type Target = ::serde_json::Map<::std::string::String, ::serde_json::Value>;
-        fn deref(
-            &self,
-        ) -> &::serde_json::Map<::std::string::String, ::serde_json::Value> {
+        fn deref(&self) -> &::serde_json::Map<::std::string::String, ::serde_json::Value> {
             &self.0
         }
     }
     impl ::std::convert::From<JsonObject>
-    for ::serde_json::Map<::std::string::String, ::serde_json::Value> {
+        for ::serde_json::Map<::std::string::String, ::serde_json::Value>
+    {
         fn from(value: JsonObject) -> Self {
             value.0
         }
     }
-    impl ::std::convert::From<
-        ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-    > for JsonObject {
-        fn from(
-            value: ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-        ) -> Self {
+    impl ::std::convert::From<::serde_json::Map<::std::string::String, ::serde_json::Value>>
+        for JsonObject
+    {
+        fn from(value: ::serde_json::Map<::std::string::String, ::serde_json::Value>) -> Self {
             Self(value)
         }
     }
     /**Per-yapper attention score across rolling time windows, as
-documented in the Kaito Yaps Open Protocol.
-*/
+    documented in the Kaito Yaps Open Protocol.
+    */
     ///
     /// <details><summary>JSON schema</summary>
     ///
@@ -216,7 +205,9 @@ impl Client {
         #[cfg(not(target_arch = "wasm32"))]
         let client = {
             let dur = ::std::time::Duration::from_secs(15u64);
-            reqwest::ClientBuilder::new().connect_timeout(dur).timeout(dur)
+            reqwest::ClientBuilder::new()
+                .connect_timeout(dur)
+                .timeout(dur)
         };
         #[cfg(target_arch = "wasm32")]
         let client = reqwest::ClientBuilder::new();
@@ -254,18 +245,18 @@ impl ClientHooks<()> for &Client {}
 impl Client {
     /**Get a yapper's score (Yaps Open Protocol)
 
-Return the per-yapper attention score ("yaps") for an X/Twitter
-account. Pass either `user_id` (the X numeric account id —
-recommended) or `username` (the X handle without @). At least one
-is required. Default rate limit is 100 calls per 5 minutes.
+    Return the per-yapper attention score ("yaps") for an X/Twitter
+    account. Pass either `user_id` (the X numeric account id —
+    recommended) or `username` (the X handle without @). At least one
+    is required. Default rate limit is 100 calls per 5 minutes.
 
 
-Sends a `GET` request to `/yaps`
+    Sends a `GET` request to `/yaps`
 
-Arguments:
-- `user_id`: X account numeric user id (preferred over username).
-- `username`: X account handle (without @). Used when user_id is not provided.
-*/
+    Arguments:
+    - `user_id`: X account numeric user id (preferred over username).
+    - `username`: X account handle (without @). Used when user_id is not provided.
+    */
     pub async fn get_yapper_score<'a>(
         &'a self,
         user_id: Option<&'a str>,
@@ -273,11 +264,10 @@ Arguments:
     ) -> Result<ResponseValue<types::YapsScore>, Error<()>> {
         let url = format!("{}/yaps", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -304,23 +294,23 @@ Arguments:
     }
     /**Semantic search across Kaito's Web3 corpus
 
-Run a semantic search across indexed Web3 sources (Twitter/X
-yaps, Discord, Telegram, governance forums, Farcaster, podcasts,
-conference transcripts). Useful for finding what specific yappers
-or communities are saying about a topic. Results are
-AI-structured with attention quantification.
+    Run a semantic search across indexed Web3 sources (Twitter/X
+    yaps, Discord, Telegram, governance forums, Farcaster, podcasts,
+    conference transcripts). Useful for finding what specific yappers
+    or communities are saying about a topic. Results are
+    AI-structured with attention quantification.
 
 
-Sends a `GET` request to `/search`
+    Sends a `GET` request to `/search`
 
-Arguments:
-- `limit`: Maximum number of results to return.
-- `q`: Search query string.
-- `source_type`: Filter by source category (e.g. twitter, discord, telegram,
-farcaster, governance). Free-form string; not constrained to
-an enum because the upstream set may grow.
+    Arguments:
+    - `limit`: Maximum number of results to return.
+    - `q`: Search query string.
+    - `source_type`: Filter by source category (e.g. twitter, discord, telegram,
+    farcaster, governance). Free-form string; not constrained to
+    an enum because the upstream set may grow.
 
-*/
+    */
     pub async fn search_corpus<'a>(
         &'a self,
         limit: Option<::std::num::NonZeroU32>,
@@ -329,11 +319,10 @@ an enum because the upstream set may grow.
     ) -> Result<ResponseValue<types::JsonObject>, Error<()>> {
         let url = format!("{}/search", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -344,7 +333,10 @@ an enum because the upstream set may grow.
             )
             .query(&progenitor_client::QueryParam::new("limit", &limit))
             .query(&progenitor_client::QueryParam::new("q", &q))
-            .query(&progenitor_client::QueryParam::new("source_type", &source_type))
+            .query(&progenitor_client::QueryParam::new(
+                "source_type",
+                &source_type,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -361,27 +353,26 @@ an enum because the upstream set may grow.
     }
     /**Get trending narratives
 
-Return the topics and narratives currently trending across
-Kaito's indexed Web3 sources — what yappers are collectively
-focused on right now.
+    Return the topics and narratives currently trending across
+    Kaito's indexed Web3 sources — what yappers are collectively
+    focused on right now.
 
 
-Sends a `GET` request to `/trending`
+    Sends a `GET` request to `/trending`
 
-Arguments:
-- `limit`: Maximum number of trending entries to return.
-*/
+    Arguments:
+    - `limit`: Maximum number of trending entries to return.
+    */
     pub async fn get_trending_narratives<'a>(
         &'a self,
         limit: Option<::std::num::NonZeroU32>,
     ) -> Result<ResponseValue<types::JsonObject>, Error<()>> {
         let url = format!("{}/trending", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -407,28 +398,29 @@ Arguments:
     }
     /**Get attention/mindshare metrics for a token
 
-Return attention and discussion-volume metrics for the given
-token symbol or name (e.g. BTC, ETH, SOL).
+    Return attention and discussion-volume metrics for the given
+    token symbol or name (e.g. BTC, ETH, SOL).
 
 
-Sends a `GET` request to `/mindshare/{token}`
+    Sends a `GET` request to `/mindshare/{token}`
 
-Arguments:
-- `token`: Token symbol or name to query mindshare for.
-*/
+    Arguments:
+    - `token`: Token symbol or name to query mindshare for.
+    */
     pub async fn get_token_mindshare<'a>(
         &'a self,
         token: &'a str,
     ) -> Result<ResponseValue<types::JsonObject>, Error<()>> {
         let url = format!(
-            "{}/mindshare/{}", self.baseurl, encode_path(& token.to_string()),
+            "{}/mindshare/{}",
+            self.baseurl,
+            encode_path(&token.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client

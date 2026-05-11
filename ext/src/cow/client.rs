@@ -1,7 +1,7 @@
 #[allow(unused_imports)]
 pub use progenitor_client::{ByteStream, ClientInfo, Error, ResponseValue};
 #[allow(unused_imports)]
-use progenitor_client::{encode_path, ClientHooks, OperationInfo, RequestBuilderExt};
+use progenitor_client::{ClientHooks, OperationInfo, RequestBuilderExt, encode_path};
 /// Types used as operation parameters and responses.
 #[allow(clippy::all)]
 pub mod types {
@@ -11,18 +11,12 @@ pub mod types {
         pub struct ConversionError(::std::borrow::Cow<'static, str>);
         impl ::std::error::Error for ConversionError {}
         impl ::std::fmt::Display for ConversionError {
-            fn fmt(
-                &self,
-                f: &mut ::std::fmt::Formatter<'_>,
-            ) -> Result<(), ::std::fmt::Error> {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> Result<(), ::std::fmt::Error> {
                 ::std::fmt::Display::fmt(&self.0, f)
             }
         }
         impl ::std::fmt::Debug for ConversionError {
-            fn fmt(
-                &self,
-                f: &mut ::std::fmt::Formatter<'_>,
-            ) -> Result<(), ::std::fmt::Error> {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> Result<(), ::std::fmt::Error> {
                 ::std::fmt::Debug::fmt(&self.0, f)
             }
         }
@@ -86,15 +80,7 @@ pub mod types {
     /// ```
     /// </details>
     #[derive(
-        ::serde::Deserialize,
-        ::serde::Serialize,
-        Clone,
-        Debug,
-        Eq,
-        Hash,
-        Ord,
-        PartialEq,
-        PartialOrd
+        ::serde::Deserialize, ::serde::Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd,
     )]
     #[serde(transparent)]
     pub struct Address(pub ::std::string::String);
@@ -126,9 +112,9 @@ pub mod types {
         }
     }
     /**The string encoding of a JSON object representing some `appData`. The
-format of the JSON expected in the `appData` field is defined
-[here](https://github.com/cowprotocol/app-data).
-*/
+    format of the JSON expected in the `appData` field is defined
+    [here](https://github.com/cowprotocol/app-data).
+    */
     ///
     /// <details><summary>JSON schema</summary>
     ///
@@ -143,15 +129,7 @@ format of the JSON expected in the `appData` field is defined
     /// ```
     /// </details>
     #[derive(
-        ::serde::Deserialize,
-        ::serde::Serialize,
-        Clone,
-        Debug,
-        Eq,
-        Hash,
-        Ord,
-        PartialEq,
-        PartialOrd
+        ::serde::Deserialize, ::serde::Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd,
     )]
     #[serde(transparent)]
     pub struct AppData(pub ::std::string::String);
@@ -183,8 +161,8 @@ format of the JSON expected in the `appData` field is defined
         }
     }
     /**32 bytes encoded as hex with `0x` prefix.
-It's expected to be the hash of the stringified JSON object representing the `appData`.
-*/
+    It's expected to be the hash of the stringified JSON object representing the `appData`.
+    */
     ///
     /// <details><summary>JSON schema</summary>
     ///
@@ -199,15 +177,7 @@ It's expected to be the hash of the stringified JSON object representing the `ap
     /// ```
     /// </details>
     #[derive(
-        ::serde::Deserialize,
-        ::serde::Serialize,
-        Clone,
-        Debug,
-        Eq,
-        Hash,
-        Ord,
-        PartialEq,
-        PartialOrd
+        ::serde::Deserialize, ::serde::Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd,
     )]
     #[serde(transparent)]
     pub struct AppDataHash(pub ::std::string::String);
@@ -269,7 +239,7 @@ It's expected to be the hash of the stringified JSON object representing the `ap
         pub full_app_data: ::std::option::Option<AppData>,
     }
     /**A batch auction for solving.
-*/
+     */
     ///
     /// <details><summary>JSON schema</summary>
     ///
@@ -310,21 +280,21 @@ It's expected to be the hash of the stringified JSON object representing the `ap
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct Auction {
         /**The block number for the auction. Orders and prices are guaranteed to be valid on this block. Proposed settlements should be valid for this block as well.
-*/
+         */
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub block: ::std::option::Option<i64>,
         /**The unique identifier of the auction. Increment whenever the backend creates a new auction.
-*/
+         */
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub id: ::std::option::Option<i64>,
         /**The solvable orders included in the auction.
-*/
+         */
         #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
         pub orders: ::std::vec::Vec<AuctionOrder>,
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub prices: ::std::option::Option<AuctionPrices>,
         /**List of addresses on whose surplus will count towards the objective value of their solution (unlike other orders that were created by the solver).
-*/
+         */
         #[serde(
             rename = "surplusCapturingJitOrderOwners",
             default,
@@ -344,7 +314,7 @@ It's expected to be the hash of the stringified JSON object representing the `ap
         }
     }
     /**A solvable order included in the current batch auction. Contains the data forwarded to solvers for solving.
-*/
+     */
     ///
     /// <details><summary>JSON schema</summary>
     ///
@@ -536,7 +506,7 @@ It's expected to be the hash of the stringified JSON object representing the `ap
         ///Creation time of the order. Denominated in epoch seconds.
         pub created: ::std::string::String,
         /**Currently executed amount of sell/buy token, depending on the order kind.
-*/
+         */
         pub executed: TokenAmount,
         ///see `OrderParameters::kind`
         pub kind: OrderKind,
@@ -545,19 +515,19 @@ It's expected to be the hash of the stringified JSON object representing the `ap
         #[serde(rename = "partiallyFillable")]
         pub partially_fillable: bool,
         /**The post-interactions that need to be executed after the execution of the order.
-*/
+         */
         #[serde(rename = "postInteractions")]
         pub post_interactions: ::std::vec::Vec<InteractionData>,
         /**The pre-interactions that need to be executed before the first execution of the order.
-*/
+         */
         #[serde(rename = "preInteractions")]
         pub pre_interactions: ::std::vec::Vec<InteractionData>,
         /**The fee policies that are used to compute the protocol fees for this order.
-*/
+         */
         #[serde(rename = "protocolFees")]
         pub protocol_fees: ::std::vec::Vec<FeePolicy>,
         /**A winning quote.
-*/
+         */
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub quote: ::std::option::Option<Quote>,
         ///see `OrderParameters::receiver`
@@ -578,7 +548,7 @@ It's expected to be the hash of the stringified JSON object representing the `ap
         pub valid_to: i64,
     }
     /**The reference prices for all traded tokens in the auction as a mapping from token addresses to a price denominated in native token (i.e. 1e18 represents a token that trades one to one with the native token). These prices are used for solution competition for computing surplus and converting fees to native token.
-*/
+     */
     ///
     /// <details><summary>JSON schema</summary>
     ///
@@ -594,9 +564,7 @@ It's expected to be the hash of the stringified JSON object representing the `ap
     /// </details>
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     #[serde(transparent)]
-    pub struct AuctionPrices(
-        pub ::std::collections::HashMap<::std::string::String, BigUint>,
-    );
+    pub struct AuctionPrices(pub ::std::collections::HashMap<::std::string::String, BigUint>);
     impl ::std::ops::Deref for AuctionPrices {
         type Target = ::std::collections::HashMap<::std::string::String, BigUint>;
         fn deref(&self) -> &::std::collections::HashMap<::std::string::String, BigUint> {
@@ -604,17 +572,16 @@ It's expected to be the hash of the stringified JSON object representing the `ap
         }
     }
     impl ::std::convert::From<AuctionPrices>
-    for ::std::collections::HashMap<::std::string::String, BigUint> {
+        for ::std::collections::HashMap<::std::string::String, BigUint>
+    {
         fn from(value: AuctionPrices) -> Self {
             value.0
         }
     }
-    impl ::std::convert::From<
-        ::std::collections::HashMap<::std::string::String, BigUint>,
-    > for AuctionPrices {
-        fn from(
-            value: ::std::collections::HashMap<::std::string::String, BigUint>,
-        ) -> Self {
+    impl ::std::convert::From<::std::collections::HashMap<::std::string::String, BigUint>>
+        for AuctionPrices
+    {
+        fn from(value: ::std::collections::HashMap<::std::string::String, BigUint>) -> Self {
             Self(value)
         }
     }
@@ -633,15 +600,7 @@ It's expected to be the hash of the stringified JSON object representing the `ap
     /// ```
     /// </details>
     #[derive(
-        ::serde::Deserialize,
-        ::serde::Serialize,
-        Clone,
-        Debug,
-        Eq,
-        Hash,
-        Ord,
-        PartialEq,
-        PartialOrd
+        ::serde::Deserialize, ::serde::Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd,
     )]
     #[serde(transparent)]
     pub struct BigUint(pub ::std::string::String);
@@ -697,7 +656,7 @@ It's expected to be the hash of the stringified JSON object representing the `ap
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum BuyTokenDestination {
         #[serde(rename = "erc20")]
@@ -715,9 +674,7 @@ It's expected to be the hash of the stringified JSON object representing the `ap
     }
     impl ::std::str::FromStr for BuyTokenDestination {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "erc20" => Ok(Self::Erc20),
                 "internal" => Ok(Self::Internal),
@@ -727,9 +684,7 @@ It's expected to be the hash of the stringified JSON object representing the `ap
     }
     impl ::std::convert::TryFrom<&str> for BuyTokenDestination {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -764,15 +719,7 @@ It's expected to be the hash of the stringified JSON object representing the `ap
     /// ```
     /// </details>
     #[derive(
-        ::serde::Deserialize,
-        ::serde::Serialize,
-        Clone,
-        Debug,
-        Eq,
-        Hash,
-        Ord,
-        PartialEq,
-        PartialOrd
+        ::serde::Deserialize, ::serde::Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd,
     )]
     #[serde(transparent)]
     pub struct CallData(pub ::std::string::String);
@@ -804,7 +751,7 @@ It's expected to be the hash of the stringified JSON object representing the `ap
         }
     }
     /**The components that describe a batch auction for the solver competition.
-*/
+     */
     ///
     /// <details><summary>JSON schema</summary>
     ///
@@ -830,7 +777,7 @@ It's expected to be the hash of the stringified JSON object representing the `ap
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct CompetitionAuction {
         /**The UIDs of the orders included in the auction.
-*/
+         */
         #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
         pub orders: ::std::vec::Vec<Uid>,
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
@@ -895,10 +842,10 @@ It's expected to be the hash of the stringified JSON object representing the `ap
         #[serde(rename = "type")]
         pub type_: CompetitionOrderStatusType,
         /**A list of solvers who participated in the latest competition, sorted
-by score in ascending order, where the last element is the winner.
+        by score in ascending order, where the last element is the winner.
 
-The presence of executed amounts defines whether the solver provided
-a solution for the desired order.*/
+        The presence of executed amounts defines whether the solver provided
+        a solution for the desired order.*/
         #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
         pub value: ::std::vec::Vec<CompetitionOrderStatusValueItem>,
     }
@@ -931,7 +878,7 @@ a solution for the desired order.*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum CompetitionOrderStatusType {
         #[serde(rename = "open")]
@@ -964,9 +911,7 @@ a solution for the desired order.*/
     }
     impl ::std::str::FromStr for CompetitionOrderStatusType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "open" => Ok(Self::Open),
                 "scheduled" => Ok(Self::Scheduled),
@@ -981,9 +926,7 @@ a solution for the desired order.*/
     }
     impl ::std::convert::TryFrom<&str> for CompetitionOrderStatusType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -1113,12 +1056,10 @@ a solution for the desired order.*/
         ///Auction ID.
         pub id: i64,
         /**Native prices for the order's sell and buy tokens in this auction. Keys are hex-encoded token addresses, values are decimal price strings.
-*/
+         */
         #[serde(rename = "nativePrices")]
-        pub native_prices: ::std::collections::HashMap<
-            ::std::string::String,
-            ::std::string::String,
-        >,
+        pub native_prices:
+            ::std::collections::HashMap<::std::string::String, ::std::string::String>,
         #[serde(rename = "proposedSolutions")]
         pub proposed_solutions: ::std::vec::Vec<DebugProposedSolution>,
         #[serde(rename = "settlementAttempts")]
@@ -1160,7 +1101,7 @@ a solution for the desired order.*/
         ///Event type (e.g. created, ready, filtered, traded).
         pub label: ::std::string::String,
         /**Why the order was filtered or marked invalid. Only present for "filtered" and "invalid" events.
-*/
+         */
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub reason: ::std::option::Option<::std::string::String>,
         pub timestamp: ::chrono::DateTime<::chrono::offset::Utc>,
@@ -1307,7 +1248,7 @@ a solution for the desired order.*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum DebugFeePolicyKind {
         #[serde(rename = "surplus")]
@@ -1328,9 +1269,7 @@ a solution for the desired order.*/
     }
     impl ::std::str::FromStr for DebugFeePolicyKind {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "surplus" => Ok(Self::Surplus),
                 "volume" => Ok(Self::Volume),
@@ -1341,9 +1280,7 @@ a solution for the desired order.*/
     }
     impl ::std::convert::TryFrom<&str> for DebugFeePolicyKind {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -1415,7 +1352,7 @@ a solution for the desired order.*/
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct DebugOrderResponse {
         /**Auctions this order participated in, sorted by ID. Each auction groups all related data: native prices, proposed solutions, executions, settlement attempts, and fee policies.
-*/
+         */
         pub auctions: ::std::vec::Vec<DebugAuction>,
         pub events: ::std::vec::Vec<DebugEvent>,
         pub order: Order,
@@ -1576,9 +1513,7 @@ a solution for the desired order.*/
             default,
             skip_serializing_if = "::std::option::Option::is_none"
         )]
-        pub end_timestamp: ::std::option::Option<
-            ::chrono::DateTime<::chrono::offset::Utc>,
-        >,
+        pub end_timestamp: ::std::option::Option<::chrono::DateTime<::chrono::offset::Utc>>,
         ///Settlement outcome (e.g. "success", "revert").
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub outcome: ::std::option::Option<::std::string::String>,
@@ -1670,15 +1605,7 @@ a solution for the desired order.*/
     /// ```
     /// </details>
     #[derive(
-        ::serde::Deserialize,
-        ::serde::Serialize,
-        Clone,
-        Debug,
-        Eq,
-        Hash,
-        Ord,
-        PartialEq,
-        PartialOrd
+        ::serde::Deserialize, ::serde::Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd,
     )]
     #[serde(transparent)]
     pub struct EcdsaSignature(pub ::std::string::String);
@@ -1734,7 +1661,7 @@ a solution for the desired order.*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum EcdsaSigningScheme {
         #[serde(rename = "eip712")]
@@ -1752,9 +1679,7 @@ a solution for the desired order.*/
     }
     impl ::std::str::FromStr for EcdsaSigningScheme {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "eip712" => Ok(Self::Eip712),
                 "ethsign" => Ok(Self::Ethsign),
@@ -1764,9 +1689,7 @@ a solution for the desired order.*/
     }
     impl ::std::convert::TryFrom<&str> for EcdsaSigningScheme {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -1825,15 +1748,15 @@ a solution for the desired order.*/
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct EthflowData {
         /**Specifies in which transaction the order was refunded. If
-this field is null the order was not yet refunded.
-*/
+        this field is null the order was not yet refunded.
+        */
         #[serde(rename = "refundTxHash")]
         pub refund_tx_hash: ::std::option::Option<TransactionHash>,
         /**Describes the `validTo` of an order ethflow order.
 
-**NOTE**: For ethflow orders, the `validTo` encoded in the smart
-contract is `type(uint256).max`.
-*/
+        **NOTE**: For ethflow orders, the `validTo` encoded in the smart
+        contract is `type(uint256).max`.
+        */
         #[serde(rename = "userValidTo")]
         pub user_valid_to: i64,
     }
@@ -2010,7 +1933,10 @@ contract is `type(uint256).max`.
         #[serde(rename = "order")]
         Order(Order),
         #[serde(rename = "error")]
-        Error { description: ::std::string::String, uid: Uid },
+        Error {
+            description: ::std::string::String,
+            uid: Uid,
+        },
     }
     impl ::std::convert::From<Order> for GetOrdersResponse {
         fn from(value: Order) -> Self {
@@ -2018,7 +1944,7 @@ contract is `type(uint256).max`.
         }
     }
     /**Represents a smart contract interaction that can be executed as part of an order's pre or post hooks.
-*/
+     */
     ///
     /// <details><summary>JSON schema</summary>
     ///
@@ -2063,17 +1989,17 @@ contract is `type(uint256).max`.
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct InteractionData {
         /**The calldata to be sent to the target contract. Encoded as a hex string with `0x` prefix.
-*/
+         */
         #[serde(rename = "callData")]
         pub call_data: CallData,
         ///The address of the contract to call.
         pub target: Address,
         /**The amount of native token (ETH, xDAI, etc.) in Wei to send with the interaction call.
-*/
+         */
         pub value: TokenAmount,
     }
     /**The estimated native price for the token
-*/
+     */
     ///
     /// <details><summary>JSON schema</summary>
     ///
@@ -2098,7 +2024,9 @@ contract is `type(uint256).max`.
     }
     impl ::std::default::Default for NativePriceResponse {
         fn default() -> Self {
-            Self { price: Default::default() }
+            Self {
+                price: Default::default(),
+            }
         }
     }
     ///`OnchainOrderData`
@@ -2136,7 +2064,7 @@ contract is `type(uint256).max`.
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct OnchainOrderData {
         /**Describes the error, if the order placement was not successful. This could happen, for example, if the `validTo` is too high, or no valid quote was found or generated.
-*/
+         */
         #[serde(
             rename = "placementError",
             default,
@@ -2144,11 +2072,11 @@ contract is `type(uint256).max`.
         )]
         pub placement_error: ::std::option::Option<OnchainOrderDataPlacementError>,
         /**If orders are placed as on-chain orders, the owner of the order might be a smart contract, but not the user placing the order. The actual user will be provided in this field.
-*/
+         */
         pub sender: Address,
     }
     /**Describes the error, if the order placement was not successful. This could happen, for example, if the `validTo` is too high, or no valid quote was found or generated.
-*/
+     */
     ///
     /// <details><summary>JSON schema</summary>
     ///
@@ -2174,7 +2102,7 @@ contract is `type(uint256).max`.
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum OnchainOrderDataPlacementError {
         QuoteNotFound,
@@ -2192,9 +2120,7 @@ contract is `type(uint256).max`.
     }
     impl ::std::str::FromStr for OnchainOrderDataPlacementError {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "QuoteNotFound" => Ok(Self::QuoteNotFound),
                 "ValidToTooFarInFuture" => Ok(Self::ValidToTooFarInFuture),
@@ -2205,14 +2131,11 @@ contract is `type(uint256).max`.
     }
     impl ::std::convert::TryFrom<&str> for OnchainOrderDataPlacementError {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for OnchainOrderDataPlacementError {
+    impl ::std::convert::TryFrom<&::std::string::String> for OnchainOrderDataPlacementError {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -2220,8 +2143,7 @@ contract is `type(uint256).max`.
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for OnchainOrderDataPlacementError {
+    impl ::std::convert::TryFrom<::std::string::String> for OnchainOrderDataPlacementError {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -2230,7 +2152,7 @@ contract is `type(uint256).max`.
         }
     }
     /**An order as returned by the API. Combines the order creation data, order metadata, and any associated interactions.
-*/
+     */
     ///
     /// <details><summary>JSON schema</summary>
     ///
@@ -2276,11 +2198,11 @@ contract is `type(uint256).max`.
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct Order {
         /**This field comes in two forms for backward compatibility. The hash form will eventually stop being accepted.
-*/
+         */
         #[serde(rename = "appData")]
         pub app_data: OrderAppData,
         /**May be set for debugging purposes. If set, this field is compared to what the backend internally calculates as the app data hash based on the contents of `appData`. If the hash does not match, an error is returned. If this field is set, then `appData` **MUST** be a string encoding of a JSON object.
-*/
+         */
         #[serde(
             rename = "appDataHash",
             default,
@@ -2288,7 +2210,7 @@ contract is `type(uint256).max`.
         )]
         pub app_data_hash: ::std::option::Option<AppDataHash>,
         /**Unused field that is currently always set to `null` and will be removed in the future.
-*/
+         */
         #[serde(
             rename = "availableBalance",
             default,
@@ -2308,13 +2230,13 @@ contract is `type(uint256).max`.
         )]
         pub buy_token_balance: BuyTokenDestination,
         /**The class of the order (market, limit, or liquidity). Determines how fees are handled.
-*/
+         */
         pub class: OrderClass,
         ///Creation time of the order. Encoded as ISO 8601 UTC.
         #[serde(rename = "creationDate")]
         pub creation_date: ::std::string::String,
         /**Additional data specific to ethflow orders. Only present for orders placed through the EthFlow contract, which allows trading native ETH directly without wrapping to WETH first.
-*/
+         */
         #[serde(
             rename = "ethflowData",
             default,
@@ -2322,11 +2244,11 @@ contract is `type(uint256).max`.
         )]
         pub ethflow_data: ::std::option::Option<EthflowData>,
         /**The total amount of `buyToken` that has been executed for this order.
-*/
+         */
         #[serde(rename = "executedBuyAmount")]
         pub executed_buy_amount: BigUint,
         /**Total fee charged for execution of the order. Contains network fee and protocol fees. This takes into account the historic static fee signed by the user and the new dynamic fee computed by solvers.
-*/
+         */
         #[serde(
             rename = "executedFee",
             default,
@@ -2334,7 +2256,7 @@ contract is `type(uint256).max`.
         )]
         pub executed_fee: ::std::option::Option<BigUint>,
         /**[DEPRECATED] The total amount of the user signed `fee` that have been executed for this order. This value is only non-negative for very old orders.
-*/
+         */
         #[serde(rename = "executedFeeAmount")]
         pub executed_fee_amount: BigUint,
         ///Token the executed fee was captured in.
@@ -2345,22 +2267,22 @@ contract is `type(uint256).max`.
         )]
         pub executed_fee_token: ::std::option::Option<Address>,
         /**The total amount of `sellToken` that has been transferred from the user for this order so far.
-*/
+         */
         #[serde(rename = "executedSellAmount")]
         pub executed_sell_amount: BigUint,
         /**The total amount of `sellToken` that has been transferred from the user for this order so far minus tokens that were transferred as part of the signed `fee` of the order. This is only relevant for old orders because now all orders have a signed `fee` of 0 and solvers compute an appropriate fee dynamically at the time of the order execution.
-*/
+         */
         #[serde(rename = "executedSellAmountBeforeFees")]
         pub executed_sell_amount_before_fees: BigUint,
         ///see `OrderParameters::feeAmount`
         #[serde(rename = "feeAmount")]
         pub fee_amount: TokenAmount,
         /**If set, the backend enforces that this address matches what is decoded as the *signer* of the signature. This helps catch errors with invalid signature encodings as the backend might otherwise silently work with an unexpected address that for example does not have any balance.
-*/
+         */
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub from: ::std::option::Option<Address>,
         /**Full `appData`, which the contract-level `appData` is a hash of. See `OrderCreation` for more information.
-*/
+         */
         #[serde(
             rename = "fullAppData",
             default,
@@ -2368,7 +2290,7 @@ contract is `type(uint256).max`.
         )]
         pub full_app_data: ::std::option::Option<::std::string::String>,
         /**If set to true, full sell amount will be checked during allowance and balance checking. This will ensure the account has correct allowance and available balance for the order to be created.
-*/
+         */
         #[serde(rename = "fullBalanceCheck", default)]
         pub full_balance_check: bool,
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
@@ -2376,14 +2298,14 @@ contract is `type(uint256).max`.
         ///Has this order been invalidated?
         pub invalidated: bool,
         /**Liquidity orders are functionally the same as normal smart contract
-orders but are not placed with the intent of actively getting
-traded. Instead they facilitate the trade of normal orders by
-allowing them to be matched against liquidity orders which uses less
-gas and can have better prices than external liquidity.
+        orders but are not placed with the intent of actively getting
+        traded. Instead they facilitate the trade of normal orders by
+        allowing them to be matched against liquidity orders which uses less
+        gas and can have better prices than external liquidity.
 
-As such liquidity orders will only be used in order to improve
-settlement of normal orders. They should not be expected to be
-traded otherwise and should not expect to get surplus.*/
+        As such liquidity orders will only be used in order to improve
+        settlement of normal orders. They should not be expected to be
+        traded otherwise and should not expect to get surplus.*/
         #[serde(
             rename = "isLiquidityOrder",
             default,
@@ -2393,7 +2315,7 @@ traded otherwise and should not expect to get surplus.*/
         ///see `OrderParameters::kind`
         pub kind: OrderKind,
         /**There is some data only available for orders that are placed on-chain. This data can be found in this object.
-*/
+         */
         #[serde(
             rename = "onchainOrderData",
             default,
@@ -2401,9 +2323,9 @@ traded otherwise and should not expect to get surplus.*/
         )]
         pub onchain_order_data: ::std::option::Option<OnchainOrderData>,
         /**This represents the actual trader of an on-chain order.
-### ethflow orders
-In this case, the `owner` would be the `EthFlow` contract and *not* the actual trader.
-*/
+        ### ethflow orders
+        In this case, the `owner` would be the `EthFlow` contract and *not* the actual trader.
+        */
         #[serde(
             rename = "onchainUser",
             default,
@@ -2411,17 +2333,17 @@ In this case, the `owner` would be the `EthFlow` contract and *not* the actual t
         )]
         pub onchain_user: ::std::option::Option<Address>,
         /**The address that signed the order and owns it. For regular orders, this is the trader. For EIP 1271 orders, it's the respective contract (see `onchainUser` for the actual trader).
-*/
+         */
         pub owner: Address,
         ///see `OrderParameters::partiallyFillable`
         #[serde(rename = "partiallyFillable")]
         pub partially_fillable: bool,
         /**If the order was created with a quote, this field contains the original quote data for reference. Includes gas estimation and pricing information captured at the time of quoting, which can be used to analyze order execution and calculate fees.
-*/
+         */
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub quote: ::std::option::Option<StoredOrderQuote>,
         /**Orders can optionally include a quote ID. This way the order can be linked to a quote and enable providing more metadata when analysing order slippage.
-*/
+         */
         #[serde(
             rename = "quoteId",
             default,
@@ -2444,7 +2366,7 @@ In this case, the `owner` would be the `EthFlow` contract and *not* the actual t
         )]
         pub sell_token_balance: SellTokenSource,
         /**The address of the CoW Protocol settlement contract that this order is valid for. Orders are only valid on the settlement contract they were signed for.
-*/
+         */
         #[serde(rename = "settlementContract")]
         pub settlement_contract: Address,
         pub signature: Signature,
@@ -2453,14 +2375,14 @@ In this case, the `owner` would be the `EthFlow` contract and *not* the actual t
         ///Order status.
         pub status: OrderStatus,
         /**Unique identifier of the order. Computed as the EIP-712 hash of the order data combined with the owner address and valid_to timestamp.
-*/
+         */
         pub uid: Uid,
         ///see `OrderParameters::validTo`
         #[serde(rename = "validTo")]
         pub valid_to: i64,
     }
     /**This field comes in two forms for backward compatibility. The hash form will eventually stop being accepted.
-*/
+     */
     ///
     /// <details><summary>JSON schema</summary>
     ///
@@ -2509,8 +2431,8 @@ In this case, the `owner` would be the `EthFlow` contract and *not* the actual t
         }
     }
     /**[EIP-712](https://eips.ethereum.org/EIPS/eip-712) signature of struct
-`OrderCancellation(bytes orderUid)` from the order's owner.
-*/
+    `OrderCancellation(bytes orderUid)` from the order's owner.
+    */
     ///
     /// <details><summary>JSON schema</summary>
     ///
@@ -2611,7 +2533,7 @@ In this case, the `owner` would be the `EthFlow` contract and *not* the actual t
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum OrderCancellationErrorErrorType {
         InvalidSignature,
@@ -2637,9 +2559,7 @@ In this case, the `owner` would be the `EthFlow` contract and *not* the actual t
     }
     impl ::std::str::FromStr for OrderCancellationErrorErrorType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "InvalidSignature" => Ok(Self::InvalidSignature),
                 "WrongOwner" => Ok(Self::WrongOwner),
@@ -2654,14 +2574,11 @@ In this case, the `owner` would be the `EthFlow` contract and *not* the actual t
     }
     impl ::std::convert::TryFrom<&str> for OrderCancellationErrorErrorType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for OrderCancellationErrorErrorType {
+    impl ::std::convert::TryFrom<&::std::string::String> for OrderCancellationErrorErrorType {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -2669,8 +2586,7 @@ In this case, the `owner` would be the `EthFlow` contract and *not* the actual t
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for OrderCancellationErrorErrorType {
+    impl ::std::convert::TryFrom<::std::string::String> for OrderCancellationErrorErrorType {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -2679,7 +2595,7 @@ In this case, the `owner` would be the `EthFlow` contract and *not* the actual t
         }
     }
     /**EIP-712 signature of struct OrderCancellations { orderUid: bytes[] } from the order's owner.
-*/
+     */
     ///
     /// <details><summary>JSON schema</summary>
     ///
@@ -2758,7 +2674,7 @@ In this case, the `owner` would be the `EthFlow` contract and *not* the actual t
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum OrderClass {
         #[serde(rename = "market")]
@@ -2779,9 +2695,7 @@ In this case, the `owner` would be the `EthFlow` contract and *not* the actual t
     }
     impl ::std::str::FromStr for OrderClass {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "market" => Ok(Self::Market),
                 "limit" => Ok(Self::Limit),
@@ -2792,9 +2706,7 @@ In this case, the `owner` would be the `EthFlow` contract and *not* the actual t
     }
     impl ::std::convert::TryFrom<&str> for OrderClass {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -2998,11 +2910,11 @@ In this case, the `owner` would be the `EthFlow` contract and *not* the actual t
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct OrderCreation {
         /**This field comes in two forms for backward compatibility. The hash form will eventually stop being accepted.
-*/
+         */
         #[serde(rename = "appData")]
         pub app_data: OrderCreationAppData,
         /**May be set for debugging purposes. If set, this field is compared to what the backend internally calculates as the app data hash based on the contents of `appData`. If the hash does not match, an error is returned. If this field is set, then `appData` **MUST** be a string encoding of a JSON object.
-*/
+         */
         #[serde(
             rename = "appDataHash",
             default,
@@ -3025,11 +2937,11 @@ In this case, the `owner` would be the `EthFlow` contract and *not* the actual t
         #[serde(rename = "feeAmount")]
         pub fee_amount: TokenAmount,
         /**If set, the backend enforces that this address matches what is decoded as the *signer* of the signature. This helps catch errors with invalid signature encodings as the backend might otherwise silently work with an unexpected address that for example does not have any balance.
-*/
+         */
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub from: ::std::option::Option<Address>,
         /**If set to true, full sell amount will be checked during allowance and balance checking. This will ensure the account has correct allowance and available balance for the order to be created.
-*/
+         */
         #[serde(rename = "fullBalanceCheck", default)]
         pub full_balance_check: bool,
         ///see `OrderParameters::kind`
@@ -3038,7 +2950,7 @@ In this case, the `owner` would be the `EthFlow` contract and *not* the actual t
         #[serde(rename = "partiallyFillable")]
         pub partially_fillable: bool,
         /**Orders can optionally include a quote ID. This way the order can be linked to a quote and enable providing more metadata when analysing order slippage.
-*/
+         */
         #[serde(
             rename = "quoteId",
             default,
@@ -3068,7 +2980,7 @@ In this case, the `owner` would be the `EthFlow` contract and *not* the actual t
         pub valid_to: i64,
     }
     /**This field comes in two forms for backward compatibility. The hash form will eventually stop being accepted.
-*/
+     */
     ///
     /// <details><summary>JSON schema</summary>
     ///
@@ -3117,7 +3029,7 @@ In this case, the `owner` would be the `EthFlow` contract and *not* the actual t
         }
     }
     /**Optional pre and post interactions associated with the order. Pre-interactions are executed before the order's trade, and post-interactions are executed after.
-*/
+     */
     ///
     /// <details><summary>JSON schema</summary>
     ///
@@ -3147,11 +3059,11 @@ In this case, the `owner` would be the `EthFlow` contract and *not* the actual t
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct OrderInteractions {
         /**Interactions to be executed after the order's trade. These can be used for cleanup or follow-up operations.
-*/
+         */
         #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
         pub post: ::std::vec::Vec<InteractionData>,
         /**Interactions to be executed before the order's trade. These can be used for setup operations like token approvals.
-*/
+         */
         #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
         pub pre: ::std::vec::Vec<InteractionData>,
     }
@@ -3188,7 +3100,7 @@ In this case, the `owner` would be the `EthFlow` contract and *not* the actual t
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum OrderKind {
         #[serde(rename = "buy")]
@@ -3206,9 +3118,7 @@ In this case, the `owner` would be the `EthFlow` contract and *not* the actual t
     }
     impl ::std::str::FromStr for OrderKind {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "buy" => Ok(Self::Buy),
                 "sell" => Ok(Self::Sell),
@@ -3218,9 +3128,7 @@ In this case, the `owner` would be the `EthFlow` contract and *not* the actual t
     }
     impl ::std::convert::TryFrom<&str> for OrderKind {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -3241,7 +3149,7 @@ In this case, the `owner` would be the `EthFlow` contract and *not* the actual t
         }
     }
     /**Extra order data that is returned to users when querying orders but not provided by users when creating orders.
-*/
+     */
     ///
     /// <details><summary>JSON schema</summary>
     ///
@@ -3435,7 +3343,7 @@ In this case, the `owner` would be the `EthFlow` contract and *not* the actual t
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct OrderMetaData {
         /**Unused field that is currently always set to `null` and will be removed in the future.
-*/
+         */
         #[serde(
             rename = "availableBalance",
             default,
@@ -3443,13 +3351,13 @@ In this case, the `owner` would be the `EthFlow` contract and *not* the actual t
         )]
         pub available_balance: ::std::option::Option<TokenAmount>,
         /**The class of the order (market, limit, or liquidity). Determines how fees are handled.
-*/
+         */
         pub class: OrderClass,
         ///Creation time of the order. Encoded as ISO 8601 UTC.
         #[serde(rename = "creationDate")]
         pub creation_date: ::std::string::String,
         /**Additional data specific to ethflow orders. Only present for orders placed through the EthFlow contract, which allows trading native ETH directly without wrapping to WETH first.
-*/
+         */
         #[serde(
             rename = "ethflowData",
             default,
@@ -3457,11 +3365,11 @@ In this case, the `owner` would be the `EthFlow` contract and *not* the actual t
         )]
         pub ethflow_data: ::std::option::Option<EthflowData>,
         /**The total amount of `buyToken` that has been executed for this order.
-*/
+         */
         #[serde(rename = "executedBuyAmount")]
         pub executed_buy_amount: BigUint,
         /**Total fee charged for execution of the order. Contains network fee and protocol fees. This takes into account the historic static fee signed by the user and the new dynamic fee computed by solvers.
-*/
+         */
         #[serde(
             rename = "executedFee",
             default,
@@ -3469,7 +3377,7 @@ In this case, the `owner` would be the `EthFlow` contract and *not* the actual t
         )]
         pub executed_fee: ::std::option::Option<BigUint>,
         /**[DEPRECATED] The total amount of the user signed `fee` that have been executed for this order. This value is only non-negative for very old orders.
-*/
+         */
         #[serde(rename = "executedFeeAmount")]
         pub executed_fee_amount: BigUint,
         ///Token the executed fee was captured in.
@@ -3480,15 +3388,15 @@ In this case, the `owner` would be the `EthFlow` contract and *not* the actual t
         )]
         pub executed_fee_token: ::std::option::Option<Address>,
         /**The total amount of `sellToken` that has been transferred from the user for this order so far.
-*/
+         */
         #[serde(rename = "executedSellAmount")]
         pub executed_sell_amount: BigUint,
         /**The total amount of `sellToken` that has been transferred from the user for this order so far minus tokens that were transferred as part of the signed `fee` of the order. This is only relevant for old orders because now all orders have a signed `fee` of 0 and solvers compute an appropriate fee dynamically at the time of the order execution.
-*/
+         */
         #[serde(rename = "executedSellAmountBeforeFees")]
         pub executed_sell_amount_before_fees: BigUint,
         /**Full `appData`, which the contract-level `appData` is a hash of. See `OrderCreation` for more information.
-*/
+         */
         #[serde(
             rename = "fullAppData",
             default,
@@ -3498,14 +3406,14 @@ In this case, the `owner` would be the `EthFlow` contract and *not* the actual t
         ///Has this order been invalidated?
         pub invalidated: bool,
         /**Liquidity orders are functionally the same as normal smart contract
-orders but are not placed with the intent of actively getting
-traded. Instead they facilitate the trade of normal orders by
-allowing them to be matched against liquidity orders which uses less
-gas and can have better prices than external liquidity.
+        orders but are not placed with the intent of actively getting
+        traded. Instead they facilitate the trade of normal orders by
+        allowing them to be matched against liquidity orders which uses less
+        gas and can have better prices than external liquidity.
 
-As such liquidity orders will only be used in order to improve
-settlement of normal orders. They should not be expected to be
-traded otherwise and should not expect to get surplus.*/
+        As such liquidity orders will only be used in order to improve
+        settlement of normal orders. They should not be expected to be
+        traded otherwise and should not expect to get surplus.*/
         #[serde(
             rename = "isLiquidityOrder",
             default,
@@ -3513,7 +3421,7 @@ traded otherwise and should not expect to get surplus.*/
         )]
         pub is_liquidity_order: ::std::option::Option<bool>,
         /**There is some data only available for orders that are placed on-chain. This data can be found in this object.
-*/
+         */
         #[serde(
             rename = "onchainOrderData",
             default,
@@ -3521,9 +3429,9 @@ traded otherwise and should not expect to get surplus.*/
         )]
         pub onchain_order_data: ::std::option::Option<OnchainOrderData>,
         /**This represents the actual trader of an on-chain order.
-### ethflow orders
-In this case, the `owner` would be the `EthFlow` contract and *not* the actual trader.
-*/
+        ### ethflow orders
+        In this case, the `owner` would be the `EthFlow` contract and *not* the actual trader.
+        */
         #[serde(
             rename = "onchainUser",
             default,
@@ -3531,20 +3439,20 @@ In this case, the `owner` would be the `EthFlow` contract and *not* the actual t
         )]
         pub onchain_user: ::std::option::Option<Address>,
         /**The address that signed the order and owns it. For regular orders, this is the trader. For EIP 1271 orders, it's the respective contract (see `onchainUser` for the actual trader).
-*/
+         */
         pub owner: Address,
         /**If the order was created with a quote, this field contains the original quote data for reference. Includes gas estimation and pricing information captured at the time of quoting, which can be used to analyze order execution and calculate fees.
-*/
+         */
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub quote: ::std::option::Option<StoredOrderQuote>,
         /**The address of the CoW Protocol settlement contract that this order is valid for. Orders are only valid on the settlement contract they were signed for.
-*/
+         */
         #[serde(rename = "settlementContract")]
         pub settlement_contract: Address,
         ///Order status.
         pub status: OrderStatus,
         /**Unique identifier of the order. Computed as the EIP-712 hash of the order data combined with the owner address and valid_to timestamp.
-*/
+         */
         pub uid: Uid,
     }
     ///Order parameters.
@@ -3715,11 +3623,11 @@ In this case, the `owner` would be the `EthFlow` contract and *not* the actual t
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct OrderParameters {
         /**The app data associated with the order. In quote responses, this can be either the full app data JSON string or the app data hash, depending on what was provided in the quote request.
-*/
+         */
         #[serde(rename = "appData")]
         pub app_data: OrderParametersAppData,
         /**The hash of the app data. Only present when the full app data is also provided in the `appData` field.
-*/
+         */
         #[serde(
             rename = "appDataHash",
             default,
@@ -3733,27 +3641,27 @@ In this case, the `owner` would be the `EthFlow` contract and *not* the actual t
         #[serde(rename = "buyToken")]
         pub buy_token: Address,
         /**Where the buy token should be transferred to. Defaults to `erc20` for standard ERC-20 token transfers.
-*/
+         */
         #[serde(
             rename = "buyTokenBalance",
             default = "defaults::order_parameters_buy_token_balance"
         )]
         pub buy_token_balance: BuyTokenDestination,
         /**The fee amount in sell token atoms. For quote responses, this represents
-the estimated network fee, calculated as:
-`feeAmount = ceil((gasAmount * gasPrice) / sellTokenPrice)`.
+        the estimated network fee, calculated as:
+        `feeAmount = ceil((gasAmount * gasPrice) / sellTokenPrice)`.
 
-When creating an order, this should be set to zero as fees are now
-computed dynamically by solvers.
-*/
+        When creating an order, this should be set to zero as fees are now
+        computed dynamically by solvers.
+        */
         #[serde(rename = "feeAmount")]
         pub fee_amount: TokenAmount,
         /**The estimated gas units required to execute the quoted trade.
-*/
+         */
         #[serde(rename = "gasAmount")]
         pub gas_amount: ::std::string::String,
         /**The estimated gas price at the time of quoting, measured in Wei per gas unit.
-*/
+         */
         #[serde(rename = "gasPrice")]
         pub gas_price: ::std::string::String,
         ///The kind is either a buy or sell order.
@@ -3762,7 +3670,7 @@ computed dynamically by solvers.
         #[serde(rename = "partiallyFillable")]
         pub partially_fillable: bool,
         /**An optional Ethereum address to receive the proceeds of the trade instead of the owner (i.e. the order signer).
-*/
+         */
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub receiver: ::std::option::Option<Address>,
         ///Amount of `sellToken` to be sold in atoms.
@@ -3772,19 +3680,19 @@ computed dynamically by solvers.
         #[serde(rename = "sellToken")]
         pub sell_token: Address,
         /**Where the sell token should be drawn from. Defaults to `erc20` for standard ERC-20 token transfers.
-*/
+         */
         #[serde(
             rename = "sellTokenBalance",
             default = "defaults::order_parameters_sell_token_balance"
         )]
         pub sell_token_balance: SellTokenSource,
         /**Represents how much one atomic unit of the sell token is worth
-in the network's native token (in Wei or the equivalent atom).
-*/
+        in the network's native token (in Wei or the equivalent atom).
+        */
         #[serde(rename = "sellTokenPrice")]
         pub sell_token_price: ::std::string::String,
         /**The signing scheme to use for the order. Defaults to `eip712` for standard typed data signing.
-*/
+         */
         #[serde(
             rename = "signingScheme",
             default = "defaults::order_parameters_signing_scheme"
@@ -3795,7 +3703,7 @@ in the network's native token (in Wei or the equivalent atom).
         pub valid_to: i64,
     }
     /**The app data associated with the order. In quote responses, this can be either the full app data JSON string or the app data hash, depending on what was provided in the quote request.
-*/
+     */
     ///
     /// <details><summary>JSON schema</summary>
     ///
@@ -3949,7 +3857,7 @@ in the network's native token (in Wei or the equivalent atom).
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum OrderPostErrorErrorType {
         DuplicatedOrder,
@@ -3999,17 +3907,13 @@ in the network's native token (in Wei or the equivalent atom).
                 Self::SellAmountOverflow => f.write_str("SellAmountOverflow"),
                 Self::TransferSimulationFailed => f.write_str("TransferSimulationFailed"),
                 Self::ZeroAmount => f.write_str("ZeroAmount"),
-                Self::IncompatibleSigningScheme => {
-                    f.write_str("IncompatibleSigningScheme")
-                }
+                Self::IncompatibleSigningScheme => f.write_str("IncompatibleSigningScheme"),
                 Self::TooManyLimitOrders => f.write_str("TooManyLimitOrders"),
                 Self::TooMuchGas => f.write_str("TooMuchGas"),
                 Self::UnsupportedBuyTokenDestination => {
                     f.write_str("UnsupportedBuyTokenDestination")
                 }
-                Self::UnsupportedSellTokenSource => {
-                    f.write_str("UnsupportedSellTokenSource")
-                }
+                Self::UnsupportedSellTokenSource => f.write_str("UnsupportedSellTokenSource"),
                 Self::UnsupportedOrderType => f.write_str("UnsupportedOrderType"),
                 Self::InsufficientValidTo => f.write_str("InsufficientValidTo"),
                 Self::ExcessiveValidTo => f.write_str("ExcessiveValidTo"),
@@ -4020,18 +3924,14 @@ in the network's native token (in Wei or the equivalent atom).
                 Self::AppDataHashMismatch => f.write_str("AppDataHashMismatch"),
                 Self::AppDataMismatch => f.write_str("AppDataMismatch"),
                 Self::AppdataFromMismatch => f.write_str("AppdataFromMismatch"),
-                Self::MetadataSerializationFailed => {
-                    f.write_str("MetadataSerializationFailed")
-                }
+                Self::MetadataSerializationFailed => f.write_str("MetadataSerializationFailed"),
                 Self::OldOrderActivelyBidOn => f.write_str("OldOrderActivelyBidOn"),
             }
         }
     }
     impl ::std::str::FromStr for OrderPostErrorErrorType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "DuplicatedOrder" => Ok(Self::DuplicatedOrder),
                 "QuoteNotFound" => Ok(Self::QuoteNotFound),
@@ -4049,9 +3949,7 @@ in the network's native token (in Wei or the equivalent atom).
                 "IncompatibleSigningScheme" => Ok(Self::IncompatibleSigningScheme),
                 "TooManyLimitOrders" => Ok(Self::TooManyLimitOrders),
                 "TooMuchGas" => Ok(Self::TooMuchGas),
-                "UnsupportedBuyTokenDestination" => {
-                    Ok(Self::UnsupportedBuyTokenDestination)
-                }
+                "UnsupportedBuyTokenDestination" => Ok(Self::UnsupportedBuyTokenDestination),
                 "UnsupportedSellTokenSource" => Ok(Self::UnsupportedSellTokenSource),
                 "UnsupportedOrderType" => Ok(Self::UnsupportedOrderType),
                 "InsufficientValidTo" => Ok(Self::InsufficientValidTo),
@@ -4071,9 +3969,7 @@ in the network's native token (in Wei or the equivalent atom).
     }
     impl ::std::convert::TryFrom<&str> for OrderPostErrorErrorType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -4681,12 +4577,12 @@ in the network's native token (in Wei or the equivalent atom).
         Variant0 {
             /**AppData which will be assigned to the order.
 
-Expects either a string JSON doc as defined on
-[AppData](https://github.com/cowprotocol/app-data) or a hex
-encoded string for backwards compatibility.
+            Expects either a string JSON doc as defined on
+            [AppData](https://github.com/cowprotocol/app-data) or a hex
+            encoded string for backwards compatibility.
 
-When the first format is used, it's possible to provide the
-derived appDataHash field.*/
+            When the first format is used, it's possible to provide the
+            derived appDataHash field.*/
             #[serde(
                 rename = "appData",
                 default,
@@ -4710,7 +4606,7 @@ derived appDataHash field.*/
             from: Address,
             kind: OrderQuoteSideKindSell,
             /**Flag to signal whether the order is intended for on-chain order placement. Only valid for non ECDSA-signed orders."
-*/
+             */
             #[serde(
                 rename = "onchainOrder",
                 default = "defaults::order_quote_request_variant0_variant0_onchain_order"
@@ -4722,12 +4618,12 @@ derived appDataHash field.*/
             )]
             price_quality: PriceQuality,
             /**An optional address to receive the proceeds of the trade instead of the
-`owner` (i.e. the order signer).
-*/
+            `owner` (i.e. the order signer).
+            */
             #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
             receiver: ::std::option::Option<Address>,
             /**The total amount that is available for the order. From this value, the fee is deducted and the buy amount is calculated.
-*/
+             */
             #[serde(rename = "sellAmountBeforeFee")]
             sell_amount_before_fee: TokenAmount,
             ///ERC-20 token to be sold
@@ -4744,7 +4640,7 @@ derived appDataHash field.*/
             )]
             signing_scheme: SigningScheme,
             /**User provided timeout in milliseconds. If no value is provided the systems default quote timeout will be used. Values get capped at a generous maximum timeout. Note that reducing the timeout can result in worse quotes because it might be too short for some price estimators.
-*/
+             */
             #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
             timeout: ::std::option::Option<i64>,
             ///Unix timestamp (`uint32`) until which the order is valid.
@@ -4758,12 +4654,12 @@ derived appDataHash field.*/
         Variant1 {
             /**AppData which will be assigned to the order.
 
-Expects either a string JSON doc as defined on
-[AppData](https://github.com/cowprotocol/app-data) or a hex
-encoded string for backwards compatibility.
+            Expects either a string JSON doc as defined on
+            [AppData](https://github.com/cowprotocol/app-data) or a hex
+            encoded string for backwards compatibility.
 
-When the first format is used, it's possible to provide the
-derived appDataHash field.*/
+            When the first format is used, it's possible to provide the
+            derived appDataHash field.*/
             #[serde(
                 rename = "appData",
                 default,
@@ -4787,7 +4683,7 @@ derived appDataHash field.*/
             from: Address,
             kind: OrderQuoteSideKindSell,
             /**Flag to signal whether the order is intended for on-chain order placement. Only valid for non ECDSA-signed orders."
-*/
+             */
             #[serde(
                 rename = "onchainOrder",
                 default = "defaults::order_quote_request_variant0_variant1_onchain_order"
@@ -4799,12 +4695,12 @@ derived appDataHash field.*/
             )]
             price_quality: PriceQuality,
             /**An optional address to receive the proceeds of the trade instead of the
-`owner` (i.e. the order signer).
-*/
+            `owner` (i.e. the order signer).
+            */
             #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
             receiver: ::std::option::Option<Address>,
             /**The total amount that is available for the order. From this value, the fee is deducted and the buy amount is calculated.
-*/
+             */
             #[serde(rename = "sellAmountBeforeFee")]
             sell_amount_before_fee: TokenAmount,
             ///ERC-20 token to be sold
@@ -4821,7 +4717,7 @@ derived appDataHash field.*/
             )]
             signing_scheme: SigningScheme,
             /**User provided timeout in milliseconds. If no value is provided the systems default quote timeout will be used. Values get capped at a generous maximum timeout. Note that reducing the timeout can result in worse quotes because it might be too short for some price estimators.
-*/
+             */
             #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
             timeout: ::std::option::Option<i64>,
             ///Number (`uint32`) of seconds that the order should be valid for.
@@ -4835,12 +4731,12 @@ derived appDataHash field.*/
     }
     /**AppData which will be assigned to the order.
 
-Expects either a string JSON doc as defined on
-[AppData](https://github.com/cowprotocol/app-data) or a hex
-encoded string for backwards compatibility.
+    Expects either a string JSON doc as defined on
+    [AppData](https://github.com/cowprotocol/app-data) or a hex
+    encoded string for backwards compatibility.
 
-When the first format is used, it's possible to provide the
-derived appDataHash field.*/
+    When the first format is used, it's possible to provide the
+    derived appDataHash field.*/
     ///
     /// <details><summary>JSON schema</summary>
     ///
@@ -4884,12 +4780,12 @@ derived appDataHash field.*/
     }
     /**AppData which will be assigned to the order.
 
-Expects either a string JSON doc as defined on
-[AppData](https://github.com/cowprotocol/app-data) or a hex
-encoded string for backwards compatibility.
+    Expects either a string JSON doc as defined on
+    [AppData](https://github.com/cowprotocol/app-data) or a hex
+    encoded string for backwards compatibility.
 
-When the first format is used, it's possible to provide the
-derived appDataHash field.*/
+    When the first format is used, it's possible to provide the
+    derived appDataHash field.*/
     ///
     /// <details><summary>JSON schema</summary>
     ///
@@ -5376,12 +5272,12 @@ derived appDataHash field.*/
         Variant0 {
             /**AppData which will be assigned to the order.
 
-Expects either a string JSON doc as defined on
-[AppData](https://github.com/cowprotocol/app-data) or a hex
-encoded string for backwards compatibility.
+            Expects either a string JSON doc as defined on
+            [AppData](https://github.com/cowprotocol/app-data) or a hex
+            encoded string for backwards compatibility.
 
-When the first format is used, it's possible to provide the
-derived appDataHash field.*/
+            When the first format is used, it's possible to provide the
+            derived appDataHash field.*/
             #[serde(
                 rename = "appData",
                 default,
@@ -5405,7 +5301,7 @@ derived appDataHash field.*/
             from: Address,
             kind: OrderQuoteSideKindSell,
             /**Flag to signal whether the order is intended for on-chain order placement. Only valid for non ECDSA-signed orders."
-*/
+             */
             #[serde(
                 rename = "onchainOrder",
                 default = "defaults::order_quote_request_variant1_variant0_onchain_order"
@@ -5417,8 +5313,8 @@ derived appDataHash field.*/
             )]
             price_quality: PriceQuality,
             /**An optional address to receive the proceeds of the trade instead of the
-`owner` (i.e. the order signer).
-*/
+            `owner` (i.e. the order signer).
+            */
             #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
             receiver: ::std::option::Option<Address>,
             ///The `sellAmount` for the order.
@@ -5438,7 +5334,7 @@ derived appDataHash field.*/
             )]
             signing_scheme: SigningScheme,
             /**User provided timeout in milliseconds. If no value is provided the systems default quote timeout will be used. Values get capped at a generous maximum timeout. Note that reducing the timeout can result in worse quotes because it might be too short for some price estimators.
-*/
+             */
             #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
             timeout: ::std::option::Option<i64>,
             ///Unix timestamp (`uint32`) until which the order is valid.
@@ -5452,12 +5348,12 @@ derived appDataHash field.*/
         Variant1 {
             /**AppData which will be assigned to the order.
 
-Expects either a string JSON doc as defined on
-[AppData](https://github.com/cowprotocol/app-data) or a hex
-encoded string for backwards compatibility.
+            Expects either a string JSON doc as defined on
+            [AppData](https://github.com/cowprotocol/app-data) or a hex
+            encoded string for backwards compatibility.
 
-When the first format is used, it's possible to provide the
-derived appDataHash field.*/
+            When the first format is used, it's possible to provide the
+            derived appDataHash field.*/
             #[serde(
                 rename = "appData",
                 default,
@@ -5481,7 +5377,7 @@ derived appDataHash field.*/
             from: Address,
             kind: OrderQuoteSideKindSell,
             /**Flag to signal whether the order is intended for on-chain order placement. Only valid for non ECDSA-signed orders."
-*/
+             */
             #[serde(
                 rename = "onchainOrder",
                 default = "defaults::order_quote_request_variant1_variant1_onchain_order"
@@ -5493,8 +5389,8 @@ derived appDataHash field.*/
             )]
             price_quality: PriceQuality,
             /**An optional address to receive the proceeds of the trade instead of the
-`owner` (i.e. the order signer).
-*/
+            `owner` (i.e. the order signer).
+            */
             #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
             receiver: ::std::option::Option<Address>,
             ///The `sellAmount` for the order.
@@ -5514,7 +5410,7 @@ derived appDataHash field.*/
             )]
             signing_scheme: SigningScheme,
             /**User provided timeout in milliseconds. If no value is provided the systems default quote timeout will be used. Values get capped at a generous maximum timeout. Note that reducing the timeout can result in worse quotes because it might be too short for some price estimators.
-*/
+             */
             #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
             timeout: ::std::option::Option<i64>,
             ///Number (`uint32`) of seconds that the order should be valid for.
@@ -5528,12 +5424,12 @@ derived appDataHash field.*/
     }
     /**AppData which will be assigned to the order.
 
-Expects either a string JSON doc as defined on
-[AppData](https://github.com/cowprotocol/app-data) or a hex
-encoded string for backwards compatibility.
+    Expects either a string JSON doc as defined on
+    [AppData](https://github.com/cowprotocol/app-data) or a hex
+    encoded string for backwards compatibility.
 
-When the first format is used, it's possible to provide the
-derived appDataHash field.*/
+    When the first format is used, it's possible to provide the
+    derived appDataHash field.*/
     ///
     /// <details><summary>JSON schema</summary>
     ///
@@ -5577,12 +5473,12 @@ derived appDataHash field.*/
     }
     /**AppData which will be assigned to the order.
 
-Expects either a string JSON doc as defined on
-[AppData](https://github.com/cowprotocol/app-data) or a hex
-encoded string for backwards compatibility.
+    Expects either a string JSON doc as defined on
+    [AppData](https://github.com/cowprotocol/app-data) or a hex
+    encoded string for backwards compatibility.
 
-When the first format is used, it's possible to provide the
-derived appDataHash field.*/
+    When the first format is used, it's possible to provide the
+    derived appDataHash field.*/
     ///
     /// <details><summary>JSON schema</summary>
     ///
@@ -6069,12 +5965,12 @@ derived appDataHash field.*/
         Variant0 {
             /**AppData which will be assigned to the order.
 
-Expects either a string JSON doc as defined on
-[AppData](https://github.com/cowprotocol/app-data) or a hex
-encoded string for backwards compatibility.
+            Expects either a string JSON doc as defined on
+            [AppData](https://github.com/cowprotocol/app-data) or a hex
+            encoded string for backwards compatibility.
 
-When the first format is used, it's possible to provide the
-derived appDataHash field.*/
+            When the first format is used, it's possible to provide the
+            derived appDataHash field.*/
             #[serde(
                 rename = "appData",
                 default,
@@ -6101,7 +5997,7 @@ derived appDataHash field.*/
             from: Address,
             kind: OrderQuoteSideKindBuy,
             /**Flag to signal whether the order is intended for on-chain order placement. Only valid for non ECDSA-signed orders."
-*/
+             */
             #[serde(
                 rename = "onchainOrder",
                 default = "defaults::order_quote_request_variant2_variant0_onchain_order"
@@ -6113,8 +6009,8 @@ derived appDataHash field.*/
             )]
             price_quality: PriceQuality,
             /**An optional address to receive the proceeds of the trade instead of the
-`owner` (i.e. the order signer).
-*/
+            `owner` (i.e. the order signer).
+            */
             #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
             receiver: ::std::option::Option<Address>,
             ///ERC-20 token to be sold
@@ -6131,7 +6027,7 @@ derived appDataHash field.*/
             )]
             signing_scheme: SigningScheme,
             /**User provided timeout in milliseconds. If no value is provided the systems default quote timeout will be used. Values get capped at a generous maximum timeout. Note that reducing the timeout can result in worse quotes because it might be too short for some price estimators.
-*/
+             */
             #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
             timeout: ::std::option::Option<i64>,
             ///Unix timestamp (`uint32`) until which the order is valid.
@@ -6145,12 +6041,12 @@ derived appDataHash field.*/
         Variant1 {
             /**AppData which will be assigned to the order.
 
-Expects either a string JSON doc as defined on
-[AppData](https://github.com/cowprotocol/app-data) or a hex
-encoded string for backwards compatibility.
+            Expects either a string JSON doc as defined on
+            [AppData](https://github.com/cowprotocol/app-data) or a hex
+            encoded string for backwards compatibility.
 
-When the first format is used, it's possible to provide the
-derived appDataHash field.*/
+            When the first format is used, it's possible to provide the
+            derived appDataHash field.*/
             #[serde(
                 rename = "appData",
                 default,
@@ -6177,7 +6073,7 @@ derived appDataHash field.*/
             from: Address,
             kind: OrderQuoteSideKindBuy,
             /**Flag to signal whether the order is intended for on-chain order placement. Only valid for non ECDSA-signed orders."
-*/
+             */
             #[serde(
                 rename = "onchainOrder",
                 default = "defaults::order_quote_request_variant2_variant1_onchain_order"
@@ -6189,8 +6085,8 @@ derived appDataHash field.*/
             )]
             price_quality: PriceQuality,
             /**An optional address to receive the proceeds of the trade instead of the
-`owner` (i.e. the order signer).
-*/
+            `owner` (i.e. the order signer).
+            */
             #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
             receiver: ::std::option::Option<Address>,
             ///ERC-20 token to be sold
@@ -6207,7 +6103,7 @@ derived appDataHash field.*/
             )]
             signing_scheme: SigningScheme,
             /**User provided timeout in milliseconds. If no value is provided the systems default quote timeout will be used. Values get capped at a generous maximum timeout. Note that reducing the timeout can result in worse quotes because it might be too short for some price estimators.
-*/
+             */
             #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
             timeout: ::std::option::Option<i64>,
             ///Number (`uint32`) of seconds that the order should be valid for.
@@ -6221,12 +6117,12 @@ derived appDataHash field.*/
     }
     /**AppData which will be assigned to the order.
 
-Expects either a string JSON doc as defined on
-[AppData](https://github.com/cowprotocol/app-data) or a hex
-encoded string for backwards compatibility.
+    Expects either a string JSON doc as defined on
+    [AppData](https://github.com/cowprotocol/app-data) or a hex
+    encoded string for backwards compatibility.
 
-When the first format is used, it's possible to provide the
-derived appDataHash field.*/
+    When the first format is used, it's possible to provide the
+    derived appDataHash field.*/
     ///
     /// <details><summary>JSON schema</summary>
     ///
@@ -6270,12 +6166,12 @@ derived appDataHash field.*/
     }
     /**AppData which will be assigned to the order.
 
-Expects either a string JSON doc as defined on
-[AppData](https://github.com/cowprotocol/app-data) or a hex
-encoded string for backwards compatibility.
+    Expects either a string JSON doc as defined on
+    [AppData](https://github.com/cowprotocol/app-data) or a hex
+    encoded string for backwards compatibility.
 
-When the first format is used, it's possible to provide the
-derived appDataHash field.*/
+    When the first format is used, it's possible to provide the
+    derived appDataHash field.*/
     ///
     /// <details><summary>JSON schema</summary>
     ///
@@ -6318,8 +6214,8 @@ derived appDataHash field.*/
         }
     }
     /**An order quoted by the backend that can be directly signed and
-submitted to the order creation backend.
-*/
+    submitted to the order creation backend.
+    */
     ///
     /// <details><summary>JSON schema</summary>
     ///
@@ -6378,19 +6274,19 @@ submitted to the order creation backend.
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct OrderQuoteResponse {
         /**Expiration date of the offered fee. Order service might not accept
-the fee after this expiration date. Encoded as ISO 8601 UTC.
-*/
+        the fee after this expiration date. Encoded as ISO 8601 UTC.
+        */
         pub expiration: ::std::string::String,
         /**The address of the trader for whom the quote was requested.
-*/
+         */
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub from: ::std::option::Option<Address>,
         /**Quote ID linked to a quote to enable providing more metadata when analysing order slippage.
-*/
+         */
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub id: ::std::option::Option<i64>,
         /**Protocol fee in basis points (e.g., "2" for 0.02%). This represents the volume-based fee policy. Only present when a volume fee is configured.
-*/
+         */
         #[serde(
             rename = "protocolFeeBps",
             default,
@@ -6398,10 +6294,10 @@ the fee after this expiration date. Encoded as ISO 8601 UTC.
         )]
         pub protocol_fee_bps: ::std::option::Option<::std::string::String>,
         /**The quoted order parameters. These values can be used directly to create and sign an order.
-*/
+         */
         pub quote: OrderParameters,
         /**Whether it was possible to verify that the quoted amounts are accurate using a simulation.
-*/
+         */
         pub verified: bool,
     }
     ///The buy or sell side when quoting an order.
@@ -6497,7 +6393,7 @@ the fee after this expiration date. Encoded as ISO 8601 UTC.
         Variant0 {
             kind: OrderQuoteSideKindSell,
             /**The total amount that is available for the order. From this value, the fee is deducted and the buy amount is calculated.
-*/
+             */
             #[serde(rename = "sellAmountBeforeFee")]
             sell_amount_before_fee: TokenAmount,
         },
@@ -6537,7 +6433,7 @@ the fee after this expiration date. Encoded as ISO 8601 UTC.
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum OrderQuoteSideKindBuy {
         #[serde(rename = "buy")]
@@ -6552,9 +6448,7 @@ the fee after this expiration date. Encoded as ISO 8601 UTC.
     }
     impl ::std::str::FromStr for OrderQuoteSideKindBuy {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "buy" => Ok(Self::Buy),
                 _ => Err("invalid value".into()),
@@ -6563,9 +6457,7 @@ the fee after this expiration date. Encoded as ISO 8601 UTC.
     }
     impl ::std::convert::TryFrom<&str> for OrderQuoteSideKindBuy {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -6608,7 +6500,7 @@ the fee after this expiration date. Encoded as ISO 8601 UTC.
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum OrderQuoteSideKindSell {
         #[serde(rename = "sell")]
@@ -6623,9 +6515,7 @@ the fee after this expiration date. Encoded as ISO 8601 UTC.
     }
     impl ::std::str::FromStr for OrderQuoteSideKindSell {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "sell" => Ok(Self::Sell),
                 _ => Err("invalid value".into()),
@@ -6634,9 +6524,7 @@ the fee after this expiration date. Encoded as ISO 8601 UTC.
     }
     impl ::std::convert::TryFrom<&str> for OrderQuoteSideKindSell {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -6711,7 +6599,7 @@ the fee after this expiration date. Encoded as ISO 8601 UTC.
         },
     }
     /**The Tenderly simulation request for an order, along with any simulation error.
-*/
+     */
     ///
     /// <details><summary>JSON schema</summary>
     ///
@@ -6772,7 +6660,7 @@ the fee after this expiration date. Encoded as ISO 8601 UTC.
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum OrderStatus {
         #[serde(rename = "presignaturePending")]
@@ -6799,9 +6687,7 @@ the fee after this expiration date. Encoded as ISO 8601 UTC.
     }
     impl ::std::str::FromStr for OrderStatus {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "presignaturePending" => Ok(Self::PresignaturePending),
                 "open" => Ok(Self::Open),
@@ -6814,9 +6700,7 @@ the fee after this expiration date. Encoded as ISO 8601 UTC.
     }
     impl ::std::convert::TryFrom<&str> for OrderStatus {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -6851,15 +6735,7 @@ the fee after this expiration date. Encoded as ISO 8601 UTC.
     /// ```
     /// </details>
     #[derive(
-        ::serde::Deserialize,
-        ::serde::Serialize,
-        Clone,
-        Debug,
-        Eq,
-        Hash,
-        Ord,
-        PartialEq,
-        PartialOrd
+        ::serde::Deserialize, ::serde::Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd,
     )]
     #[serde(transparent)]
     pub struct PreSignature(pub ::std::string::String);
@@ -6950,7 +6826,7 @@ the fee after this expiration date. Encoded as ISO 8601 UTC.
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum PriceEstimationErrorErrorType {
         QuoteNotVerified,
@@ -6970,9 +6846,7 @@ the fee after this expiration date. Encoded as ISO 8601 UTC.
     }
     impl ::std::str::FromStr for PriceEstimationErrorErrorType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "QuoteNotVerified" => Ok(Self::QuoteNotVerified),
                 "UnsupportedToken" => Ok(Self::UnsupportedToken),
@@ -6984,14 +6858,11 @@ the fee after this expiration date. Encoded as ISO 8601 UTC.
     }
     impl ::std::convert::TryFrom<&str> for PriceEstimationErrorErrorType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for PriceEstimationErrorErrorType {
+    impl ::std::convert::TryFrom<&::std::string::String> for PriceEstimationErrorErrorType {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -6999,8 +6870,7 @@ the fee after this expiration date. Encoded as ISO 8601 UTC.
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for PriceEstimationErrorErrorType {
+    impl ::std::convert::TryFrom<::std::string::String> for PriceEstimationErrorErrorType {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -7054,13 +6924,13 @@ the fee after this expiration date. Encoded as ISO 8601 UTC.
     }
     /**How good should the price estimate be?
 
-Fast: The price estimate is chosen among the fastest N price estimates.
-Optimal: The price estimate is chosen among all price estimates.
-Verified: The price estimate is chosen among all verified/simulated
-price estimates.
+    Fast: The price estimate is chosen among the fastest N price estimates.
+    Optimal: The price estimate is chosen among all price estimates.
+    Verified: The price estimate is chosen among all verified/simulated
+    price estimates.
 
-**NOTE**: Orders are supposed to be created from `verified` or `optimal`
-price estimates.*/
+    **NOTE**: Orders are supposed to be created from `verified` or `optimal`
+    price estimates.*/
     ///
     /// <details><summary>JSON schema</summary>
     ///
@@ -7086,7 +6956,7 @@ price estimates.*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum PriceQuality {
         #[serde(rename = "fast")]
@@ -7107,9 +6977,7 @@ price estimates.*/
     }
     impl ::std::str::FromStr for PriceQuality {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "fast" => Ok(Self::Fast),
                 "optimal" => Ok(Self::Optimal),
@@ -7120,9 +6988,7 @@ price estimates.*/
     }
     impl ::std::convert::TryFrom<&str> for PriceQuality {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -7143,7 +7009,7 @@ price estimates.*/
         }
     }
     /**A calculated order quote used in solver auctions.
-*/
+     */
     ///
     /// <details><summary>JSON schema</summary>
     ///
@@ -7235,7 +7101,7 @@ price estimates.*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum SellTokenSource {
         #[serde(rename = "erc20")]
@@ -7256,9 +7122,7 @@ price estimates.*/
     }
     impl ::std::str::FromStr for SellTokenSource {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "erc20" => Ok(Self::Erc20),
                 "internal" => Ok(Self::Internal),
@@ -7269,9 +7133,7 @@ price estimates.*/
     }
     impl ::std::convert::TryFrom<&str> for SellTokenSource {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -7360,7 +7222,7 @@ price estimates.*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum SigningScheme {
         #[serde(rename = "eip712")]
@@ -7384,9 +7246,7 @@ price estimates.*/
     }
     impl ::std::str::FromStr for SigningScheme {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "eip712" => Ok(Self::Eip712),
                 "ethsign" => Ok(Self::Ethsign),
@@ -7398,9 +7258,7 @@ price estimates.*/
     }
     impl ::std::convert::TryFrom<&str> for SigningScheme {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -7421,7 +7279,7 @@ price estimates.*/
         }
     }
     /**Request body for simulating an arbitrary order without it being stored in the orderbook.
-*/
+     */
     ///
     /// <details><summary>JSON schema</summary>
     ///
@@ -7536,7 +7394,7 @@ price estimates.*/
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct SimulationRequest {
         /**Full app data JSON string. Defaults to `"{}"` if omitted.
-*/
+         */
         #[serde(
             rename = "appData",
             default,
@@ -7566,11 +7424,11 @@ price estimates.*/
         ///The address of the order owner.
         pub owner: Address,
         /**The address that will receive the buy tokens. Defaults to the owner if omitted.
-*/
+         */
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub receiver: ::std::option::Option<Address>,
         /**Amount of sell token (hex- or decimal-encoded uint256). Must be greater than zero.
-*/
+         */
         #[serde(rename = "sellAmount")]
         pub sell_amount: TokenAmount,
         ///The token being sold.
@@ -7608,7 +7466,7 @@ price estimates.*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum SimulationType {
         #[serde(rename = "full")]
@@ -7626,9 +7484,7 @@ price estimates.*/
     }
     impl ::std::str::FromStr for SimulationType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "full" => Ok(Self::Full),
                 "quick" => Ok(Self::Quick),
@@ -7638,9 +7494,7 @@ price estimates.*/
     }
     impl ::std::convert::TryFrom<&str> for SimulationType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -7661,9 +7515,9 @@ price estimates.*/
         }
     }
     /**The settlements submitted by every solver for a specific auction.
-The `auctionId` corresponds to the id external solvers are provided
-with.
-*/
+    The `auctionId` corresponds to the id external solvers are provided
+    with.
+    */
     ///
     /// <details><summary>JSON schema</summary>
     ///
@@ -7738,21 +7592,18 @@ with.
         )]
         pub auction_start_block: ::std::option::Option<i64>,
         /**The reference scores for each winning solver according to [CIP-67](https://forum.cow.fi/t/cip-67-moving-from-batch-auction-to-the-fair-combinatorial-auction/2967) (if available).
-*/
+         */
         #[serde(
             rename = "referenceScores",
             default,
             skip_serializing_if = ":: std :: collections :: HashMap::is_empty"
         )]
-        pub reference_scores: ::std::collections::HashMap<
-            ::std::string::String,
-            BigUint,
-        >,
+        pub reference_scores: ::std::collections::HashMap<::std::string::String, BigUint>,
         ///Maps from solver name to object describing that solver's settlement.
         #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
         pub solutions: ::std::vec::Vec<SolverSettlement>,
         /**The hashes of the transactions for the winning solutions of this competition.
-*/
+         */
         #[serde(
             rename = "transactionHashes",
             default,
@@ -7867,7 +7718,7 @@ with.
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct SolverSettlement {
         /**The prices of tokens for settled user orders as passed to the settlement contract.
-*/
+         */
         #[serde(
             rename = "clearingPrices",
             default,
@@ -7895,7 +7746,7 @@ with.
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub ranking: ::std::option::Option<f64>,
         /**The reference score as defined in [CIP-67](https://forum.cow.fi/t/cip-67-moving-from-batch-auction-to-the-fair-combinatorial-auction/2967) (if available).
-*/
+         */
         #[serde(
             rename = "referenceScore",
             default,
@@ -7903,13 +7754,13 @@ with.
         )]
         pub reference_score: ::std::option::Option<BigUint>,
         /**The score of the current auction as defined in [CIP-20](https://snapshot.org/#/cow.eth/proposal/0x2d3f9bd1ea72dca84b03e97dda3efc1f4a42a772c54bd2037e8b62e7d09a491f).
-*/
+         */
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub score: ::std::option::Option<BigUint>,
         /**The address used by the solver to execute the settlement on-chain.
 
-This field is missing for old settlements, the zero address has been
-used instead.*/
+        This field is missing for old settlements, the zero address has been
+        used instead.*/
         #[serde(
             rename = "solverAddress",
             default,
@@ -7917,7 +7768,7 @@ used instead.*/
         )]
         pub solver_address: ::std::option::Option<::std::string::String>,
         /**Transaction in which the solution was executed onchain (if available).
-*/
+         */
         #[serde(
             rename = "txHash",
             default,
@@ -8030,15 +7881,12 @@ used instead.*/
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub code: ::std::option::Option<::std::string::String>,
         /**Fake key-value mapping to override individual storage slots. Keys and values are 32-byte hex strings with `0x` prefix.
-*/
+         */
         #[serde(
             default,
             skip_serializing_if = ":: std :: collections :: HashMap::is_empty"
         )]
-        pub storage: ::std::collections::HashMap<
-            ::std::string::String,
-            ::std::string::String,
-        >,
+        pub storage: ::std::collections::HashMap<::std::string::String, ::std::string::String>,
     }
     impl ::std::default::Default for StateObject {
         fn default() -> Self {
@@ -8050,12 +7898,12 @@ used instead.*/
         }
     }
     /**Quote data stored with an order. This represents the original quote used to
-create the order, containing gas estimation and pricing information captured
-at the time of quoting.
+    create the order, containing gas estimation and pricing information captured
+    at the time of quoting.
 
-Note: This is different from `OrderQuoteResponse` which is returned by the
-`POST /api/v1/quote` endpoint and contains order parameters to sign.
-*/
+    Note: This is different from `OrderQuoteResponse` which is returned by the
+    `POST /api/v1/quote` endpoint and contains order parameters to sign.
+    */
     ///
     /// <details><summary>JSON schema</summary>
     ///
@@ -8145,30 +7993,30 @@ Note: This is different from `OrderQuoteResponse` which is returned by the
         #[serde(rename = "buyAmount")]
         pub buy_amount: TokenAmount,
         /**The fee amount in atoms of the sell token, calculated from the gas parameters
-at the time of quoting.
+        at the time of quoting.
 
-Computed as: `ceil((gasAmount * gasPrice) / sellTokenPrice)`.
+        Computed as: `ceil((gasAmount * gasPrice) / sellTokenPrice)`.
 
-This represents the network fee that was estimated when the quote was created.
-*/
+        This represents the network fee that was estimated when the quote was created.
+        */
         #[serde(rename = "feeAmount")]
         pub fee_amount: TokenAmount,
         /**The estimated gas units required to execute the quoted trade.
-Measured in gas units (not Wei). Used together with `gasPrice` and
-`sellTokenPrice` to calculate the network fee in sell token atoms.
-*/
+        Measured in gas units (not Wei). Used together with `gasPrice` and
+        `sellTokenPrice` to calculate the network fee in sell token atoms.
+        */
         #[serde(rename = "gasAmount")]
         pub gas_amount: ::std::string::String,
         /**The estimated gas price at the time of quoting, measured in Wei per gas unit.
-The network fee in Wei can be calculated as: `feeInWei = gasAmount * gasPrice`.
-*/
+        The network fee in Wei can be calculated as: `feeInWei = gasAmount * gasPrice`.
+        */
         #[serde(rename = "gasPrice")]
         pub gas_price: ::std::string::String,
         /**Additional metadata about the quote execution plan (e.g., the route taken).
-This field is only populated for orders that are no longer fillable
-(filled, cancelled, or expired) to prevent solvers from copying
-execution strategies for active orders.
-*/
+        This field is only populated for orders that are no longer fillable
+        (filled, cancelled, or expired) to prevent solvers from copying
+        execution strategies for active orders.
+        */
         #[serde(default, skip_serializing_if = "::serde_json::Map::is_empty")]
         pub metadata: ::serde_json::Map<::std::string::String, ::serde_json::Value>,
         ///The quoted sell amount in atoms of the sell token.
@@ -8176,24 +8024,24 @@ execution strategies for active orders.
         pub sell_amount: TokenAmount,
         /**The price of the sell token expressed in native token atoms per sell token atom.
 
-Units: `native token atoms / sell token atoms`
+        Units: `native token atoms / sell token atoms`
 
-**Example calculation (Mainnet, selling USDC):**
-- Sell token: USDC (6 decimals)
-- Native token: ETH (18 decimals)
-- Market price: 1 ETH = 1000 USDC
+        **Example calculation (Mainnet, selling USDC):**
+        - Sell token: USDC (6 decimals)
+        - Native token: ETH (18 decimals)
+        - Market price: 1 ETH = 1000 USDC
 
-`sellTokenPrice = 1 × 10^18 wei / (1000 × 10^6 USDC atoms) = 10^9`
+        `sellTokenPrice = 1 × 10^18 wei / (1000 × 10^6 USDC atoms) = 10^9`
 
-This value is used to convert network fees (in native token) to sell token amounts.
-*/
+        This value is used to convert network fees (in native token) to sell token amounts.
+        */
         #[serde(rename = "sellTokenPrice")]
         pub sell_token_price: ::std::string::String,
         ///The address of the solver that provided this quote.
         pub solver: Address,
         /**Whether the quote was verified through simulation. A verified quote
-provides higher confidence that the trade will execute successfully.
-*/
+        provides higher confidence that the trade will execute successfully.
+        */
         pub verified: bool,
     }
     ///The protocol fee is taken as a percent of the surplus.
@@ -8352,15 +8200,12 @@ provides higher confidence that the trade will execute successfully.
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub simulation_type: ::std::option::Option<SimulationType>,
         /**State overrides applied before simulation. Keys are account addresses (hex with `0x` prefix).
-*/
+         */
         #[serde(
             default,
             skip_serializing_if = ":: std :: collections :: HashMap::is_empty"
         )]
-        pub state_objects: ::std::collections::HashMap<
-            ::std::string::String,
-            StateObject,
-        >,
+        pub state_objects: ::std::collections::HashMap<::std::string::String, StateObject>,
         pub to: Address,
         ///Transaction index within the block.
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
@@ -8384,15 +8229,7 @@ provides higher confidence that the trade will execute successfully.
     /// ```
     /// </details>
     #[derive(
-        ::serde::Deserialize,
-        ::serde::Serialize,
-        Clone,
-        Debug,
-        Eq,
-        Hash,
-        Ord,
-        PartialEq,
-        PartialOrd
+        ::serde::Deserialize, ::serde::Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd,
     )]
     #[serde(transparent)]
     pub struct TokenAmount(pub ::std::string::String);
@@ -8424,7 +8261,7 @@ provides higher confidence that the trade will execute successfully.
         }
     }
     /**The total surplus.
-*/
+     */
     ///
     /// <details><summary>JSON schema</summary>
     ///
@@ -8459,7 +8296,7 @@ provides higher confidence that the trade will execute successfully.
         }
     }
     /**Trade data such as executed amounts, fees, `orderUid` and `block` number.
-*/
+     */
     ///
     /// <details><summary>JSON schema</summary>
     ///
@@ -8582,7 +8419,7 @@ provides higher confidence that the trade will execute successfully.
         #[serde(rename = "buyToken")]
         pub buy_token: Address,
         /**Executed protocol fees for this trade, together with the fee policies used. Listed in the order they got applied.
-*/
+         */
         #[serde(
             rename = "executedProtocolFees",
             default,
@@ -8625,15 +8462,7 @@ provides higher confidence that the trade will execute successfully.
     /// ```
     /// </details>
     #[derive(
-        ::serde::Deserialize,
-        ::serde::Serialize,
-        Clone,
-        Debug,
-        Eq,
-        Hash,
-        Ord,
-        PartialEq,
-        PartialOrd
+        ::serde::Deserialize, ::serde::Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd,
     )]
     #[serde(transparent)]
     pub struct TransactionHash(pub ::std::string::String);
@@ -8665,10 +8494,10 @@ provides higher confidence that the trade will execute successfully.
         }
     }
     /**Unique identifier for the order: 56 bytes encoded as hex with `0x`
-prefix.
+    prefix.
 
-Bytes 0..32 are the order digest, bytes 30..52 the owner address and
-bytes 52..56 the expiry (`validTo`) as a `uint32` unix epoch timestamp.*/
+    Bytes 0..32 are the order digest, bytes 30..52 the owner address and
+    bytes 52..56 the expiry (`validTo`) as a `uint32` unix epoch timestamp.*/
     ///
     /// <details><summary>JSON schema</summary>
     ///
@@ -8683,15 +8512,7 @@ bytes 52..56 the expiry (`validTo`) as a `uint32` unix epoch timestamp.*/
     /// ```
     /// </details>
     #[derive(
-        ::serde::Deserialize,
-        ::serde::Serialize,
-        Clone,
-        Debug,
-        Eq,
-        Hash,
-        Ord,
-        PartialEq,
-        PartialOrd
+        ::serde::Deserialize, ::serde::Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd,
     )]
     #[serde(transparent)]
     pub struct Uid(pub ::std::string::String);
@@ -8770,7 +8591,8 @@ bytes 52..56 the expiry (`validTo`) as a `uint32` unix epoch timestamp.*/
         pub(super) fn order_parameters_signing_scheme() -> super::SigningScheme {
             super::SigningScheme::Eip712
         }
-        pub(super) fn order_quote_request_variant0_variant0_buy_token_balance() -> super::BuyTokenDestination {
+        pub(super) fn order_quote_request_variant0_variant0_buy_token_balance()
+        -> super::BuyTokenDestination {
             super::BuyTokenDestination::Erc20
         }
         pub(super) fn order_quote_request_variant0_variant0_onchain_order() -> ::serde_json::Value {
@@ -8779,13 +8601,16 @@ bytes 52..56 the expiry (`validTo`) as a `uint32` unix epoch timestamp.*/
         pub(super) fn order_quote_request_variant0_variant0_price_quality() -> super::PriceQuality {
             super::PriceQuality::Verified
         }
-        pub(super) fn order_quote_request_variant0_variant0_sell_token_balance() -> super::SellTokenSource {
+        pub(super) fn order_quote_request_variant0_variant0_sell_token_balance()
+        -> super::SellTokenSource {
             super::SellTokenSource::Erc20
         }
-        pub(super) fn order_quote_request_variant0_variant0_signing_scheme() -> super::SigningScheme {
+        pub(super) fn order_quote_request_variant0_variant0_signing_scheme() -> super::SigningScheme
+        {
             super::SigningScheme::Eip712
         }
-        pub(super) fn order_quote_request_variant0_variant1_buy_token_balance() -> super::BuyTokenDestination {
+        pub(super) fn order_quote_request_variant0_variant1_buy_token_balance()
+        -> super::BuyTokenDestination {
             super::BuyTokenDestination::Erc20
         }
         pub(super) fn order_quote_request_variant0_variant1_onchain_order() -> ::serde_json::Value {
@@ -8794,13 +8619,16 @@ bytes 52..56 the expiry (`validTo`) as a `uint32` unix epoch timestamp.*/
         pub(super) fn order_quote_request_variant0_variant1_price_quality() -> super::PriceQuality {
             super::PriceQuality::Verified
         }
-        pub(super) fn order_quote_request_variant0_variant1_sell_token_balance() -> super::SellTokenSource {
+        pub(super) fn order_quote_request_variant0_variant1_sell_token_balance()
+        -> super::SellTokenSource {
             super::SellTokenSource::Erc20
         }
-        pub(super) fn order_quote_request_variant0_variant1_signing_scheme() -> super::SigningScheme {
+        pub(super) fn order_quote_request_variant0_variant1_signing_scheme() -> super::SigningScheme
+        {
             super::SigningScheme::Eip712
         }
-        pub(super) fn order_quote_request_variant1_variant0_buy_token_balance() -> super::BuyTokenDestination {
+        pub(super) fn order_quote_request_variant1_variant0_buy_token_balance()
+        -> super::BuyTokenDestination {
             super::BuyTokenDestination::Erc20
         }
         pub(super) fn order_quote_request_variant1_variant0_onchain_order() -> ::serde_json::Value {
@@ -8809,13 +8637,16 @@ bytes 52..56 the expiry (`validTo`) as a `uint32` unix epoch timestamp.*/
         pub(super) fn order_quote_request_variant1_variant0_price_quality() -> super::PriceQuality {
             super::PriceQuality::Verified
         }
-        pub(super) fn order_quote_request_variant1_variant0_sell_token_balance() -> super::SellTokenSource {
+        pub(super) fn order_quote_request_variant1_variant0_sell_token_balance()
+        -> super::SellTokenSource {
             super::SellTokenSource::Erc20
         }
-        pub(super) fn order_quote_request_variant1_variant0_signing_scheme() -> super::SigningScheme {
+        pub(super) fn order_quote_request_variant1_variant0_signing_scheme() -> super::SigningScheme
+        {
             super::SigningScheme::Eip712
         }
-        pub(super) fn order_quote_request_variant1_variant1_buy_token_balance() -> super::BuyTokenDestination {
+        pub(super) fn order_quote_request_variant1_variant1_buy_token_balance()
+        -> super::BuyTokenDestination {
             super::BuyTokenDestination::Erc20
         }
         pub(super) fn order_quote_request_variant1_variant1_onchain_order() -> ::serde_json::Value {
@@ -8824,13 +8655,16 @@ bytes 52..56 the expiry (`validTo`) as a `uint32` unix epoch timestamp.*/
         pub(super) fn order_quote_request_variant1_variant1_price_quality() -> super::PriceQuality {
             super::PriceQuality::Verified
         }
-        pub(super) fn order_quote_request_variant1_variant1_sell_token_balance() -> super::SellTokenSource {
+        pub(super) fn order_quote_request_variant1_variant1_sell_token_balance()
+        -> super::SellTokenSource {
             super::SellTokenSource::Erc20
         }
-        pub(super) fn order_quote_request_variant1_variant1_signing_scheme() -> super::SigningScheme {
+        pub(super) fn order_quote_request_variant1_variant1_signing_scheme() -> super::SigningScheme
+        {
             super::SigningScheme::Eip712
         }
-        pub(super) fn order_quote_request_variant2_variant0_buy_token_balance() -> super::BuyTokenDestination {
+        pub(super) fn order_quote_request_variant2_variant0_buy_token_balance()
+        -> super::BuyTokenDestination {
             super::BuyTokenDestination::Erc20
         }
         pub(super) fn order_quote_request_variant2_variant0_onchain_order() -> ::serde_json::Value {
@@ -8839,13 +8673,16 @@ bytes 52..56 the expiry (`validTo`) as a `uint32` unix epoch timestamp.*/
         pub(super) fn order_quote_request_variant2_variant0_price_quality() -> super::PriceQuality {
             super::PriceQuality::Verified
         }
-        pub(super) fn order_quote_request_variant2_variant0_sell_token_balance() -> super::SellTokenSource {
+        pub(super) fn order_quote_request_variant2_variant0_sell_token_balance()
+        -> super::SellTokenSource {
             super::SellTokenSource::Erc20
         }
-        pub(super) fn order_quote_request_variant2_variant0_signing_scheme() -> super::SigningScheme {
+        pub(super) fn order_quote_request_variant2_variant0_signing_scheme() -> super::SigningScheme
+        {
             super::SigningScheme::Eip712
         }
-        pub(super) fn order_quote_request_variant2_variant1_buy_token_balance() -> super::BuyTokenDestination {
+        pub(super) fn order_quote_request_variant2_variant1_buy_token_balance()
+        -> super::BuyTokenDestination {
             super::BuyTokenDestination::Erc20
         }
         pub(super) fn order_quote_request_variant2_variant1_onchain_order() -> ::serde_json::Value {
@@ -8854,10 +8691,12 @@ bytes 52..56 the expiry (`validTo`) as a `uint32` unix epoch timestamp.*/
         pub(super) fn order_quote_request_variant2_variant1_price_quality() -> super::PriceQuality {
             super::PriceQuality::Verified
         }
-        pub(super) fn order_quote_request_variant2_variant1_sell_token_balance() -> super::SellTokenSource {
+        pub(super) fn order_quote_request_variant2_variant1_sell_token_balance()
+        -> super::SellTokenSource {
             super::SellTokenSource::Erc20
         }
-        pub(super) fn order_quote_request_variant2_variant1_signing_scheme() -> super::SigningScheme {
+        pub(super) fn order_quote_request_variant2_variant1_signing_scheme() -> super::SigningScheme
+        {
             super::SigningScheme::Eip712
         }
         pub(super) fn simulation_request_buy_token_balance() -> super::BuyTokenDestination {
@@ -8886,7 +8725,9 @@ impl Client {
         #[cfg(not(target_arch = "wasm32"))]
         let client = {
             let dur = ::std::time::Duration::from_secs(15u64);
-            reqwest::ClientBuilder::new().connect_timeout(dur).timeout(dur)
+            reqwest::ClientBuilder::new()
+                .connect_timeout(dur)
+                .timeout(dur)
         };
         #[cfg(target_arch = "wasm32")]
         let client = reqwest::ClientBuilder::new();
@@ -8923,25 +8764,24 @@ impl ClientHooks<()> for &Client {}
 #[allow(clippy::all)]
 impl Client {
     /**Create a new order. In order to replace an existing order with a new one, the appData must contain a [valid replacement order UID](https://github.com/cowprotocol/app-data/blob/main/src/schemas/v1.1.0.json#L62), then the indicated order is cancelled, and a new one placed.
-This allows an old order to be cancelled AND a new order to be created in an atomic operation with a single signature.
-This may be useful for replacing orders when on-chain prices move outside of the original order's limit price
+    This allows an old order to be cancelled AND a new order to be created in an atomic operation with a single signature.
+    This may be useful for replacing orders when on-chain prices move outside of the original order's limit price
 
-Sends a `POST` request to `/api/v1/orders`
+    Sends a `POST` request to `/api/v1/orders`
 
-Arguments:
-- `body`: The order to create.
-*/
+    Arguments:
+    - `body`: The order to create.
+    */
     pub async fn create_order<'a>(
         &'a self,
         body: &'a types::OrderCreation,
     ) -> Result<ResponseValue<types::Uid>, Error<()>> {
         let url = format!("{}/api/v1/orders", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -8967,25 +8807,24 @@ Arguments:
     }
     /**Cancel multiple orders by marking them invalid with a timestamp
 
-This is a *best effort* cancellation, and might not prevent solvers from settling the orders (if the order is part of an in-flight settlement transaction for example). Authentication must be provided by an [EIP-712](https://eips.ethereum.org/EIPS/eip-712) signature of an `OrderCancellations(bytes[] orderUids)` message.
+    This is a *best effort* cancellation, and might not prevent solvers from settling the orders (if the order is part of an in-flight settlement transaction for example). Authentication must be provided by an [EIP-712](https://eips.ethereum.org/EIPS/eip-712) signature of an `OrderCancellations(bytes[] orderUids)` message.
 
 
-Sends a `DELETE` request to `/api/v1/orders`
+    Sends a `DELETE` request to `/api/v1/orders`
 
-Arguments:
-- `body`: Signed `OrderCancellations`.
-*/
+    Arguments:
+    - `body`: Signed `OrderCancellations`.
+    */
     pub async fn cancel_orders<'a>(
         &'a self,
         body: &'a types::OrderCancellations,
     ) -> Result<ResponseValue<()>, Error<()>> {
         let url = format!("{}/api/v1/orders", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -9007,27 +8846,26 @@ Arguments:
     }
     /**Get existing orders from the list of UIDs
 
-Returns an array where each element is an object with either
-an "order" key containing the full order, or an "error" key
-containing the UID and a description of what went wrong.
+    Returns an array where each element is an object with either
+    an "order" key containing the full order, or an "error" key
+    containing the UID and a description of what went wrong.
 
 
-Sends a `POST` request to `/api/v1/orders/by_uids`
+    Sends a `POST` request to `/api/v1/orders/by_uids`
 
-Arguments:
-- `body`: The list of up to 128 order uids to fetch
-*/
+    Arguments:
+    - `body`: The list of up to 128 order uids to fetch
+    */
     pub async fn get_orders<'a>(
         &'a self,
         body: &'a ::std::vec::Vec<types::Uid>,
     ) -> Result<ResponseValue<types::GetOrdersResponse>, Error<()>> {
         let url = format!("{}/api/v1/orders/by_uids", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -9053,22 +8891,23 @@ Arguments:
     }
     /**Get existing order from UID
 
-Sends a `GET` request to `/api/v1/orders/{UID}`
+    Sends a `GET` request to `/api/v1/orders/{UID}`
 
-*/
+    */
     pub async fn get_order<'a>(
         &'a self,
         uid: &'a types::Uid,
     ) -> Result<ResponseValue<types::Order>, Error<()>> {
         let url = format!(
-            "{}/api/v1/orders/{}", self.baseurl, encode_path(& uid.to_string()),
+            "{}/api/v1/orders/{}",
+            self.baseurl,
+            encode_path(&uid.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -9093,33 +8932,34 @@ Sends a `GET` request to `/api/v1/orders/{UID}`
     }
     /**Cancel an order by marking it invalid with a timestamp
 
-The successful deletion might not prevent solvers from settling the
-order.
+    The successful deletion might not prevent solvers from settling the
+    order.
 
-Authentication must be provided by providing an
-[EIP-712](https://eips.ethereum.org/EIPS/eip-712) signature of an
-`OrderCancellation(bytes orderUid)` message.
+    Authentication must be provided by providing an
+    [EIP-712](https://eips.ethereum.org/EIPS/eip-712) signature of an
+    `OrderCancellation(bytes orderUid)` message.
 
-Sends a `DELETE` request to `/api/v1/orders/{UID}`
+    Sends a `DELETE` request to `/api/v1/orders/{UID}`
 
-Arguments:
-- `uid`
-- `body`: Signed `OrderCancellation`
-*/
+    Arguments:
+    - `uid`
+    - `body`: Signed `OrderCancellation`
+    */
     pub async fn cancel_order<'a>(
         &'a self,
         uid: &'a types::Uid,
         body: &'a types::OrderCancellation,
     ) -> Result<ResponseValue<()>, Error<()>> {
         let url = format!(
-            "{}/api/v1/orders/{}", self.baseurl, encode_path(& uid.to_string()),
+            "{}/api/v1/orders/{}",
+            self.baseurl,
+            encode_path(&uid.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -9141,22 +8981,23 @@ Arguments:
     }
     /**Get the status of an order
 
-Sends a `GET` request to `/api/v1/orders/{UID}/status`
+    Sends a `GET` request to `/api/v1/orders/{UID}/status`
 
-*/
+    */
     pub async fn get_order_status<'a>(
         &'a self,
         uid: &'a types::Uid,
     ) -> Result<ResponseValue<types::CompetitionOrderStatus>, Error<()>> {
         let url = format!(
-            "{}/api/v1/orders/{}/status", self.baseurl, encode_path(& uid.to_string()),
+            "{}/api/v1/orders/{}/status",
+            self.baseurl,
+            encode_path(&uid.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -9181,23 +9022,23 @@ Sends a `GET` request to `/api/v1/orders/{UID}/status`
     }
     /**Get orders by settlement transaction hash
 
-Sends a `GET` request to `/api/v1/transactions/{txHash}/orders`
+    Sends a `GET` request to `/api/v1/transactions/{txHash}/orders`
 
-*/
+    */
     pub async fn get_orders_by_tx_hash<'a>(
         &'a self,
         tx_hash: &'a types::TransactionHash,
     ) -> Result<ResponseValue<::std::vec::Vec<types::Order>>, Error<()>> {
         let url = format!(
-            "{}/api/v1/transactions/{}/orders", self.baseurl, encode_path(& tx_hash
-            .to_string()),
+            "{}/api/v1/transactions/{}/orders",
+            self.baseurl,
+            encode_path(&tx_hash.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -9222,18 +9063,18 @@ Sends a `GET` request to `/api/v1/transactions/{txHash}/orders`
     }
     /**Get existing trades (unpaginated)
 
-**Deprecated:** This endpoint is deprecated and will be removed in the future. Please use `/api/v2/trades` instead, which provides pagination support.
+    **Deprecated:** This endpoint is deprecated and will be removed in the future. Please use `/api/v2/trades` instead, which provides pagination support.
 
-Exactly one of `owner` or `orderUid` must be set.
+    Exactly one of `owner` or `orderUid` must be set.
 
-Results are sorted by block number and log index descending (newest trades first).
+    Results are sorted by block number and log index descending (newest trades first).
 
-**Note:** This endpoint returns all matching trades without pagination. For paginated results, use `/api/v2/trades`.
+    **Note:** This endpoint returns all matching trades without pagination. For paginated results, use `/api/v2/trades`.
 
 
-Sends a `GET` request to `/api/v1/trades`
+    Sends a `GET` request to `/api/v1/trades`
 
-*/
+    */
     pub async fn get_trades<'a>(
         &'a self,
         order_uid: Option<&'a types::Uid>,
@@ -9241,11 +9082,10 @@ Sends a `GET` request to `/api/v1/trades`
     ) -> Result<ResponseValue<::std::vec::Vec<types::Trade>>, Error<()>> {
         let url = format!("{}/api/v1/trades", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -9272,25 +9112,25 @@ Sends a `GET` request to `/api/v1/trades`
     }
     /**Get existing trades (paginated)
 
-Exactly one of `owner` or `orderUid` must be set.
+    Exactly one of `owner` or `orderUid` must be set.
 
-Results are paginated and sorted by block number and log index descending (newest trades first).
+    Results are paginated and sorted by block number and log index descending (newest trades first).
 
-To enumerate all trades start with `offset` 0 and keep increasing the
-`offset` by the total number of returned results. When a response
-contains less than `limit` the last page has been reached.
+    To enumerate all trades start with `offset` 0 and keep increasing the
+    `offset` by the total number of returned results. When a response
+    contains less than `limit` the last page has been reached.
 
 
-Sends a `GET` request to `/api/v2/trades`
+    Sends a `GET` request to `/api/v2/trades`
 
-Arguments:
-- `limit`: The maximum number of trades to return. Defaults to 10. Must be between 1 and 1000.
+    Arguments:
+    - `limit`: The maximum number of trades to return. Defaults to 10. Must be between 1 and 1000.
 
-- `offset`: The pagination offset. Defaults to 0.
+    - `offset`: The pagination offset. Defaults to 0.
 
-- `order_uid`
-- `owner`
-*/
+    - `order_uid`
+    - `owner`
+    */
     pub async fn get_trades_v2<'a>(
         &'a self,
         limit: Option<::std::num::NonZeroU64>,
@@ -9300,11 +9140,10 @@ Arguments:
     ) -> Result<ResponseValue<::std::vec::Vec<types::Trade>>, Error<()>> {
         let url = format!("{}/api/v2/trades", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -9333,29 +9172,28 @@ Arguments:
     }
     /**Get the current batch auction
 
-The current batch auction that solvers should be solving right now. This
-includes:
+    The current batch auction that solvers should be solving right now. This
+    includes:
 
-* A list of solvable orders. * The block on which the batch was created.
-* Prices for all tokens being traded (used for objective value
-computation).
+    * A list of solvable orders. * The block on which the batch was created.
+    * Prices for all tokens being traded (used for objective value
+    computation).
 
-**Note: This endpoint is currently permissioned. Reach out in discord if
-you need access.**
+    **Note: This endpoint is currently permissioned. Reach out in discord if
+    you need access.**
 
-Sends a `GET` request to `/api/v1/auction`
+    Sends a `GET` request to `/api/v1/auction`
 
-*/
+    */
     pub async fn get_current_batch_auction<'a>(
         &'a self,
     ) -> Result<ResponseValue<types::Auction>, Error<()>> {
         let url = format!("{}/api/v1/auction", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -9380,22 +9218,22 @@ Sends a `GET` request to `/api/v1/auction`
     }
     /**Get orders of one user paginated
 
-The orders are sorted by their creation date descending (newest orders
-first).
+    The orders are sorted by their creation date descending (newest orders
+    first).
 
-To enumerate all orders start with `offset` 0 and keep increasing the
-`offset` by the total number of returned results. When a response
-contains less than `limit` the last page has been reached.
+    To enumerate all orders start with `offset` 0 and keep increasing the
+    `offset` by the total number of returned results. When a response
+    contains less than `limit` the last page has been reached.
 
-Sends a `GET` request to `/api/v1/account/{owner}/orders`
+    Sends a `GET` request to `/api/v1/account/{owner}/orders`
 
-Arguments:
-- `owner`
-- `limit`: The pagination limit. Defaults to 10. Maximum 1000. Minimum 1.
+    Arguments:
+    - `owner`
+    - `limit`: The pagination limit. Defaults to 10. Maximum 1000. Minimum 1.
 
-- `offset`: The pagination offset. Defaults to 0.
+    - `offset`: The pagination offset. Defaults to 0.
 
-*/
+    */
     pub async fn get_user_orders_paginated<'a>(
         &'a self,
         owner: &'a types::Address,
@@ -9403,15 +9241,15 @@ Arguments:
         offset: Option<i64>,
     ) -> Result<ResponseValue<::std::vec::Vec<types::Order>>, Error<()>> {
         let url = format!(
-            "{}/api/v1/account/{}/orders", self.baseurl, encode_path(& owner
-            .to_string()),
+            "{}/api/v1/account/{}/orders",
+            self.baseurl,
+            encode_path(&owner.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -9438,29 +9276,29 @@ Arguments:
     }
     /**Get native price for the given token
 
-Price is the exchange rate between the specified token and the network's
-native currency.
+    Price is the exchange rate between the specified token and the network's
+    native currency.
 
-It represents the amount of native token atoms needed to buy 1 atom of
-the specified token.
+    It represents the amount of native token atoms needed to buy 1 atom of
+    the specified token.
 
-Sends a `GET` request to `/api/v1/token/{token}/native_price`
+    Sends a `GET` request to `/api/v1/token/{token}/native_price`
 
-*/
+    */
     pub async fn get_token_native_price<'a>(
         &'a self,
         token: &'a types::Address,
     ) -> Result<ResponseValue<types::NativePriceResponse>, Error<()>> {
         let url = format!(
-            "{}/api/v1/token/{}/native_price", self.baseurl, encode_path(& token
-            .to_string()),
+            "{}/api/v1/token/{}/native_price",
+            self.baseurl,
+            encode_path(&token.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -9485,25 +9323,24 @@ Sends a `GET` request to `/api/v1/token/{token}/native_price`
     }
     /**Quote a price and fee for the specified order parameters
 
-Given a partial order compute the minimum fee and a price estimate for the order. Return a full order that can be used directly for signing, and with an included signature, passed directly to the order creation endpoint.
+    Given a partial order compute the minimum fee and a price estimate for the order. Return a full order that can be used directly for signing, and with an included signature, passed directly to the order creation endpoint.
 
 
-Sends a `POST` request to `/api/v1/quote`
+    Sends a `POST` request to `/api/v1/quote`
 
-Arguments:
-- `body`: The order parameters to compute a quote for.
-*/
+    Arguments:
+    - `body`: The order parameters to compute a quote for.
+    */
     pub async fn quote<'a>(
         &'a self,
         body: &'a types::OrderQuoteRequest,
     ) -> Result<ResponseValue<types::OrderQuoteResponse>, Error<()>> {
         let url = format!("{}/api/v1/quote", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -9529,26 +9366,26 @@ Arguments:
     }
     /**Get information about a solver competition
 
-Returns the competition information by `auction_id`.
+    Returns the competition information by `auction_id`.
 
 
-Sends a `GET` request to `/api/v1/solver_competition/{auction_id}`
+    Sends a `GET` request to `/api/v1/solver_competition/{auction_id}`
 
-*/
+    */
     pub async fn get_solver_competition_by_auction_id<'a>(
         &'a self,
         auction_id: i64,
     ) -> Result<ResponseValue<types::SolverCompetitionResponse>, Error<()>> {
         let url = format!(
-            "{}/api/v1/solver_competition/{}", self.baseurl, encode_path(& auction_id
-            .to_string()),
+            "{}/api/v1/solver_competition/{}",
+            self.baseurl,
+            encode_path(&auction_id.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -9573,28 +9410,28 @@ Sends a `GET` request to `/api/v1/solver_competition/{auction_id}`
     }
     /**Get information about solver competition
 
-Returns the competition information by `tx_hash`.
+    Returns the competition information by `tx_hash`.
 
 
-Sends a `GET` request to `/api/v1/solver_competition/by_tx_hash/{tx_hash}`
+    Sends a `GET` request to `/api/v1/solver_competition/by_tx_hash/{tx_hash}`
 
-Arguments:
-- `tx_hash`: Transaction hash in which the competition was settled.
-*/
+    Arguments:
+    - `tx_hash`: Transaction hash in which the competition was settled.
+    */
     pub async fn get_solver_competition_by_tx_hash<'a>(
         &'a self,
         tx_hash: &'a types::TransactionHash,
     ) -> Result<ResponseValue<types::SolverCompetitionResponse>, Error<()>> {
         let url = format!(
-            "{}/api/v1/solver_competition/by_tx_hash/{}", self.baseurl, encode_path(&
-            tx_hash.to_string()),
+            "{}/api/v1/solver_competition/by_tx_hash/{}",
+            self.baseurl,
+            encode_path(&tx_hash.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -9619,22 +9456,21 @@ Arguments:
     }
     /**Get information about the most recent solver competition
 
-Returns the competition information for the last seen auction_id.
+    Returns the competition information for the last seen auction_id.
 
 
-Sends a `GET` request to `/api/v1/solver_competition/latest`
+    Sends a `GET` request to `/api/v1/solver_competition/latest`
 
-*/
+    */
     pub async fn get_solver_competition_latest<'a>(
         &'a self,
     ) -> Result<ResponseValue<types::SolverCompetitionResponse>, Error<()>> {
         let url = format!("{}/api/v1/solver_competition/latest", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -9659,26 +9495,26 @@ Sends a `GET` request to `/api/v1/solver_competition/latest`
     }
     /**Get information about a solver competition
 
-Returns the competition information by `auction_id`.
+    Returns the competition information by `auction_id`.
 
 
-Sends a `GET` request to `/api/v2/solver_competition/{auction_id}`
+    Sends a `GET` request to `/api/v2/solver_competition/{auction_id}`
 
-*/
+    */
     pub async fn get_solver_competition_by_auction_id_v2<'a>(
         &'a self,
         auction_id: i64,
     ) -> Result<ResponseValue<types::SolverCompetitionResponse>, Error<()>> {
         let url = format!(
-            "{}/api/v2/solver_competition/{}", self.baseurl, encode_path(& auction_id
-            .to_string()),
+            "{}/api/v2/solver_competition/{}",
+            self.baseurl,
+            encode_path(&auction_id.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -9703,28 +9539,28 @@ Sends a `GET` request to `/api/v2/solver_competition/{auction_id}`
     }
     /**Get information about solver competition
 
-Returns the competition information by `tx_hash`.
+    Returns the competition information by `tx_hash`.
 
 
-Sends a `GET` request to `/api/v2/solver_competition/by_tx_hash/{tx_hash}`
+    Sends a `GET` request to `/api/v2/solver_competition/by_tx_hash/{tx_hash}`
 
-Arguments:
-- `tx_hash`: Transaction hash in which the competition was settled.
-*/
+    Arguments:
+    - `tx_hash`: Transaction hash in which the competition was settled.
+    */
     pub async fn get_solver_competition_by_tx_hash_v2<'a>(
         &'a self,
         tx_hash: &'a types::TransactionHash,
     ) -> Result<ResponseValue<types::SolverCompetitionResponse>, Error<()>> {
         let url = format!(
-            "{}/api/v2/solver_competition/by_tx_hash/{}", self.baseurl, encode_path(&
-            tx_hash.to_string()),
+            "{}/api/v2/solver_competition/by_tx_hash/{}",
+            self.baseurl,
+            encode_path(&tx_hash.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -9749,22 +9585,21 @@ Arguments:
     }
     /**Get information about the most recent solver competition
 
-Returns the competition information for the last seen auction_id.
+    Returns the competition information for the last seen auction_id.
 
 
-Sends a `GET` request to `/api/v2/solver_competition/latest`
+    Sends a `GET` request to `/api/v2/solver_competition/latest`
 
-*/
+    */
     pub async fn get_solver_competition_latest_v2<'a>(
         &'a self,
     ) -> Result<ResponseValue<types::SolverCompetitionResponse>, Error<()>> {
         let url = format!("{}/api/v2/solver_competition/latest", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -9789,22 +9624,19 @@ Sends a `GET` request to `/api/v2/solver_competition/latest`
     }
     /**Get the API's current deployed version
 
-Returns the git commit hash, branch name and release tag (code: https://github.com/cowprotocol/services).
+    Returns the git commit hash, branch name and release tag (code: https://github.com/cowprotocol/services).
 
 
-Sends a `GET` request to `/api/v1/version`
+    Sends a `GET` request to `/api/v1/version`
 
-*/
-    pub async fn get_api_version<'a>(
-        &'a self,
-    ) -> Result<ResponseValue<ByteStream>, Error<()>> {
+    */
+    pub async fn get_api_version<'a>(&'a self) -> Result<ResponseValue<ByteStream>, Error<()>> {
         let url = format!("{}/api/v1/version", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self.client.get(url).headers(header_map).build()?;
         let info = OperationInfo {
@@ -9821,23 +9653,23 @@ Sends a `GET` request to `/api/v1/version`
     }
     /**Get the full `appData` from contract `appDataHash`
 
-Sends a `GET` request to `/api/v1/app_data/{app_data_hash}`
+    Sends a `GET` request to `/api/v1/app_data/{app_data_hash}`
 
-*/
+    */
     pub async fn get_app_data_by_hash<'a>(
         &'a self,
         app_data_hash: &'a types::AppDataHash,
     ) -> Result<ResponseValue<types::AppDataObject>, Error<()>> {
         let url = format!(
-            "{}/api/v1/app_data/{}", self.baseurl, encode_path(& app_data_hash
-            .to_string()),
+            "{}/api/v1/app_data/{}",
+            self.baseurl,
+            encode_path(&app_data_hash.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -9862,30 +9694,30 @@ Sends a `GET` request to `/api/v1/app_data/{app_data_hash}`
     }
     /**Registers a full `appData` so it can be referenced by `appDataHash`
 
-Uploads a full `appData` to orderbook so that orders created with the corresponding `appDataHash` can be linked to the original full `appData`.
+    Uploads a full `appData` to orderbook so that orders created with the corresponding `appDataHash` can be linked to the original full `appData`.
 
 
-Sends a `PUT` request to `/api/v1/app_data/{app_data_hash}`
+    Sends a `PUT` request to `/api/v1/app_data/{app_data_hash}`
 
-Arguments:
-- `app_data_hash`
-- `body`: The `appData` document to upload.
-*/
+    Arguments:
+    - `app_data_hash`
+    - `body`: The `appData` document to upload.
+    */
     pub async fn register_app_data_by_hash<'a>(
         &'a self,
         app_data_hash: &'a types::AppDataHash,
         body: &'a types::AppDataObject,
     ) -> Result<ResponseValue<types::AppDataHash>, Error<()>> {
         let url = format!(
-            "{}/api/v1/app_data/{}", self.baseurl, encode_path(& app_data_hash
-            .to_string()),
+            "{}/api/v1/app_data/{}",
+            self.baseurl,
+            encode_path(&app_data_hash.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -9911,25 +9743,24 @@ Arguments:
     }
     /**Registers a full `appData` and returns `appDataHash`
 
-Uploads a full `appData` to orderbook and returns the corresponding `appDataHash`.
+    Uploads a full `appData` to orderbook and returns the corresponding `appDataHash`.
 
 
-Sends a `PUT` request to `/api/v1/app_data`
+    Sends a `PUT` request to `/api/v1/app_data`
 
-Arguments:
-- `body`: The `appData` document to upload.
-*/
+    Arguments:
+    - `body`: The `appData` document to upload.
+    */
     pub async fn register_app_data<'a>(
         &'a self,
         body: &'a types::AppDataObject,
     ) -> Result<ResponseValue<types::AppDataHash>, Error<()>> {
         let url = format!("{}/api/v1/app_data", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -9955,28 +9786,28 @@ Arguments:
     }
     /**Get the total surplus earned by the user. [UNSTABLE]
 
-### Caution
+    ### Caution
 
-This endpoint is under active development and should NOT be considered
-stable.
+    This endpoint is under active development and should NOT be considered
+    stable.
 
-Sends a `GET` request to `/api/v1/users/{address}/total_surplus`
+    Sends a `GET` request to `/api/v1/users/{address}/total_surplus`
 
-*/
+    */
     pub async fn get_address_total_surplus<'a>(
         &'a self,
         address: &'a types::Address,
     ) -> Result<ResponseValue<types::TotalSurplus>, Error<()>> {
         let url = format!(
-            "{}/api/v1/users/{}/total_surplus", self.baseurl, encode_path(& address
-            .to_string()),
+            "{}/api/v1/users/{}/total_surplus",
+            self.baseurl,
+            encode_path(&address.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -10001,23 +9832,22 @@ Sends a `GET` request to `/api/v1/users/{address}/total_surplus`
     }
     /**Simulate an arbitrary order
 
-Simulates an arbitrary order specified in the request body and returns the Tenderly simulation request, along with any simulation error if applicable.
+    Simulates an arbitrary order specified in the request body and returns the Tenderly simulation request, along with any simulation error if applicable.
 
 
-Sends a `POST` request to `/restricted/api/v1/debug/simulation`
+    Sends a `POST` request to `/restricted/api/v1/debug/simulation`
 
-*/
+    */
     pub async fn debug_simulation_post<'a>(
         &'a self,
         body: &'a types::SimulationRequest,
     ) -> Result<ResponseValue<types::OrderSimulation>, Error<()>> {
         let url = format!("{}/restricted/api/v1/debug/simulation", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -10043,31 +9873,31 @@ Sends a `POST` request to `/restricted/api/v1/debug/simulation`
     }
     /**Get Tenderly simulation request for an order
 
-Returns the Tenderly simulation request that would be used to simulate the given order, along with any simulation error if applicable.
+    Returns the Tenderly simulation request that would be used to simulate the given order, along with any simulation error if applicable.
 
 
-Sends a `GET` request to `/restricted/api/v1/debug/simulation/{uid}`
+    Sends a `GET` request to `/restricted/api/v1/debug/simulation/{uid}`
 
-Arguments:
-- `uid`
-- `block_number`: Block number to simulate the order at. If not specified, the simulation uses the latest block.
+    Arguments:
+    - `uid`
+    - `block_number`: Block number to simulate the order at. If not specified, the simulation uses the latest block.
 
-*/
+    */
     pub async fn debug_simulation<'a>(
         &'a self,
         uid: &'a types::Uid,
         block_number: Option<i64>,
     ) -> Result<ResponseValue<types::OrderSimulation>, Error<()>> {
         let url = format!(
-            "{}/restricted/api/v1/debug/simulation/{}", self.baseurl, encode_path(& uid
-            .to_string()),
+            "{}/restricted/api/v1/debug/simulation/{}",
+            self.baseurl,
+            encode_path(&uid.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -10076,7 +9906,10 @@ Arguments:
                 ::reqwest::header::ACCEPT,
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
-            .query(&progenitor_client::QueryParam::new("block_number", &block_number))
+            .query(&progenitor_client::QueryParam::new(
+                "block_number",
+                &block_number,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -10093,26 +9926,26 @@ Arguments:
     }
     /**Debug an order's lifecycle
 
-Returns a comprehensive debug report for the given order, including order details, lifecycle events, auction participation, proposed solutions, executions, trades, and settlement attempts.
+    Returns a comprehensive debug report for the given order, including order details, lifecycle events, auction participation, proposed solutions, executions, trades, and settlement attempts.
 
 
-Sends a `GET` request to `/restricted/api/v1/debug/order/{uid}`
+    Sends a `GET` request to `/restricted/api/v1/debug/order/{uid}`
 
-*/
+    */
     pub async fn debug_order<'a>(
         &'a self,
         uid: &'a types::Uid,
     ) -> Result<ResponseValue<types::DebugOrderResponse>, Error<()>> {
         let url = format!(
-            "{}/restricted/api/v1/debug/order/{}", self.baseurl, encode_path(& uid
-            .to_string()),
+            "{}/restricted/api/v1/debug/order/{}",
+            self.baseurl,
+            encode_path(&uid.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client

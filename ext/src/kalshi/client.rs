@@ -1,7 +1,7 @@
 #[allow(unused_imports)]
 pub use progenitor_client::{ByteStream, ClientInfo, Error, ResponseValue};
 #[allow(unused_imports)]
-use progenitor_client::{encode_path, ClientHooks, OperationInfo, RequestBuilderExt};
+use progenitor_client::{ClientHooks, OperationInfo, RequestBuilderExt, encode_path};
 /// Types used as operation parameters and responses.
 #[allow(clippy::all)]
 pub mod types {
@@ -11,18 +11,12 @@ pub mod types {
         pub struct ConversionError(::std::borrow::Cow<'static, str>);
         impl ::std::error::Error for ConversionError {}
         impl ::std::fmt::Display for ConversionError {
-            fn fmt(
-                &self,
-                f: &mut ::std::fmt::Formatter<'_>,
-            ) -> Result<(), ::std::fmt::Error> {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> Result<(), ::std::fmt::Error> {
                 ::std::fmt::Display::fmt(&self.0, f)
             }
         }
         impl ::std::fmt::Debug for ConversionError {
-            fn fmt(
-                &self,
-                f: &mut ::std::fmt::Formatter<'_>,
-            ) -> Result<(), ::std::fmt::Error> {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> Result<(), ::std::fmt::Error> {
                 ::std::fmt::Debug::fmt(&self.0, f)
             }
         }
@@ -38,8 +32,8 @@ pub mod types {
         }
     }
     /**Per-agent guardrails returned by Simmer (max position size, daily
-spend, etc.). Shape varies — kept loose for forward compat.
-*/
+    spend, etc.). Shape varies — kept loose for forward compat.
+    */
     ///
     /// <details><summary>JSON schema</summary>
     ///
@@ -53,29 +47,24 @@ spend, etc.). Shape varies — kept loose for forward compat.
     /// </details>
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     #[serde(transparent)]
-    pub struct AgentLimits(
-        pub ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-    );
+    pub struct AgentLimits(pub ::serde_json::Map<::std::string::String, ::serde_json::Value>);
     impl ::std::ops::Deref for AgentLimits {
         type Target = ::serde_json::Map<::std::string::String, ::serde_json::Value>;
-        fn deref(
-            &self,
-        ) -> &::serde_json::Map<::std::string::String, ::serde_json::Value> {
+        fn deref(&self) -> &::serde_json::Map<::std::string::String, ::serde_json::Value> {
             &self.0
         }
     }
     impl ::std::convert::From<AgentLimits>
-    for ::serde_json::Map<::std::string::String, ::serde_json::Value> {
+        for ::serde_json::Map<::std::string::String, ::serde_json::Value>
+    {
         fn from(value: AgentLimits) -> Self {
             value.0
         }
     }
-    impl ::std::convert::From<
-        ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-    > for AgentLimits {
-        fn from(
-            value: ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-        ) -> Self {
+    impl ::std::convert::From<::serde_json::Map<::std::string::String, ::serde_json::Value>>
+        for AgentLimits
+    {
+        fn from(value: ::serde_json::Map<::std::string::String, ::serde_json::Value>) -> Self {
             Self(value)
         }
     }
@@ -216,21 +205,18 @@ spend, etc.). Shape varies — kept loose for forward compat.
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub checked_at: ::std::option::Option<::std::string::String>,
         #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
-        pub opportunities: ::std::vec::Vec<
-            ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-        >,
+        pub opportunities:
+            ::std::vec::Vec<::serde_json::Map<::std::string::String, ::serde_json::Value>>,
         #[serde(default, skip_serializing_if = "::serde_json::Map::is_empty")]
         pub performance: ::serde_json::Map<::std::string::String, ::serde_json::Value>,
         #[serde(default, skip_serializing_if = "::serde_json::Map::is_empty")]
         pub portfolio: ::serde_json::Map<::std::string::String, ::serde_json::Value>,
         #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
-        pub positions: ::std::vec::Vec<
-            ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-        >,
+        pub positions:
+            ::std::vec::Vec<::serde_json::Map<::std::string::String, ::serde_json::Value>>,
         #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
-        pub risk_alerts: ::std::vec::Vec<
-            ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-        >,
+        pub risk_alerts:
+            ::std::vec::Vec<::serde_json::Map<::std::string::String, ::serde_json::Value>>,
     }
     impl ::std::default::Default for Briefing {
         fn default() -> Self {
@@ -267,9 +253,9 @@ spend, etc.). Shape varies — kept loose for forward compat.
         pub kalshi_url: ::std::string::String,
     }
     /**A Kalshi market we can import. The `url` is the Kalshi market URL
-(NOT a Simmer UUID); pass it to `importKalshiMarket` to convert.
-Inner shape kept additive — Simmer adds new metadata fields over time.
-*/
+    (NOT a Simmer UUID); pass it to `importKalshiMarket` to convert.
+    Inner shape kept additive — Simmer adds new metadata fields over time.
+    */
     ///
     /// <details><summary>JSON schema</summary>
     ///
@@ -362,8 +348,8 @@ Inner shape kept additive — Simmer adds new metadata fields over time.
         }
     }
     /**Result of registering a Kalshi market. The `market_id` is the Simmer
-UUID required by `getMarketContext` and `trade`.
-*/
+    UUID required by `getMarketContext` and `trade`.
+    */
     ///
     /// <details><summary>JSON schema</summary>
     ///
@@ -685,9 +671,9 @@ UUID required by `getMarketContext` and `trade`.
         pub name: ::std::string::String,
     }
     /**Returned once on first registration. `api_key` is `sk_…` and must be
-saved (the user runs `/apikey simmer <key>`). `claim_url` is where
-the user verifies identity before live Kalshi trading.
-*/
+    saved (the user runs `/apikey simmer <key>`). `claim_url` is where
+    the user verifies identity before live Kalshi trading.
+    */
     ///
     /// <details><summary>JSON schema</summary>
     ///
@@ -909,7 +895,9 @@ impl Client {
         #[cfg(not(target_arch = "wasm32"))]
         let client = {
             let dur = ::std::time::Duration::from_secs(15u64);
-            reqwest::ClientBuilder::new().connect_timeout(dur).timeout(dur)
+            reqwest::ClientBuilder::new()
+                .connect_timeout(dur)
+                .timeout(dur)
         };
         #[cfg(target_arch = "wasm32")]
         let client = reqwest::ClientBuilder::new();
@@ -947,25 +935,24 @@ impl ClientHooks<()> for &Client {}
 impl Client {
     /**Register a new Simmer agent (unauthenticated)
 
-Returns an `api_key`, `claim_url`, and starting sandbox balance. The
-user must visit `claim_url` to verify identity before live Kalshi
-trading is enabled.
+    Returns an `api_key`, `claim_url`, and starting sandbox balance. The
+    user must visit `claim_url` to verify identity before live Kalshi
+    trading is enabled.
 
 
-Sends a `POST` request to `/api/sdk/agents/register`
+    Sends a `POST` request to `/api/sdk/agents/register`
 
-*/
+    */
     pub async fn register_agent<'a>(
         &'a self,
         body: &'a types::RegisterAgentRequest,
     ) -> Result<ResponseValue<types::RegisterAgentResponse>, Error<()>> {
         let url = format!("{}/api/sdk/agents/register", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -991,22 +978,21 @@ Sends a `POST` request to `/api/sdk/agents/register`
     }
     /**Status of the agent tied to the bearer token
 
-Sends a `GET` request to `/api/sdk/agents/me`
+    Sends a `GET` request to `/api/sdk/agents/me`
 
-Arguments:
-- `authorization`: `Bearer sk_…` — the Simmer API key.
-*/
+    Arguments:
+    - `authorization`: `Bearer sk_…` — the Simmer API key.
+    */
     pub async fn get_agent_status<'a>(
         &'a self,
         authorization: &'a str,
     ) -> Result<ResponseValue<types::AgentStatus>, Error<()>> {
         let url = format!("{}/api/sdk/agents/me", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("Authorization", authorization.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -1032,14 +1018,14 @@ Arguments:
     }
     /**One-shot dashboard for the agent
 
-Portfolio snapshot, positions, opportunities, risk alerts, performance.
+    Portfolio snapshot, positions, opportunities, risk alerts, performance.
 
-Sends a `GET` request to `/api/sdk/briefing`
+    Sends a `GET` request to `/api/sdk/briefing`
 
-Arguments:
-- `since`: ISO timestamp to scope to changes since a moment.
-- `authorization`: `Bearer sk_…` — the Simmer API key.
-*/
+    Arguments:
+    - `since`: ISO timestamp to scope to changes since a moment.
+    - `authorization`: `Bearer sk_…` — the Simmer API key.
+    */
     pub async fn get_briefing<'a>(
         &'a self,
         since: Option<&'a str>,
@@ -1047,11 +1033,10 @@ Arguments:
     ) -> Result<ResponseValue<types::Briefing>, Error<()>> {
         let url = format!("{}/api/sdk/briefing", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("Authorization", authorization.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -1078,26 +1063,27 @@ Arguments:
     }
     /**Pre-trade context for a Simmer market (warnings, slippage, fees)
 
-Sends a `GET` request to `/api/sdk/context/{market_id}`
+    Sends a `GET` request to `/api/sdk/context/{market_id}`
 
-Arguments:
-- `market_id`
-- `authorization`: `Bearer sk_…` — the Simmer API key.
-*/
+    Arguments:
+    - `market_id`
+    - `authorization`: `Bearer sk_…` — the Simmer API key.
+    */
     pub async fn get_market_context<'a>(
         &'a self,
         market_id: &'a str,
         authorization: &'a str,
     ) -> Result<ResponseValue<types::MarketContext>, Error<()>> {
         let url = format!(
-            "{}/api/sdk/context/{}", self.baseurl, encode_path(& market_id.to_string()),
+            "{}/api/sdk/context/{}",
+            self.baseurl,
+            encode_path(&market_id.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("Authorization", authorization.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -1123,12 +1109,12 @@ Arguments:
     }
     /**Place a buy or sell on a Kalshi market via Simmer
 
-Sends a `POST` request to `/api/sdk/trade`
+    Sends a `POST` request to `/api/sdk/trade`
 
-Arguments:
-- `authorization`: `Bearer sk_…` — the Simmer API key.
-- `body`
-*/
+    Arguments:
+    - `authorization`: `Bearer sk_…` — the Simmer API key.
+    - `body`
+    */
     pub async fn trade<'a>(
         &'a self,
         authorization: &'a str,
@@ -1136,11 +1122,10 @@ Arguments:
     ) -> Result<ResponseValue<types::TradeResult>, Error<()>> {
         let url = format!("{}/api/sdk/trade", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("Authorization", authorization.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -1167,12 +1152,12 @@ Arguments:
     }
     /**Open positions on a venue
 
-Sends a `GET` request to `/api/sdk/positions`
+    Sends a `GET` request to `/api/sdk/positions`
 
-Arguments:
-- `venue`: `sim` (sandbox) or `kalshi` (live).
-- `authorization`: `Bearer sk_…` — the Simmer API key.
-*/
+    Arguments:
+    - `venue`: `sim` (sandbox) or `kalshi` (live).
+    - `authorization`: `Bearer sk_…` — the Simmer API key.
+    */
     pub async fn get_positions<'a>(
         &'a self,
         venue: Option<&'a str>,
@@ -1180,11 +1165,10 @@ Arguments:
     ) -> Result<ResponseValue<types::PositionsResponse>, Error<()>> {
         let url = format!("{}/api/sdk/positions", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("Authorization", authorization.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -1211,22 +1195,21 @@ Arguments:
     }
     /**Cash balance, positions value, total value, realized/unrealized PnL
 
-Sends a `GET` request to `/api/sdk/portfolio`
+    Sends a `GET` request to `/api/sdk/portfolio`
 
-Arguments:
-- `authorization`: `Bearer sk_…` — the Simmer API key.
-*/
+    Arguments:
+    - `authorization`: `Bearer sk_…` — the Simmer API key.
+    */
     pub async fn get_portfolio<'a>(
         &'a self,
         authorization: &'a str,
     ) -> Result<ResponseValue<types::Portfolio>, Error<()>> {
         let url = format!("{}/api/sdk/portfolio", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("Authorization", authorization.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -1252,15 +1235,15 @@ Arguments:
     }
     /**Importable Kalshi markets (Kalshi URLs, not Simmer UUIDs)
 
-Sends a `GET` request to `/api/sdk/markets/importable`
+    Sends a `GET` request to `/api/sdk/markets/importable`
 
-Arguments:
-- `limit`
-- `min_volume`
-- `q`: Free-text search query.
-- `venue`: Always `kalshi` for this app.
-- `authorization`: `Bearer sk_…` — the Simmer API key.
-*/
+    Arguments:
+    - `limit`
+    - `min_volume`
+    - `q`: Free-text search query.
+    - `venue`: Always `kalshi` for this app.
+    - `authorization`: `Bearer sk_…` — the Simmer API key.
+    */
     pub async fn list_importable_kalshi_markets<'a>(
         &'a self,
         limit: Option<&'a str>,
@@ -1271,11 +1254,10 @@ Arguments:
     ) -> Result<ResponseValue<types::ImportableMarketsResponse>, Error<()>> {
         let url = format!("{}/api/sdk/markets/importable", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("Authorization", authorization.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -1286,7 +1268,10 @@ Arguments:
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
             .query(&progenitor_client::QueryParam::new("limit", &limit))
-            .query(&progenitor_client::QueryParam::new("min_volume", &min_volume))
+            .query(&progenitor_client::QueryParam::new(
+                "min_volume",
+                &min_volume,
+            ))
             .query(&progenitor_client::QueryParam::new("q", &q))
             .query(&progenitor_client::QueryParam::new("venue", &venue))
             .headers(header_map)
@@ -1305,12 +1290,12 @@ Arguments:
     }
     /**Register a Kalshi market URL with Simmer; returns the Simmer market_id UUID
 
-Sends a `POST` request to `/api/sdk/markets/import/kalshi`
+    Sends a `POST` request to `/api/sdk/markets/import/kalshi`
 
-Arguments:
-- `authorization`: `Bearer sk_…` — the Simmer API key.
-- `body`
-*/
+    Arguments:
+    - `authorization`: `Bearer sk_…` — the Simmer API key.
+    - `body`
+    */
     pub async fn import_kalshi_market<'a>(
         &'a self,
         authorization: &'a str,
@@ -1318,11 +1303,10 @@ Arguments:
     ) -> Result<ResponseValue<types::ImportedMarket>, Error<()>> {
         let url = format!("{}/api/sdk/markets/import/kalshi", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("Authorization", authorization.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self

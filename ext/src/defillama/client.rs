@@ -1,7 +1,7 @@
 #[allow(unused_imports)]
 pub use progenitor_client::{ByteStream, ClientInfo, Error, ResponseValue};
 #[allow(unused_imports)]
-use progenitor_client::{encode_path, ClientHooks, OperationInfo, RequestBuilderExt};
+use progenitor_client::{ClientHooks, OperationInfo, RequestBuilderExt, encode_path};
 /// Types used as operation parameters and responses.
 #[allow(clippy::all)]
 pub mod types {
@@ -11,18 +11,12 @@ pub mod types {
         pub struct ConversionError(::std::borrow::Cow<'static, str>);
         impl ::std::error::Error for ConversionError {}
         impl ::std::fmt::Display for ConversionError {
-            fn fmt(
-                &self,
-                f: &mut ::std::fmt::Formatter<'_>,
-            ) -> Result<(), ::std::fmt::Error> {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> Result<(), ::std::fmt::Error> {
                 ::std::fmt::Display::fmt(&self.0, f)
             }
         }
         impl ::std::fmt::Debug for ConversionError {
-            fn fmt(
-                &self,
-                f: &mut ::std::fmt::Formatter<'_>,
-            ) -> Result<(), ::std::fmt::Error> {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> Result<(), ::std::fmt::Error> {
                 ::std::fmt::Debug::fmt(&self.0, f)
             }
         }
@@ -220,7 +214,9 @@ pub mod types {
     }
     impl ::std::default::Default for CoinPriceMap {
         fn default() -> Self {
-            Self { coins: Default::default() }
+            Self {
+                coins: Default::default(),
+            }
         }
     }
     ///`ProtocolSummary`
@@ -510,7 +506,9 @@ impl Client {
         #[cfg(not(target_arch = "wasm32"))]
         let client = {
             let dur = ::std::time::Duration::from_secs(15u64);
-            reqwest::ClientBuilder::new().connect_timeout(dur).timeout(dur)
+            reqwest::ClientBuilder::new()
+                .connect_timeout(dur)
+                .timeout(dur)
         };
         #[cfg(target_arch = "wasm32")]
         let client = reqwest::ClientBuilder::new();
@@ -548,22 +546,21 @@ impl ClientHooks<()> for &Client {}
 impl Client {
     /**List all protocols with current TVL
 
-Sends a `GET` request to `/protocols`
+    Sends a `GET` request to `/protocols`
 
-Arguments:
-- `category`: Optional category filter (e.g. "Lending", "Dexes").
-*/
+    Arguments:
+    - `category`: Optional category filter (e.g. "Lending", "Dexes").
+    */
     pub async fn get_protocols<'a>(
         &'a self,
         category: Option<&'a str>,
     ) -> Result<ResponseValue<::std::vec::Vec<types::ProtocolSummary>>, Error<()>> {
         let url = format!("{}/protocols", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -589,11 +586,11 @@ Arguments:
     }
     /**Historical TVL of a protocol with token and chain breakdowns
 
-Sends a `GET` request to `/protocol/{protocol}`
+    Sends a `GET` request to `/protocol/{protocol}`
 
-Arguments:
-- `protocol`: Protocol slug (e.g. "uniswap", "aave-v3").
-*/
+    Arguments:
+    - `protocol`: Protocol slug (e.g. "uniswap", "aave-v3").
+    */
     pub async fn get_protocol_detail<'a>(
         &'a self,
         protocol: &'a str,
@@ -602,14 +599,15 @@ Arguments:
         Error<()>,
     > {
         let url = format!(
-            "{}/protocol/{}", self.baseurl, encode_path(& protocol.to_string()),
+            "{}/protocol/{}",
+            self.baseurl,
+            encode_path(&protocol.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -634,24 +632,25 @@ Arguments:
     }
     /**Current TVL of a protocol (single number)
 
-Sends a `GET` request to `/tvl/{protocol}`
+    Sends a `GET` request to `/tvl/{protocol}`
 
-Arguments:
-- `protocol`: Protocol slug (e.g. "uniswap", "aave-v3").
-*/
+    Arguments:
+    - `protocol`: Protocol slug (e.g. "uniswap", "aave-v3").
+    */
     pub async fn get_protocol_current_tvl<'a>(
         &'a self,
         protocol: &'a str,
     ) -> Result<ResponseValue<f64>, Error<()>> {
         let url = format!(
-            "{}/tvl/{}", self.baseurl, encode_path(& protocol.to_string()),
+            "{}/tvl/{}",
+            self.baseurl,
+            encode_path(&protocol.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -676,19 +675,18 @@ Arguments:
     }
     /**Current TVL of all chains
 
-Sends a `GET` request to `/v2/chains`
+    Sends a `GET` request to `/v2/chains`
 
-*/
+    */
     pub async fn get_chains_tvl<'a>(
         &'a self,
     ) -> Result<ResponseValue<::std::vec::Vec<types::ChainTvl>>, Error<()>> {
         let url = format!("{}/v2/chains", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -713,19 +711,18 @@ Sends a `GET` request to `/v2/chains`
     }
     /**Historical TVL across all chains
 
-Sends a `GET` request to `/v2/historicalChainTvl`
+    Sends a `GET` request to `/v2/historicalChainTvl`
 
-*/
+    */
     pub async fn get_historical_chain_tvl_all<'a>(
         &'a self,
     ) -> Result<ResponseValue<::std::vec::Vec<types::TvlPoint>>, Error<()>> {
         let url = format!("{}/v2/historicalChainTvl", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -750,25 +747,25 @@ Sends a `GET` request to `/v2/historicalChainTvl`
     }
     /**Historical TVL of a single chain
 
-Sends a `GET` request to `/v2/historicalChainTvl/{chain}`
+    Sends a `GET` request to `/v2/historicalChainTvl/{chain}`
 
-Arguments:
-- `chain`: Chain slug (e.g. "ethereum", "arbitrum").
-*/
+    Arguments:
+    - `chain`: Chain slug (e.g. "ethereum", "arbitrum").
+    */
     pub async fn get_historical_chain_tvl<'a>(
         &'a self,
         chain: &'a str,
     ) -> Result<ResponseValue<::std::vec::Vec<types::TvlPoint>>, Error<()>> {
         let url = format!(
-            "{}/v2/historicalChainTvl/{}", self.baseurl, encode_path(& chain
-            .to_string()),
+            "{}/v2/historicalChainTvl/{}",
+            self.baseurl,
+            encode_path(&chain.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -793,9 +790,9 @@ Arguments:
     }
     /**All DEXs with volume summaries
 
-Sends a `GET` request to `/overview/dexs`
+    Sends a `GET` request to `/overview/dexs`
 
-*/
+    */
     pub async fn get_dex_overview<'a>(
         &'a self,
         data_type: Option<&'a str>,
@@ -807,11 +804,10 @@ Sends a `GET` request to `/overview/dexs`
     > {
         let url = format!("{}/overview/dexs", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -821,18 +817,14 @@ Sends a `GET` request to `/overview/dexs`
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
             .query(&progenitor_client::QueryParam::new("dataType", &data_type))
-            .query(
-                &progenitor_client::QueryParam::new(
-                    "excludeTotalDataChart",
-                    &exclude_total_data_chart,
-                ),
-            )
-            .query(
-                &progenitor_client::QueryParam::new(
-                    "excludeTotalDataChartBreakdown",
-                    &exclude_total_data_chart_breakdown,
-                ),
-            )
+            .query(&progenitor_client::QueryParam::new(
+                "excludeTotalDataChart",
+                &exclude_total_data_chart,
+            ))
+            .query(&progenitor_client::QueryParam::new(
+                "excludeTotalDataChartBreakdown",
+                &exclude_total_data_chart_breakdown,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -849,13 +841,13 @@ Sends a `GET` request to `/overview/dexs`
     }
     /**All DEXs on a chain
 
-Sends a `GET` request to `/overview/dexs/{chain}`
+    Sends a `GET` request to `/overview/dexs/{chain}`
 
-Arguments:
-- `chain`: Chain slug (e.g. "ethereum", "arbitrum").
-- `exclude_total_data_chart`
-- `exclude_total_data_chart_breakdown`
-*/
+    Arguments:
+    - `chain`: Chain slug (e.g. "ethereum", "arbitrum").
+    - `exclude_total_data_chart`
+    - `exclude_total_data_chart_breakdown`
+    */
     pub async fn get_dex_overview_by_chain<'a>(
         &'a self,
         chain: &'a str,
@@ -866,14 +858,15 @@ Arguments:
         Error<()>,
     > {
         let url = format!(
-            "{}/overview/dexs/{}", self.baseurl, encode_path(& chain.to_string()),
+            "{}/overview/dexs/{}",
+            self.baseurl,
+            encode_path(&chain.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -882,18 +875,14 @@ Arguments:
                 ::reqwest::header::ACCEPT,
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
-            .query(
-                &progenitor_client::QueryParam::new(
-                    "excludeTotalDataChart",
-                    &exclude_total_data_chart,
-                ),
-            )
-            .query(
-                &progenitor_client::QueryParam::new(
-                    "excludeTotalDataChartBreakdown",
-                    &exclude_total_data_chart_breakdown,
-                ),
-            )
+            .query(&progenitor_client::QueryParam::new(
+                "excludeTotalDataChart",
+                &exclude_total_data_chart,
+            ))
+            .query(&progenitor_client::QueryParam::new(
+                "excludeTotalDataChartBreakdown",
+                &exclude_total_data_chart_breakdown,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -910,14 +899,14 @@ Arguments:
     }
     /**Volume summary for a single DEX protocol
 
-Sends a `GET` request to `/summary/dexs/{protocol}`
+    Sends a `GET` request to `/summary/dexs/{protocol}`
 
-Arguments:
-- `protocol`: Protocol slug (e.g. "uniswap", "aave-v3").
-- `data_type`
-- `exclude_total_data_chart`
-- `exclude_total_data_chart_breakdown`
-*/
+    Arguments:
+    - `protocol`: Protocol slug (e.g. "uniswap", "aave-v3").
+    - `data_type`
+    - `exclude_total_data_chart`
+    - `exclude_total_data_chart_breakdown`
+    */
     pub async fn get_dex_protocol_volume<'a>(
         &'a self,
         protocol: &'a str,
@@ -929,14 +918,15 @@ Arguments:
         Error<()>,
     > {
         let url = format!(
-            "{}/summary/dexs/{}", self.baseurl, encode_path(& protocol.to_string()),
+            "{}/summary/dexs/{}",
+            self.baseurl,
+            encode_path(&protocol.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -946,18 +936,14 @@ Arguments:
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
             .query(&progenitor_client::QueryParam::new("dataType", &data_type))
-            .query(
-                &progenitor_client::QueryParam::new(
-                    "excludeTotalDataChart",
-                    &exclude_total_data_chart,
-                ),
-            )
-            .query(
-                &progenitor_client::QueryParam::new(
-                    "excludeTotalDataChartBreakdown",
-                    &exclude_total_data_chart_breakdown,
-                ),
-            )
+            .query(&progenitor_client::QueryParam::new(
+                "excludeTotalDataChart",
+                &exclude_total_data_chart,
+            ))
+            .query(&progenitor_client::QueryParam::new(
+                "excludeTotalDataChartBreakdown",
+                &exclude_total_data_chart_breakdown,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -974,9 +960,9 @@ Arguments:
     }
     /**All protocols with fee/revenue summaries
 
-Sends a `GET` request to `/overview/fees`
+    Sends a `GET` request to `/overview/fees`
 
-*/
+    */
     pub async fn get_fees_overview<'a>(
         &'a self,
         data_type: Option<&'a str>,
@@ -986,11 +972,10 @@ Sends a `GET` request to `/overview/fees`
     > {
         let url = format!("{}/overview/fees", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -1016,12 +1001,12 @@ Sends a `GET` request to `/overview/fees`
     }
     /**Fee/revenue summary for a single protocol
 
-Sends a `GET` request to `/summary/fees/{protocol}`
+    Sends a `GET` request to `/summary/fees/{protocol}`
 
-Arguments:
-- `protocol`: Protocol slug (e.g. "uniswap", "aave-v3").
-- `data_type`
-*/
+    Arguments:
+    - `protocol`: Protocol slug (e.g. "uniswap", "aave-v3").
+    - `data_type`
+    */
     pub async fn get_protocol_fees<'a>(
         &'a self,
         protocol: &'a str,
@@ -1031,14 +1016,15 @@ Arguments:
         Error<()>,
     > {
         let url = format!(
-            "{}/summary/fees/{}", self.baseurl, encode_path(& protocol.to_string()),
+            "{}/summary/fees/{}",
+            self.baseurl,
+            encode_path(&protocol.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -1064,28 +1050,29 @@ Arguments:
     }
     /**Current prices of tokens by `chain:address` (or coingecko id)
 
-Sends a `GET` request to `/prices/current/{coins}`
+    Sends a `GET` request to `/prices/current/{coins}`
 
-Arguments:
-- `coins`: Comma-separated list of coin IDs in `chain:address` format
-(e.g. `ethereum:0x...`) or coingecko ID (`coingecko:bitcoin`).
+    Arguments:
+    - `coins`: Comma-separated list of coin IDs in `chain:address` format
+    (e.g. `ethereum:0x...`) or coingecko ID (`coingecko:bitcoin`).
 
-- `search_width`
-*/
+    - `search_width`
+    */
     pub async fn get_current_prices<'a>(
         &'a self,
         coins: &'a str,
         search_width: Option<&'a str>,
     ) -> Result<ResponseValue<types::CoinPriceMap>, Error<()>> {
         let url = format!(
-            "{}/prices/current/{}", self.baseurl, encode_path(& coins.to_string()),
+            "{}/prices/current/{}",
+            self.baseurl,
+            encode_path(&coins.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -1094,7 +1081,10 @@ Arguments:
                 ::reqwest::header::ACCEPT,
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
-            .query(&progenitor_client::QueryParam::new("searchWidth", &search_width))
+            .query(&progenitor_client::QueryParam::new(
+                "searchWidth",
+                &search_width,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -1111,15 +1101,15 @@ Arguments:
     }
     /**Prices at a single past timestamp
 
-Sends a `GET` request to `/prices/historical/{timestamp}/{coins}`
+    Sends a `GET` request to `/prices/historical/{timestamp}/{coins}`
 
-Arguments:
-- `timestamp`
-- `coins`: Comma-separated list of coin IDs in `chain:address` format
-(e.g. `ethereum:0x...`) or coingecko ID (`coingecko:bitcoin`).
+    Arguments:
+    - `timestamp`
+    - `coins`: Comma-separated list of coin IDs in `chain:address` format
+    (e.g. `ethereum:0x...`) or coingecko ID (`coingecko:bitcoin`).
 
-- `search_width`
-*/
+    - `search_width`
+    */
     pub async fn get_historical_prices<'a>(
         &'a self,
         timestamp: i64,
@@ -1127,15 +1117,16 @@ Arguments:
         search_width: Option<&'a str>,
     ) -> Result<ResponseValue<types::CoinPriceMap>, Error<()>> {
         let url = format!(
-            "{}/prices/historical/{}/{}", self.baseurl, encode_path(& timestamp
-            .to_string()), encode_path(& coins.to_string()),
+            "{}/prices/historical/{}/{}",
+            self.baseurl,
+            encode_path(&timestamp.to_string()),
+            encode_path(&coins.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -1144,7 +1135,10 @@ Arguments:
                 ::reqwest::header::ACCEPT,
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
-            .query(&progenitor_client::QueryParam::new("searchWidth", &search_width))
+            .query(&progenitor_client::QueryParam::new(
+                "searchWidth",
+                &search_width,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -1161,35 +1155,34 @@ Arguments:
     }
     /**Percentage change in price over a window
 
-Sends a `GET` request to `/percentage/{coins}`
+    Sends a `GET` request to `/percentage/{coins}`
 
-Arguments:
-- `coins`: Comma-separated list of coin IDs in `chain:address` format
-(e.g. `ethereum:0x...`) or coingecko ID (`coingecko:bitcoin`).
+    Arguments:
+    - `coins`: Comma-separated list of coin IDs in `chain:address` format
+    (e.g. `ethereum:0x...`) or coingecko ID (`coingecko:bitcoin`).
 
-- `look_forward`
-- `period`
-- `timestamp`
-*/
+    - `look_forward`
+    - `period`
+    - `timestamp`
+    */
     pub async fn get_price_change_percentage<'a>(
         &'a self,
         coins: &'a str,
         look_forward: Option<bool>,
         period: Option<&'a str>,
         timestamp: Option<i64>,
-    ) -> Result<
-        ResponseValue<::std::collections::HashMap<::std::string::String, f64>>,
-        Error<()>,
-    > {
+    ) -> Result<ResponseValue<::std::collections::HashMap<::std::string::String, f64>>, Error<()>>
+    {
         let url = format!(
-            "{}/percentage/{}", self.baseurl, encode_path(& coins.to_string()),
+            "{}/percentage/{}",
+            self.baseurl,
+            encode_path(&coins.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -1198,7 +1191,10 @@ Arguments:
                 ::reqwest::header::ACCEPT,
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
-            .query(&progenitor_client::QueryParam::new("lookForward", &look_forward))
+            .query(&progenitor_client::QueryParam::new(
+                "lookForward",
+                &look_forward,
+            ))
             .query(&progenitor_client::QueryParam::new("period", &period))
             .query(&progenitor_client::QueryParam::new("timestamp", &timestamp))
             .headers(header_map)
@@ -1217,9 +1213,9 @@ Arguments:
     }
     /**All yield pools enriched with predictions and stats
 
-Sends a `GET` request to `/pools`
+    Sends a `GET` request to `/pools`
 
-*/
+    */
     pub async fn get_yield_pools<'a>(
         &'a self,
         chain: Option<&'a str>,
@@ -1227,11 +1223,10 @@ Sends a `GET` request to `/pools`
     ) -> Result<ResponseValue<types::YieldPoolList>, Error<()>> {
         let url = format!("{}/pools", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -1258,9 +1253,9 @@ Sends a `GET` request to `/pools`
     }
     /**Historical APY and TVL of a single pool
 
-Sends a `GET` request to `/chart/{pool}`
+    Sends a `GET` request to `/chart/{pool}`
 
-*/
+    */
     pub async fn get_yield_pool_history<'a>(
         &'a self,
         pool: &'a str,
@@ -1268,13 +1263,12 @@ Sends a `GET` request to `/chart/{pool}`
         ResponseValue<::serde_json::Map<::std::string::String, ::serde_json::Value>>,
         Error<()>,
     > {
-        let url = format!("{}/chart/{}", self.baseurl, encode_path(& pool.to_string()),);
+        let url = format!("{}/chart/{}", self.baseurl, encode_path(&pool.to_string()),);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -1299,9 +1293,9 @@ Sends a `GET` request to `/chart/{pool}`
     }
     /**All stablecoins with circulating amounts
 
-Sends a `GET` request to `/stablecoins`
+    Sends a `GET` request to `/stablecoins`
 
-*/
+    */
     pub async fn get_stablecoins<'a>(
         &'a self,
         include_prices: Option<bool>,
@@ -1311,11 +1305,10 @@ Sends a `GET` request to `/stablecoins`
     > {
         let url = format!("{}/stablecoins", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -1324,7 +1317,10 @@ Sends a `GET` request to `/stablecoins`
                 ::reqwest::header::ACCEPT,
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
-            .query(&progenitor_client::QueryParam::new("includePrices", &include_prices))
+            .query(&progenitor_client::QueryParam::new(
+                "includePrices",
+                &include_prices,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -1341,26 +1337,23 @@ Sends a `GET` request to `/stablecoins`
     }
     /**Current mcap sum of all stablecoins per chain
 
-Sends a `GET` request to `/stablecoinchains`
+    Sends a `GET` request to `/stablecoinchains`
 
-*/
+    */
     pub async fn get_stablecoin_chains<'a>(
         &'a self,
     ) -> Result<
         ResponseValue<
-            ::std::vec::Vec<
-                ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-            >,
+            ::std::vec::Vec<::serde_json::Map<::std::string::String, ::serde_json::Value>>,
         >,
         Error<()>,
     > {
         let url = format!("{}/stablecoinchains", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -1385,11 +1378,11 @@ Sends a `GET` request to `/stablecoinchains`
     }
     /**Historical mcap and chain distribution of a single stablecoin
 
-Sends a `GET` request to `/stablecoin/{asset}`
+    Sends a `GET` request to `/stablecoin/{asset}`
 
-Arguments:
-- `asset`: Stablecoin id (e.g. "1" for USDT).
-*/
+    Arguments:
+    - `asset`: Stablecoin id (e.g. "1" for USDT).
+    */
     pub async fn get_stablecoin_history<'a>(
         &'a self,
         asset: &'a str,
@@ -1398,14 +1391,15 @@ Arguments:
         Error<()>,
     > {
         let url = format!(
-            "{}/stablecoin/{}", self.baseurl, encode_path(& asset.to_string()),
+            "{}/stablecoin/{}",
+            self.baseurl,
+            encode_path(&asset.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client

@@ -1,7 +1,7 @@
 #[allow(unused_imports)]
 pub use progenitor_client::{ByteStream, ClientInfo, Error, ResponseValue};
 #[allow(unused_imports)]
-use progenitor_client::{encode_path, ClientHooks, OperationInfo, RequestBuilderExt};
+use progenitor_client::{ClientHooks, OperationInfo, RequestBuilderExt, encode_path};
 /// Types used as operation parameters and responses.
 #[allow(clippy::all)]
 pub mod types {
@@ -11,18 +11,12 @@ pub mod types {
         pub struct ConversionError(::std::borrow::Cow<'static, str>);
         impl ::std::error::Error for ConversionError {}
         impl ::std::fmt::Display for ConversionError {
-            fn fmt(
-                &self,
-                f: &mut ::std::fmt::Formatter<'_>,
-            ) -> Result<(), ::std::fmt::Error> {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> Result<(), ::std::fmt::Error> {
                 ::std::fmt::Display::fmt(&self.0, f)
             }
         }
         impl ::std::fmt::Debug for ConversionError {
-            fn fmt(
-                &self,
-                f: &mut ::std::fmt::Formatter<'_>,
-            ) -> Result<(), ::std::fmt::Error> {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> Result<(), ::std::fmt::Error> {
                 ::std::fmt::Debug::fmt(&self.0, f)
             }
         }
@@ -60,9 +54,7 @@ pub mod types {
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct GetMarketsResponse {
         #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
-        pub markets: ::std::vec::Vec<
-            ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-        >,
+        pub markets: ::std::vec::Vec<::serde_json::Map<::std::string::String, ::serde_json::Value>>,
     }
     impl ::std::default::Default for GetMarketsResponse {
         fn default() -> Self {
@@ -94,13 +86,13 @@ pub mod types {
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct GetOrdersResponse {
         #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
-        pub orders: ::std::vec::Vec<
-            ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-        >,
+        pub orders: ::std::vec::Vec<::serde_json::Map<::std::string::String, ::serde_json::Value>>,
     }
     impl ::std::default::Default for GetOrdersResponse {
         fn default() -> Self {
-            Self { orders: Default::default() }
+            Self {
+                orders: Default::default(),
+            }
         }
     }
     ///`GetPositionsResponse`
@@ -126,9 +118,8 @@ pub mod types {
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct GetPositionsResponse {
         #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
-        pub positions: ::std::vec::Vec<
-            ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-        >,
+        pub positions:
+            ::std::vec::Vec<::serde_json::Map<::std::string::String, ::serde_json::Value>>,
     }
     impl ::std::default::Default for GetPositionsResponse {
         fn default() -> Self {
@@ -164,9 +155,8 @@ pub mod types {
             default,
             skip_serializing_if = "::std::vec::Vec::is_empty"
         )]
-        pub signed_prices: ::std::vec::Vec<
-            ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-        >,
+        pub signed_prices:
+            ::std::vec::Vec<::serde_json::Map<::std::string::String, ::serde_json::Value>>,
     }
     impl ::std::default::Default for GetSignedPricesResponse {
         fn default() -> Self {
@@ -212,7 +202,9 @@ impl Client {
         #[cfg(not(target_arch = "wasm32"))]
         let client = {
             let dur = ::std::time::Duration::from_secs(15u64);
-            reqwest::ClientBuilder::new().connect_timeout(dur).timeout(dur)
+            reqwest::ClientBuilder::new()
+                .connect_timeout(dur)
+                .timeout(dur)
         };
         #[cfg(target_arch = "wasm32")]
         let client = reqwest::ClientBuilder::new();
@@ -250,26 +242,23 @@ impl ClientHooks<()> for &Client {}
 impl Client {
     /**Current oracle min/max prices for every listed token
 
-Sends a `GET` request to `/prices/tickers`
+    Sends a `GET` request to `/prices/tickers`
 
-*/
+    */
     pub async fn get_prices<'a>(
         &'a self,
     ) -> Result<
         ResponseValue<
-            ::std::vec::Vec<
-                ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-            >,
+            ::std::vec::Vec<::serde_json::Map<::std::string::String, ::serde_json::Value>>,
         >,
         Error<()>,
     > {
         let url = format!("{}/prices/tickers", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -294,19 +283,18 @@ Sends a `GET` request to `/prices/tickers`
     }
     /**Latest keeper-signed price packets (advanced)
 
-Sends a `GET` request to `/signed_prices/latest`
+    Sends a `GET` request to `/signed_prices/latest`
 
-*/
+    */
     pub async fn get_signed_prices<'a>(
         &'a self,
     ) -> Result<ResponseValue<types::GetSignedPricesResponse>, Error<()>> {
         let url = format!("{}/signed_prices/latest", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -331,19 +319,18 @@ Sends a `GET` request to `/signed_prices/latest`
     }
     /**All GM markets with funding/borrow rates, OI, pool composition
 
-Sends a `GET` request to `/markets/info`
+    Sends a `GET` request to `/markets/info`
 
-*/
+    */
     pub async fn get_markets<'a>(
         &'a self,
     ) -> Result<ResponseValue<types::GetMarketsResponse>, Error<()>> {
         let url = format!("{}/markets/info", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -368,22 +355,21 @@ Sends a `GET` request to `/markets/info`
     }
     /**Open leveraged positions for an account
 
-Sends a `GET` request to `/positions`
+    Sends a `GET` request to `/positions`
 
-Arguments:
-- `account`: Ethereum address (0x...) of the account.
-*/
+    Arguments:
+    - `account`: Ethereum address (0x...) of the account.
+    */
     pub async fn get_positions<'a>(
         &'a self,
         account: &'a str,
     ) -> Result<ResponseValue<types::GetPositionsResponse>, Error<()>> {
         let url = format!("{}/positions", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -409,22 +395,21 @@ Arguments:
     }
     /**Pending limit/trigger/stop orders for an account
 
-Sends a `GET` request to `/orders`
+    Sends a `GET` request to `/orders`
 
-Arguments:
-- `account`: Ethereum address (0x...) of the account.
-*/
+    Arguments:
+    - `account`: Ethereum address (0x...) of the account.
+    */
     pub async fn get_orders<'a>(
         &'a self,
         account: &'a str,
     ) -> Result<ResponseValue<types::GetOrdersResponse>, Error<()>> {
         let url = format!("{}/orders", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client

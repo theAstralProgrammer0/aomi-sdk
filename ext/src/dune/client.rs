@@ -1,7 +1,7 @@
 #[allow(unused_imports)]
 pub use progenitor_client::{ByteStream, ClientInfo, Error, ResponseValue};
 #[allow(unused_imports)]
-use progenitor_client::{encode_path, ClientHooks, OperationInfo, RequestBuilderExt};
+use progenitor_client::{ClientHooks, OperationInfo, RequestBuilderExt, encode_path};
 /// Types used as operation parameters and responses.
 #[allow(clippy::all)]
 pub mod types {
@@ -11,18 +11,12 @@ pub mod types {
         pub struct ConversionError(::std::borrow::Cow<'static, str>);
         impl ::std::error::Error for ConversionError {}
         impl ::std::fmt::Display for ConversionError {
-            fn fmt(
-                &self,
-                f: &mut ::std::fmt::Formatter<'_>,
-            ) -> Result<(), ::std::fmt::Error> {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> Result<(), ::std::fmt::Error> {
                 ::std::fmt::Display::fmt(&self.0, f)
             }
         }
         impl ::std::fmt::Debug for ConversionError {
-            fn fmt(
-                &self,
-                f: &mut ::std::fmt::Formatter<'_>,
-            ) -> Result<(), ::std::fmt::Error> {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> Result<(), ::std::fmt::Error> {
                 ::std::fmt::Debug::fmt(&self.0, f)
             }
         }
@@ -242,7 +236,7 @@ pub mod types {
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct MatviewsMatviewsRefreshRequest {
         /**Performance tier for the refresh execution. Accepts `small`, `medium`, `large`.
-Omit to use the default tier for the source query's engine.*/
+        Omit to use the default tier for the source query's engine.*/
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub performance: ::std::option::Option<::std::string::String>,
     }
@@ -338,7 +332,7 @@ Omit to use the default tier for the source query's engine.*/
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub name: ::std::option::Option<::std::string::String>,
         /**Performance tier for the refresh execution. Accepts `small`, `medium`, `large`.
-Omit to use the default tier for the source query's engine.*/
+        Omit to use the default tier for the source query's engine.*/
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub performance: ::std::option::Option<::std::string::String>,
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
@@ -622,11 +616,11 @@ Omit to use the default tier for the source query's engine.*/
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub description: ::std::option::Option<::std::string::String>,
         /**Indicates if the query is private, meaning that only the
-team or, in case of personal queries, the user that created it can see it.*/
+        team or, in case of personal queries, the user that created it can see it.*/
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub is_private: ::std::option::Option<bool>,
         /**Indicates if the query is temporary (unsaved).
-Temporary queries can be executed but won't appear in the library.*/
+        Temporary queries can be executed but won't appear in the library.*/
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub is_temp: ::std::option::Option<bool>,
         ///The name of the created query.
@@ -733,7 +727,9 @@ Temporary queries can be executed but won't appear in the library.*/
     }
     impl ::std::default::Default for ModelsCreateVisualizationResponse {
         fn default() -> Self {
-            Self { id: Default::default() }
+            Self {
+                id: Default::default(),
+            }
         }
     }
     ///`ModelsCsvUploadRequest`
@@ -1142,7 +1138,9 @@ Temporary queries can be executed but won't appear in the library.*/
     }
     impl ::std::default::Default for ModelsDeleteVisualizationResponse {
         fn default() -> Self {
-            Self { ok: Default::default() }
+            Self {
+                ok: Default::default(),
+            }
         }
     }
     ///`ModelsEnumFromResults`
@@ -1211,7 +1209,9 @@ Temporary queries can be executed but won't appear in the library.*/
     }
     impl ::std::default::Default for ModelsError400 {
         fn default() -> Self {
-            Self { error: Default::default() }
+            Self {
+                error: Default::default(),
+            }
         }
     }
     ///`ModelsError401`
@@ -1239,7 +1239,9 @@ Temporary queries can be executed but won't appear in the library.*/
     }
     impl ::std::default::Default for ModelsError401 {
         fn default() -> Self {
-            Self { error: Default::default() }
+            Self {
+                error: Default::default(),
+            }
         }
     }
     ///`ModelsError402`
@@ -1267,7 +1269,9 @@ Temporary queries can be executed but won't appear in the library.*/
     }
     impl ::std::default::Default for ModelsError402 {
         fn default() -> Self {
-            Self { error: Default::default() }
+            Self {
+                error: Default::default(),
+            }
         }
     }
     ///`ModelsError403`
@@ -1295,7 +1299,9 @@ Temporary queries can be executed but won't appear in the library.*/
     }
     impl ::std::default::Default for ModelsError403 {
         fn default() -> Self {
-            Self { error: Default::default() }
+            Self {
+                error: Default::default(),
+            }
         }
     }
     ///`ModelsError404`
@@ -1323,7 +1329,9 @@ Temporary queries can be executed but won't appear in the library.*/
     }
     impl ::std::default::Default for ModelsError404 {
         fn default() -> Self {
-            Self { error: Default::default() }
+            Self {
+                error: Default::default(),
+            }
         }
     }
     ///`ModelsError500`
@@ -1351,7 +1359,9 @@ Temporary queries can be executed but won't appear in the library.*/
     }
     impl ::std::default::Default for ModelsError500 {
         fn default() -> Self {
-            Self { error: Default::default() }
+            Self {
+                error: Default::default(),
+            }
         }
     }
     ///`ModelsExecutePipelineRequest`
@@ -1409,7 +1419,7 @@ Temporary queries can be executed but won't appear in the library.*/
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct ModelsExecutePipelineResponse {
         /**Unique identifier for the pipeline execution. Use this ID to check the status
-and retrieve results of the pipeline execution.*/
+        and retrieve results of the pipeline execution.*/
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub pipeline_execution_id: ::std::option::Option<::std::string::String>,
     }
@@ -1452,10 +1462,7 @@ and retrieve results of the pipeline execution.*/
         pub performance: ModelsExecuteQueryPipelineRequestPerformance,
         ///SQL Query parameters in json key-value pairs. Each parameter is to be provided in key-value pairs. This enables you to execute a parameterized query with the provided values for your parameter keys.
         #[serde(default, skip_serializing_if = "::serde_json::Map::is_empty")]
-        pub query_parameters: ::serde_json::Map<
-            ::std::string::String,
-            ::serde_json::Value,
-        >,
+        pub query_parameters: ::serde_json::Map<::std::string::String, ::serde_json::Value>,
     }
     ///`ModelsExecuteQueryPipelineRequestPerformance`
     ///
@@ -1482,7 +1489,7 @@ and retrieve results of the pipeline execution.*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum ModelsExecuteQueryPipelineRequestPerformance {
         #[serde(rename = "small")]
@@ -1503,9 +1510,7 @@ and retrieve results of the pipeline execution.*/
     }
     impl ::std::str::FromStr for ModelsExecuteQueryPipelineRequestPerformance {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "small" => Ok(Self::Small),
                 "medium" => Ok(Self::Medium),
@@ -1516,14 +1521,13 @@ and retrieve results of the pipeline execution.*/
     }
     impl ::std::convert::TryFrom<&str> for ModelsExecuteQueryPipelineRequestPerformance {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
     impl ::std::convert::TryFrom<&::std::string::String>
-    for ModelsExecuteQueryPipelineRequestPerformance {
+        for ModelsExecuteQueryPipelineRequestPerformance
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -1532,7 +1536,8 @@ and retrieve results of the pipeline execution.*/
         }
     }
     impl ::std::convert::TryFrom<::std::string::String>
-    for ModelsExecuteQueryPipelineRequestPerformance {
+        for ModelsExecuteQueryPipelineRequestPerformance
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -1562,7 +1567,7 @@ and retrieve results of the pipeline execution.*/
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct ModelsExecuteQueryPipelineResponse {
         /**Unique identifier for the pipeline execution. Use this ID to check the status
-and retrieve results of the pipeline execution.*/
+        and retrieve results of the pipeline execution.*/
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub pipeline_execution_id: ::std::option::Option<::std::string::String>,
     }
@@ -1674,7 +1679,7 @@ and retrieve results of the pipeline execution.*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum ModelsExecuteSqlRequestPerformance {
         #[serde(rename = "small")]
@@ -1695,9 +1700,7 @@ and retrieve results of the pipeline execution.*/
     }
     impl ::std::str::FromStr for ModelsExecuteSqlRequestPerformance {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "small" => Ok(Self::Small),
                 "medium" => Ok(Self::Medium),
@@ -1708,14 +1711,11 @@ and retrieve results of the pipeline execution.*/
     }
     impl ::std::convert::TryFrom<&str> for ModelsExecuteSqlRequestPerformance {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for ModelsExecuteSqlRequestPerformance {
+    impl ::std::convert::TryFrom<&::std::string::String> for ModelsExecuteSqlRequestPerformance {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -1723,8 +1723,7 @@ and retrieve results of the pipeline execution.*/
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for ModelsExecuteSqlRequestPerformance {
+    impl ::std::convert::TryFrom<::std::string::String> for ModelsExecuteSqlRequestPerformance {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -1830,7 +1829,7 @@ and retrieve results of the pipeline execution.*/
         #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
         pub column_types: ::std::vec::Vec<::std::string::String>,
         /**Results cell count is used for billing/pricing plans
-here we expose the these values to the user, so that they can track their costs*/
+        here we expose the these values to the user, so that they can track their costs*/
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub datapoint_count: ::std::option::Option<i64>,
         ///Time in milliseconds that the query took to execute.
@@ -1840,11 +1839,11 @@ here we expose the these values to the user, so that they can track their costs*
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub pending_time_millis: ::std::option::Option<i64>,
         /**ResultSetBytes represents the raw data bytes returned by the SQL execution engine, it includes:
- + total nr of bytes used on 1 line with all the column names (the header of the result set)
- + total nr of bytes for all the row values (the result set of rows)
+         + total nr of bytes used on 1 line with all the column names (the header of the result set)
+         + total nr of bytes for all the row values (the result set of rows)
 
-it doesn't include overheads such as the presence of column names for every row in the JSON result type.
-it also doesn't include opmitizations such as compression*/
+        it doesn't include overheads such as the presence of column names for every row in the JSON result type.
+        it also doesn't include opmitizations such as compression*/
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub result_set_bytes: ::std::option::Option<i64>,
         ///Number of rows in the result set for the current page of results.
@@ -2017,7 +2016,7 @@ it also doesn't include opmitizations such as compression*/
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub max_inflight_interactive_executions: ::std::option::Option<i64>,
         /**Total number of interactive executions this user has submitted which are still in progress
-only set to > 0 if the user has reached the limit of concurrent interactive executions*/
+        only set to > 0 if the user has reached the limit of concurrent interactive executions*/
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub max_inflight_interactive_reached: ::std::option::Option<i64>,
         ///Unique identifier of the query.
@@ -2250,14 +2249,14 @@ only set to > 0 if the user has reached the limit of concurrent interactive exec
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct ModelsGetQueryResponse {
         /**Contributors to the query (users who have created or saved it).
-Only included when include_contributors=true query parameter is set.*/
+        Only included when include_contributors=true query parameter is set.*/
         #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
         pub contributors: ::std::vec::Vec<ModelsQueryContributor>,
         ///The description of the query
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub description: ::std::option::Option<::std::string::String>,
         /**Indicates if the query is archived.
-Archived queries cannot be executed.*/
+        Archived queries cannot be executed.*/
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub is_archived: ::std::option::Option<bool>,
         ///Indicates if the query is private.
@@ -2818,7 +2817,9 @@ Archived queries cannot be executed.*/
     }
     impl ::std::default::Default for ModelsPipeline {
         fn default() -> Self {
-            Self { nodes: Default::default() }
+            Self {
+                nodes: Default::default(),
+            }
         }
     }
     ///`ModelsPipelineMaterializedViewRefreshNode`
@@ -2859,9 +2860,8 @@ Archived queries cannot be executed.*/
         pub name: ::std::option::Option<::std::string::String>,
         ///The performance engine tier the refresh will be run on. Can be `small`, `medium`, or `large`.
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub performance: ::std::option::Option<
-            ModelsPipelineMaterializedViewRefreshNodePerformance,
-        >,
+        pub performance:
+            ::std::option::Option<ModelsPipelineMaterializedViewRefreshNodePerformance>,
     }
     impl ::std::default::Default for ModelsPipelineMaterializedViewRefreshNode {
         fn default() -> Self {
@@ -2900,7 +2900,7 @@ Archived queries cannot be executed.*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum ModelsPipelineMaterializedViewRefreshNodePerformance {
         #[serde(rename = "small")]
@@ -2921,9 +2921,7 @@ Archived queries cannot be executed.*/
     }
     impl ::std::str::FromStr for ModelsPipelineMaterializedViewRefreshNodePerformance {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "small" => Ok(Self::Small),
                 "medium" => Ok(Self::Medium),
@@ -2932,17 +2930,15 @@ Archived queries cannot be executed.*/
             }
         }
     }
-    impl ::std::convert::TryFrom<&str>
-    for ModelsPipelineMaterializedViewRefreshNodePerformance {
+    impl ::std::convert::TryFrom<&str> for ModelsPipelineMaterializedViewRefreshNodePerformance {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
     impl ::std::convert::TryFrom<&::std::string::String>
-    for ModelsPipelineMaterializedViewRefreshNodePerformance {
+        for ModelsPipelineMaterializedViewRefreshNodePerformance
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -2951,7 +2947,8 @@ Archived queries cannot be executed.*/
         }
     }
     impl ::std::convert::TryFrom<::std::string::String>
-    for ModelsPipelineMaterializedViewRefreshNodePerformance {
+        for ModelsPipelineMaterializedViewRefreshNodePerformance
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -3064,9 +3061,8 @@ Archived queries cannot be executed.*/
         pub id: ::std::option::Option<i64>,
         ///Materialized view refresh node configuration. Required if this node refreshes a materialized view.
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub materialized_view_refresh: ::std::option::Option<
-            ModelsPipelineMaterializedViewRefreshNode,
-        >,
+        pub materialized_view_refresh:
+            ::std::option::Option<ModelsPipelineMaterializedViewRefreshNode>,
         ///Query execution node configuration. Required if this node executes a query.
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub query_execution: ::std::option::Option<ModelsPipelineQueryExecutionNode>,
@@ -3120,14 +3116,11 @@ Archived queries cannot be executed.*/
         pub id: ::std::option::Option<i64>,
         ///Status of the materialized view refresh, if this node is a materialized view refresh node
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub materialized_view_refresh_status: ::std::option::Option<
-            ModelsPipelineMaterializedViewRefreshStatus,
-        >,
+        pub materialized_view_refresh_status:
+            ::std::option::Option<ModelsPipelineMaterializedViewRefreshStatus>,
         ///Status of the query execution, if this node is a query execution node
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub query_execution_status: ::std::option::Option<
-            ModelsPipelineQueryExecutionStatus,
-        >,
+        pub query_execution_status: ::std::option::Option<ModelsPipelineQueryExecutionStatus>,
     }
     impl ::std::default::Default for ModelsPipelineNodeExecution {
         fn default() -> Self {
@@ -3177,18 +3170,13 @@ Archived queries cannot be executed.*/
     pub struct ModelsPipelineQueryExecutionNode {
         ///The performance engine tier the execution will be run on. Can be `small`, `medium`, or `large`.
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub performance: ::std::option::Option<
-            ModelsPipelineQueryExecutionNodePerformance,
-        >,
+        pub performance: ::std::option::Option<ModelsPipelineQueryExecutionNodePerformance>,
         ///Unique identifier of the query to execute
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub query_id: ::std::option::Option<i64>,
         ///SQL Query parameters in json key-value pairs. Each parameter is to be provided in key-value pairs. This enables you to execute a parameterized query with the provided values for your parameter keys.
         #[serde(default, skip_serializing_if = "::serde_json::Map::is_empty")]
-        pub query_parameters: ::serde_json::Map<
-            ::std::string::String,
-            ::serde_json::Value,
-        >,
+        pub query_parameters: ::serde_json::Map<::std::string::String, ::serde_json::Value>,
     }
     impl ::std::default::Default for ModelsPipelineQueryExecutionNode {
         fn default() -> Self {
@@ -3228,7 +3216,7 @@ Archived queries cannot be executed.*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum ModelsPipelineQueryExecutionNodePerformance {
         #[serde(rename = "small")]
@@ -3249,9 +3237,7 @@ Archived queries cannot be executed.*/
     }
     impl ::std::str::FromStr for ModelsPipelineQueryExecutionNodePerformance {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "small" => Ok(Self::Small),
                 "medium" => Ok(Self::Medium),
@@ -3262,14 +3248,13 @@ Archived queries cannot be executed.*/
     }
     impl ::std::convert::TryFrom<&str> for ModelsPipelineQueryExecutionNodePerformance {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
     impl ::std::convert::TryFrom<&::std::string::String>
-    for ModelsPipelineQueryExecutionNodePerformance {
+        for ModelsPipelineQueryExecutionNodePerformance
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -3278,7 +3263,8 @@ Archived queries cannot be executed.*/
         }
     }
     impl ::std::convert::TryFrom<::std::string::String>
-    for ModelsPipelineQueryExecutionNodePerformance {
+        for ModelsPipelineQueryExecutionNodePerformance
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -3416,11 +3402,11 @@ Archived queries cannot be executed.*/
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct ModelsQueryResultData {
         /**Metadata about the execution of the query, including details like column names,
-row counts, and execution times.*/
+        row counts, and execution times.*/
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub metadata: ::std::option::Option<ModelsExecutionResultMetadata>,
         /**A list of rows. A row is dictionary of key-value pairs returned by the query,
-each pair corresponding to a column*/
+        each pair corresponding to a column*/
         #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
         pub rows: ::std::vec::Vec<ModelsRow>,
         ///The type of update operation from Trino (e.g., "SET SESSION")
@@ -3753,29 +3739,24 @@ each pair corresponding to a column*/
     /// </details>
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     #[serde(transparent)]
-    pub struct ModelsRow(
-        pub ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-    );
+    pub struct ModelsRow(pub ::serde_json::Map<::std::string::String, ::serde_json::Value>);
     impl ::std::ops::Deref for ModelsRow {
         type Target = ::serde_json::Map<::std::string::String, ::serde_json::Value>;
-        fn deref(
-            &self,
-        ) -> &::serde_json::Map<::std::string::String, ::serde_json::Value> {
+        fn deref(&self) -> &::serde_json::Map<::std::string::String, ::serde_json::Value> {
             &self.0
         }
     }
     impl ::std::convert::From<ModelsRow>
-    for ::serde_json::Map<::std::string::String, ::serde_json::Value> {
+        for ::serde_json::Map<::std::string::String, ::serde_json::Value>
+    {
         fn from(value: ModelsRow) -> Self {
             value.0
         }
     }
-    impl ::std::convert::From<
-        ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-    > for ModelsRow {
-        fn from(
-            value: ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-        ) -> Self {
+    impl ::std::convert::From<::serde_json::Map<::std::string::String, ::serde_json::Value>>
+        for ModelsRow
+    {
+        fn from(value: ::serde_json::Map<::std::string::String, ::serde_json::Value>) -> Self {
             Self(value)
         }
     }
@@ -4924,7 +4905,9 @@ each pair corresponding to a column*/
     }
     impl ::std::default::Default for ModelsUpdateVisualizationResponse {
         fn default() -> Self {
-            Self { id: Default::default() }
+            Self {
+                id: Default::default(),
+            }
         }
     }
     ///`ModelsVisualizationSummary`
@@ -5124,7 +5107,7 @@ each pair corresponding to a column*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum Postv1QueryQueryidExecutePerformance {
         #[serde(rename = "small")]
@@ -5145,9 +5128,7 @@ each pair corresponding to a column*/
     }
     impl ::std::str::FromStr for Postv1QueryQueryidExecutePerformance {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "small" => Ok(Self::Small),
                 "medium" => Ok(Self::Medium),
@@ -5158,14 +5139,11 @@ each pair corresponding to a column*/
     }
     impl ::std::convert::TryFrom<&str> for Postv1QueryQueryidExecutePerformance {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for Postv1QueryQueryidExecutePerformance {
+    impl ::std::convert::TryFrom<&::std::string::String> for Postv1QueryQueryidExecutePerformance {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -5173,8 +5151,7 @@ each pair corresponding to a column*/
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for Postv1QueryQueryidExecutePerformance {
+    impl ::std::convert::TryFrom<::std::string::String> for Postv1QueryQueryidExecutePerformance {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -5203,7 +5180,9 @@ impl Client {
         #[cfg(not(target_arch = "wasm32"))]
         let client = {
             let dur = ::std::time::Duration::from_secs(15u64);
-            reqwest::ClientBuilder::new().connect_timeout(dur).timeout(dur)
+            reqwest::ClientBuilder::new()
+                .connect_timeout(dur)
+                .timeout(dur)
         };
         #[cfg(target_arch = "wasm32")]
         let client = reqwest::ClientBuilder::new();
@@ -5241,14 +5220,14 @@ impl ClientHooks<()> for &Client {}
 impl Client {
     /**Create a dashboard
 
-Creates a new dashboard with optional visualization and text widgets.
+    Creates a new dashboard with optional visualization and text widgets.
 
-Sends a `POST` request to `/v1/dashboards`
+    Sends a `POST` request to `/v1/dashboards`
 
-Arguments:
-- `x_dune_api_key`: API Key for the service
-- `body`: CreateDashboardRequest
-*/
+    Arguments:
+    - `x_dune_api_key`: API Key for the service
+    - `body`: CreateDashboardRequest
+    */
     pub async fn postv1_dashboards<'a>(
         &'a self,
         x_dune_api_key: &'a str,
@@ -5256,11 +5235,10 @@ Arguments:
     ) -> Result<ResponseValue<types::ModelsDashboardCrudResponse>, Error<()>> {
         let url = format!("{}/v1/dashboards", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-Dune-Api-Key", x_dune_api_key.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -5287,15 +5265,15 @@ Arguments:
     }
     /**Get a dashboard by owner handle and slug
 
-Retrieves the full state of a dashboard using the owner handle and URL slug.
+    Retrieves the full state of a dashboard using the owner handle and URL slug.
 
-Sends a `GET` request to `/v1/dashboards/by-slug/{owner_handle}/{slug}`
+    Sends a `GET` request to `/v1/dashboards/by-slug/{owner_handle}/{slug}`
 
-Arguments:
-- `owner_handle`: Owner username or team handle
-- `slug`: Dashboard URL slug
-- `x_dune_api_key`: API Key for the service
-*/
+    Arguments:
+    - `owner_handle`: Owner username or team handle
+    - `slug`: Dashboard URL slug
+    - `x_dune_api_key`: API Key for the service
+    */
     pub async fn getv1_dashboards_by_slug_ownerhandle_slug<'a>(
         &'a self,
         owner_handle: &'a str,
@@ -5303,15 +5281,16 @@ Arguments:
         x_dune_api_key: &'a str,
     ) -> Result<ResponseValue<types::ModelsDashboardCrudResponse>, Error<()>> {
         let url = format!(
-            "{}/v1/dashboards/by-slug/{}/{}", self.baseurl, encode_path(& owner_handle
-            .to_string()), encode_path(& slug.to_string()),
+            "{}/v1/dashboards/by-slug/{}/{}",
+            self.baseurl,
+            encode_path(&owner_handle.to_string()),
+            encode_path(&slug.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-Dune-Api-Key", x_dune_api_key.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -5337,28 +5316,29 @@ Arguments:
     }
     /**Get a dashboard by ID
 
-Retrieves the full state of a dashboard including widgets.
+    Retrieves the full state of a dashboard including widgets.
 
-Sends a `GET` request to `/v1/dashboards/{dashboard_id}`
+    Sends a `GET` request to `/v1/dashboards/{dashboard_id}`
 
-Arguments:
-- `dashboard_id`: Dashboard ID
-- `x_dune_api_key`: API Key for the service
-*/
+    Arguments:
+    - `dashboard_id`: Dashboard ID
+    - `x_dune_api_key`: API Key for the service
+    */
     pub async fn getv1_dashboards_dashboardid<'a>(
         &'a self,
         dashboard_id: i64,
         x_dune_api_key: &'a str,
     ) -> Result<ResponseValue<types::ModelsDashboardCrudResponse>, Error<()>> {
         let url = format!(
-            "{}/v1/dashboards/{}", self.baseurl, encode_path(& dashboard_id.to_string()),
+            "{}/v1/dashboards/{}",
+            self.baseurl,
+            encode_path(&dashboard_id.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-Dune-Api-Key", x_dune_api_key.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -5384,15 +5364,15 @@ Arguments:
     }
     /**Update a dashboard
 
-Updates dashboard metadata and/or replaces widgets.
+    Updates dashboard metadata and/or replaces widgets.
 
-Sends a `PATCH` request to `/v1/dashboards/{dashboard_id}`
+    Sends a `PATCH` request to `/v1/dashboards/{dashboard_id}`
 
-Arguments:
-- `dashboard_id`: Dashboard ID
-- `x_dune_api_key`: API Key for the service
-- `body`: UpdateDashboardRequest
-*/
+    Arguments:
+    - `dashboard_id`: Dashboard ID
+    - `x_dune_api_key`: API Key for the service
+    - `body`: UpdateDashboardRequest
+    */
     pub async fn patchv1_dashboards_dashboardid<'a>(
         &'a self,
         dashboard_id: i64,
@@ -5400,14 +5380,15 @@ Arguments:
         body: &'a types::ModelsUpdateDashboardCrudRequest,
     ) -> Result<ResponseValue<types::ModelsDashboardCrudResponse>, Error<()>> {
         let url = format!(
-            "{}/v1/dashboards/{}", self.baseurl, encode_path(& dashboard_id.to_string()),
+            "{}/v1/dashboards/{}",
+            self.baseurl,
+            encode_path(&dashboard_id.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-Dune-Api-Key", x_dune_api_key.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -5434,29 +5415,29 @@ Arguments:
     }
     /**Archive a dashboard
 
-Archives a dashboard by ID. The dashboard can be restored later.
+    Archives a dashboard by ID. The dashboard can be restored later.
 
-Sends a `POST` request to `/v1/dashboards/{dashboard_id}/archive`
+    Sends a `POST` request to `/v1/dashboards/{dashboard_id}/archive`
 
-Arguments:
-- `dashboard_id`: Dashboard ID
-- `x_dune_api_key`: API Key for the service
-*/
+    Arguments:
+    - `dashboard_id`: Dashboard ID
+    - `x_dune_api_key`: API Key for the service
+    */
     pub async fn postv1_dashboards_dashboardid_archive<'a>(
         &'a self,
         dashboard_id: i64,
         x_dune_api_key: &'a str,
     ) -> Result<ResponseValue<types::ModelsArchiveDashboardCrudResponse>, Error<()>> {
         let url = format!(
-            "{}/v1/dashboards/{}/archive", self.baseurl, encode_path(& dashboard_id
-            .to_string()),
+            "{}/v1/dashboards/{}/archive",
+            self.baseurl,
+            encode_path(&dashboard_id.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-Dune-Api-Key", x_dune_api_key.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -5482,18 +5463,18 @@ Arguments:
     }
     /**List datasets
 
-Retrieve a paginated list of datasets with optional filtering by owner and type
+    Retrieve a paginated list of datasets with optional filtering by owner and type
 
-Sends a `GET` request to `/v1/datasets`
+    Sends a `GET` request to `/v1/datasets`
 
-Arguments:
-- `api_key`: API Key, alternative to using the HTTP header X-Dune-Api-Key
-- `limit`: Number of results to return (default 50, max 250)
-- `offset`: Offset for pagination
-- `owner_handle`: Filter by owner handle
-- `type_`: Filter by dataset types (comma-separated: transformation_view, transformation_table, uploaded_table, decoded_table, spell, dune_table)
-- `x_dune_api_key`: API Key for the service
-*/
+    Arguments:
+    - `api_key`: API Key, alternative to using the HTTP header X-Dune-Api-Key
+    - `limit`: Number of results to return (default 50, max 250)
+    - `offset`: Offset for pagination
+    - `owner_handle`: Filter by owner handle
+    - `type_`: Filter by dataset types (comma-separated: transformation_view, transformation_table, uploaded_table, decoded_table, spell, dune_table)
+    - `x_dune_api_key`: API Key for the service
+    */
     pub async fn getv1_datasets<'a>(
         &'a self,
         api_key: Option<&'a str>,
@@ -5505,11 +5486,10 @@ Arguments:
     ) -> Result<ResponseValue<types::ModelsListDatasetsResponse>, Error<()>> {
         let url = format!("{}/v1/datasets", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-Dune-Api-Key", x_dune_api_key.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -5522,7 +5502,10 @@ Arguments:
             .query(&progenitor_client::QueryParam::new("api_key", &api_key))
             .query(&progenitor_client::QueryParam::new("limit", &limit))
             .query(&progenitor_client::QueryParam::new("offset", &offset))
-            .query(&progenitor_client::QueryParam::new("owner_handle", &owner_handle))
+            .query(&progenitor_client::QueryParam::new(
+                "owner_handle",
+                &owner_handle,
+            ))
             .query(&progenitor_client::QueryParam::new("type", &type_))
             .headers(header_map)
             .build()?;
@@ -5540,15 +5523,15 @@ Arguments:
     }
     /**Search datasets
 
-Search for datasets across the Dune catalog, with filtering by categories, blockchains, schemas, and more
+    Search for datasets across the Dune catalog, with filtering by categories, blockchains, schemas, and more
 
-Sends a `POST` request to `/v1/datasets/search`
+    Sends a `POST` request to `/v1/datasets/search`
 
-Arguments:
-- `api_key`: API Key, alternative to using the HTTP header X-Dune-Api-Key
-- `x_dune_api_key`: API Key for the service
-- `body`: Search datasets request
-*/
+    Arguments:
+    - `api_key`: API Key, alternative to using the HTTP header X-Dune-Api-Key
+    - `x_dune_api_key`: API Key for the service
+    - `body`: Search datasets request
+    */
     pub async fn postv1_datasets_search<'a>(
         &'a self,
         api_key: Option<&'a str>,
@@ -5557,11 +5540,10 @@ Arguments:
     ) -> Result<ResponseValue<types::ModelsSearchDatasetsResponse>, Error<()>> {
         let url = format!("{}/v1/datasets/search", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-Dune-Api-Key", x_dune_api_key.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -5589,15 +5571,15 @@ Arguments:
     }
     /**Search datasets by contract address
 
-Find decoded datasets associated with a smart contract address
+    Find decoded datasets associated with a smart contract address
 
-Sends a `POST` request to `/v1/datasets/search-by-contract`
+    Sends a `POST` request to `/v1/datasets/search-by-contract`
 
-Arguments:
-- `api_key`: API Key, alternative to using the HTTP header X-Dune-Api-Key
-- `x_dune_api_key`: API Key for the service
-- `body`: Search by contract address request
-*/
+    Arguments:
+    - `api_key`: API Key, alternative to using the HTTP header X-Dune-Api-Key
+    - `x_dune_api_key`: API Key for the service
+    - `body`: Search by contract address request
+    */
     pub async fn postv1_datasets_search_by_contract<'a>(
         &'a self,
         api_key: Option<&'a str>,
@@ -5606,11 +5588,10 @@ Arguments:
     ) -> Result<ResponseValue<types::ModelsSearchDatasetsResponse>, Error<()>> {
         let url = format!("{}/v1/datasets/search-by-contract", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-Dune-Api-Key", x_dune_api_key.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -5638,15 +5619,15 @@ Arguments:
     }
     /**Get a dataset by slug
 
-Retrieve dataset information including columns, metadata, and ownership details
+    Retrieve dataset information including columns, metadata, and ownership details
 
-Sends a `GET` request to `/v1/datasets/{slug}`
+    Sends a `GET` request to `/v1/datasets/{slug}`
 
-Arguments:
-- `slug`: Dataset slug (e.g., 'dex.trades')
-- `api_key`: API Key, alternative to using the HTTP header X-Dune-Api-Key
-- `x_dune_api_key`: API Key for the service
-*/
+    Arguments:
+    - `slug`: Dataset slug (e.g., 'dex.trades')
+    - `api_key`: API Key, alternative to using the HTTP header X-Dune-Api-Key
+    - `x_dune_api_key`: API Key for the service
+    */
     pub async fn getv1_datasets_slug<'a>(
         &'a self,
         slug: &'a str,
@@ -5654,14 +5635,15 @@ Arguments:
         x_dune_api_key: &'a str,
     ) -> Result<ResponseValue<types::ModelsDatasetResponse>, Error<()>> {
         let url = format!(
-            "{}/v1/datasets/{}", self.baseurl, encode_path(& slug.to_string()),
+            "{}/v1/datasets/{}",
+            self.baseurl,
+            encode_path(&slug.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-Dune-Api-Key", x_dune_api_key.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -5688,38 +5670,38 @@ Arguments:
     }
     /**Custom Endpoints
 
-Create custom API endpoints from Dune queries
+    Create custom API endpoints from Dune queries
 
-Sends a `GET` request to `/v1/endpoints/{handle}/{endpoint_slug}/results`
+    Sends a `GET` request to `/v1/endpoints/{handle}/{endpoint_slug}/results`
 
-Arguments:
-- `handle`: Your user or team handle
-- `endpoint_slug`: The name of the endpoint as slug
-- `allow_partial_results`: This enables returning a query result that was too large and only a partial result is
-available. By default, allow_partial_results is set to false and a failed state is returned.
-- `api_key`: API Key, alternative to using the HTTP header X-Dune-Api-Key
-- `columns`: Specifies a comma-separated list of column names to return. If omitted, all columns are included.
-Tip: use this to limit the result to specific columns, reducing datapoints cost of the call.
-- `filters`: Expression to filter out rows from the results to return. This expression is similar to
-a SQL WHERE clause. More details about it in the Filtering section of the doc.
-This parameter is incompatible with sample_count.
-- `ignore_max_credits_per_request`: To bypass the default max credits per request limit, set ignore_max_credits_per_request=true
-- `limit`: Limit number of rows to return. This together with 'offset' allows easy pagination through
-results in an incremental and efficient way. This parameter is incompatible
-with sampling (sample_count).
-- `offset`: Offset row number to start (inclusive, first row means offset=0) returning results
-from. This together with 'limit' allows easy pagination through results in an
-incremental and efficient way. This parameter is incompatible with sampling (sample_count).
-- `query_id`
-- `sample_count`: Number of rows to return from the result by sampling the data. This is useful when you
-want to get a uniform sample instead of the entire result. If the result has less
-than the sample count, the entire result is returned. Note that this will return a
-randomized sample, so not every call will return the same result. This parameter is
-incompatible with `offset`, `limit`, and `filters` parameters.
-- `sort_by`: Expression to define the order in which the results should be returned. This expression
-is similar to a SQL ORDER BY clause. More details about it in the Sorting section of the doc.
-- `x_dune_api_key`: API Key for the service
-*/
+    Arguments:
+    - `handle`: Your user or team handle
+    - `endpoint_slug`: The name of the endpoint as slug
+    - `allow_partial_results`: This enables returning a query result that was too large and only a partial result is
+    available. By default, allow_partial_results is set to false and a failed state is returned.
+    - `api_key`: API Key, alternative to using the HTTP header X-Dune-Api-Key
+    - `columns`: Specifies a comma-separated list of column names to return. If omitted, all columns are included.
+    Tip: use this to limit the result to specific columns, reducing datapoints cost of the call.
+    - `filters`: Expression to filter out rows from the results to return. This expression is similar to
+    a SQL WHERE clause. More details about it in the Filtering section of the doc.
+    This parameter is incompatible with sample_count.
+    - `ignore_max_credits_per_request`: To bypass the default max credits per request limit, set ignore_max_credits_per_request=true
+    - `limit`: Limit number of rows to return. This together with 'offset' allows easy pagination through
+    results in an incremental and efficient way. This parameter is incompatible
+    with sampling (sample_count).
+    - `offset`: Offset row number to start (inclusive, first row means offset=0) returning results
+    from. This together with 'limit' allows easy pagination through results in an
+    incremental and efficient way. This parameter is incompatible with sampling (sample_count).
+    - `query_id`
+    - `sample_count`: Number of rows to return from the result by sampling the data. This is useful when you
+    want to get a uniform sample instead of the entire result. If the result has less
+    than the sample count, the entire result is returned. Note that this will return a
+    randomized sample, so not every call will return the same result. This parameter is
+    incompatible with `offset`, `limit`, and `filters` parameters.
+    - `sort_by`: Expression to define the order in which the results should be returned. This expression
+    is similar to a SQL ORDER BY clause. More details about it in the Sorting section of the doc.
+    - `x_dune_api_key`: API Key for the service
+    */
     pub async fn getv1_endpoints_handle_endpointslug_results<'a>(
         &'a self,
         handle: &'a str,
@@ -5737,15 +5719,16 @@ is similar to a SQL ORDER BY clause. More details about it in the Sorting sectio
         x_dune_api_key: &'a str,
     ) -> Result<ResponseValue<types::ModelsReadExecutionResultResponse>, Error<()>> {
         let url = format!(
-            "{}/v1/endpoints/{}/{}/results", self.baseurl, encode_path(& handle
-            .to_string()), encode_path(& endpoint_slug.to_string()),
+            "{}/v1/endpoints/{}/{}/results",
+            self.baseurl,
+            encode_path(&handle.to_string()),
+            encode_path(&endpoint_slug.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-Dune-Api-Key", x_dune_api_key.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -5755,25 +5738,24 @@ is similar to a SQL ORDER BY clause. More details about it in the Sorting sectio
                 ::reqwest::header::ACCEPT,
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
-            .query(
-                &progenitor_client::QueryParam::new(
-                    "allow_partial_results",
-                    &allow_partial_results,
-                ),
-            )
+            .query(&progenitor_client::QueryParam::new(
+                "allow_partial_results",
+                &allow_partial_results,
+            ))
             .query(&progenitor_client::QueryParam::new("api_key", &api_key))
             .query(&progenitor_client::QueryParam::new("columns", &columns))
             .query(&progenitor_client::QueryParam::new("filters", &filters))
-            .query(
-                &progenitor_client::QueryParam::new(
-                    "ignore_max_credits_per_request",
-                    &ignore_max_credits_per_request,
-                ),
-            )
+            .query(&progenitor_client::QueryParam::new(
+                "ignore_max_credits_per_request",
+                &ignore_max_credits_per_request,
+            ))
             .query(&progenitor_client::QueryParam::new("limit", &limit))
             .query(&progenitor_client::QueryParam::new("offset", &offset))
             .query(&progenitor_client::QueryParam::new("queryID", &query_id))
-            .query(&progenitor_client::QueryParam::new("sample_count", &sample_count))
+            .query(&progenitor_client::QueryParam::new(
+                "sample_count",
+                &sample_count,
+            ))
             .query(&progenitor_client::QueryParam::new("sort_by", &sort_by))
             .headers(header_map)
             .build()?;
@@ -5791,15 +5773,15 @@ is similar to a SQL ORDER BY clause. More details about it in the Sorting sectio
     }
     /**Cancel a triggered execution request given the execution ID
 
-Cancel a triggered execution request given the execution ID
+    Cancel a triggered execution request given the execution ID
 
-Sends a `POST` request to `/v1/execution/{execution_id}/cancel`
+    Sends a `POST` request to `/v1/execution/{execution_id}/cancel`
 
-Arguments:
-- `execution_id`: The unique identifier of the execution
-- `api_key`: API Key, alternative to using the HTTP header X-Dune-Api-Key
-- `x_dune_api_key`: API Key for the service
-*/
+    Arguments:
+    - `execution_id`: The unique identifier of the execution
+    - `api_key`: API Key, alternative to using the HTTP header X-Dune-Api-Key
+    - `x_dune_api_key`: API Key for the service
+    */
     pub async fn postv1_execution_executionid_cancel<'a>(
         &'a self,
         execution_id: &'a str,
@@ -5807,15 +5789,15 @@ Arguments:
         x_dune_api_key: &'a str,
     ) -> Result<ResponseValue<types::ModelsCancelQueryExecutionResponse>, Error<()>> {
         let url = format!(
-            "{}/v1/execution/{}/cancel", self.baseurl, encode_path(& execution_id
-            .to_string()),
+            "{}/v1/execution/{}/cancel",
+            self.baseurl,
+            encode_path(&execution_id.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-Dune-Api-Key", x_dune_api_key.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -5842,36 +5824,36 @@ Arguments:
     }
     /**Given an execution ID, returns result of a an execution request
 
-Given an execution ID, returns result of a an execution request
+    Given an execution ID, returns result of a an execution request
 
-Sends a `GET` request to `/v1/execution/{execution_id}/results`
+    Sends a `GET` request to `/v1/execution/{execution_id}/results`
 
-Arguments:
-- `execution_id`: Execution ID
-- `allow_partial_results`: This enables returning a query result that was too large and only a partial result is
-available. By default, allow_partial_results is set to false and a failed state is returned.
-- `api_key`: Alternative to using the X-Dune-Api-Key header
-- `columns`: Specifies a comma-separated list of column names to return. If omitted, all columns are included.
-Tip: use this to limit the result to specific columns, reducing datapoints cost of the call.
-- `filters`: Expression to filter out rows from the results to return. This expression is similar to
-a SQL WHERE clause. More details about it in the Filtering section of the doc.
-This parameter is incompatible with sample_count.
-- `ignore_max_credits_per_request`: To bypass the default max credits per request limit, set ignore_max_credits_per_request=true
-- `limit`: Limit number of rows to return. This together with 'offset' allows easy pagination through
-results in an incremental and efficient way. This parameter is incompatible
-with sampling (sample_count).
-- `offset`: Offset row number to start (inclusive, first row means offset=0) returning results
-from. This together with 'limit' allows easy pagination through results in an
-incremental and efficient way. This parameter is incompatible with sampling (sample_count).
-- `sample_count`: Number of rows to return from the result by sampling the data. This is useful when you
-want to get a uniform sample instead of the entire result. If the result has less
-than the sample count, the entire result is returned. Note that this will return a
-randomized sample, so not every call will return the same result. This parameter is
-incompatible with `offset`, `limit`, and `filters` parameters.
-- `sort_by`: Expression to define the order in which the results should be returned. This expression
-is similar to a SQL ORDER BY clause. More details about it in the Sorting section of the doc.
-- `x_dune_api_key`: API Key for the service
-*/
+    Arguments:
+    - `execution_id`: Execution ID
+    - `allow_partial_results`: This enables returning a query result that was too large and only a partial result is
+    available. By default, allow_partial_results is set to false and a failed state is returned.
+    - `api_key`: Alternative to using the X-Dune-Api-Key header
+    - `columns`: Specifies a comma-separated list of column names to return. If omitted, all columns are included.
+    Tip: use this to limit the result to specific columns, reducing datapoints cost of the call.
+    - `filters`: Expression to filter out rows from the results to return. This expression is similar to
+    a SQL WHERE clause. More details about it in the Filtering section of the doc.
+    This parameter is incompatible with sample_count.
+    - `ignore_max_credits_per_request`: To bypass the default max credits per request limit, set ignore_max_credits_per_request=true
+    - `limit`: Limit number of rows to return. This together with 'offset' allows easy pagination through
+    results in an incremental and efficient way. This parameter is incompatible
+    with sampling (sample_count).
+    - `offset`: Offset row number to start (inclusive, first row means offset=0) returning results
+    from. This together with 'limit' allows easy pagination through results in an
+    incremental and efficient way. This parameter is incompatible with sampling (sample_count).
+    - `sample_count`: Number of rows to return from the result by sampling the data. This is useful when you
+    want to get a uniform sample instead of the entire result. If the result has less
+    than the sample count, the entire result is returned. Note that this will return a
+    randomized sample, so not every call will return the same result. This parameter is
+    incompatible with `offset`, `limit`, and `filters` parameters.
+    - `sort_by`: Expression to define the order in which the results should be returned. This expression
+    is similar to a SQL ORDER BY clause. More details about it in the Sorting section of the doc.
+    - `x_dune_api_key`: API Key for the service
+    */
     pub async fn getv1_execution_executionid_results<'a>(
         &'a self,
         execution_id: &'a str,
@@ -5887,15 +5869,15 @@ is similar to a SQL ORDER BY clause. More details about it in the Sorting sectio
         x_dune_api_key: &'a str,
     ) -> Result<ResponseValue<types::ModelsReadExecutionResultResponse>, Error<()>> {
         let url = format!(
-            "{}/v1/execution/{}/results", self.baseurl, encode_path(& execution_id
-            .to_string()),
+            "{}/v1/execution/{}/results",
+            self.baseurl,
+            encode_path(&execution_id.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-Dune-Api-Key", x_dune_api_key.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -5905,24 +5887,23 @@ is similar to a SQL ORDER BY clause. More details about it in the Sorting sectio
                 ::reqwest::header::ACCEPT,
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
-            .query(
-                &progenitor_client::QueryParam::new(
-                    "allow_partial_results",
-                    &allow_partial_results,
-                ),
-            )
+            .query(&progenitor_client::QueryParam::new(
+                "allow_partial_results",
+                &allow_partial_results,
+            ))
             .query(&progenitor_client::QueryParam::new("api_key", &api_key))
             .query(&progenitor_client::QueryParam::new("columns", &columns))
             .query(&progenitor_client::QueryParam::new("filters", &filters))
-            .query(
-                &progenitor_client::QueryParam::new(
-                    "ignore_max_credits_per_request",
-                    &ignore_max_credits_per_request,
-                ),
-            )
+            .query(&progenitor_client::QueryParam::new(
+                "ignore_max_credits_per_request",
+                &ignore_max_credits_per_request,
+            ))
             .query(&progenitor_client::QueryParam::new("limit", &limit))
             .query(&progenitor_client::QueryParam::new("offset", &offset))
-            .query(&progenitor_client::QueryParam::new("sample_count", &sample_count))
+            .query(&progenitor_client::QueryParam::new(
+                "sample_count",
+                &sample_count,
+            ))
             .query(&progenitor_client::QueryParam::new("sort_by", &sort_by))
             .headers(header_map)
             .build()?;
@@ -5940,36 +5921,36 @@ is similar to a SQL ORDER BY clause. More details about it in the Sorting sectio
     }
     /**Get results of a query execution in CSV format
 
-Given a query ID, returns the latest executed result of a query on Dune in CSV format
+    Given a query ID, returns the latest executed result of a query on Dune in CSV format
 
-Sends a `GET` request to `/v1/execution/{execution_id}/results/csv`
+    Sends a `GET` request to `/v1/execution/{execution_id}/results/csv`
 
-Arguments:
-- `execution_id`: Execution ID
-- `allow_partial_results`: This enables returning a query result that was too large and only a partial result is
-available. By default, allow_partial_results is set to false and a failed state is returned.
-- `api_key`: Alternative to using the X-Dune-Api-Key header
-- `columns`: Specifies a comma-separated list of column names to return. If omitted, all columns are included.
-Tip: use this to limit the result to specific columns, reducing datapoints cost of the call.
-- `filters`: Expression to filter out rows from the results to return. This expression is similar to
-a SQL WHERE clause. More details about it in the Filtering section of the doc.
-This parameter is incompatible with sample_count.
-- `ignore_max_credits_per_request`: To bypass the default max credits per request limit, set ignore_max_credits_per_request=true
-- `limit`: Limit number of rows to return. This together with 'offset' allows easy pagination through
-results in an incremental and efficient way. This parameter is incompatible
-with sampling (sample_count).
-- `offset`: Offset row number to start (inclusive, first row means offset=0) returning results
-from. This together with 'limit' allows easy pagination through results in an
-incremental and efficient way. This parameter is incompatible with sampling (sample_count).
-- `sample_count`: Number of rows to return from the result by sampling the data. This is useful when you
-want to get a uniform sample instead of the entire result. If the result has less
-than the sample count, the entire result is returned. Note that this will return a
-randomized sample, so not every call will return the same result. This parameter is
-incompatible with `offset`, `limit`, and `filters` parameters.
-- `sort_by`: Expression to define the order in which the results should be returned. This expression
-is similar to a SQL ORDER BY clause. More details about it in the Sorting section of the doc.
-- `x_dune_api_key`: API Key for the service
-*/
+    Arguments:
+    - `execution_id`: Execution ID
+    - `allow_partial_results`: This enables returning a query result that was too large and only a partial result is
+    available. By default, allow_partial_results is set to false and a failed state is returned.
+    - `api_key`: Alternative to using the X-Dune-Api-Key header
+    - `columns`: Specifies a comma-separated list of column names to return. If omitted, all columns are included.
+    Tip: use this to limit the result to specific columns, reducing datapoints cost of the call.
+    - `filters`: Expression to filter out rows from the results to return. This expression is similar to
+    a SQL WHERE clause. More details about it in the Filtering section of the doc.
+    This parameter is incompatible with sample_count.
+    - `ignore_max_credits_per_request`: To bypass the default max credits per request limit, set ignore_max_credits_per_request=true
+    - `limit`: Limit number of rows to return. This together with 'offset' allows easy pagination through
+    results in an incremental and efficient way. This parameter is incompatible
+    with sampling (sample_count).
+    - `offset`: Offset row number to start (inclusive, first row means offset=0) returning results
+    from. This together with 'limit' allows easy pagination through results in an
+    incremental and efficient way. This parameter is incompatible with sampling (sample_count).
+    - `sample_count`: Number of rows to return from the result by sampling the data. This is useful when you
+    want to get a uniform sample instead of the entire result. If the result has less
+    than the sample count, the entire result is returned. Note that this will return a
+    randomized sample, so not every call will return the same result. This parameter is
+    incompatible with `offset`, `limit`, and `filters` parameters.
+    - `sort_by`: Expression to define the order in which the results should be returned. This expression
+    is similar to a SQL ORDER BY clause. More details about it in the Sorting section of the doc.
+    - `x_dune_api_key`: API Key for the service
+    */
     pub async fn getv1_execution_executionid_results_csv<'a>(
         &'a self,
         execution_id: &'a str,
@@ -5985,38 +5966,37 @@ is similar to a SQL ORDER BY clause. More details about it in the Sorting sectio
         x_dune_api_key: &'a str,
     ) -> Result<ResponseValue<ByteStream>, Error<()>> {
         let url = format!(
-            "{}/v1/execution/{}/results/csv", self.baseurl, encode_path(& execution_id
-            .to_string()),
+            "{}/v1/execution/{}/results/csv",
+            self.baseurl,
+            encode_path(&execution_id.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-Dune-Api-Key", x_dune_api_key.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
             .client
             .get(url)
-            .query(
-                &progenitor_client::QueryParam::new(
-                    "allow_partial_results",
-                    &allow_partial_results,
-                ),
-            )
+            .query(&progenitor_client::QueryParam::new(
+                "allow_partial_results",
+                &allow_partial_results,
+            ))
             .query(&progenitor_client::QueryParam::new("api_key", &api_key))
             .query(&progenitor_client::QueryParam::new("columns", &columns))
             .query(&progenitor_client::QueryParam::new("filters", &filters))
-            .query(
-                &progenitor_client::QueryParam::new(
-                    "ignore_max_credits_per_request",
-                    &ignore_max_credits_per_request,
-                ),
-            )
+            .query(&progenitor_client::QueryParam::new(
+                "ignore_max_credits_per_request",
+                &ignore_max_credits_per_request,
+            ))
             .query(&progenitor_client::QueryParam::new("limit", &limit))
             .query(&progenitor_client::QueryParam::new("offset", &offset))
-            .query(&progenitor_client::QueryParam::new("sample_count", &sample_count))
+            .query(&progenitor_client::QueryParam::new(
+                "sample_count",
+                &sample_count,
+            ))
             .query(&progenitor_client::QueryParam::new("sort_by", &sort_by))
             .headers(header_map)
             .build()?;
@@ -6034,15 +6014,15 @@ is similar to a SQL ORDER BY clause. More details about it in the Sorting sectio
     }
     /**Check the status of an execution request
 
-Check the status of an execution request
+    Check the status of an execution request
 
-Sends a `GET` request to `/v1/execution/{execution_id}/status`
+    Sends a `GET` request to `/v1/execution/{execution_id}/status`
 
-Arguments:
-- `execution_id`: Execution ID
-- `api_key`: Alternative to using the X-Dune-Api-Key header
-- `x_dune_api_key`: API Key for the service
-*/
+    Arguments:
+    - `execution_id`: Execution ID
+    - `api_key`: Alternative to using the X-Dune-Api-Key header
+    - `x_dune_api_key`: API Key for the service
+    */
     pub async fn getv1_execution_executionid_status<'a>(
         &'a self,
         execution_id: &'a str,
@@ -6050,15 +6030,15 @@ Arguments:
         x_dune_api_key: &'a str,
     ) -> Result<ResponseValue<types::ModelsGetExecutionStatusResponse>, Error<()>> {
         let url = format!(
-            "{}/v1/execution/{}/status", self.baseurl, encode_path(& execution_id
-            .to_string()),
+            "{}/v1/execution/{}/status",
+            self.baseurl,
+            encode_path(&execution_id.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-Dune-Api-Key", x_dune_api_key.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -6085,16 +6065,16 @@ Arguments:
     }
     /**This lists all materialized view owned by the account tied to the API key
 
-This lists all materialized view owned by the account tied to the API key
+    This lists all materialized view owned by the account tied to the API key
 
-Sends a `GET` request to `/v1/materialized-views`
+    Sends a `GET` request to `/v1/materialized-views`
 
-Arguments:
-- `api_key`: API Key, alternative to using the HTTP header X-Dune-Api-Key
-- `limit`: Number of materialized views to return on a page. Default and max 10000
-- `offset`: Offset used for pagination. Use the value provided on a previous response under next_offset
-- `x_dune_api_key`: API Key for the service
-*/
+    Arguments:
+    - `api_key`: API Key, alternative to using the HTTP header X-Dune-Api-Key
+    - `limit`: Number of materialized views to return on a page. Default and max 10000
+    - `offset`: Offset used for pagination. Use the value provided on a previous response under next_offset
+    - `x_dune_api_key`: API Key for the service
+    */
     pub async fn getv1_materialized_views<'a>(
         &'a self,
         api_key: Option<&'a str>,
@@ -6104,11 +6084,10 @@ Arguments:
     ) -> Result<ResponseValue<types::MatviewsMatviewsListResponse>, Error<()>> {
         let url = format!("{}/v1/materialized-views", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-Dune-Api-Key", x_dune_api_key.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -6137,15 +6116,15 @@ Arguments:
     }
     /**This upserts (create or replace) a materialized view from an existing query
 
-This upserts a materialized view from an existing query. If the materialized view with the given name
+    This upserts a materialized view from an existing query. If the materialized view with the given name
 
-Sends a `POST` request to `/v1/materialized-views`
+    Sends a `POST` request to `/v1/materialized-views`
 
-Arguments:
-- `api_key`: API Key, alternative to using the HTTP header X-Dune-Api-Key
-- `x_dune_api_key`: API Key for the service
-- `body`: MatviewsUpsertRequest
-*/
+    Arguments:
+    - `api_key`: API Key, alternative to using the HTTP header X-Dune-Api-Key
+    - `x_dune_api_key`: API Key for the service
+    - `body`: MatviewsUpsertRequest
+    */
     pub async fn postv1_materialized_views<'a>(
         &'a self,
         api_key: Option<&'a str>,
@@ -6154,11 +6133,10 @@ Arguments:
     ) -> Result<ResponseValue<types::MatviewsMatviewsUpsertResponse>, Error<()>> {
         let url = format!("{}/v1/materialized-views", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-Dune-Api-Key", x_dune_api_key.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -6186,15 +6164,15 @@ Arguments:
     }
     /**This fetches a materialized view given a name
 
-This fetches a materialized view given a name
+    This fetches a materialized view given a name
 
-Sends a `GET` request to `/v1/materialized-views/{name}`
+    Sends a `GET` request to `/v1/materialized-views/{name}`
 
-Arguments:
-- `name`: Matview Name
-- `api_key`: API Key, alternative to using the HTTP header X-Dune-Api-Key
-- `x_dune_api_key`: API Key for the service
-*/
+    Arguments:
+    - `name`: Matview Name
+    - `api_key`: API Key, alternative to using the HTTP header X-Dune-Api-Key
+    - `x_dune_api_key`: API Key for the service
+    */
     pub async fn getv1_materialized_views_name<'a>(
         &'a self,
         name: &'a str,
@@ -6202,14 +6180,15 @@ Arguments:
         x_dune_api_key: &'a str,
     ) -> Result<ResponseValue<types::MatviewsMatviewsGetResponse>, Error<()>> {
         let url = format!(
-            "{}/v1/materialized-views/{}", self.baseurl, encode_path(& name.to_string()),
+            "{}/v1/materialized-views/{}",
+            self.baseurl,
+            encode_path(&name.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-Dune-Api-Key", x_dune_api_key.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -6236,15 +6215,15 @@ Arguments:
     }
     /**This deletes a materialized view given a full name
 
-This deletes a materialized view given a full name
+    This deletes a materialized view given a full name
 
-Sends a `DELETE` request to `/v1/materialized-views/{name}`
+    Sends a `DELETE` request to `/v1/materialized-views/{name}`
 
-Arguments:
-- `name`: Matview Name
-- `api_key`: API Key, alternative to using the HTTP header X-Dune-Api-Key
-- `x_dune_api_key`: API Key for the service
-*/
+    Arguments:
+    - `name`: Matview Name
+    - `api_key`: API Key, alternative to using the HTTP header X-Dune-Api-Key
+    - `x_dune_api_key`: API Key for the service
+    */
     pub async fn deletev1_materialized_views_name<'a>(
         &'a self,
         name: &'a str,
@@ -6252,14 +6231,15 @@ Arguments:
         x_dune_api_key: &'a str,
     ) -> Result<ResponseValue<types::MatviewsMatviewsDeleteResponse>, Error<()>> {
         let url = format!(
-            "{}/v1/materialized-views/{}", self.baseurl, encode_path(& name.to_string()),
+            "{}/v1/materialized-views/{}",
+            self.baseurl,
+            encode_path(&name.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-Dune-Api-Key", x_dune_api_key.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -6286,16 +6266,16 @@ Arguments:
     }
     /**This refreshes a materialized view
 
-This refreshes a materialized view
+    This refreshes a materialized view
 
-Sends a `POST` request to `/v1/materialized-views/{name}/refresh`
+    Sends a `POST` request to `/v1/materialized-views/{name}/refresh`
 
-Arguments:
-- `name`: Matview Name
-- `api_key`: API Key, alternative to using the HTTP header X-Dune-Api-Key
-- `x_dune_api_key`: API Key for the service
-- `body`: MatviewsRefreshRequest
-*/
+    Arguments:
+    - `name`: Matview Name
+    - `api_key`: API Key, alternative to using the HTTP header X-Dune-Api-Key
+    - `x_dune_api_key`: API Key for the service
+    - `body`: MatviewsRefreshRequest
+    */
     pub async fn postv1_materialized_views_name_refresh<'a>(
         &'a self,
         name: &'a str,
@@ -6304,15 +6284,15 @@ Arguments:
         body: &'a types::MatviewsMatviewsRefreshRequest,
     ) -> Result<ResponseValue<types::MatviewsMatviewsRefreshResponse>, Error<()>> {
         let url = format!(
-            "{}/v1/materialized-views/{}/refresh", self.baseurl, encode_path(& name
-            .to_string()),
+            "{}/v1/materialized-views/{}/refresh",
+            self.baseurl,
+            encode_path(&name.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-Dune-Api-Key", x_dune_api_key.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -6340,15 +6320,15 @@ Arguments:
     }
     /**Execute a pipeline
 
-Executes a specified pipeline. A pipeline allows you to chain multiple queries and materialized view refreshes together and execute them as a single unit.
+    Executes a specified pipeline. A pipeline allows you to chain multiple queries and materialized view refreshes together and execute them as a single unit.
 
-Sends a `POST` request to `/v1/pipelines/execute`
+    Sends a `POST` request to `/v1/pipelines/execute`
 
-Arguments:
-- `api_key`: Alternative to using the X-Dune-Api-Key header
-- `x_dune_api_key`: API Key for the service
-- `body`: Pipeline execution request
-*/
+    Arguments:
+    - `api_key`: Alternative to using the X-Dune-Api-Key header
+    - `x_dune_api_key`: API Key for the service
+    - `body`: Pipeline execution request
+    */
     pub async fn postv1_pipelines_execute<'a>(
         &'a self,
         api_key: Option<&'a str>,
@@ -6357,11 +6337,10 @@ Arguments:
     ) -> Result<ResponseValue<types::ModelsExecutePipelineResponse>, Error<()>> {
         let url = format!("{}/v1/pipelines/execute", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-Dune-Api-Key", x_dune_api_key.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -6389,34 +6368,31 @@ Arguments:
     }
     /**Get pipeline execution status
 
-Retrieves the status of a pipeline execution, including the status of each node in the pipeline.
+    Retrieves the status of a pipeline execution, including the status of each node in the pipeline.
 
-Sends a `GET` request to `/v1/pipelines/executions/{pipeline_execution_id}/status`
+    Sends a `GET` request to `/v1/pipelines/executions/{pipeline_execution_id}/status`
 
-Arguments:
-- `pipeline_execution_id`: Unique identifier of the pipeline execution
-- `api_key`: Alternative to using the X-Dune-Api-Key header
-- `x_dune_api_key`: API Key for the service
-*/
+    Arguments:
+    - `pipeline_execution_id`: Unique identifier of the pipeline execution
+    - `api_key`: Alternative to using the X-Dune-Api-Key header
+    - `x_dune_api_key`: API Key for the service
+    */
     pub async fn getv1_pipelines_executions_pipelineexecutionid_status<'a>(
         &'a self,
         pipeline_execution_id: &'a str,
         api_key: Option<&'a str>,
         x_dune_api_key: &'a str,
-    ) -> Result<
-        ResponseValue<types::ModelsGetPipelineExecutionStatusResponse>,
-        Error<()>,
-    > {
+    ) -> Result<ResponseValue<types::ModelsGetPipelineExecutionStatusResponse>, Error<()>> {
         let url = format!(
-            "{}/v1/pipelines/executions/{}/status", self.baseurl, encode_path(&
-            pipeline_execution_id.to_string()),
+            "{}/v1/pipelines/executions/{}/status",
+            self.baseurl,
+            encode_path(&pipeline_execution_id.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-Dune-Api-Key", x_dune_api_key.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -6443,16 +6419,16 @@ Arguments:
     }
     /**List queries
 
-Retrieve a paginated list of queries owned by the account tied to the API key
+    Retrieve a paginated list of queries owned by the account tied to the API key
 
-Sends a `GET` request to `/v1/queries`
+    Sends a `GET` request to `/v1/queries`
 
-Arguments:
-- `api_key`: API Key, alternative to using the HTTP header X-Dune-Api-Key
-- `limit`: Number of queries to return on a page. Default: 20
-- `offset`: Offset used for pagination. Default: 0
-- `x_dune_api_key`: API Key for the service
-*/
+    Arguments:
+    - `api_key`: API Key, alternative to using the HTTP header X-Dune-Api-Key
+    - `limit`: Number of queries to return on a page. Default: 20
+    - `offset`: Offset used for pagination. Default: 0
+    - `x_dune_api_key`: API Key for the service
+    */
     pub async fn getv1_queries<'a>(
         &'a self,
         api_key: Option<&'a str>,
@@ -6462,11 +6438,10 @@ Arguments:
     ) -> Result<ResponseValue<types::ModelsListQueriesResponse>, Error<()>> {
         let url = format!("{}/v1/queries", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-Dune-Api-Key", x_dune_api_key.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -6495,16 +6470,16 @@ Arguments:
     }
     /**List visualizations for a query
 
-Lists all visualizations attached to the specified query with pagination.
+    Lists all visualizations attached to the specified query with pagination.
 
-Sends a `GET` request to `/v1/queries/{query_id}/visualizations`
+    Sends a `GET` request to `/v1/queries/{query_id}/visualizations`
 
-Arguments:
-- `query_id`: Query ID
-- `limit`: Max results to return (default 25, max 100)
-- `offset`: Pagination offset (default 0)
-- `x_dune_api_key`: API Key for the service
-*/
+    Arguments:
+    - `query_id`: Query ID
+    - `limit`: Max results to return (default 25, max 100)
+    - `offset`: Pagination offset (default 0)
+    - `x_dune_api_key`: API Key for the service
+    */
     pub async fn getv1_queries_queryid_visualizations<'a>(
         &'a self,
         query_id: i64,
@@ -6513,15 +6488,15 @@ Arguments:
         x_dune_api_key: &'a str,
     ) -> Result<ResponseValue<types::ModelsListVisualizationsResponse>, Error<()>> {
         let url = format!(
-            "{}/v1/queries/{}/visualizations", self.baseurl, encode_path(& query_id
-            .to_string()),
+            "{}/v1/queries/{}/visualizations",
+            self.baseurl,
+            encode_path(&query_id.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-Dune-Api-Key", x_dune_api_key.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -6549,15 +6524,15 @@ Arguments:
     }
     /**Create a visualization on an existing query
 
-Creates a new visualization attached to the specified query.
+    Creates a new visualization attached to the specified query.
 
-Sends a `POST` request to `/v1/queries/{query_id}/visualizations`
+    Sends a `POST` request to `/v1/queries/{query_id}/visualizations`
 
-Arguments:
-- `query_id`: Query ID
-- `x_dune_api_key`: API Key for the service
-- `body`: CreateVisualizationRequest
-*/
+    Arguments:
+    - `query_id`: Query ID
+    - `x_dune_api_key`: API Key for the service
+    - `body`: CreateVisualizationRequest
+    */
     pub async fn postv1_queries_queryid_visualizations<'a>(
         &'a self,
         query_id: i64,
@@ -6565,15 +6540,15 @@ Arguments:
         body: &'a types::ModelsCreateVisualizationRequest,
     ) -> Result<ResponseValue<types::ModelsCreateVisualizationResponse>, Error<()>> {
         let url = format!(
-            "{}/v1/queries/{}/visualizations", self.baseurl, encode_path(& query_id
-            .to_string()),
+            "{}/v1/queries/{}/visualizations",
+            self.baseurl,
+            encode_path(&query_id.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-Dune-Api-Key", x_dune_api_key.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -6600,16 +6575,16 @@ Arguments:
     }
     /**Create and save a query on Dune
 
-This API allows for anyone to create a query.
-The owner of the query will be under the context of the API key.
+    This API allows for anyone to create a query.
+    The owner of the query will be under the context of the API key.
 
-Sends a `POST` request to `/v1/query`
+    Sends a `POST` request to `/v1/query`
 
-Arguments:
-- `api_key`: API Key, alternative to using the HTTP header X-Dune-Api-Key
-- `x_dune_api_key`: API Key for the service
-- `body`: CreateQueryRequest
-*/
+    Arguments:
+    - `api_key`: API Key, alternative to using the HTTP header X-Dune-Api-Key
+    - `x_dune_api_key`: API Key for the service
+    - `body`: CreateQueryRequest
+    */
     pub async fn postv1_query<'a>(
         &'a self,
         api_key: Option<&'a str>,
@@ -6618,11 +6593,10 @@ Arguments:
     ) -> Result<ResponseValue<types::ModelsCreateQueryResponse>, Error<()>> {
         let url = format!("{}/v1/query", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-Dune-Api-Key", x_dune_api_key.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -6650,18 +6624,18 @@ Arguments:
     }
     /**Returns the details of a query on Dune
 
-This API allows for anyone to read the sql text,
-parameters, name, tags, and state of a query.
-For private queries, only the API key generated
-under the context of the owner of that query will work.
+    This API allows for anyone to read the sql text,
+    parameters, name, tags, and state of a query.
+    For private queries, only the API key generated
+    under the context of the owner of that query will work.
 
-Sends a `GET` request to `/v1/query/{queryId}`
+    Sends a `GET` request to `/v1/query/{queryId}`
 
-Arguments:
-- `query_id`: Query ID
-- `api_key`: API Key, alternative to using the HTTP header X-Dune-Api-Key
-- `x_dune_api_key`: API Key for the service
-*/
+    Arguments:
+    - `query_id`: Query ID
+    - `api_key`: API Key, alternative to using the HTTP header X-Dune-Api-Key
+    - `x_dune_api_key`: API Key for the service
+    */
     pub async fn getv1_query_queryid<'a>(
         &'a self,
         query_id: i64,
@@ -6669,14 +6643,15 @@ Arguments:
         x_dune_api_key: &'a str,
     ) -> Result<ResponseValue<types::ModelsGetQueryResponse>, Error<()>> {
         let url = format!(
-            "{}/v1/query/{}", self.baseurl, encode_path(& query_id.to_string()),
+            "{}/v1/query/{}",
+            self.baseurl,
+            encode_path(&query_id.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-Dune-Api-Key", x_dune_api_key.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -6703,17 +6678,17 @@ Arguments:
     }
     /**Update the details of a query on Dune
 
-This API allows for anyone to update the sql text,
-parameters, name, tags, and state of a query. Only the API key
-generated under the context of the owner of that query will work.
+    This API allows for anyone to update the sql text,
+    parameters, name, tags, and state of a query. Only the API key
+    generated under the context of the owner of that query will work.
 
-Sends a `PATCH` request to `/v1/query/{queryId}`
+    Sends a `PATCH` request to `/v1/query/{queryId}`
 
-Arguments:
-- `query_id`: Query ID
-- `api_key`: API Key, alternative to using the HTTP header X-Dune-Api-Key
-- `x_dune_api_key`: API Key for the service
-*/
+    Arguments:
+    - `query_id`: Query ID
+    - `api_key`: API Key, alternative to using the HTTP header X-Dune-Api-Key
+    - `x_dune_api_key`: API Key for the service
+    */
     pub async fn patchv1_query_queryid<'a>(
         &'a self,
         query_id: i64,
@@ -6721,14 +6696,15 @@ Arguments:
         x_dune_api_key: &'a str,
     ) -> Result<ResponseValue<types::ModelsUpdateQueryResponse>, Error<()>> {
         let url = format!(
-            "{}/v1/query/{}", self.baseurl, encode_path(& query_id.to_string()),
+            "{}/v1/query/{}",
+            self.baseurl,
+            encode_path(&query_id.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-Dune-Api-Key", x_dune_api_key.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -6755,18 +6731,18 @@ Arguments:
     }
     /**Archive Query on Dune
 
-This API allows for anyone to archive a query. Only the API key
-generated under the context of the owner of that query will work.
-This does not delete the query, but will make
-it uneditable/unexecutable
+    This API allows for anyone to archive a query. Only the API key
+    generated under the context of the owner of that query will work.
+    This does not delete the query, but will make
+    it uneditable/unexecutable
 
-Sends a `POST` request to `/v1/query/{queryId}/archive`
+    Sends a `POST` request to `/v1/query/{queryId}/archive`
 
-Arguments:
-- `query_id`: Query ID
-- `api_key`: API Key, alternative to using the HTTP header X-Dune-Api-Key
-- `x_dune_api_key`: API Key for the service
-*/
+    Arguments:
+    - `query_id`: Query ID
+    - `api_key`: API Key, alternative to using the HTTP header X-Dune-Api-Key
+    - `x_dune_api_key`: API Key for the service
+    */
     pub async fn postv1_query_queryid_archive<'a>(
         &'a self,
         query_id: i64,
@@ -6774,14 +6750,15 @@ Arguments:
         x_dune_api_key: &'a str,
     ) -> Result<ResponseValue<types::ModelsUpdateQueryResponse>, Error<()>> {
         let url = format!(
-            "{}/v1/query/{}/archive", self.baseurl, encode_path(& query_id.to_string()),
+            "{}/v1/query/{}/archive",
+            self.baseurl,
+            encode_path(&query_id.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-Dune-Api-Key", x_dune_api_key.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -6808,16 +6785,16 @@ Arguments:
     }
     /**Private Query on Dune
 
-This API allows for anyone to private a query. Only the API key
-generated under the context of the owner of that query will work.
+    This API allows for anyone to private a query. Only the API key
+    generated under the context of the owner of that query will work.
 
-Sends a `POST` request to `/v1/query/{queryId}/private`
+    Sends a `POST` request to `/v1/query/{queryId}/private`
 
-Arguments:
-- `query_id`: Query ID
-- `api_key`: API Key, alternative to using the HTTP header X-Dune-Api-Key
-- `x_dune_api_key`: API Key for the service
-*/
+    Arguments:
+    - `query_id`: Query ID
+    - `api_key`: API Key, alternative to using the HTTP header X-Dune-Api-Key
+    - `x_dune_api_key`: API Key for the service
+    */
     pub async fn postv1_query_queryid_private<'a>(
         &'a self,
         query_id: i64,
@@ -6825,14 +6802,15 @@ Arguments:
         x_dune_api_key: &'a str,
     ) -> Result<ResponseValue<types::ModelsUpdateQueryResponse>, Error<()>> {
         let url = format!(
-            "{}/v1/query/{}/private", self.baseurl, encode_path(& query_id.to_string()),
+            "{}/v1/query/{}/private",
+            self.baseurl,
+            encode_path(&query_id.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-Dune-Api-Key", x_dune_api_key.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -6859,16 +6837,16 @@ Arguments:
     }
     /**Unarchive Query on Dune
 
-This API allows for anyone to unarchive a query. Only the API key
-generated under the context of the owner of that query will work.
+    This API allows for anyone to unarchive a query. Only the API key
+    generated under the context of the owner of that query will work.
 
-Sends a `POST` request to `/v1/query/{queryId}/unarchive`
+    Sends a `POST` request to `/v1/query/{queryId}/unarchive`
 
-Arguments:
-- `query_id`: Query ID
-- `api_key`: API Key, alternative to using the HTTP header X-Dune-Api-Key
-- `x_dune_api_key`: API Key for the service
-*/
+    Arguments:
+    - `query_id`: Query ID
+    - `api_key`: API Key, alternative to using the HTTP header X-Dune-Api-Key
+    - `x_dune_api_key`: API Key for the service
+    */
     pub async fn postv1_query_queryid_unarchive<'a>(
         &'a self,
         query_id: i64,
@@ -6876,15 +6854,15 @@ Arguments:
         x_dune_api_key: &'a str,
     ) -> Result<ResponseValue<types::ModelsUpdateQueryResponse>, Error<()>> {
         let url = format!(
-            "{}/v1/query/{}/unarchive", self.baseurl, encode_path(& query_id
-            .to_string()),
+            "{}/v1/query/{}/unarchive",
+            self.baseurl,
+            encode_path(&query_id.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-Dune-Api-Key", x_dune_api_key.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -6911,16 +6889,16 @@ Arguments:
     }
     /**Unprivate a query on Dune
 
-This API allows for anyone to unprivate a query. Only the API key
-generated under the context of the owner of that query will work.
+    This API allows for anyone to unprivate a query. Only the API key
+    generated under the context of the owner of that query will work.
 
-Sends a `POST` request to `/v1/query/{queryId}/unprivate`
+    Sends a `POST` request to `/v1/query/{queryId}/unprivate`
 
-Arguments:
-- `query_id`: Query ID
-- `api_key`: API Key, alternative to using the HTTP header X-Dune-Api-Key
-- `x_dune_api_key`: API Key for the service
-*/
+    Arguments:
+    - `query_id`: Query ID
+    - `api_key`: API Key, alternative to using the HTTP header X-Dune-Api-Key
+    - `x_dune_api_key`: API Key for the service
+    */
     pub async fn postv1_query_queryid_unprivate<'a>(
         &'a self,
         query_id: i64,
@@ -6928,15 +6906,15 @@ Arguments:
         x_dune_api_key: &'a str,
     ) -> Result<ResponseValue<types::ModelsUpdateQueryResponse>, Error<()>> {
         let url = format!(
-            "{}/v1/query/{}/unprivate", self.baseurl, encode_path(& query_id
-            .to_string()),
+            "{}/v1/query/{}/unprivate",
+            self.baseurl,
+            encode_path(&query_id.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-Dune-Api-Key", x_dune_api_key.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -6963,17 +6941,17 @@ Arguments:
     }
     /**Execute, or run a query for the specified query ID
 
-Execute, or run a query for the specified query ID
+    Execute, or run a query for the specified query ID
 
-Sends a `POST` request to `/v1/query/{query_id}/execute`
+    Sends a `POST` request to `/v1/query/{query_id}/execute`
 
-Arguments:
-- `query_id`: Unique identifier of the query
-- `api_key`: Alternative to using the X-Dune-Api-Key header
-- `performance`: The performance engine tier the execution will be run on. Can be `small`, `medium`, or `large`. Omit to use the default tier for the query engine. Credits are consumed based on actual compute resources used.
-- `query_parameters`: SQL Query parameters in json key-value pairs. Each parameter is to be provided in key-value pairs. This enables you to execute a parameterized query with the provided values for your parameter keys. Partial submission of parameters is allowed. For example, if the query expects three parameters and you only pass in two, the third one will automatically use its default value as defined in the Query Parameter Editor page.
-- `x_dune_api_key`: API Key for the service
-*/
+    Arguments:
+    - `query_id`: Unique identifier of the query
+    - `api_key`: Alternative to using the X-Dune-Api-Key header
+    - `performance`: The performance engine tier the execution will be run on. Can be `small`, `medium`, or `large`. Omit to use the default tier for the query engine. Credits are consumed based on actual compute resources used.
+    - `query_parameters`: SQL Query parameters in json key-value pairs. Each parameter is to be provided in key-value pairs. This enables you to execute a parameterized query with the provided values for your parameter keys. Partial submission of parameters is allowed. For example, if the query expects three parameters and you only pass in two, the third one will automatically use its default value as defined in the Query Parameter Editor page.
+    - `x_dune_api_key`: API Key for the service
+    */
     pub async fn postv1_query_queryid_execute<'a>(
         &'a self,
         query_id: i64,
@@ -6983,14 +6961,15 @@ Arguments:
         x_dune_api_key: &'a str,
     ) -> Result<ResponseValue<types::ModelsExecuteQueryResponse>, Error<()>> {
         let url = format!(
-            "{}/v1/query/{}/execute", self.baseurl, encode_path(& query_id.to_string()),
+            "{}/v1/query/{}/execute",
+            self.baseurl,
+            encode_path(&query_id.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-Dune-Api-Key", x_dune_api_key.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -7001,13 +6980,14 @@ Arguments:
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
             .query(&progenitor_client::QueryParam::new("api_key", &api_key))
-            .query(&progenitor_client::QueryParam::new("performance", &performance))
-            .query(
-                &progenitor_client::QueryParam::new(
-                    "query_parameters",
-                    &query_parameters,
-                ),
-            )
+            .query(&progenitor_client::QueryParam::new(
+                "performance",
+                &performance,
+            ))
+            .query(&progenitor_client::QueryParam::new(
+                "query_parameters",
+                &query_parameters,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -7024,17 +7004,17 @@ Arguments:
     }
     /**Get query pipeline
 
-Builds a query pipeline from the specified query and returns the pipeline definition containing all the nested materialized views that the query depends on. A pipeline allows you to chain multiple queries together and execute them as a single unit.
+    Builds a query pipeline from the specified query and returns the pipeline definition containing all the nested materialized views that the query depends on. A pipeline allows you to chain multiple queries together and execute them as a single unit.
 
-Sends a `GET` request to `/v1/query/{query_id}/pipeline`
+    Sends a `GET` request to `/v1/query/{query_id}/pipeline`
 
-Arguments:
-- `query_id`: Unique identifier of the query
-- `api_key`: Alternative to using the X-Dune-Api-Key header
-- `performance`: The performance engine tier. Can be `small`, `medium`, or `large`.
-- `query_parameters`: SQL Query parameters in json key-value pairs
-- `x_dune_api_key`: API Key for the service
-*/
+    Arguments:
+    - `query_id`: Unique identifier of the query
+    - `api_key`: Alternative to using the X-Dune-Api-Key header
+    - `performance`: The performance engine tier. Can be `small`, `medium`, or `large`.
+    - `query_parameters`: SQL Query parameters in json key-value pairs
+    - `x_dune_api_key`: API Key for the service
+    */
     pub async fn getv1_query_queryid_pipeline<'a>(
         &'a self,
         query_id: i64,
@@ -7044,14 +7024,15 @@ Arguments:
         x_dune_api_key: &'a str,
     ) -> Result<ResponseValue<types::ModelsGetQueryPipelineResponse>, Error<()>> {
         let url = format!(
-            "{}/v1/query/{}/pipeline", self.baseurl, encode_path(& query_id.to_string()),
+            "{}/v1/query/{}/pipeline",
+            self.baseurl,
+            encode_path(&query_id.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-Dune-Api-Key", x_dune_api_key.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -7062,13 +7043,14 @@ Arguments:
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
             .query(&progenitor_client::QueryParam::new("api_key", &api_key))
-            .query(&progenitor_client::QueryParam::new("performance", &performance))
-            .query(
-                &progenitor_client::QueryParam::new(
-                    "query_parameters",
-                    &query_parameters,
-                ),
-            )
+            .query(&progenitor_client::QueryParam::new(
+                "performance",
+                &performance,
+            ))
+            .query(&progenitor_client::QueryParam::new(
+                "query_parameters",
+                &query_parameters,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -7085,16 +7067,16 @@ Arguments:
     }
     /**Execute a query pipeline
 
-Builds a query pipeline from the specified query and executes it. A pipeline allows you to chain multiple queries together and execute them as a single unit.
+    Builds a query pipeline from the specified query and executes it. A pipeline allows you to chain multiple queries together and execute them as a single unit.
 
-Sends a `POST` request to `/v1/query/{query_id}/pipeline/execute`
+    Sends a `POST` request to `/v1/query/{query_id}/pipeline/execute`
 
-Arguments:
-- `query_id`: Unique identifier of the query
-- `api_key`: Alternative to using the X-Dune-Api-Key header
-- `x_dune_api_key`: API Key for the service
-- `body`: Query pipeline execution request
-*/
+    Arguments:
+    - `query_id`: Unique identifier of the query
+    - `api_key`: Alternative to using the X-Dune-Api-Key header
+    - `x_dune_api_key`: API Key for the service
+    - `body`: Query pipeline execution request
+    */
     pub async fn postv1_query_queryid_pipeline_execute<'a>(
         &'a self,
         query_id: i64,
@@ -7103,15 +7085,15 @@ Arguments:
         body: &'a types::ModelsExecuteQueryPipelineRequest,
     ) -> Result<ResponseValue<types::ModelsExecuteQueryPipelineResponse>, Error<()>> {
         let url = format!(
-            "{}/v1/query/{}/pipeline/execute", self.baseurl, encode_path(& query_id
-            .to_string()),
+            "{}/v1/query/{}/pipeline/execute",
+            self.baseurl,
+            encode_path(&query_id.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-Dune-Api-Key", x_dune_api_key.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -7139,36 +7121,36 @@ Arguments:
     }
     /**Get Latest Query Result
 
-Given a query ID, returns the latest executed result of a query on Dune in JSON format
+    Given a query ID, returns the latest executed result of a query on Dune in JSON format
 
-Sends a `GET` request to `/v1/query/{query_id}/results`
+    Sends a `GET` request to `/v1/query/{query_id}/results`
 
-Arguments:
-- `query_id`: Query ID
-- `allow_partial_results`: This enables returning a query result that was too large and only a partial result is
-available. By default, allow_partial_results is set to false and a failed state is returned.
-- `api_key`: Alternative to using the X-Dune-Api-Key header
-- `columns`: Specifies a comma-separated list of column names to return. If omitted, all columns are included.
-Tip: use this to limit the result to specific columns, reducing datapoints cost of the call.
-- `filters`: Expression to filter out rows from the results to return. This expression is similar to
-a SQL WHERE clause. More details about it in the Filtering section of the doc.
-This parameter is incompatible with sample_count.
-- `ignore_max_credits_per_request`: To bypass the default max credits per request limit, set ignore_max_credits_per_request=true
-- `limit`: Limit number of rows to return. This together with 'offset' allows easy pagination through
-results in an incremental and efficient way. This parameter is incompatible
-with sampling (sample_count).
-- `offset`: Offset row number to start (inclusive, first row means offset=0) returning results
-from. This together with 'limit' allows easy pagination through results in an
-incremental and efficient way. This parameter is incompatible with sampling (sample_count).
-- `sample_count`: Number of rows to return from the result by sampling the data. This is useful when you
-want to get a uniform sample instead of the entire result. If the result has less
-than the sample count, the entire result is returned. Note that this will return a
-randomized sample, so not every call will return the same result. This parameter is
-incompatible with `offset`, `limit`, and `filters` parameters.
-- `sort_by`: Expression to define the order in which the results should be returned. This expression
-is similar to a SQL ORDER BY clause. More details about it in the Sorting section of the doc.
-- `x_dune_api_key`: API Key for the service
-*/
+    Arguments:
+    - `query_id`: Query ID
+    - `allow_partial_results`: This enables returning a query result that was too large and only a partial result is
+    available. By default, allow_partial_results is set to false and a failed state is returned.
+    - `api_key`: Alternative to using the X-Dune-Api-Key header
+    - `columns`: Specifies a comma-separated list of column names to return. If omitted, all columns are included.
+    Tip: use this to limit the result to specific columns, reducing datapoints cost of the call.
+    - `filters`: Expression to filter out rows from the results to return. This expression is similar to
+    a SQL WHERE clause. More details about it in the Filtering section of the doc.
+    This parameter is incompatible with sample_count.
+    - `ignore_max_credits_per_request`: To bypass the default max credits per request limit, set ignore_max_credits_per_request=true
+    - `limit`: Limit number of rows to return. This together with 'offset' allows easy pagination through
+    results in an incremental and efficient way. This parameter is incompatible
+    with sampling (sample_count).
+    - `offset`: Offset row number to start (inclusive, first row means offset=0) returning results
+    from. This together with 'limit' allows easy pagination through results in an
+    incremental and efficient way. This parameter is incompatible with sampling (sample_count).
+    - `sample_count`: Number of rows to return from the result by sampling the data. This is useful when you
+    want to get a uniform sample instead of the entire result. If the result has less
+    than the sample count, the entire result is returned. Note that this will return a
+    randomized sample, so not every call will return the same result. This parameter is
+    incompatible with `offset`, `limit`, and `filters` parameters.
+    - `sort_by`: Expression to define the order in which the results should be returned. This expression
+    is similar to a SQL ORDER BY clause. More details about it in the Sorting section of the doc.
+    - `x_dune_api_key`: API Key for the service
+    */
     pub async fn getv1_query_queryid_results<'a>(
         &'a self,
         query_id: &'a str,
@@ -7184,14 +7166,15 @@ is similar to a SQL ORDER BY clause. More details about it in the Sorting sectio
         x_dune_api_key: &'a str,
     ) -> Result<ResponseValue<types::ModelsReadExecutionResultResponse>, Error<()>> {
         let url = format!(
-            "{}/v1/query/{}/results", self.baseurl, encode_path(& query_id.to_string()),
+            "{}/v1/query/{}/results",
+            self.baseurl,
+            encode_path(&query_id.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-Dune-Api-Key", x_dune_api_key.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -7201,24 +7184,23 @@ is similar to a SQL ORDER BY clause. More details about it in the Sorting sectio
                 ::reqwest::header::ACCEPT,
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
-            .query(
-                &progenitor_client::QueryParam::new(
-                    "allow_partial_results",
-                    &allow_partial_results,
-                ),
-            )
+            .query(&progenitor_client::QueryParam::new(
+                "allow_partial_results",
+                &allow_partial_results,
+            ))
             .query(&progenitor_client::QueryParam::new("api_key", &api_key))
             .query(&progenitor_client::QueryParam::new("columns", &columns))
             .query(&progenitor_client::QueryParam::new("filters", &filters))
-            .query(
-                &progenitor_client::QueryParam::new(
-                    "ignore_max_credits_per_request",
-                    &ignore_max_credits_per_request,
-                ),
-            )
+            .query(&progenitor_client::QueryParam::new(
+                "ignore_max_credits_per_request",
+                &ignore_max_credits_per_request,
+            ))
             .query(&progenitor_client::QueryParam::new("limit", &limit))
             .query(&progenitor_client::QueryParam::new("offset", &offset))
-            .query(&progenitor_client::QueryParam::new("sample_count", &sample_count))
+            .query(&progenitor_client::QueryParam::new(
+                "sample_count",
+                &sample_count,
+            ))
             .query(&progenitor_client::QueryParam::new("sort_by", &sort_by))
             .headers(header_map)
             .build()?;
@@ -7236,36 +7218,36 @@ is similar to a SQL ORDER BY clause. More details about it in the Sorting sectio
     }
     /**Given a query ID, returns the latest executed result of a query on Dune as CSV
 
-Given a query ID, returns the latest executed result of a query on Dune as CSV
+    Given a query ID, returns the latest executed result of a query on Dune as CSV
 
-Sends a `GET` request to `/v1/query/{query_id}/results/csv`
+    Sends a `GET` request to `/v1/query/{query_id}/results/csv`
 
-Arguments:
-- `query_id`: Query ID
-- `allow_partial_results`: This enables returning a query result that was too large and only a partial result is
-available. By default, allow_partial_results is set to false and a failed state is returned.
-- `api_key`: Alternative to using the X-Dune-Api-Key header
-- `columns`: Specifies a comma-separated list of column names to return. If omitted, all columns are included.
-Tip: use this to limit the result to specific columns, reducing datapoints cost of the call.
-- `filters`: Expression to filter out rows from the results to return. This expression is similar to
-a SQL WHERE clause. More details about it in the Filtering section of the doc.
-This parameter is incompatible with sample_count.
-- `ignore_max_credits_per_request`: To bypass the default max credits per request limit, set ignore_max_credits_per_request=true
-- `limit`: Limit number of rows to return. This together with 'offset' allows easy pagination through
-results in an incremental and efficient way. This parameter is incompatible
-with sampling (sample_count).
-- `offset`: Offset row number to start (inclusive, first row means offset=0) returning results
-from. This together with 'limit' allows easy pagination through results in an
-incremental and efficient way. This parameter is incompatible with sampling (sample_count).
-- `sample_count`: Number of rows to return from the result by sampling the data. This is useful when you
-want to get a uniform sample instead of the entire result. If the result has less
-than the sample count, the entire result is returned. Note that this will return a
-randomized sample, so not every call will return the same result. This parameter is
-incompatible with `offset`, `limit`, and `filters` parameters.
-- `sort_by`: Expression to define the order in which the results should be returned. This expression
-is similar to a SQL ORDER BY clause. More details about it in the Sorting section of the doc.
-- `x_dune_api_key`: API Key for the service
-*/
+    Arguments:
+    - `query_id`: Query ID
+    - `allow_partial_results`: This enables returning a query result that was too large and only a partial result is
+    available. By default, allow_partial_results is set to false and a failed state is returned.
+    - `api_key`: Alternative to using the X-Dune-Api-Key header
+    - `columns`: Specifies a comma-separated list of column names to return. If omitted, all columns are included.
+    Tip: use this to limit the result to specific columns, reducing datapoints cost of the call.
+    - `filters`: Expression to filter out rows from the results to return. This expression is similar to
+    a SQL WHERE clause. More details about it in the Filtering section of the doc.
+    This parameter is incompatible with sample_count.
+    - `ignore_max_credits_per_request`: To bypass the default max credits per request limit, set ignore_max_credits_per_request=true
+    - `limit`: Limit number of rows to return. This together with 'offset' allows easy pagination through
+    results in an incremental and efficient way. This parameter is incompatible
+    with sampling (sample_count).
+    - `offset`: Offset row number to start (inclusive, first row means offset=0) returning results
+    from. This together with 'limit' allows easy pagination through results in an
+    incremental and efficient way. This parameter is incompatible with sampling (sample_count).
+    - `sample_count`: Number of rows to return from the result by sampling the data. This is useful when you
+    want to get a uniform sample instead of the entire result. If the result has less
+    than the sample count, the entire result is returned. Note that this will return a
+    randomized sample, so not every call will return the same result. This parameter is
+    incompatible with `offset`, `limit`, and `filters` parameters.
+    - `sort_by`: Expression to define the order in which the results should be returned. This expression
+    is similar to a SQL ORDER BY clause. More details about it in the Sorting section of the doc.
+    - `x_dune_api_key`: API Key for the service
+    */
     pub async fn getv1_query_queryid_results_csv<'a>(
         &'a self,
         query_id: &'a str,
@@ -7281,38 +7263,37 @@ is similar to a SQL ORDER BY clause. More details about it in the Sorting sectio
         x_dune_api_key: &'a str,
     ) -> Result<ResponseValue<ByteStream>, Error<()>> {
         let url = format!(
-            "{}/v1/query/{}/results/csv", self.baseurl, encode_path(& query_id
-            .to_string()),
+            "{}/v1/query/{}/results/csv",
+            self.baseurl,
+            encode_path(&query_id.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-Dune-Api-Key", x_dune_api_key.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
             .client
             .get(url)
-            .query(
-                &progenitor_client::QueryParam::new(
-                    "allow_partial_results",
-                    &allow_partial_results,
-                ),
-            )
+            .query(&progenitor_client::QueryParam::new(
+                "allow_partial_results",
+                &allow_partial_results,
+            ))
             .query(&progenitor_client::QueryParam::new("api_key", &api_key))
             .query(&progenitor_client::QueryParam::new("columns", &columns))
             .query(&progenitor_client::QueryParam::new("filters", &filters))
-            .query(
-                &progenitor_client::QueryParam::new(
-                    "ignore_max_credits_per_request",
-                    &ignore_max_credits_per_request,
-                ),
-            )
+            .query(&progenitor_client::QueryParam::new(
+                "ignore_max_credits_per_request",
+                &ignore_max_credits_per_request,
+            ))
             .query(&progenitor_client::QueryParam::new("limit", &limit))
             .query(&progenitor_client::QueryParam::new("offset", &offset))
-            .query(&progenitor_client::QueryParam::new("sample_count", &sample_count))
+            .query(&progenitor_client::QueryParam::new(
+                "sample_count",
+                &sample_count,
+            ))
             .query(&progenitor_client::QueryParam::new("sort_by", &sort_by))
             .headers(header_map)
             .build()?;
@@ -7330,15 +7311,15 @@ is similar to a SQL ORDER BY clause. More details about it in the Sorting sectio
     }
     /**Execute raw SQL query
 
-Execute raw SQL query without requiring a stored query ID
+    Execute raw SQL query without requiring a stored query ID
 
-Sends a `POST` request to `/v1/sql/execute`
+    Sends a `POST` request to `/v1/sql/execute`
 
-Arguments:
-- `api_key`: Alternative to using the X-Dune-Api-Key header
-- `x_dune_api_key`: API Key for the service
-- `body`: ExecuteSQLRequest
-*/
+    Arguments:
+    - `api_key`: Alternative to using the X-Dune-Api-Key header
+    - `x_dune_api_key`: API Key for the service
+    - `body`: ExecuteSQLRequest
+    */
     pub async fn postv1_sql_execute<'a>(
         &'a self,
         api_key: Option<&'a str>,
@@ -7347,11 +7328,10 @@ Arguments:
     ) -> Result<ResponseValue<types::ModelsExecuteQueryResponse>, Error<()>> {
         let url = format!("{}/v1/sql/execute", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-Dune-Api-Key", x_dune_api_key.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -7379,16 +7359,16 @@ Arguments:
     }
     /**List all tables owned by the account
 
-Returns a paginated list of all tables owned by the authenticated account.
+    Returns a paginated list of all tables owned by the authenticated account.
 
-Sends a `GET` request to `/v1/uploads`
+    Sends a `GET` request to `/v1/uploads`
 
-Arguments:
-- `api_key`: API Key, alternative to using the HTTP header X-Dune-Api-Key
-- `limit`: Number of tables to return on a page. Default: 50, max: 10000
-- `offset`: Offset used for pagination. Negative values are treated as 0
-- `x_dune_api_key`: API Key for the service
-*/
+    Arguments:
+    - `api_key`: API Key, alternative to using the HTTP header X-Dune-Api-Key
+    - `limit`: Number of tables to return on a page. Default: 50, max: 10000
+    - `offset`: Offset used for pagination. Negative values are treated as 0
+    - `x_dune_api_key`: API Key for the service
+    */
     pub async fn getv1_uploads<'a>(
         &'a self,
         api_key: Option<&'a str>,
@@ -7398,11 +7378,10 @@ Arguments:
     ) -> Result<ResponseValue<types::ModelsTableListResponse>, Error<()>> {
         let url = format!("{}/v1/uploads", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-Dune-Api-Key", x_dune_api_key.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -7431,16 +7410,16 @@ Arguments:
     }
     /**Create an empty uploaded table with a defined schema
 
-Creates an empty uploaded table that can be inserted into with the /insert endpoint.
-Each successful table creation consumes 10 credits.
+    Creates an empty uploaded table that can be inserted into with the /insert endpoint.
+    Each successful table creation consumes 10 credits.
 
-Sends a `POST` request to `/v1/uploads`
+    Sends a `POST` request to `/v1/uploads`
 
-Arguments:
-- `api_key`: Alternative to using the X-Dune-Api-Key header
-- `x_dune_api_key`: API Key for the service
-- `body`: payload
-*/
+    Arguments:
+    - `api_key`: Alternative to using the X-Dune-Api-Key header
+    - `x_dune_api_key`: API Key for the service
+    - `body`: payload
+    */
     pub async fn postv1_uploads<'a>(
         &'a self,
         api_key: Option<&'a str>,
@@ -7449,11 +7428,10 @@ Arguments:
     ) -> Result<ResponseValue<types::ModelsTableCreateResponse>, Error<()>> {
         let url = format!("{}/v1/uploads", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-Dune-Api-Key", x_dune_api_key.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -7481,16 +7459,16 @@ Arguments:
     }
     /**Upload CSV file as a table
 
-Upload a CSV file to create a table with automatic schema inference.
-The size limit per upload is 500MB. Storage limits: 100MB (free), 1GB (analyst), 15GB (plus).
+    Upload a CSV file to create a table with automatic schema inference.
+    The size limit per upload is 500MB. Storage limits: 100MB (free), 1GB (analyst), 15GB (plus).
 
-Sends a `POST` request to `/v1/uploads/csv`
+    Sends a `POST` request to `/v1/uploads/csv`
 
-Arguments:
-- `api_key`: Alternative to using the X-Dune-Api-Key header
-- `x_dune_api_key`: API Key for the service
-- `body`: payload
-*/
+    Arguments:
+    - `api_key`: Alternative to using the X-Dune-Api-Key header
+    - `x_dune_api_key`: API Key for the service
+    - `body`: payload
+    */
     pub async fn postv1_uploads_csv<'a>(
         &'a self,
         api_key: Option<&'a str>,
@@ -7499,11 +7477,10 @@ Arguments:
     ) -> Result<ResponseValue<types::ModelsCsvUploadResponse>, Error<()>> {
         let url = format!("{}/v1/uploads/csv", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-Dune-Api-Key", x_dune_api_key.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -7531,16 +7508,16 @@ Arguments:
     }
     /**Delete an uploaded table
 
-Permanently deletes the specified uploaded table and all its data.
+    Permanently deletes the specified uploaded table and all its data.
 
-Sends a `DELETE` request to `/v1/uploads/{namespace}/{table_name}`
+    Sends a `DELETE` request to `/v1/uploads/{namespace}/{table_name}`
 
-Arguments:
-- `namespace`: The namespace of the table to delete
-- `table_name`: The table name of the table to delete
-- `api_key`: Alternative to using the X-Dune-Api-Key header
-- `x_dune_api_key`: API Key for the service
-*/
+    Arguments:
+    - `namespace`: The namespace of the table to delete
+    - `table_name`: The table name of the table to delete
+    - `api_key`: Alternative to using the X-Dune-Api-Key header
+    - `x_dune_api_key`: API Key for the service
+    */
     pub async fn deletev1_uploads_namespace_tablename<'a>(
         &'a self,
         namespace: &'a str,
@@ -7549,15 +7526,16 @@ Arguments:
         x_dune_api_key: &'a str,
     ) -> Result<ResponseValue<types::ModelsTableDeleteResponse>, Error<()>> {
         let url = format!(
-            "{}/v1/uploads/{}/{}", self.baseurl, encode_path(& namespace.to_string()),
-            encode_path(& table_name.to_string()),
+            "{}/v1/uploads/{}/{}",
+            self.baseurl,
+            encode_path(&namespace.to_string()),
+            encode_path(&table_name.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-Dune-Api-Key", x_dune_api_key.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -7584,16 +7562,16 @@ Arguments:
     }
     /**Clear all data from an uploaded table
 
-Removes all data from the specified uploaded table while preserving the table structure and schema.
+    Removes all data from the specified uploaded table while preserving the table structure and schema.
 
-Sends a `POST` request to `/v1/uploads/{namespace}/{table_name}/clear`
+    Sends a `POST` request to `/v1/uploads/{namespace}/{table_name}/clear`
 
-Arguments:
-- `namespace`: The namespace of the table to clear
-- `table_name`: The table name of the table to clear
-- `api_key`: Alternative to using the X-Dune-Api-Key header
-- `x_dune_api_key`: API Key for the service
-*/
+    Arguments:
+    - `namespace`: The namespace of the table to clear
+    - `table_name`: The table name of the table to clear
+    - `api_key`: Alternative to using the X-Dune-Api-Key header
+    - `x_dune_api_key`: API Key for the service
+    */
     pub async fn postv1_uploads_namespace_tablename_clear<'a>(
         &'a self,
         namespace: &'a str,
@@ -7602,15 +7580,16 @@ Arguments:
         x_dune_api_key: &'a str,
     ) -> Result<ResponseValue<types::ModelsTableClearResponse>, Error<()>> {
         let url = format!(
-            "{}/v1/uploads/{}/{}/clear", self.baseurl, encode_path(& namespace
-            .to_string()), encode_path(& table_name.to_string()),
+            "{}/v1/uploads/{}/{}/clear",
+            self.baseurl,
+            encode_path(&namespace.to_string()),
+            encode_path(&table_name.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-Dune-Api-Key", x_dune_api_key.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -7637,19 +7616,19 @@ Arguments:
     }
     /**Insert data into an uploaded table
 
-Inserts data into an existing table. Accepts CSV (text/csv) or
-NDJSON (application/x-ndjson) content types.
+    Inserts data into an existing table. Accepts CSV (text/csv) or
+    NDJSON (application/x-ndjson) content types.
 
-Sends a `POST` request to `/v1/uploads/{namespace}/{table_name}/insert`
+    Sends a `POST` request to `/v1/uploads/{namespace}/{table_name}/insert`
 
-Arguments:
-- `namespace`: The namespace of the table
-- `table_name`: The table name
-- `api_key`: Alternative to using the X-Dune-Api-Key header
-- `content_type`: Content type: text/csv or application/x-ndjson
-- `x_dune_api_key`: API Key for the service
-- `body`: The data to insert (CSV or NDJSON format)
-*/
+    Arguments:
+    - `namespace`: The namespace of the table
+    - `table_name`: The table name
+    - `api_key`: Alternative to using the X-Dune-Api-Key header
+    - `content_type`: Content type: text/csv or application/x-ndjson
+    - `x_dune_api_key`: API Key for the service
+    - `body`: The data to insert (CSV or NDJSON format)
+    */
     pub async fn postv1_uploads_namespace_tablename_insert<'a>(
         &'a self,
         namespace: &'a str,
@@ -7660,15 +7639,16 @@ Arguments:
         body: &'a str,
     ) -> Result<ResponseValue<types::ModelsTableInsertResponse>, Error<()>> {
         let url = format!(
-            "{}/v1/uploads/{}/{}/insert", self.baseurl, encode_path(& namespace
-            .to_string()), encode_path(& table_name.to_string()),
+            "{}/v1/uploads/{}/{}/insert",
+            self.baseurl,
+            encode_path(&namespace.to_string()),
+            encode_path(&table_name.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(3usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("Content-Type", content_type.to_string().try_into()?);
         header_map.append("X-Dune-Api-Key", x_dune_api_key.to_string().try_into()?);
         #[allow(unused_mut)]
@@ -7697,16 +7677,16 @@ Arguments:
     }
     /**Get Usage Data
 
-Get usage data for the authenticated customer including private queries, dashboards,
-bytes used/allowed, and billing periods
+    Get usage data for the authenticated customer including private queries, dashboards,
+    bytes used/allowed, and billing periods
 
-Sends a `POST` request to `/v1/usage`
+    Sends a `POST` request to `/v1/usage`
 
-Arguments:
-- `api_key`: API Key, alternative to using the HTTP header X-Dune-Api-Key
-- `x_dune_api_key`: API Key for the service
-- `body`: Request payload with optional start_date and end_date
-*/
+    Arguments:
+    - `api_key`: API Key, alternative to using the HTTP header X-Dune-Api-Key
+    - `x_dune_api_key`: API Key for the service
+    - `body`: Request payload with optional start_date and end_date
+    */
     pub async fn postv1_usage<'a>(
         &'a self,
         api_key: Option<&'a str>,
@@ -7715,11 +7695,10 @@ Arguments:
     ) -> Result<ResponseValue<types::ModelsGetUsageResponse>, Error<()>> {
         let url = format!("{}/v1/usage", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-Dune-Api-Key", x_dune_api_key.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -7747,29 +7726,29 @@ Arguments:
     }
     /**Get a visualization by ID
 
-Retrieves a visualization by its ID.
+    Retrieves a visualization by its ID.
 
-Sends a `GET` request to `/v1/visualizations/{visualization_id}`
+    Sends a `GET` request to `/v1/visualizations/{visualization_id}`
 
-Arguments:
-- `visualization_id`: Visualization ID
-- `x_dune_api_key`: API Key for the service
-*/
+    Arguments:
+    - `visualization_id`: Visualization ID
+    - `x_dune_api_key`: API Key for the service
+    */
     pub async fn getv1_visualizations_visualizationid<'a>(
         &'a self,
         visualization_id: i64,
         x_dune_api_key: &'a str,
     ) -> Result<ResponseValue<types::ModelsGetVisualizationResponse>, Error<()>> {
         let url = format!(
-            "{}/v1/visualizations/{}", self.baseurl, encode_path(& visualization_id
-            .to_string()),
+            "{}/v1/visualizations/{}",
+            self.baseurl,
+            encode_path(&visualization_id.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-Dune-Api-Key", x_dune_api_key.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -7795,15 +7774,15 @@ Arguments:
     }
     /**Update a visualization
 
-Updates an existing visualization by its ID.
+    Updates an existing visualization by its ID.
 
-Sends a `PUT` request to `/v1/visualizations/{visualization_id}`
+    Sends a `PUT` request to `/v1/visualizations/{visualization_id}`
 
-Arguments:
-- `visualization_id`: Visualization ID
-- `x_dune_api_key`: API Key for the service
-- `body`: UpdateVisualizationRequest
-*/
+    Arguments:
+    - `visualization_id`: Visualization ID
+    - `x_dune_api_key`: API Key for the service
+    - `body`: UpdateVisualizationRequest
+    */
     pub async fn putv1_visualizations_visualizationid<'a>(
         &'a self,
         visualization_id: i64,
@@ -7811,15 +7790,15 @@ Arguments:
         body: &'a types::ModelsUpdateVisualizationRequest,
     ) -> Result<ResponseValue<types::ModelsUpdateVisualizationResponse>, Error<()>> {
         let url = format!(
-            "{}/v1/visualizations/{}", self.baseurl, encode_path(& visualization_id
-            .to_string()),
+            "{}/v1/visualizations/{}",
+            self.baseurl,
+            encode_path(&visualization_id.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-Dune-Api-Key", x_dune_api_key.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -7846,29 +7825,29 @@ Arguments:
     }
     /**Delete a visualization
 
-Deletes a visualization by its ID.
+    Deletes a visualization by its ID.
 
-Sends a `DELETE` request to `/v1/visualizations/{visualization_id}`
+    Sends a `DELETE` request to `/v1/visualizations/{visualization_id}`
 
-Arguments:
-- `visualization_id`: Visualization ID
-- `x_dune_api_key`: API Key for the service
-*/
+    Arguments:
+    - `visualization_id`: Visualization ID
+    - `x_dune_api_key`: API Key for the service
+    */
     pub async fn deletev1_visualizations_visualizationid<'a>(
         &'a self,
         visualization_id: i64,
         x_dune_api_key: &'a str,
     ) -> Result<ResponseValue<types::ModelsDeleteVisualizationResponse>, Error<()>> {
         let url = format!(
-            "{}/v1/visualizations/{}", self.baseurl, encode_path(& visualization_id
-            .to_string()),
+            "{}/v1/visualizations/{}",
+            self.baseurl,
+            encode_path(&visualization_id.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-Dune-Api-Key", x_dune_api_key.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self

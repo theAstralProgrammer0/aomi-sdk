@@ -1,7 +1,7 @@
 #[allow(unused_imports)]
 pub use progenitor_client::{ByteStream, ClientInfo, Error, ResponseValue};
 #[allow(unused_imports)]
-use progenitor_client::{encode_path, ClientHooks, OperationInfo, RequestBuilderExt};
+use progenitor_client::{ClientHooks, OperationInfo, RequestBuilderExt, encode_path};
 /// Types used as operation parameters and responses.
 #[allow(clippy::all)]
 pub mod types {
@@ -11,18 +11,12 @@ pub mod types {
         pub struct ConversionError(::std::borrow::Cow<'static, str>);
         impl ::std::error::Error for ConversionError {}
         impl ::std::fmt::Display for ConversionError {
-            fn fmt(
-                &self,
-                f: &mut ::std::fmt::Formatter<'_>,
-            ) -> Result<(), ::std::fmt::Error> {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> Result<(), ::std::fmt::Error> {
                 ::std::fmt::Display::fmt(&self.0, f)
             }
         }
         impl ::std::fmt::Debug for ConversionError {
-            fn fmt(
-                &self,
-                f: &mut ::std::fmt::Formatter<'_>,
-            ) -> Result<(), ::std::fmt::Error> {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> Result<(), ::std::fmt::Error> {
                 ::std::fmt::Debug::fmt(&self.0, f)
             }
         }
@@ -434,7 +428,9 @@ impl Client {
         #[cfg(not(target_arch = "wasm32"))]
         let client = {
             let dur = ::std::time::Duration::from_secs(15u64);
-            reqwest::ClientBuilder::new().connect_timeout(dur).timeout(dur)
+            reqwest::ClientBuilder::new()
+                .connect_timeout(dur)
+                .timeout(dur)
         };
         #[cfg(target_arch = "wasm32")]
         let client = reqwest::ClientBuilder::new();
@@ -472,24 +468,25 @@ impl ClientHooks<()> for &Client {}
 impl Client {
     /**List every vault on a chain (TVL, APY/APR, strategies, fees, etc.)
 
-Sends a `GET` request to `/{chainId}/vaults/all`
+    Sends a `GET` request to `/{chainId}/vaults/all`
 
-Arguments:
-- `chain_id`: Chain ID (e.g. 1, 10, 137, 250, 8453, 42161).
-*/
+    Arguments:
+    - `chain_id`: Chain ID (e.g. 1, 10, 137, 250, 8453, 42161).
+    */
     pub async fn get_all_vaults<'a>(
         &'a self,
         chain_id: i64,
     ) -> Result<ResponseValue<::std::vec::Vec<types::YearnVault>>, Error<()>> {
         let url = format!(
-            "{}/{}/vaults/all", self.baseurl, encode_path(& chain_id.to_string()),
+            "{}/{}/vaults/all",
+            self.baseurl,
+            encode_path(&chain_id.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -514,27 +511,28 @@ Arguments:
     }
     /**Deep-dive a single vault by address
 
-Sends a `GET` request to `/{chainId}/vaults/{address}`
+    Sends a `GET` request to `/{chainId}/vaults/{address}`
 
-Arguments:
-- `chain_id`
-- `address`: Vault contract address (0x...).
-*/
+    Arguments:
+    - `chain_id`
+    - `address`: Vault contract address (0x...).
+    */
     pub async fn get_vault_detail<'a>(
         &'a self,
         chain_id: i64,
         address: &'a str,
     ) -> Result<ResponseValue<types::YearnVault>, Error<()>> {
         let url = format!(
-            "{}/{}/vaults/{}", self.baseurl, encode_path(& chain_id.to_string()),
-            encode_path(& address.to_string()),
+            "{}/{}/vaults/{}",
+            self.baseurl,
+            encode_path(&chain_id.to_string()),
+            encode_path(&address.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -559,19 +557,18 @@ Arguments:
     }
     /**Cross-chain list of vaults removed from the official Yearn UI
 
-Sends a `GET` request to `/info/vaults/blacklisted`
+    Sends a `GET` request to `/info/vaults/blacklisted`
 
-*/
+    */
     pub async fn get_blacklisted_vaults<'a>(
         &'a self,
     ) -> Result<ResponseValue<::std::vec::Vec<::std::string::String>>, Error<()>> {
         let url = format!("{}/info/vaults/blacklisted", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client

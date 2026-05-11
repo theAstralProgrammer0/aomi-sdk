@@ -1,7 +1,7 @@
 #[allow(unused_imports)]
 pub use progenitor_client::{ByteStream, ClientInfo, Error, ResponseValue};
 #[allow(unused_imports)]
-use progenitor_client::{encode_path, ClientHooks, OperationInfo, RequestBuilderExt};
+use progenitor_client::{ClientHooks, OperationInfo, RequestBuilderExt, encode_path};
 /// Types used as operation parameters and responses.
 #[allow(clippy::all)]
 pub mod types {
@@ -11,18 +11,12 @@ pub mod types {
         pub struct ConversionError(::std::borrow::Cow<'static, str>);
         impl ::std::error::Error for ConversionError {}
         impl ::std::fmt::Display for ConversionError {
-            fn fmt(
-                &self,
-                f: &mut ::std::fmt::Formatter<'_>,
-            ) -> Result<(), ::std::fmt::Error> {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> Result<(), ::std::fmt::Error> {
                 ::std::fmt::Display::fmt(&self.0, f)
             }
         }
         impl ::std::fmt::Debug for ConversionError {
-            fn fmt(
-                &self,
-                f: &mut ::std::fmt::Formatter<'_>,
-            ) -> Result<(), ::std::fmt::Error> {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> Result<(), ::std::fmt::Error> {
                 ::std::fmt::Debug::fmt(&self.0, f)
             }
         }
@@ -97,9 +91,7 @@ pub mod types {
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub code: ::std::option::Option<::std::string::String>,
         #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
-        pub data: ::std::vec::Vec<
-            ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-        >,
+        pub data: ::std::vec::Vec<::serde_json::Map<::std::string::String, ::serde_json::Value>>,
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub msg: ::std::option::Option<::std::string::String>,
     }
@@ -249,7 +241,9 @@ impl Client {
         #[cfg(not(target_arch = "wasm32"))]
         let client = {
             let dur = ::std::time::Duration::from_secs(15u64);
-            reqwest::ClientBuilder::new().connect_timeout(dur).timeout(dur)
+            reqwest::ClientBuilder::new()
+                .connect_timeout(dur)
+                .timeout(dur)
         };
         #[cfg(target_arch = "wasm32")]
         let client = reqwest::ClientBuilder::new();
@@ -287,26 +281,25 @@ impl ClientHooks<()> for &Client {}
 impl Client {
     /**Latest ticker snapshot for instruments of a given type
 
-Public endpoint. Returns last price, 24h volume, best bid/ask, etc. for
-every instrument of the given type (SPOT, SWAP, FUTURES, OPTION).
+    Public endpoint. Returns last price, 24h volume, best bid/ask, etc. for
+    every instrument of the given type (SPOT, SWAP, FUTURES, OPTION).
 
 
-Sends a `GET` request to `/api/v5/market/tickers`
+    Sends a `GET` request to `/api/v5/market/tickers`
 
-Arguments:
-- `inst_type`: `SPOT`, `SWAP`, `FUTURES`, or `OPTION`.
-*/
+    Arguments:
+    - `inst_type`: `SPOT`, `SWAP`, `FUTURES`, or `OPTION`.
+    */
     pub async fn get_tickers<'a>(
         &'a self,
         inst_type: &'a str,
     ) -> Result<ResponseValue<types::EnvelopeResponse>, Error<()>> {
         let url = format!("{}/api/v5/market/tickers", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -332,15 +325,15 @@ Arguments:
     }
     /**Order-book bids and asks for an instrument
 
-Public endpoint. Returns bids/asks at the requested depth.
+    Public endpoint. Returns bids/asks at the requested depth.
 
 
-Sends a `GET` request to `/api/v5/market/books`
+    Sends a `GET` request to `/api/v5/market/books`
 
-Arguments:
-- `inst_id`: Instrument ID e.g. `BTC-USDT`, `BTC-USDT-SWAP`.
-- `sz`: Depth — max 400; default 1.
-*/
+    Arguments:
+    - `inst_id`: Instrument ID e.g. `BTC-USDT`, `BTC-USDT-SWAP`.
+    - `sz`: Depth — max 400; default 1.
+    */
     pub async fn get_order_book<'a>(
         &'a self,
         inst_id: &'a str,
@@ -348,11 +341,10 @@ Arguments:
     ) -> Result<ResponseValue<types::EnvelopeResponse>, Error<()>> {
         let url = format!("{}/api/v5/market/books", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -379,18 +371,18 @@ Arguments:
     }
     /**OHLCV candles for an instrument
 
-Public endpoint. Returns candle arrays for the given instrument.
+    Public endpoint. Returns candle arrays for the given instrument.
 
 
-Sends a `GET` request to `/api/v5/market/candles`
+    Sends a `GET` request to `/api/v5/market/candles`
 
-Arguments:
-- `after`: Pagination — return records newer than this ms timestamp.
-- `bar`: Bar size — `1m`, `3m`, `5m`, `15m`, `30m`, `1H`, `4H`, `1D`, `1W`, `1M`.
-- `before`: Pagination — return records older than this ms timestamp.
-- `inst_id`
-- `limit`: Max 300, default 100.
-*/
+    Arguments:
+    - `after`: Pagination — return records newer than this ms timestamp.
+    - `bar`: Bar size — `1m`, `3m`, `5m`, `15m`, `30m`, `1H`, `4H`, `1D`, `1W`, `1M`.
+    - `before`: Pagination — return records older than this ms timestamp.
+    - `inst_id`
+    - `limit`: Max 300, default 100.
+    */
     pub async fn get_candles<'a>(
         &'a self,
         after: Option<&'a str>,
@@ -401,11 +393,10 @@ Arguments:
     ) -> Result<ResponseValue<types::EnvelopeResponse>, Error<()>> {
         let url = format!("{}/api/v5/market/candles", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -435,14 +426,14 @@ Arguments:
     }
     /**Place a new order (signed)
 
-Signed endpoint. JSON body. The curated tool computes the HMAC over
-`timestamp + "POST" + "/api/v5/trade/order" + body_json` and passes the
-signature/timestamp/api-key/passphrase as headers.
+    Signed endpoint. JSON body. The curated tool computes the HMAC over
+    `timestamp + "POST" + "/api/v5/trade/order" + body_json` and passes the
+    signature/timestamp/api-key/passphrase as headers.
 
 
-Sends a `POST` request to `/api/v5/trade/order`
+    Sends a `POST` request to `/api/v5/trade/order`
 
-*/
+    */
     pub async fn place_order<'a>(
         &'a self,
         ok_access_key: &'a str,
@@ -453,20 +444,20 @@ Sends a `POST` request to `/api/v5/trade/order`
     ) -> Result<ResponseValue<types::EnvelopeResponse>, Error<()>> {
         let url = format!("{}/api/v5/trade/order", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(5usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("OK-ACCESS-KEY", ok_access_key.to_string().try_into()?);
-        header_map
-            .append(
-                "OK-ACCESS-PASSPHRASE",
-                ok_access_passphrase.to_string().try_into()?,
-            );
+        header_map.append(
+            "OK-ACCESS-PASSPHRASE",
+            ok_access_passphrase.to_string().try_into()?,
+        );
         header_map.append("OK-ACCESS-SIGN", ok_access_sign.to_string().try_into()?);
-        header_map
-            .append("OK-ACCESS-TIMESTAMP", ok_access_timestamp.to_string().try_into()?);
+        header_map.append(
+            "OK-ACCESS-TIMESTAMP",
+            ok_access_timestamp.to_string().try_into()?,
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -492,11 +483,11 @@ Sends a `POST` request to `/api/v5/trade/order`
     }
     /**Cancel an open order (signed)
 
-Signed endpoint. JSON body.
+    Signed endpoint. JSON body.
 
-Sends a `POST` request to `/api/v5/trade/cancel-order`
+    Sends a `POST` request to `/api/v5/trade/cancel-order`
 
-*/
+    */
     pub async fn cancel_order<'a>(
         &'a self,
         ok_access_key: &'a str,
@@ -507,20 +498,20 @@ Sends a `POST` request to `/api/v5/trade/cancel-order`
     ) -> Result<ResponseValue<types::EnvelopeResponse>, Error<()>> {
         let url = format!("{}/api/v5/trade/cancel-order", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(5usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("OK-ACCESS-KEY", ok_access_key.to_string().try_into()?);
-        header_map
-            .append(
-                "OK-ACCESS-PASSPHRASE",
-                ok_access_passphrase.to_string().try_into()?,
-            );
+        header_map.append(
+            "OK-ACCESS-PASSPHRASE",
+            ok_access_passphrase.to_string().try_into()?,
+        );
         header_map.append("OK-ACCESS-SIGN", ok_access_sign.to_string().try_into()?);
-        header_map
-            .append("OK-ACCESS-TIMESTAMP", ok_access_timestamp.to_string().try_into()?);
+        header_map.append(
+            "OK-ACCESS-TIMESTAMP",
+            ok_access_timestamp.to_string().try_into()?,
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -546,19 +537,19 @@ Sends a `POST` request to `/api/v5/trade/cancel-order`
     }
     /**Account balances (signed)
 
-Signed endpoint. Returns unified-account balances; optional `ccy` is a
-comma-separated currency list.
+    Signed endpoint. Returns unified-account balances; optional `ccy` is a
+    comma-separated currency list.
 
 
-Sends a `GET` request to `/api/v5/account/balance`
+    Sends a `GET` request to `/api/v5/account/balance`
 
-Arguments:
-- `ccy`: Comma-separated currency list, e.g. `BTC,USDT`.
-- `ok_access_key`
-- `ok_access_passphrase`
-- `ok_access_sign`
-- `ok_access_timestamp`
-*/
+    Arguments:
+    - `ccy`: Comma-separated currency list, e.g. `BTC,USDT`.
+    - `ok_access_key`
+    - `ok_access_passphrase`
+    - `ok_access_sign`
+    - `ok_access_timestamp`
+    */
     pub async fn get_balance<'a>(
         &'a self,
         ccy: Option<&'a str>,
@@ -569,20 +560,20 @@ Arguments:
     ) -> Result<ResponseValue<types::EnvelopeResponse>, Error<()>> {
         let url = format!("{}/api/v5/account/balance", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(5usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("OK-ACCESS-KEY", ok_access_key.to_string().try_into()?);
-        header_map
-            .append(
-                "OK-ACCESS-PASSPHRASE",
-                ok_access_passphrase.to_string().try_into()?,
-            );
+        header_map.append(
+            "OK-ACCESS-PASSPHRASE",
+            ok_access_passphrase.to_string().try_into()?,
+        );
         header_map.append("OK-ACCESS-SIGN", ok_access_sign.to_string().try_into()?);
-        header_map
-            .append("OK-ACCESS-TIMESTAMP", ok_access_timestamp.to_string().try_into()?);
+        header_map.append(
+            "OK-ACCESS-TIMESTAMP",
+            ok_access_timestamp.to_string().try_into()?,
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -608,18 +599,18 @@ Arguments:
     }
     /**Open derivative positions (signed)
 
-Signed endpoint.
+    Signed endpoint.
 
-Sends a `GET` request to `/api/v5/account/positions`
+    Sends a `GET` request to `/api/v5/account/positions`
 
-Arguments:
-- `inst_id`
-- `inst_type`: `SPOT`, `SWAP`, `FUTURES`, or `OPTION`.
-- `ok_access_key`
-- `ok_access_passphrase`
-- `ok_access_sign`
-- `ok_access_timestamp`
-*/
+    Arguments:
+    - `inst_id`
+    - `inst_type`: `SPOT`, `SWAP`, `FUTURES`, or `OPTION`.
+    - `ok_access_key`
+    - `ok_access_passphrase`
+    - `ok_access_sign`
+    - `ok_access_timestamp`
+    */
     pub async fn get_positions<'a>(
         &'a self,
         inst_id: Option<&'a str>,
@@ -631,20 +622,20 @@ Arguments:
     ) -> Result<ResponseValue<types::EnvelopeResponse>, Error<()>> {
         let url = format!("{}/api/v5/account/positions", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(5usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("OK-ACCESS-KEY", ok_access_key.to_string().try_into()?);
-        header_map
-            .append(
-                "OK-ACCESS-PASSPHRASE",
-                ok_access_passphrase.to_string().try_into()?,
-            );
+        header_map.append(
+            "OK-ACCESS-PASSPHRASE",
+            ok_access_passphrase.to_string().try_into()?,
+        );
         header_map.append("OK-ACCESS-SIGN", ok_access_sign.to_string().try_into()?);
-        header_map
-            .append("OK-ACCESS-TIMESTAMP", ok_access_timestamp.to_string().try_into()?);
+        header_map.append(
+            "OK-ACCESS-TIMESTAMP",
+            ok_access_timestamp.to_string().try_into()?,
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -671,11 +662,11 @@ Arguments:
     }
     /**Set per-instrument leverage (signed)
 
-Signed endpoint. JSON body.
+    Signed endpoint. JSON body.
 
-Sends a `POST` request to `/api/v5/account/set-leverage`
+    Sends a `POST` request to `/api/v5/account/set-leverage`
 
-*/
+    */
     pub async fn set_leverage<'a>(
         &'a self,
         ok_access_key: &'a str,
@@ -686,20 +677,20 @@ Sends a `POST` request to `/api/v5/account/set-leverage`
     ) -> Result<ResponseValue<types::EnvelopeResponse>, Error<()>> {
         let url = format!("{}/api/v5/account/set-leverage", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(5usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("OK-ACCESS-KEY", ok_access_key.to_string().try_into()?);
-        header_map
-            .append(
-                "OK-ACCESS-PASSPHRASE",
-                ok_access_passphrase.to_string().try_into()?,
-            );
+        header_map.append(
+            "OK-ACCESS-PASSPHRASE",
+            ok_access_passphrase.to_string().try_into()?,
+        );
         header_map.append("OK-ACCESS-SIGN", ok_access_sign.to_string().try_into()?);
-        header_map
-            .append("OK-ACCESS-TIMESTAMP", ok_access_timestamp.to_string().try_into()?);
+        header_map.append(
+            "OK-ACCESS-TIMESTAMP",
+            ok_access_timestamp.to_string().try_into()?,
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client

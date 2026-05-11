@@ -1,7 +1,7 @@
 #[allow(unused_imports)]
 pub use progenitor_client::{ByteStream, ClientInfo, Error, ResponseValue};
 #[allow(unused_imports)]
-use progenitor_client::{encode_path, ClientHooks, OperationInfo, RequestBuilderExt};
+use progenitor_client::{ClientHooks, OperationInfo, RequestBuilderExt, encode_path};
 /// Types used as operation parameters and responses.
 #[allow(clippy::all)]
 pub mod types {
@@ -11,18 +11,12 @@ pub mod types {
         pub struct ConversionError(::std::borrow::Cow<'static, str>);
         impl ::std::error::Error for ConversionError {}
         impl ::std::fmt::Display for ConversionError {
-            fn fmt(
-                &self,
-                f: &mut ::std::fmt::Formatter<'_>,
-            ) -> Result<(), ::std::fmt::Error> {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> Result<(), ::std::fmt::Error> {
                 ::std::fmt::Display::fmt(&self.0, f)
             }
         }
         impl ::std::fmt::Debug for ConversionError {
-            fn fmt(
-                &self,
-                f: &mut ::std::fmt::Formatter<'_>,
-            ) -> Result<(), ::std::fmt::Error> {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> Result<(), ::std::fmt::Error> {
                 ::std::fmt::Debug::fmt(&self.0, f)
             }
         }
@@ -167,7 +161,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum AddressBalanceObject {
         #[serde(rename = "address_balance")]
@@ -182,9 +176,7 @@ pub mod types {
     }
     impl ::std::str::FromStr for AddressBalanceObject {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "address_balance" => Ok(Self::AddressBalance),
                 _ => Err("invalid value".into()),
@@ -193,9 +185,7 @@ pub mod types {
     }
     impl ::std::convert::TryFrom<&str> for AddressBalanceObject {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -271,7 +261,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum AppHostEventType {
         #[serde(rename = "frame_added")]
@@ -295,9 +285,7 @@ pub mod types {
     }
     impl ::std::str::FromStr for AppHostEventType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "frame_added" => Ok(Self::FrameAdded),
                 "frame_removed" => Ok(Self::FrameRemoved),
@@ -309,9 +297,7 @@ pub mod types {
     }
     impl ::std::convert::TryFrom<&str> for AppHostEventType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -372,19 +358,17 @@ pub mod types {
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct AppHostGetEventResponse {
         /**Legacy event type corresponding to the requested event type:
-- frame_added: User adds a mini app to their account
-- frame_removed: User removes a mini app from their account
-- notifications_enabled: User enables notifications for a mini app
-- notifications_disabled: User disables notifications for a mini app*/
+        - frame_added: User adds a mini app to their account
+        - frame_removed: User removes a mini app from their account
+        - notifications_enabled: User enables notifications for a mini app
+        - notifications_disabled: User disables notifications for a mini app*/
         pub event: ::std::string::String,
         #[serde(
             rename = "notificationDetails",
             default,
             skip_serializing_if = "::std::option::Option::is_none"
         )]
-        pub notification_details: ::std::option::Option<
-            AppHostGetEventResponseNotificationDetails,
-        >,
+        pub notification_details: ::std::option::Option<AppHostGetEventResponseNotificationDetails>,
     }
     ///Details for notification setup, only present when event is notifications_enabled
     ///
@@ -533,9 +517,8 @@ pub mod types {
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct AppHostUserStateResponse {
         ///List of domains for which notifications are enabled for this user
-        pub notifications_enabled: ::std::vec::Vec<
-            AppHostUserStateResponseNotificationsEnabledItem,
-        >,
+        pub notifications_enabled:
+            ::std::vec::Vec<AppHostUserStateResponseNotificationsEnabledItem>,
     }
     ///`AppHostUserStateResponseNotificationsEnabledItem`
     ///
@@ -634,43 +617,37 @@ pub mod types {
             &self.0
         }
     }
-    impl ::std::convert::From<AssignCustomDomainBodySubdomain>
-    for ::std::string::String {
+    impl ::std::convert::From<AssignCustomDomainBodySubdomain> for ::std::string::String {
         fn from(value: AssignCustomDomainBodySubdomain) -> Self {
             value.0
         }
     }
     impl ::std::str::FromStr for AssignCustomDomainBodySubdomain {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             if value.chars().count() > 63usize {
                 return Err("longer than 63 characters".into());
             }
             if value.chars().count() < 3usize {
                 return Err("shorter than 3 characters".into());
             }
-            static PATTERN: ::std::sync::LazyLock<::regress::Regex> = ::std::sync::LazyLock::new(||
-            { ::regress::Regex::new("^[a-z0-9]([a-z0-9-]*[a-z0-9])?$").unwrap() });
+            static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+                ::std::sync::LazyLock::new(|| {
+                    ::regress::Regex::new("^[a-z0-9]([a-z0-9-]*[a-z0-9])?$").unwrap()
+                });
             if PATTERN.find(value).is_none() {
-                return Err(
-                    "doesn't match pattern \"^[a-z0-9]([a-z0-9-]*[a-z0-9])?$\"".into(),
-                );
+                return Err("doesn't match pattern \"^[a-z0-9]([a-z0-9-]*[a-z0-9])?$\"".into());
             }
             Ok(Self(value.to_string()))
         }
     }
     impl ::std::convert::TryFrom<&str> for AssignCustomDomainBodySubdomain {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for AssignCustomDomainBodySubdomain {
+    impl ::std::convert::TryFrom<&::std::string::String> for AssignCustomDomainBodySubdomain {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -678,8 +655,7 @@ pub mod types {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for AssignCustomDomainBodySubdomain {
+    impl ::std::convert::TryFrom<::std::string::String> for AssignCustomDomainBodySubdomain {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -930,7 +906,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum AuthorizationUrlResponseType {
         #[serde(rename = "code")]
@@ -945,9 +921,7 @@ pub mod types {
     }
     impl ::std::str::FromStr for AuthorizationUrlResponseType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "code" => Ok(Self::Code),
                 _ => Err("invalid value".into()),
@@ -956,14 +930,11 @@ pub mod types {
     }
     impl ::std::convert::TryFrom<&str> for AuthorizationUrlResponseType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for AuthorizationUrlResponseType {
+    impl ::std::convert::TryFrom<&::std::string::String> for AuthorizationUrlResponseType {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -971,8 +942,7 @@ pub mod types {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for AuthorizationUrlResponseType {
+    impl ::std::convert::TryFrom<::std::string::String> for AuthorizationUrlResponseType {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -1091,7 +1061,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum BalanceResponseUserBalanceObject {
         #[serde(rename = "user_balance")]
@@ -1106,9 +1076,7 @@ pub mod types {
     }
     impl ::std::str::FromStr for BalanceResponseUserBalanceObject {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "user_balance" => Ok(Self::UserBalance),
                 _ => Err("invalid value".into()),
@@ -1117,14 +1085,11 @@ pub mod types {
     }
     impl ::std::convert::TryFrom<&str> for BalanceResponseUserBalanceObject {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for BalanceResponseUserBalanceObject {
+    impl ::std::convert::TryFrom<&::std::string::String> for BalanceResponseUserBalanceObject {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -1132,8 +1097,7 @@ pub mod types {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for BalanceResponseUserBalanceObject {
+    impl ::std::convert::TryFrom<::std::string::String> for BalanceResponseUserBalanceObject {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -1232,7 +1196,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum BanRecordObject {
         #[serde(rename = "ban")]
@@ -1247,9 +1211,7 @@ pub mod types {
     }
     impl ::std::str::FromStr for BanRecordObject {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "ban" => Ok(Self::Ban),
                 _ => Err("invalid value".into()),
@@ -1258,9 +1220,7 @@ pub mod types {
     }
     impl ::std::convert::TryFrom<&str> for BanRecordObject {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -1565,9 +1525,7 @@ pub mod types {
     /// </details>
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct BatchGetTokenMetadataResponse {
-        pub tokens: ::std::vec::Vec<
-            ::std::option::Option<BatchGetTokenMetadataResponseTokensItem>,
-        >,
+        pub tokens: ::std::vec::Vec<::std::option::Option<BatchGetTokenMetadataResponseTokensItem>>,
     }
     ///`BatchGetTokenMetadataResponseTokensItem`
     ///
@@ -1804,9 +1762,7 @@ pub mod types {
         ///6-hour price change percentage
         pub price_change_6h_pct: ::std::option::Option<f64>,
         ///Source of price data
-        pub price_source: ::std::option::Option<
-            BatchGetTokenMetadataResponseTokensItemPriceSource,
-        >,
+        pub price_source: ::std::option::Option<BatchGetTokenMetadataResponseTokensItemPriceSource>,
         ///Timestamp when price data was last updated (milliseconds)
         pub price_updated_at: ::std::option::Option<i64>,
         ///Token price in USD
@@ -1845,35 +1801,34 @@ pub mod types {
         }
     }
     impl ::std::convert::From<BatchGetTokenMetadataResponseTokensItemAddress>
-    for ::std::string::String {
+        for ::std::string::String
+    {
         fn from(value: BatchGetTokenMetadataResponseTokensItemAddress) -> Self {
             value.0
         }
     }
     impl ::std::str::FromStr for BatchGetTokenMetadataResponseTokensItemAddress {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
-            static PATTERN: ::std::sync::LazyLock<::regress::Regex> = ::std::sync::LazyLock::new(||
-            { ::regress::Regex::new("^0x[a-fA-F0-9]{40}$").unwrap() });
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+            static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+                ::std::sync::LazyLock::new(|| {
+                    ::regress::Regex::new("^0x[a-fA-F0-9]{40}$").unwrap()
+                });
             if PATTERN.find(value).is_none() {
                 return Err("doesn't match pattern \"^0x[a-fA-F0-9]{40}$\"".into());
             }
             Ok(Self(value.to_string()))
         }
     }
-    impl ::std::convert::TryFrom<&str>
-    for BatchGetTokenMetadataResponseTokensItemAddress {
+    impl ::std::convert::TryFrom<&str> for BatchGetTokenMetadataResponseTokensItemAddress {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
     impl ::std::convert::TryFrom<&::std::string::String>
-    for BatchGetTokenMetadataResponseTokensItemAddress {
+        for BatchGetTokenMetadataResponseTokensItemAddress
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -1882,7 +1837,8 @@ pub mod types {
         }
     }
     impl ::std::convert::TryFrom<::std::string::String>
-    for BatchGetTokenMetadataResponseTokensItemAddress {
+        for BatchGetTokenMetadataResponseTokensItemAddress
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -1890,8 +1846,7 @@ pub mod types {
             value.parse()
         }
     }
-    impl<'de> ::serde::Deserialize<'de>
-    for BatchGetTokenMetadataResponseTokensItemAddress {
+    impl<'de> ::serde::Deserialize<'de> for BatchGetTokenMetadataResponseTokensItemAddress {
         fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
         where
             D: ::serde::Deserializer<'de>,
@@ -1931,7 +1886,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum BatchGetTokenMetadataResponseTokensItemPriceSource {
         #[serde(rename = "onchain")]
@@ -1949,9 +1904,7 @@ pub mod types {
     }
     impl ::std::str::FromStr for BatchGetTokenMetadataResponseTokensItemPriceSource {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "onchain" => Ok(Self::Onchain),
                 "coingecko" => Ok(Self::Coingecko),
@@ -1959,17 +1912,15 @@ pub mod types {
             }
         }
     }
-    impl ::std::convert::TryFrom<&str>
-    for BatchGetTokenMetadataResponseTokensItemPriceSource {
+    impl ::std::convert::TryFrom<&str> for BatchGetTokenMetadataResponseTokensItemPriceSource {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
     impl ::std::convert::TryFrom<&::std::string::String>
-    for BatchGetTokenMetadataResponseTokensItemPriceSource {
+        for BatchGetTokenMetadataResponseTokensItemPriceSource
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -1978,7 +1929,8 @@ pub mod types {
         }
     }
     impl ::std::convert::TryFrom<::std::string::String>
-    for BatchGetTokenMetadataResponseTokensItemPriceSource {
+        for BatchGetTokenMetadataResponseTokensItemPriceSource
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -2192,12 +2144,8 @@ pub mod types {
         pub stripe_customer_id: ::std::option::Option<::std::string::String>,
         pub stripe_product_id: ::std::option::Option<::std::string::String>,
         pub stripe_subscription_id: ::std::option::Option<::std::string::String>,
-        pub subscription_end: ::std::option::Option<
-            ::chrono::DateTime<::chrono::offset::Utc>,
-        >,
-        pub subscription_start: ::std::option::Option<
-            ::chrono::DateTime<::chrono::offset::Utc>,
-        >,
+        pub subscription_end: ::std::option::Option<::chrono::DateTime<::chrono::offset::Utc>>,
+        pub subscription_start: ::std::option::Option<::chrono::DateTime<::chrono::offset::Utc>>,
         pub subscription_status: ::std::option::Option<::std::string::String>,
         pub workos_organization_id: ::std::string::String,
     }
@@ -2297,7 +2245,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum BlockRecordObject {
         #[serde(rename = "block")]
@@ -2312,9 +2260,7 @@ pub mod types {
     }
     impl ::std::str::FromStr for BlockRecordObject {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "block" => Ok(Self::Block),
                 _ => Err("invalid value".into()),
@@ -2323,9 +2269,7 @@ pub mod types {
     }
     impl ::std::convert::TryFrom<&str> for BlockRecordObject {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -2458,7 +2402,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum BuildBodyBuildType {
         #[serde(rename = "npm")]
@@ -2476,9 +2420,7 @@ pub mod types {
     }
     impl ::std::str::FromStr for BuildBodyBuildType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "npm" => Ok(Self::Npm),
                 "vercel" => Ok(Self::Vercel),
@@ -2488,9 +2430,7 @@ pub mod types {
     }
     impl ::std::convert::TryFrom<&str> for BuildBodyBuildType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -2607,7 +2547,7 @@ pub mod types {
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     #[serde(transparent)]
     pub struct BulkRelevantFungibleOwnersResponse(
-        pub ::std::collections::HashMap<
+        pub  ::std::collections::HashMap<
             ::std::string::String,
             BulkRelevantFungibleOwnersResponseValue,
         >,
@@ -2627,20 +2567,23 @@ pub mod types {
         }
     }
     impl ::std::convert::From<BulkRelevantFungibleOwnersResponse>
-    for ::std::collections::HashMap<
-        ::std::string::String,
-        BulkRelevantFungibleOwnersResponseValue,
-    > {
+        for ::std::collections::HashMap<
+            ::std::string::String,
+            BulkRelevantFungibleOwnersResponseValue,
+        >
+    {
         fn from(value: BulkRelevantFungibleOwnersResponse) -> Self {
             value.0
         }
     }
-    impl ::std::convert::From<
-        ::std::collections::HashMap<
-            ::std::string::String,
-            BulkRelevantFungibleOwnersResponseValue,
-        >,
-    > for BulkRelevantFungibleOwnersResponse {
+    impl
+        ::std::convert::From<
+            ::std::collections::HashMap<
+                ::std::string::String,
+                BulkRelevantFungibleOwnersResponseValue,
+            >,
+        > for BulkRelevantFungibleOwnersResponse
+    {
         fn from(
             value: ::std::collections::HashMap<
                 ::std::string::String,
@@ -2708,7 +2651,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum BulkUserAddressType {
         #[serde(rename = "custody_address")]
@@ -2726,9 +2669,7 @@ pub mod types {
     }
     impl ::std::str::FromStr for BulkUserAddressType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "custody_address" => Ok(Self::CustodyAddress),
                 "verified_address" => Ok(Self::VerifiedAddress),
@@ -2738,9 +2679,7 @@ pub mod types {
     }
     impl ::std::convert::TryFrom<&str> for BulkUserAddressType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -2787,10 +2726,7 @@ pub mod types {
         pub ::std::collections::HashMap<::std::string::String, ::std::vec::Vec<User>>,
     );
     impl ::std::ops::Deref for BulkUsersByAddressResponse {
-        type Target = ::std::collections::HashMap<
-            ::std::string::String,
-            ::std::vec::Vec<User>,
-        >;
+        type Target = ::std::collections::HashMap<::std::string::String, ::std::vec::Vec<User>>;
         fn deref(
             &self,
         ) -> &::std::collections::HashMap<::std::string::String, ::std::vec::Vec<User>> {
@@ -2798,19 +2734,19 @@ pub mod types {
         }
     }
     impl ::std::convert::From<BulkUsersByAddressResponse>
-    for ::std::collections::HashMap<::std::string::String, ::std::vec::Vec<User>> {
+        for ::std::collections::HashMap<::std::string::String, ::std::vec::Vec<User>>
+    {
         fn from(value: BulkUsersByAddressResponse) -> Self {
             value.0
         }
     }
-    impl ::std::convert::From<
-        ::std::collections::HashMap<::std::string::String, ::std::vec::Vec<User>>,
-    > for BulkUsersByAddressResponse {
+    impl
+        ::std::convert::From<
+            ::std::collections::HashMap<::std::string::String, ::std::vec::Vec<User>>,
+        > for BulkUsersByAddressResponse
+    {
         fn from(
-            value: ::std::collections::HashMap<
-                ::std::string::String,
-                ::std::vec::Vec<User>,
-            >,
+            value: ::std::collections::HashMap<::std::string::String, ::std::vec::Vec<User>>,
         ) -> Self {
             Self(value)
         }
@@ -2884,7 +2820,7 @@ pub mod types {
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub idem: ::std::option::Option<Idem>,
         /**Number of storage units to buy.
-A storage unit lets you store 5000 casts, 2500 reactions and 2500 links.*/
+        A storage unit lets you store 5000 casts, 2500 reactions and 2500 links.*/
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub units: ::std::option::Option<::std::num::NonZeroU64>,
     }
@@ -3271,11 +3207,11 @@ A storage unit lets you store 5000 casts, 2500 reactions and 2500 links.*/
         pub hash: ::std::string::String,
         pub mentioned_channels: ::std::vec::Vec<ChannelDehydrated>,
         /**Positions within the text (inclusive start, exclusive end) where each mention occurs.
-Each index within this list corresponds to the same-numbered index in the mentioned_channels list.*/
+        Each index within this list corresponds to the same-numbered index in the mentioned_channels list.*/
         pub mentioned_channels_ranges: ::std::vec::Vec<TextRange>,
         pub mentioned_profiles: ::std::vec::Vec<User>,
         /**Positions within the text (inclusive start, exclusive end) where each mention occurs.
-Each index within this list corresponds to the same-numbered index in the mentioned_profiles list.*/
+        Each index within this list corresponds to the same-numbered index in the mentioned_profiles list.*/
         pub mentioned_profiles_ranges: ::std::vec::Vec<TextRange>,
         pub object: CastAndConversationsObject,
         pub parent_author: CastAndConversationsParentAuthor,
@@ -3319,7 +3255,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum CastAndConversationsObject {
         #[serde(rename = "cast")]
@@ -3334,9 +3270,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
     }
     impl ::std::str::FromStr for CastAndConversationsObject {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "cast" => Ok(Self::Cast),
                 _ => Err("invalid value".into()),
@@ -3345,9 +3279,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
     }
     impl ::std::convert::TryFrom<&str> for CastAndConversationsObject {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -3591,18 +3523,17 @@ Each index within this list corresponds to the same-numbered index in the mentio
         pub author_channel_context: ::std::option::Option<ChannelUserContext>,
         pub channel: ::std::option::Option<ChannelOrChannelDehydrated>,
         ///note: This is recursive. It contains the direct replies to the cast and their direct replies up to n reply_depth.
-        pub direct_replies: ::std::vec::Vec<
-            ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-        >,
+        pub direct_replies:
+            ::std::vec::Vec<::serde_json::Map<::std::string::String, ::serde_json::Value>>,
         pub embeds: ::std::vec::Vec<Embed>,
         pub hash: ::std::string::String,
         pub mentioned_channels: ::std::vec::Vec<ChannelDehydrated>,
         /**Positions within the text (inclusive start, exclusive end) where each mention occurs.
-Each index within this list corresponds to the same-numbered index in the mentioned_channels list.*/
+        Each index within this list corresponds to the same-numbered index in the mentioned_channels list.*/
         pub mentioned_channels_ranges: ::std::vec::Vec<TextRange>,
         pub mentioned_profiles: ::std::vec::Vec<User>,
         /**Positions within the text (inclusive start, exclusive end) where each mention occurs.
-Each index within this list corresponds to the same-numbered index in the mentioned_profiles list.*/
+        Each index within this list corresponds to the same-numbered index in the mentioned_profiles list.*/
         pub mentioned_profiles_ranges: ::std::vec::Vec<TextRange>,
         pub object: CastAndConversationsRefObject,
         pub parent_author: CastAndConversationsRefParentAuthor,
@@ -3646,7 +3577,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum CastAndConversationsRefObject {
         #[serde(rename = "cast")]
@@ -3661,9 +3592,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
     }
     impl ::std::str::FromStr for CastAndConversationsRefObject {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "cast" => Ok(Self::Cast),
                 _ => Err("invalid value".into()),
@@ -3672,14 +3601,11 @@ Each index within this list corresponds to the same-numbered index in the mentio
     }
     impl ::std::convert::TryFrom<&str> for CastAndConversationsRefObject {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for CastAndConversationsRefObject {
+    impl ::std::convert::TryFrom<&::std::string::String> for CastAndConversationsRefObject {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -3687,8 +3613,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for CastAndConversationsRefObject {
+    impl ::std::convert::TryFrom<::std::string::String> for CastAndConversationsRefObject {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -3804,7 +3729,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum CastDehydratedObject {
         #[serde(rename = "cast_dehydrated")]
@@ -3819,9 +3744,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
     }
     impl ::std::str::FromStr for CastDehydratedObject {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "cast_dehydrated" => Ok(Self::CastDehydrated),
                 _ => Err("invalid value".into()),
@@ -3830,9 +3753,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
     }
     impl ::std::convert::TryFrom<&str> for CastDehydratedObject {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -4091,7 +4012,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum CastNotificationType {
         #[serde(rename = "cast-mention")]
@@ -4109,9 +4030,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
     }
     impl ::std::str::FromStr for CastNotificationType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "cast-mention" => Ok(Self::CastMention),
                 "cast-reply" => Ok(Self::CastReply),
@@ -4121,9 +4040,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
     }
     impl ::std::convert::TryFrom<&str> for CastNotificationType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -4166,7 +4083,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum CastObject {
         #[serde(rename = "cast")]
@@ -4181,9 +4098,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
     }
     impl ::std::str::FromStr for CastObject {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "cast" => Ok(Self::Cast),
                 _ => Err("invalid value".into()),
@@ -4192,9 +4107,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
     }
     impl ::std::convert::TryFrom<&str> for CastObject {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -4227,15 +4140,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
     /// ```
     /// </details>
     #[derive(
-        ::serde::Deserialize,
-        ::serde::Serialize,
-        Clone,
-        Debug,
-        Eq,
-        Hash,
-        Ord,
-        PartialEq,
-        PartialOrd
+        ::serde::Deserialize, ::serde::Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd,
     )]
     #[serde(transparent)]
     pub struct CastParent(pub ::std::string::String);
@@ -4705,7 +4610,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum ChannelActivityObject {
         #[serde(rename = "channel_activity")]
@@ -4720,9 +4625,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
     }
     impl ::std::str::FromStr for ChannelActivityObject {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "channel_activity" => Ok(Self::ChannelActivity),
                 _ => Err("invalid value".into()),
@@ -4731,9 +4634,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
     }
     impl ::std::convert::TryFrom<&str> for ChannelActivityObject {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -4812,7 +4713,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum ChannelDehydratedObject {
         #[serde(rename = "channel_dehydrated")]
@@ -4827,9 +4728,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
     }
     impl ::std::str::FromStr for ChannelDehydratedObject {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "channel_dehydrated" => Ok(Self::ChannelDehydrated),
                 _ => Err("invalid value".into()),
@@ -4838,9 +4737,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
     }
     impl ::std::convert::TryFrom<&str> for ChannelDehydratedObject {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -4904,15 +4801,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
     /// ```
     /// </details>
     #[derive(
-        ::serde::Deserialize,
-        ::serde::Serialize,
-        Clone,
-        Debug,
-        Eq,
-        Hash,
-        Ord,
-        PartialEq,
-        PartialOrd
+        ::serde::Deserialize, ::serde::Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd,
     )]
     #[serde(transparent)]
     pub struct ChannelId(pub ::std::string::String);
@@ -5188,7 +5077,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum ChannelMemberObject {
         #[serde(rename = "member")]
@@ -5203,9 +5092,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
     }
     impl ::std::str::FromStr for ChannelMemberObject {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "member" => Ok(Self::Member),
                 _ => Err("invalid value".into()),
@@ -5214,9 +5101,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
     }
     impl ::std::convert::TryFrom<&str> for ChannelMemberObject {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -5263,7 +5148,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum ChannelMemberRole {
         #[serde(rename = "member")]
@@ -5284,9 +5169,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
     }
     impl ::std::str::FromStr for ChannelMemberRole {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "member" => Ok(Self::Member),
                 "moderator" => Ok(Self::Moderator),
@@ -5297,9 +5180,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
     }
     impl ::std::convert::TryFrom<&str> for ChannelMemberRole {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -5376,7 +5257,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum ChannelObject {
         #[serde(rename = "channel")]
@@ -5391,9 +5272,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
     }
     impl ::std::str::FromStr for ChannelObject {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "channel" => Ok(Self::Channel),
                 _ => Err("invalid value".into()),
@@ -5402,9 +5281,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
     }
     impl ::std::convert::TryFrom<&str> for ChannelObject {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -5567,7 +5444,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum ChannelType {
         #[serde(rename = "id")]
@@ -5585,9 +5462,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
     }
     impl ::std::str::FromStr for ChannelType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "id" => Ok(Self::Id),
                 "parent_url" => Ok(Self::ParentUrl),
@@ -5597,9 +5472,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
     }
     impl ::std::convert::TryFrom<&str> for ChannelType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -5710,43 +5583,37 @@ Each index within this list corresponds to the same-numbered index in the mentio
             &self.0
         }
     }
-    impl ::std::convert::From<CheckDomainAvailabilitySubdomain>
-    for ::std::string::String {
+    impl ::std::convert::From<CheckDomainAvailabilitySubdomain> for ::std::string::String {
         fn from(value: CheckDomainAvailabilitySubdomain) -> Self {
             value.0
         }
     }
     impl ::std::str::FromStr for CheckDomainAvailabilitySubdomain {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             if value.chars().count() > 63usize {
                 return Err("longer than 63 characters".into());
             }
             if value.chars().count() < 3usize {
                 return Err("shorter than 3 characters".into());
             }
-            static PATTERN: ::std::sync::LazyLock<::regress::Regex> = ::std::sync::LazyLock::new(||
-            { ::regress::Regex::new("^[a-z0-9]([a-z0-9-]*[a-z0-9])?$").unwrap() });
+            static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+                ::std::sync::LazyLock::new(|| {
+                    ::regress::Regex::new("^[a-z0-9]([a-z0-9-]*[a-z0-9])?$").unwrap()
+                });
             if PATTERN.find(value).is_none() {
-                return Err(
-                    "doesn't match pattern \"^[a-z0-9]([a-z0-9-]*[a-z0-9])?$\"".into(),
-                );
+                return Err("doesn't match pattern \"^[a-z0-9]([a-z0-9-]*[a-z0-9])?$\"".into());
             }
             Ok(Self(value.to_string()))
         }
     }
     impl ::std::convert::TryFrom<&str> for CheckDomainAvailabilitySubdomain {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for CheckDomainAvailabilitySubdomain {
+    impl ::std::convert::TryFrom<&::std::string::String> for CheckDomainAvailabilitySubdomain {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -5754,8 +5621,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for CheckDomainAvailabilitySubdomain {
+    impl ::std::convert::TryFrom<::std::string::String> for CheckDomainAvailabilitySubdomain {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -6091,10 +5957,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
             default,
             skip_serializing_if = ":: std :: collections :: HashMap::is_empty"
         )]
-        pub env: ::std::collections::HashMap<
-            ::std::string::String,
-            ::std::string::String,
-        >,
+        pub env: ::std::collections::HashMap<::std::string::String, ::std::string::String>,
         ///Farcaster ID of the user
         pub fid: i32,
     }
@@ -6233,9 +6096,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
         pub deleted_at: ::std::option::Option<::chrono::DateTime<::chrono::offset::Utc>>,
         ///Dev server process state: stopped, starting, running, or crashed
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub dev_server_state: ::std::option::Option<
-            CreateDeploymentResponseDevServerState,
-        >,
+        pub dev_server_state: ::std::option::Option<CreateDeploymentResponseDevServerState>,
         ///Display name for the project
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub display_name: ::std::option::Option<::std::string::String>,
@@ -6258,9 +6119,8 @@ Each index within this list corresponds to the same-numbered index in the mentio
         ///Kubernetes namespace
         pub namespace: ::std::string::String,
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub production_app_status: ::std::option::Option<
-            CreateDeploymentResponseProductionAppStatus,
-        >,
+        pub production_app_status:
+            ::std::option::Option<CreateDeploymentResponseProductionAppStatus>,
         ///Last update timestamp
         pub updated_at: ::std::option::Option<::chrono::DateTime<::chrono::offset::Utc>>,
         ///Public URL for the deployment
@@ -6294,7 +6154,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum CreateDeploymentResponseDevServerState {
         #[serde(rename = "stopped")]
@@ -6318,9 +6178,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
     }
     impl ::std::str::FromStr for CreateDeploymentResponseDevServerState {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "stopped" => Ok(Self::Stopped),
                 "starting" => Ok(Self::Starting),
@@ -6332,14 +6190,11 @@ Each index within this list corresponds to the same-numbered index in the mentio
     }
     impl ::std::convert::TryFrom<&str> for CreateDeploymentResponseDevServerState {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for CreateDeploymentResponseDevServerState {
+    impl ::std::convert::TryFrom<&::std::string::String> for CreateDeploymentResponseDevServerState {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -6347,8 +6202,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for CreateDeploymentResponseDevServerState {
+    impl ::std::convert::TryFrom<::std::string::String> for CreateDeploymentResponseDevServerState {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -6603,9 +6457,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
     /// </details>
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct CreateX402SignatureBodyPaymentRequirements {
-        pub accepts: ::std::vec::Vec<
-            CreateX402SignatureBodyPaymentRequirementsAcceptsItem,
-        >,
+        pub accepts: ::std::vec::Vec<CreateX402SignatureBodyPaymentRequirementsAcceptsItem>,
         #[serde(rename = "x402Version")]
         pub x402_version: CreateX402SignatureBodyPaymentRequirementsX402Version,
     }
@@ -6685,9 +6537,8 @@ Each index within this list corresponds to the same-numbered index in the mentio
         pub asset: EthAddress,
         pub description: ::std::string::String,
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub extra: ::std::option::Option<
-            ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-        >,
+        pub extra:
+            ::std::option::Option<::serde_json::Map<::std::string::String, ::serde_json::Value>>,
         #[serde(rename = "maxAmountRequired")]
         pub max_amount_required: ::std::string::String,
         #[serde(rename = "maxTimeoutSeconds")]
@@ -6704,9 +6555,8 @@ Each index within this list corresponds to the same-numbered index in the mentio
             default,
             skip_serializing_if = "::std::option::Option::is_none"
         )]
-        pub output_schema: ::std::option::Option<
-            ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-        >,
+        pub output_schema:
+            ::std::option::Option<::serde_json::Map<::std::string::String, ::serde_json::Value>>,
         #[serde(rename = "payTo")]
         pub pay_to: EthAddress,
         pub resource: ::std::string::String,
@@ -6736,7 +6586,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum CreateX402SignatureBodyPaymentRequirementsAcceptsItemNetwork {
         #[serde(rename = "base")]
@@ -6744,8 +6594,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
         #[serde(rename = "base-sepolia")]
         BaseSepolia,
     }
-    impl ::std::fmt::Display
-    for CreateX402SignatureBodyPaymentRequirementsAcceptsItemNetwork {
+    impl ::std::fmt::Display for CreateX402SignatureBodyPaymentRequirementsAcceptsItemNetwork {
         fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
             match *self {
                 Self::Base => f.write_str("base"),
@@ -6753,12 +6602,9 @@ Each index within this list corresponds to the same-numbered index in the mentio
             }
         }
     }
-    impl ::std::str::FromStr
-    for CreateX402SignatureBodyPaymentRequirementsAcceptsItemNetwork {
+    impl ::std::str::FromStr for CreateX402SignatureBodyPaymentRequirementsAcceptsItemNetwork {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "base" => Ok(Self::Base),
                 "base-sepolia" => Ok(Self::BaseSepolia),
@@ -6767,16 +6613,16 @@ Each index within this list corresponds to the same-numbered index in the mentio
         }
     }
     impl ::std::convert::TryFrom<&str>
-    for CreateX402SignatureBodyPaymentRequirementsAcceptsItemNetwork {
+        for CreateX402SignatureBodyPaymentRequirementsAcceptsItemNetwork
+    {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
     impl ::std::convert::TryFrom<&::std::string::String>
-    for CreateX402SignatureBodyPaymentRequirementsAcceptsItemNetwork {
+        for CreateX402SignatureBodyPaymentRequirementsAcceptsItemNetwork
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -6785,7 +6631,8 @@ Each index within this list corresponds to the same-numbered index in the mentio
         }
     }
     impl ::std::convert::TryFrom<::std::string::String>
-    for CreateX402SignatureBodyPaymentRequirementsAcceptsItemNetwork {
+        for CreateX402SignatureBodyPaymentRequirementsAcceptsItemNetwork
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -6816,43 +6663,37 @@ Each index within this list corresponds to the same-numbered index in the mentio
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum CreateX402SignatureBodyPaymentRequirementsAcceptsItemScheme {
         #[serde(rename = "exact")]
         Exact,
     }
-    impl ::std::fmt::Display
-    for CreateX402SignatureBodyPaymentRequirementsAcceptsItemScheme {
+    impl ::std::fmt::Display for CreateX402SignatureBodyPaymentRequirementsAcceptsItemScheme {
         fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
             match *self {
                 Self::Exact => f.write_str("exact"),
             }
         }
     }
-    impl ::std::str::FromStr
-    for CreateX402SignatureBodyPaymentRequirementsAcceptsItemScheme {
+    impl ::std::str::FromStr for CreateX402SignatureBodyPaymentRequirementsAcceptsItemScheme {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "exact" => Ok(Self::Exact),
                 _ => Err("invalid value".into()),
             }
         }
     }
-    impl ::std::convert::TryFrom<&str>
-    for CreateX402SignatureBodyPaymentRequirementsAcceptsItemScheme {
+    impl ::std::convert::TryFrom<&str> for CreateX402SignatureBodyPaymentRequirementsAcceptsItemScheme {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
     impl ::std::convert::TryFrom<&::std::string::String>
-    for CreateX402SignatureBodyPaymentRequirementsAcceptsItemScheme {
+        for CreateX402SignatureBodyPaymentRequirementsAcceptsItemScheme
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -6861,7 +6702,8 @@ Each index within this list corresponds to the same-numbered index in the mentio
         }
     }
     impl ::std::convert::TryFrom<::std::string::String>
-    for CreateX402SignatureBodyPaymentRequirementsAcceptsItemScheme {
+        for CreateX402SignatureBodyPaymentRequirementsAcceptsItemScheme
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -6891,18 +6733,14 @@ Each index within this list corresponds to the same-numbered index in the mentio
             &self.0
         }
     }
-    impl ::std::convert::From<CreateX402SignatureBodyPaymentRequirementsX402Version>
-    for f64 {
+    impl ::std::convert::From<CreateX402SignatureBodyPaymentRequirementsX402Version> for f64 {
         fn from(value: CreateX402SignatureBodyPaymentRequirementsX402Version) -> Self {
             value.0
         }
     }
-    impl ::std::convert::TryFrom<f64>
-    for CreateX402SignatureBodyPaymentRequirementsX402Version {
+    impl ::std::convert::TryFrom<f64> for CreateX402SignatureBodyPaymentRequirementsX402Version {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: f64,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: f64) -> ::std::result::Result<Self, self::error::ConversionError> {
             if ![1.0_f64].contains(&value) {
                 Err("invalid value".into())
             } else {
@@ -6910,14 +6748,13 @@ Each index within this list corresponds to the same-numbered index in the mentio
             }
         }
     }
-    impl<'de> ::serde::Deserialize<'de>
-    for CreateX402SignatureBodyPaymentRequirementsX402Version {
+    impl<'de> ::serde::Deserialize<'de> for CreateX402SignatureBodyPaymentRequirementsX402Version {
         fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
         where
             D: ::serde::Deserializer<'de>,
         {
             Self::try_from(<f64>::deserialize(deserializer)?)
-                .map_err(|e| { <D::Error as ::serde::de::Error>::custom(e.to_string()) })
+                .map_err(|e| <D::Error as ::serde::de::Error>::custom(e.to_string()))
         }
     }
     ///`CreateX402SignatureResponse`
@@ -7034,7 +6871,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum CreateX402SignatureResponseNetwork {
         #[serde(rename = "base")]
@@ -7052,9 +6889,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
     }
     impl ::std::str::FromStr for CreateX402SignatureResponseNetwork {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "base" => Ok(Self::Base),
                 "base-sepolia" => Ok(Self::BaseSepolia),
@@ -7064,14 +6899,11 @@ Each index within this list corresponds to the same-numbered index in the mentio
     }
     impl ::std::convert::TryFrom<&str> for CreateX402SignatureResponseNetwork {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for CreateX402SignatureResponseNetwork {
+    impl ::std::convert::TryFrom<&::std::string::String> for CreateX402SignatureResponseNetwork {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -7079,8 +6911,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for CreateX402SignatureResponseNetwork {
+    impl ::std::convert::TryFrom<::std::string::String> for CreateX402SignatureResponseNetwork {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -7208,9 +7039,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
     /// </details>
     #[derive(::serde::Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
     #[serde(transparent)]
-    pub struct CreateX402SignatureResponsePayloadAuthorizationNonce(
-        ::std::string::String,
-    );
+    pub struct CreateX402SignatureResponsePayloadAuthorizationNonce(::std::string::String);
     impl ::std::ops::Deref for CreateX402SignatureResponsePayloadAuthorizationNonce {
         type Target = ::std::string::String;
         fn deref(&self) -> &::std::string::String {
@@ -7218,35 +7047,34 @@ Each index within this list corresponds to the same-numbered index in the mentio
         }
     }
     impl ::std::convert::From<CreateX402SignatureResponsePayloadAuthorizationNonce>
-    for ::std::string::String {
+        for ::std::string::String
+    {
         fn from(value: CreateX402SignatureResponsePayloadAuthorizationNonce) -> Self {
             value.0
         }
     }
     impl ::std::str::FromStr for CreateX402SignatureResponsePayloadAuthorizationNonce {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
-            static PATTERN: ::std::sync::LazyLock<::regress::Regex> = ::std::sync::LazyLock::new(||
-            { ::regress::Regex::new("^0x[a-fA-F0-9]{64}$").unwrap() });
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+            static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+                ::std::sync::LazyLock::new(|| {
+                    ::regress::Regex::new("^0x[a-fA-F0-9]{64}$").unwrap()
+                });
             if PATTERN.find(value).is_none() {
                 return Err("doesn't match pattern \"^0x[a-fA-F0-9]{64}$\"".into());
             }
             Ok(Self(value.to_string()))
         }
     }
-    impl ::std::convert::TryFrom<&str>
-    for CreateX402SignatureResponsePayloadAuthorizationNonce {
+    impl ::std::convert::TryFrom<&str> for CreateX402SignatureResponsePayloadAuthorizationNonce {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
     impl ::std::convert::TryFrom<&::std::string::String>
-    for CreateX402SignatureResponsePayloadAuthorizationNonce {
+        for CreateX402SignatureResponsePayloadAuthorizationNonce
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -7255,7 +7083,8 @@ Each index within this list corresponds to the same-numbered index in the mentio
         }
     }
     impl ::std::convert::TryFrom<::std::string::String>
-    for CreateX402SignatureResponsePayloadAuthorizationNonce {
+        for CreateX402SignatureResponsePayloadAuthorizationNonce
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -7263,8 +7092,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
             value.parse()
         }
     }
-    impl<'de> ::serde::Deserialize<'de>
-    for CreateX402SignatureResponsePayloadAuthorizationNonce {
+    impl<'de> ::serde::Deserialize<'de> for CreateX402SignatureResponsePayloadAuthorizationNonce {
         fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
         where
             D: ::serde::Deserializer<'de>,
@@ -7296,19 +7124,18 @@ Each index within this list corresponds to the same-numbered index in the mentio
             &self.0
         }
     }
-    impl ::std::convert::From<CreateX402SignatureResponsePayloadSignature>
-    for ::std::string::String {
+    impl ::std::convert::From<CreateX402SignatureResponsePayloadSignature> for ::std::string::String {
         fn from(value: CreateX402SignatureResponsePayloadSignature) -> Self {
             value.0
         }
     }
     impl ::std::str::FromStr for CreateX402SignatureResponsePayloadSignature {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
-            static PATTERN: ::std::sync::LazyLock<::regress::Regex> = ::std::sync::LazyLock::new(||
-            { ::regress::Regex::new("^0x[a-fA-F0-9]{130}$").unwrap() });
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+            static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+                ::std::sync::LazyLock::new(|| {
+                    ::regress::Regex::new("^0x[a-fA-F0-9]{130}$").unwrap()
+                });
             if PATTERN.find(value).is_none() {
                 return Err("doesn't match pattern \"^0x[a-fA-F0-9]{130}$\"".into());
             }
@@ -7317,14 +7144,13 @@ Each index within this list corresponds to the same-numbered index in the mentio
     }
     impl ::std::convert::TryFrom<&str> for CreateX402SignatureResponsePayloadSignature {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
     impl ::std::convert::TryFrom<&::std::string::String>
-    for CreateX402SignatureResponsePayloadSignature {
+        for CreateX402SignatureResponsePayloadSignature
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -7333,7 +7159,8 @@ Each index within this list corresponds to the same-numbered index in the mentio
         }
     }
     impl ::std::convert::TryFrom<::std::string::String>
-    for CreateX402SignatureResponsePayloadSignature {
+        for CreateX402SignatureResponsePayloadSignature
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -7376,7 +7203,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum CreateX402SignatureResponseScheme {
         #[serde(rename = "exact")]
@@ -7391,9 +7218,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
     }
     impl ::std::str::FromStr for CreateX402SignatureResponseScheme {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "exact" => Ok(Self::Exact),
                 _ => Err("invalid value".into()),
@@ -7402,14 +7227,11 @@ Each index within this list corresponds to the same-numbered index in the mentio
     }
     impl ::std::convert::TryFrom<&str> for CreateX402SignatureResponseScheme {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for CreateX402SignatureResponseScheme {
+    impl ::std::convert::TryFrom<&::std::string::String> for CreateX402SignatureResponseScheme {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -7417,8 +7239,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for CreateX402SignatureResponseScheme {
+    impl ::std::convert::TryFrom<::std::string::String> for CreateX402SignatureResponseScheme {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -7455,9 +7276,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
     }
     impl ::std::convert::TryFrom<f64> for CreateX402SignatureResponseX402Version {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: f64,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: f64) -> ::std::result::Result<Self, self::error::ConversionError> {
             if ![1.0_f64].contains(&value) {
                 Err("invalid value".into())
             } else {
@@ -7471,7 +7290,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
             D: ::serde::Deserializer<'de>,
         {
             Self::try_from(<f64>::deserialize(deserializer)?)
-                .map_err(|e| { <D::Error as ::serde::de::Error>::custom(e.to_string()) })
+                .map_err(|e| <D::Error as ::serde::de::Error>::custom(e.to_string()))
         }
     }
     ///`DeleteCastReqBody`
@@ -7536,11 +7355,11 @@ Each index within this list corresponds to the same-numbered index in the mentio
     }
     impl ::std::str::FromStr for DeleteCastReqBodyTargetHash {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
-            static PATTERN: ::std::sync::LazyLock<::regress::Regex> = ::std::sync::LazyLock::new(||
-            { ::regress::Regex::new("^(0x)?[a-fA-F0-9]{40}$").unwrap() });
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+            static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+                ::std::sync::LazyLock::new(|| {
+                    ::regress::Regex::new("^(0x)?[a-fA-F0-9]{40}$").unwrap()
+                });
             if PATTERN.find(value).is_none() {
                 return Err("doesn't match pattern \"^(0x)?[a-fA-F0-9]{40}$\"".into());
             }
@@ -7549,14 +7368,11 @@ Each index within this list corresponds to the same-numbered index in the mentio
     }
     impl ::std::convert::TryFrom<&str> for DeleteCastReqBodyTargetHash {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for DeleteCastReqBodyTargetHash {
+    impl ::std::convert::TryFrom<&::std::string::String> for DeleteCastReqBodyTargetHash {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -8028,8 +7844,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
             &self.0
         }
     }
-    impl ::std::convert::From<DeployErc721BodyMintConfigPricePerToken>
-    for ::std::string::String {
+    impl ::std::convert::From<DeployErc721BodyMintConfigPricePerToken> for ::std::string::String {
         fn from(value: DeployErc721BodyMintConfigPricePerToken) -> Self {
             value.0
         }
@@ -8041,11 +7856,9 @@ Each index within this list corresponds to the same-numbered index in the mentio
     }
     impl ::std::str::FromStr for DeployErc721BodyMintConfigPricePerToken {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
-            static PATTERN: ::std::sync::LazyLock<::regress::Regex> = ::std::sync::LazyLock::new(||
-            { ::regress::Regex::new("^\\d{1,57}$").unwrap() });
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+            static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+                ::std::sync::LazyLock::new(|| ::regress::Regex::new("^\\d{1,57}$").unwrap());
             if PATTERN.find(value).is_none() {
                 return Err("doesn't match pattern \"^\\d{1,57}$\"".into());
             }
@@ -8054,14 +7867,11 @@ Each index within this list corresponds to the same-numbered index in the mentio
     }
     impl ::std::convert::TryFrom<&str> for DeployErc721BodyMintConfigPricePerToken {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for DeployErc721BodyMintConfigPricePerToken {
+    impl ::std::convert::TryFrom<&::std::string::String> for DeployErc721BodyMintConfigPricePerToken {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -8069,8 +7879,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for DeployErc721BodyMintConfigPricePerToken {
+    impl ::std::convert::TryFrom<::std::string::String> for DeployErc721BodyMintConfigPricePerToken {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -8118,9 +7927,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
     }
     impl ::std::str::FromStr for DeployErc721BodyName {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             if value.chars().count() > 255usize {
                 return Err("longer than 255 characters".into());
             }
@@ -8132,9 +7939,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
     }
     impl ::std::convert::TryFrom<&str> for DeployErc721BodyName {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -8191,7 +7996,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum DeployErc721BodyNetwork {
         #[serde(rename = "base")]
@@ -8212,9 +8017,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
     }
     impl ::std::str::FromStr for DeployErc721BodyNetwork {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "base" => Ok(Self::Base),
                 "optimism" => Ok(Self::Optimism),
@@ -8225,9 +8028,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
     }
     impl ::std::convert::TryFrom<&str> for DeployErc721BodyNetwork {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -8271,19 +8072,18 @@ Each index within this list corresponds to the same-numbered index in the mentio
             &self.0
         }
     }
-    impl ::std::convert::From<DeployErc721BodyRoyaltyRecipient>
-    for ::std::string::String {
+    impl ::std::convert::From<DeployErc721BodyRoyaltyRecipient> for ::std::string::String {
         fn from(value: DeployErc721BodyRoyaltyRecipient) -> Self {
             value.0
         }
     }
     impl ::std::str::FromStr for DeployErc721BodyRoyaltyRecipient {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
-            static PATTERN: ::std::sync::LazyLock<::regress::Regex> = ::std::sync::LazyLock::new(||
-            { ::regress::Regex::new("^0x[a-fA-F0-9]{40}$").unwrap() });
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+            static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+                ::std::sync::LazyLock::new(|| {
+                    ::regress::Regex::new("^0x[a-fA-F0-9]{40}$").unwrap()
+                });
             if PATTERN.find(value).is_none() {
                 return Err("doesn't match pattern \"^0x[a-fA-F0-9]{40}$\"".into());
             }
@@ -8292,14 +8092,11 @@ Each index within this list corresponds to the same-numbered index in the mentio
     }
     impl ::std::convert::TryFrom<&str> for DeployErc721BodyRoyaltyRecipient {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for DeployErc721BodyRoyaltyRecipient {
+    impl ::std::convert::TryFrom<&::std::string::String> for DeployErc721BodyRoyaltyRecipient {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -8307,8 +8104,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for DeployErc721BodyRoyaltyRecipient {
+    impl ::std::convert::TryFrom<::std::string::String> for DeployErc721BodyRoyaltyRecipient {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -8356,9 +8152,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
     }
     impl ::std::str::FromStr for DeployErc721BodySymbol {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             if value.chars().count() > 32usize {
                 return Err("longer than 32 characters".into());
             }
@@ -8370,9 +8164,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
     }
     impl ::std::convert::TryFrom<&str> for DeployErc721BodySymbol {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -8553,7 +8345,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum DeployErc721ResponseCollectionNetwork {
         #[serde(rename = "base")]
@@ -8574,9 +8366,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
     }
     impl ::std::str::FromStr for DeployErc721ResponseCollectionNetwork {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "base" => Ok(Self::Base),
                 "optimism" => Ok(Self::Optimism),
@@ -8587,14 +8377,11 @@ Each index within this list corresponds to the same-numbered index in the mentio
     }
     impl ::std::convert::TryFrom<&str> for DeployErc721ResponseCollectionNetwork {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for DeployErc721ResponseCollectionNetwork {
+    impl ::std::convert::TryFrom<&::std::string::String> for DeployErc721ResponseCollectionNetwork {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -8602,8 +8389,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for DeployErc721ResponseCollectionNetwork {
+    impl ::std::convert::TryFrom<::std::string::String> for DeployErc721ResponseCollectionNetwork {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -8631,36 +8417,33 @@ Each index within this list corresponds to the same-numbered index in the mentio
             &self.0
         }
     }
-    impl ::std::convert::From<DeployErc721ResponseCollectionTransactionHash>
-    for ::std::string::String {
+    impl ::std::convert::From<DeployErc721ResponseCollectionTransactionHash> for ::std::string::String {
         fn from(value: DeployErc721ResponseCollectionTransactionHash) -> Self {
             value.0
         }
     }
     impl ::std::str::FromStr for DeployErc721ResponseCollectionTransactionHash {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
-            static PATTERN: ::std::sync::LazyLock<::regress::Regex> = ::std::sync::LazyLock::new(||
-            { ::regress::Regex::new("^0x[a-fA-F0-9]{64}$").unwrap() });
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+            static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+                ::std::sync::LazyLock::new(|| {
+                    ::regress::Regex::new("^0x[a-fA-F0-9]{64}$").unwrap()
+                });
             if PATTERN.find(value).is_none() {
                 return Err("doesn't match pattern \"^0x[a-fA-F0-9]{64}$\"".into());
             }
             Ok(Self(value.to_string()))
         }
     }
-    impl ::std::convert::TryFrom<&str>
-    for DeployErc721ResponseCollectionTransactionHash {
+    impl ::std::convert::TryFrom<&str> for DeployErc721ResponseCollectionTransactionHash {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
     impl ::std::convert::TryFrom<&::std::string::String>
-    for DeployErc721ResponseCollectionTransactionHash {
+        for DeployErc721ResponseCollectionTransactionHash
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -8669,7 +8452,8 @@ Each index within this list corresponds to the same-numbered index in the mentio
         }
     }
     impl ::std::convert::TryFrom<::std::string::String>
-    for DeployErc721ResponseCollectionTransactionHash {
+        for DeployErc721ResponseCollectionTransactionHash
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -8677,8 +8461,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
             value.parse()
         }
     }
-    impl<'de> ::serde::Deserialize<'de>
-    for DeployErc721ResponseCollectionTransactionHash {
+    impl<'de> ::serde::Deserialize<'de> for DeployErc721ResponseCollectionTransactionHash {
         fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
         where
             D: ::serde::Deserializer<'de>,
@@ -8713,7 +8496,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum DeployErc721ResponseCollectionType {
         #[serde(rename = "ERC721")]
@@ -8728,9 +8511,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
     }
     impl ::std::str::FromStr for DeployErc721ResponseCollectionType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "ERC721" => Ok(Self::Erc721),
                 _ => Err("invalid value".into()),
@@ -8739,14 +8520,11 @@ Each index within this list corresponds to the same-numbered index in the mentio
     }
     impl ::std::convert::TryFrom<&str> for DeployErc721ResponseCollectionType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for DeployErc721ResponseCollectionType {
+    impl ::std::convert::TryFrom<&::std::string::String> for DeployErc721ResponseCollectionType {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -8754,8 +8532,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for DeployErc721ResponseCollectionType {
+    impl ::std::convert::TryFrom<::std::string::String> for DeployErc721ResponseCollectionType {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -8786,7 +8563,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum DeployErc721ResponseObject {
         #[serde(rename = "nft_collection")]
@@ -8801,9 +8578,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
     }
     impl ::std::str::FromStr for DeployErc721ResponseObject {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "nft_collection" => Ok(Self::NftCollection),
                 _ => Err("invalid value".into()),
@@ -8812,9 +8587,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
     }
     impl ::std::convert::TryFrom<&str> for DeployErc721ResponseObject {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -8920,8 +8693,8 @@ Each index within this list corresponds to the same-numbered index in the mentio
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct DeployFungibleReqBody {
         /**Factory name
-- wow -> [wow.xyz](https://wow.xyz)
-- clanker -> [clanker.world](https://www.clanker.world)*/
+        - wow -> [wow.xyz](https://wow.xyz)
+        - clanker -> [clanker.world](https://www.clanker.world)*/
         #[serde(default = "defaults::deploy_fungible_req_body_factory")]
         pub factory: DeployFungibleReqBodyFactory,
         ///Description of the token
@@ -8939,7 +8712,7 @@ Each index within this list corresponds to the same-numbered index in the mentio
         )]
         pub metadata_discord: ::std::option::Option<::std::string::String>,
         /**Media file associated with the token.
-Supported formats are image/jpeg, image/gif and image/png*/
+        Supported formats are image/jpeg, image/gif and image/png*/
         #[serde(
             rename = "metadata[media]",
             default,
@@ -8985,8 +8758,8 @@ Supported formats are image/jpeg, image/gif and image/png*/
         pub symbol: ::std::string::String,
     }
     /**Factory name
-- wow -> [wow.xyz](https://wow.xyz)
-- clanker -> [clanker.world](https://www.clanker.world)*/
+    - wow -> [wow.xyz](https://wow.xyz)
+    - clanker -> [clanker.world](https://www.clanker.world)*/
     ///
     /// <details><summary>JSON schema</summary>
     ///
@@ -9012,7 +8785,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum DeployFungibleReqBodyFactory {
         #[serde(rename = "wow")]
@@ -9030,9 +8803,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for DeployFungibleReqBodyFactory {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "wow" => Ok(Self::Wow),
                 "clanker" => Ok(Self::Clanker),
@@ -9042,14 +8813,11 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for DeployFungibleReqBodyFactory {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for DeployFungibleReqBodyFactory {
+    impl ::std::convert::TryFrom<&::std::string::String> for DeployFungibleReqBodyFactory {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -9057,8 +8825,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for DeployFungibleReqBodyFactory {
+    impl ::std::convert::TryFrom<::std::string::String> for DeployFungibleReqBodyFactory {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -9096,7 +8863,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum DeployFungibleReqBodyMetadataNsfw {
         #[serde(rename = "true")]
@@ -9114,9 +8881,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for DeployFungibleReqBodyMetadataNsfw {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "true" => Ok(Self::True),
                 "false" => Ok(Self::False),
@@ -9126,14 +8891,11 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for DeployFungibleReqBodyMetadataNsfw {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for DeployFungibleReqBodyMetadataNsfw {
+    impl ::std::convert::TryFrom<&::std::string::String> for DeployFungibleReqBodyMetadataNsfw {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -9141,8 +8903,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for DeployFungibleReqBodyMetadataNsfw {
+    impl ::std::convert::TryFrom<::std::string::String> for DeployFungibleReqBodyMetadataNsfw {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -9175,7 +8936,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum DeployFungibleReqBodyNetwork {
         #[serde(rename = "base")]
@@ -9190,9 +8951,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for DeployFungibleReqBodyNetwork {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "base" => Ok(Self::Base),
                 _ => Err("invalid value".into()),
@@ -9201,14 +8960,11 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for DeployFungibleReqBodyNetwork {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for DeployFungibleReqBodyNetwork {
+    impl ::std::convert::TryFrom<&::std::string::String> for DeployFungibleReqBodyNetwork {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -9216,8 +8972,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for DeployFungibleReqBodyNetwork {
+    impl ::std::convert::TryFrom<::std::string::String> for DeployFungibleReqBodyNetwork {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -9467,10 +9222,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
             default,
             skip_serializing_if = ":: std :: collections :: HashMap::is_empty"
         )]
-        pub env: ::std::collections::HashMap<
-            ::std::string::String,
-            ::std::string::String,
-        >,
+        pub env: ::std::collections::HashMap<::std::string::String, ::std::string::String>,
         ///Farcaster ID of the user; if not provided, namespace must be provided
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub fid: ::std::option::Option<i32>,
@@ -9605,7 +9357,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum DeveloperManagedSignerStatus {
         #[serde(rename = "pending_approval")]
@@ -9626,9 +9378,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for DeveloperManagedSignerStatus {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "pending_approval" => Ok(Self::PendingApproval),
                 "approved" => Ok(Self::Approved),
@@ -9639,14 +9389,11 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for DeveloperManagedSignerStatus {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for DeveloperManagedSignerStatus {
+    impl ::std::convert::TryFrom<&::std::string::String> for DeveloperManagedSignerStatus {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -9654,8 +9401,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for DeveloperManagedSignerStatus {
+    impl ::std::convert::TryFrom<::std::string::String> for DeveloperManagedSignerStatus {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -9695,11 +9441,11 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for Ed25519PublicKey {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
-            static PATTERN: ::std::sync::LazyLock<::regress::Regex> = ::std::sync::LazyLock::new(||
-            { ::regress::Regex::new("^0x[a-fA-F0-9]{64}$").unwrap() });
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+            static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+                ::std::sync::LazyLock::new(|| {
+                    ::regress::Regex::new("^0x[a-fA-F0-9]{64}$").unwrap()
+                });
             if PATTERN.find(value).is_none() {
                 return Err("doesn't match pattern \"^0x[a-fA-F0-9]{64}$\"".into());
             }
@@ -9708,9 +9454,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for Ed25519PublicKey {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -9908,7 +9652,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum EmbedType {
         #[serde(rename = "text")]
@@ -9974,9 +9718,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for EmbedType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "text" => Ok(Self::Text),
                 "image" => Ok(Self::Image),
@@ -10002,9 +9744,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for EmbedType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -10189,11 +9929,11 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for EthAddress {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
-            static PATTERN: ::std::sync::LazyLock<::regress::Regex> = ::std::sync::LazyLock::new(||
-            { ::regress::Regex::new("^0x[a-fA-F0-9]{40}$").unwrap() });
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+            static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+                ::std::sync::LazyLock::new(|| {
+                    ::regress::Regex::new("^0x[a-fA-F0-9]{40}$").unwrap()
+                });
             if PATTERN.find(value).is_none() {
                 return Err("doesn't match pattern \"^0x[a-fA-F0-9]{40}$\"".into());
             }
@@ -10202,9 +9942,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for EthAddress {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -10311,9 +10049,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for ExecuteSqlBodySql {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             if value.chars().count() > 10000usize {
                 return Err("longer than 10000 characters".into());
             }
@@ -10325,9 +10061,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for ExecuteSqlBodySql {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -10425,9 +10159,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         #[serde(rename = "rowCount")]
         pub row_count: f64,
         ///Query result rows
-        pub rows: ::std::vec::Vec<
-            ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-        >,
+        pub rows: ::std::vec::Vec<::serde_json::Map<::std::string::String, ::serde_json::Value>>,
     }
     ///`ExecuteSqlResponseColumnsItem`
     ///
@@ -10618,7 +10350,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum FarcasterFungibleObject {
         #[serde(rename = "farcaster_fungible")]
@@ -10633,9 +10365,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for FarcasterFungibleObject {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "farcaster_fungible" => Ok(Self::FarcasterFungible),
                 _ => Err("invalid value".into()),
@@ -10644,9 +10374,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for FarcasterFungibleObject {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -11067,7 +10795,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum FarcasterManifestFrameVersion {
         #[serde(rename = "1")]
@@ -11091,9 +10819,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for FarcasterManifestFrameVersion {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "1" => Ok(Self::X1),
                 "0.0.0" => Ok(Self::X000),
@@ -11105,14 +10831,11 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for FarcasterManifestFrameVersion {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for FarcasterManifestFrameVersion {
+    impl ::std::convert::TryFrom<&::std::string::String> for FarcasterManifestFrameVersion {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -11120,8 +10843,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for FarcasterManifestFrameVersion {
+    impl ::std::convert::TryFrom<::std::string::String> for FarcasterManifestFrameVersion {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -11309,7 +11031,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum FarcasterManifestMiniappVersion {
         #[serde(rename = "1")]
@@ -11333,9 +11055,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for FarcasterManifestMiniappVersion {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "1" => Ok(Self::X1),
                 "0.0.0" => Ok(Self::X000),
@@ -11347,14 +11067,11 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for FarcasterManifestMiniappVersion {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for FarcasterManifestMiniappVersion {
+    impl ::std::convert::TryFrom<&::std::string::String> for FarcasterManifestMiniappVersion {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -11362,8 +11079,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for FarcasterManifestMiniappVersion {
+    impl ::std::convert::TryFrom<::std::string::String> for FarcasterManifestMiniappVersion {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -11431,7 +11147,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum FeedType {
         #[serde(rename = "following")]
@@ -11449,9 +11165,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for FeedType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "following" => Ok(Self::Following),
                 "filter" => Ok(Self::Filter),
@@ -11461,9 +11175,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for FeedType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -11516,7 +11228,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum FetchAllNotificationsTypeItem {
         #[serde(rename = "follows")]
@@ -11546,9 +11258,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for FetchAllNotificationsTypeItem {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "follows" => Ok(Self::Follows),
                 "recasts" => Ok(Self::Recasts),
@@ -11562,14 +11272,11 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for FetchAllNotificationsTypeItem {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for FetchAllNotificationsTypeItem {
+    impl ::std::convert::TryFrom<&::std::string::String> for FetchAllNotificationsTypeItem {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -11577,8 +11284,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for FetchAllNotificationsTypeItem {
+    impl ::std::convert::TryFrom<::std::string::String> for FetchAllNotificationsTypeItem {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -11613,7 +11319,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum FetchBulkCastsSortType {
         #[serde(rename = "trending")]
@@ -11640,9 +11346,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for FetchBulkCastsSortType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "trending" => Ok(Self::Trending),
                 "likes" => Ok(Self::Likes),
@@ -11655,9 +11359,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for FetchBulkCastsSortType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -11704,7 +11406,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum FetchBulkRelevantFungibleOwnersNetwork {
         #[serde(rename = "ethereum")]
@@ -11731,9 +11433,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for FetchBulkRelevantFungibleOwnersNetwork {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "ethereum" => Ok(Self::Ethereum),
                 "optimism" => Ok(Self::Optimism),
@@ -11746,14 +11446,11 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for FetchBulkRelevantFungibleOwnersNetwork {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for FetchBulkRelevantFungibleOwnersNetwork {
+    impl ::std::convert::TryFrom<&::std::string::String> for FetchBulkRelevantFungibleOwnersNetwork {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -11761,8 +11458,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for FetchBulkRelevantFungibleOwnersNetwork {
+    impl ::std::convert::TryFrom<::std::string::String> for FetchBulkRelevantFungibleOwnersNetwork {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -11797,7 +11493,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum FetchCastMetricsInterval {
         #[serde(rename = "1d")]
@@ -11824,9 +11520,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for FetchCastMetricsInterval {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "1d" => Ok(Self::X1d),
                 "7d" => Ok(Self::X7d),
@@ -11839,9 +11533,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for FetchCastMetricsInterval {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -11918,7 +11610,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum FetchCastQuotesType {
         #[serde(rename = "url")]
@@ -11936,9 +11628,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for FetchCastQuotesType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "url" => Ok(Self::Url),
                 "hash" => Ok(Self::Hash),
@@ -11948,9 +11638,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for FetchCastQuotesType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -12000,11 +11688,11 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for FetchCastReactionsHash {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
-            static PATTERN: ::std::sync::LazyLock<::regress::Regex> = ::std::sync::LazyLock::new(||
-            { ::regress::Regex::new("^(0x)?[a-fA-F0-9]{40}$").unwrap() });
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+            static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+                ::std::sync::LazyLock::new(|| {
+                    ::regress::Regex::new("^(0x)?[a-fA-F0-9]{40}$").unwrap()
+                });
             if PATTERN.find(value).is_none() {
                 return Err("doesn't match pattern \"^(0x)?[a-fA-F0-9]{40}$\"".into());
             }
@@ -12013,9 +11701,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for FetchCastReactionsHash {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -12071,7 +11757,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum FetchFeedForYouProvider {
         #[serde(rename = "neynar")]
@@ -12086,9 +11772,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for FetchFeedForYouProvider {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "neynar" => Ok(Self::Neynar),
                 _ => Err("invalid value".into()),
@@ -12097,9 +11781,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for FetchFeedForYouProvider {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -12147,7 +11829,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum FetchFungibleTradesNetwork {
         #[serde(rename = "base")]
@@ -12162,9 +11844,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for FetchFungibleTradesNetwork {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "base" => Ok(Self::Base),
                 _ => Err("invalid value".into()),
@@ -12173,9 +11853,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for FetchFungibleTradesNetwork {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -12344,7 +12022,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum FetchFungibleTradesResponseObject {
         #[serde(rename = "fungible_trades")]
@@ -12359,9 +12037,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for FetchFungibleTradesResponseObject {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "fungible_trades" => Ok(Self::FungibleTrades),
                 _ => Err("invalid value".into()),
@@ -12370,14 +12046,11 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for FetchFungibleTradesResponseObject {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for FetchFungibleTradesResponseObject {
+    impl ::std::convert::TryFrom<&::std::string::String> for FetchFungibleTradesResponseObject {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -12385,8 +12058,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for FetchFungibleTradesResponseObject {
+    impl ::std::convert::TryFrom<::std::string::String> for FetchFungibleTradesResponseObject {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -12528,7 +12200,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum FetchFungibleTradesResponseTradesItemObject {
         #[serde(rename = "trade")]
@@ -12543,9 +12215,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for FetchFungibleTradesResponseTradesItemObject {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "trade" => Ok(Self::Trade),
                 _ => Err("invalid value".into()),
@@ -12554,14 +12224,13 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for FetchFungibleTradesResponseTradesItemObject {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
     impl ::std::convert::TryFrom<&::std::string::String>
-    for FetchFungibleTradesResponseTradesItemObject {
+        for FetchFungibleTradesResponseTradesItemObject
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -12570,7 +12239,8 @@ Supported formats are image/jpeg, image/gif and image/png*/
         }
     }
     impl ::std::convert::TryFrom<::std::string::String>
-    for FetchFungibleTradesResponseTradesItemObject {
+        for FetchFungibleTradesResponseTradesItemObject
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -12641,7 +12311,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum FetchFungibleTradesResponseTradesItemPoolObject {
         #[serde(rename = "pool")]
@@ -12656,26 +12326,22 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for FetchFungibleTradesResponseTradesItemPoolObject {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "pool" => Ok(Self::Pool),
                 _ => Err("invalid value".into()),
             }
         }
     }
-    impl ::std::convert::TryFrom<&str>
-    for FetchFungibleTradesResponseTradesItemPoolObject {
+    impl ::std::convert::TryFrom<&str> for FetchFungibleTradesResponseTradesItemPoolObject {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
     impl ::std::convert::TryFrom<&::std::string::String>
-    for FetchFungibleTradesResponseTradesItemPoolObject {
+        for FetchFungibleTradesResponseTradesItemPoolObject
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -12684,7 +12350,8 @@ Supported formats are image/jpeg, image/gif and image/png*/
         }
     }
     impl ::std::convert::TryFrom<::std::string::String>
-    for FetchFungibleTradesResponseTradesItemPoolObject {
+        for FetchFungibleTradesResponseTradesItemPoolObject
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -12816,26 +12483,22 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum FetchFungibleTradesResponseTradesItemTransactionNetTransferObject {
         #[serde(rename = "net_transfer")]
         NetTransfer,
     }
-    impl ::std::fmt::Display
-    for FetchFungibleTradesResponseTradesItemTransactionNetTransferObject {
+    impl ::std::fmt::Display for FetchFungibleTradesResponseTradesItemTransactionNetTransferObject {
         fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
             match *self {
                 Self::NetTransfer => f.write_str("net_transfer"),
             }
         }
     }
-    impl ::std::str::FromStr
-    for FetchFungibleTradesResponseTradesItemTransactionNetTransferObject {
+    impl ::std::str::FromStr for FetchFungibleTradesResponseTradesItemTransactionNetTransferObject {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "net_transfer" => Ok(Self::NetTransfer),
                 _ => Err("invalid value".into()),
@@ -12843,16 +12506,16 @@ Supported formats are image/jpeg, image/gif and image/png*/
         }
     }
     impl ::std::convert::TryFrom<&str>
-    for FetchFungibleTradesResponseTradesItemTransactionNetTransferObject {
+        for FetchFungibleTradesResponseTradesItemTransactionNetTransferObject
+    {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
     impl ::std::convert::TryFrom<&::std::string::String>
-    for FetchFungibleTradesResponseTradesItemTransactionNetTransferObject {
+        for FetchFungibleTradesResponseTradesItemTransactionNetTransferObject
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -12861,7 +12524,8 @@ Supported formats are image/jpeg, image/gif and image/png*/
         }
     }
     impl ::std::convert::TryFrom<::std::string::String>
-    for FetchFungibleTradesResponseTradesItemTransactionNetTransferObject {
+        for FetchFungibleTradesResponseTradesItemTransactionNetTransferObject
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -12922,26 +12586,22 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum FetchFungibleTradesResponseTradesItemTransactionNetworkObject {
         #[serde(rename = "network")]
         Network,
     }
-    impl ::std::fmt::Display
-    for FetchFungibleTradesResponseTradesItemTransactionNetworkObject {
+    impl ::std::fmt::Display for FetchFungibleTradesResponseTradesItemTransactionNetworkObject {
         fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
             match *self {
                 Self::Network => f.write_str("network"),
             }
         }
     }
-    impl ::std::str::FromStr
-    for FetchFungibleTradesResponseTradesItemTransactionNetworkObject {
+    impl ::std::str::FromStr for FetchFungibleTradesResponseTradesItemTransactionNetworkObject {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "network" => Ok(Self::Network),
                 _ => Err("invalid value".into()),
@@ -12949,16 +12609,16 @@ Supported formats are image/jpeg, image/gif and image/png*/
         }
     }
     impl ::std::convert::TryFrom<&str>
-    for FetchFungibleTradesResponseTradesItemTransactionNetworkObject {
+        for FetchFungibleTradesResponseTradesItemTransactionNetworkObject
+    {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
     impl ::std::convert::TryFrom<&::std::string::String>
-    for FetchFungibleTradesResponseTradesItemTransactionNetworkObject {
+        for FetchFungibleTradesResponseTradesItemTransactionNetworkObject
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -12967,7 +12627,8 @@ Supported formats are image/jpeg, image/gif and image/png*/
         }
     }
     impl ::std::convert::TryFrom<::std::string::String>
-    for FetchFungibleTradesResponseTradesItemTransactionNetworkObject {
+        for FetchFungibleTradesResponseTradesItemTransactionNetworkObject
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -13003,7 +12664,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum FetchFungibleTradesTimeWindow {
         #[serde(rename = "1h")]
@@ -13030,9 +12691,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for FetchFungibleTradesTimeWindow {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "1h" => Ok(Self::X1h),
                 "6h" => Ok(Self::X6h),
@@ -13045,14 +12704,11 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for FetchFungibleTradesTimeWindow {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for FetchFungibleTradesTimeWindow {
+    impl ::std::convert::TryFrom<&::std::string::String> for FetchFungibleTradesTimeWindow {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -13060,8 +12716,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for FetchFungibleTradesTimeWindow {
+    impl ::std::convert::TryFrom<::std::string::String> for FetchFungibleTradesTimeWindow {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -13162,9 +12817,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     /// </details>
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct FetchRelevantFramesResponse {
-        pub relevant_frames: ::std::vec::Vec<
-            FetchRelevantFramesResponseRelevantFramesItem,
-        >,
+        pub relevant_frames: ::std::vec::Vec<FetchRelevantFramesResponseRelevantFramesItem>,
     }
     ///`FetchRelevantFramesResponseRelevantFramesItem`
     ///
@@ -13311,9 +12964,8 @@ Supported formats are image/jpeg, image/gif and image/png*/
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub manifest: ::std::option::Option<FarcasterManifest>,
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub metadata: ::std::option::Option<
-            FetchRelevantFramesResponseRelevantFramesItemFrameMetadata,
-        >,
+        pub metadata:
+            ::std::option::Option<FetchRelevantFramesResponseRelevantFramesItemFrameMetadata>,
         ///Button title of a mini app
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub title: ::std::option::Option<::std::string::String>,
@@ -13373,7 +13025,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum FetchRelevantFramesTimeWindow {
         #[serde(rename = "1h")]
@@ -13400,9 +13052,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for FetchRelevantFramesTimeWindow {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "1h" => Ok(Self::X1h),
                 "6h" => Ok(Self::X6h),
@@ -13415,14 +13065,11 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for FetchRelevantFramesTimeWindow {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for FetchRelevantFramesTimeWindow {
+    impl ::std::convert::TryFrom<&::std::string::String> for FetchRelevantFramesTimeWindow {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -13430,8 +13077,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for FetchRelevantFramesTimeWindow {
+    impl ::std::convert::TryFrom<::std::string::String> for FetchRelevantFramesTimeWindow {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -13473,7 +13119,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum FetchRepliesAndRecastsForUserFilter {
         #[serde(rename = "replies")]
@@ -13494,9 +13140,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for FetchRepliesAndRecastsForUserFilter {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "replies" => Ok(Self::Replies),
                 "recasts" => Ok(Self::Recasts),
@@ -13507,14 +13151,11 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for FetchRepliesAndRecastsForUserFilter {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for FetchRepliesAndRecastsForUserFilter {
+    impl ::std::convert::TryFrom<&::std::string::String> for FetchRepliesAndRecastsForUserFilter {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -13522,8 +13163,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for FetchRepliesAndRecastsForUserFilter {
+    impl ::std::convert::TryFrom<::std::string::String> for FetchRepliesAndRecastsForUserFilter {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -13559,7 +13199,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum FetchSubscribedToForFidSubscriptionProvider {
         #[serde(rename = "fabric_stp")]
@@ -13574,9 +13214,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for FetchSubscribedToForFidSubscriptionProvider {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "fabric_stp" => Ok(Self::FabricStp),
                 _ => Err("invalid value".into()),
@@ -13585,14 +13223,13 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for FetchSubscribedToForFidSubscriptionProvider {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
     impl ::std::convert::TryFrom<&::std::string::String>
-    for FetchSubscribedToForFidSubscriptionProvider {
+        for FetchSubscribedToForFidSubscriptionProvider
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -13601,7 +13238,8 @@ Supported formats are image/jpeg, image/gif and image/png*/
         }
     }
     impl ::std::convert::TryFrom<::std::string::String>
-    for FetchSubscribedToForFidSubscriptionProvider {
+        for FetchSubscribedToForFidSubscriptionProvider
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -13634,7 +13272,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum FetchTrendingChannelsTimeWindow {
         #[serde(rename = "1d")]
@@ -13655,9 +13293,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for FetchTrendingChannelsTimeWindow {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "1d" => Ok(Self::X1d),
                 "7d" => Ok(Self::X7d),
@@ -13668,14 +13304,11 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for FetchTrendingChannelsTimeWindow {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for FetchTrendingChannelsTimeWindow {
+    impl ::std::convert::TryFrom<&::std::string::String> for FetchTrendingChannelsTimeWindow {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -13683,8 +13316,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for FetchTrendingChannelsTimeWindow {
+    impl ::std::convert::TryFrom<::std::string::String> for FetchTrendingChannelsTimeWindow {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -13719,7 +13351,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum FetchTrendingFeedProvider {
         #[serde(rename = "neynar")]
@@ -13734,9 +13366,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for FetchTrendingFeedProvider {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "neynar" => Ok(Self::Neynar),
                 _ => Err("invalid value".into()),
@@ -13745,9 +13375,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for FetchTrendingFeedProvider {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -13803,7 +13431,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum FetchTrendingFeedTimeWindow {
         #[serde(rename = "1h")]
@@ -13830,9 +13458,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for FetchTrendingFeedTimeWindow {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "1h" => Ok(Self::X1h),
                 "6h" => Ok(Self::X6h),
@@ -13845,14 +13471,11 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for FetchTrendingFeedTimeWindow {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for FetchTrendingFeedTimeWindow {
+    impl ::std::convert::TryFrom<&::std::string::String> for FetchTrendingFeedTimeWindow {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -13896,7 +13519,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum FetchTrendingFungiblesNetwork {
         #[serde(rename = "base")]
@@ -13911,9 +13534,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for FetchTrendingFungiblesNetwork {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "base" => Ok(Self::Base),
                 _ => Err("invalid value".into()),
@@ -13922,14 +13543,11 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for FetchTrendingFungiblesNetwork {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for FetchTrendingFungiblesNetwork {
+    impl ::std::convert::TryFrom<&::std::string::String> for FetchTrendingFungiblesNetwork {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -13937,8 +13555,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for FetchTrendingFungiblesNetwork {
+    impl ::std::convert::TryFrom<::std::string::String> for FetchTrendingFungiblesNetwork {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -14225,9 +13842,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         pub network: Network,
         pub object: FetchTrendingFungiblesResponseTrendingItemFungibleObject,
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub price: ::std::option::Option<
-            FetchTrendingFungiblesResponseTrendingItemFungiblePrice,
-        >,
+        pub price: ::std::option::Option<FetchTrendingFungiblesResponseTrendingItemFungiblePrice>,
         ///The token symbol e.g. "ETH"
         pub symbol: ::std::string::String,
         ///The total supply of the token
@@ -14256,43 +13871,37 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum FetchTrendingFungiblesResponseTrendingItemFungibleObject {
         #[serde(rename = "fungible")]
         Fungible,
     }
-    impl ::std::fmt::Display
-    for FetchTrendingFungiblesResponseTrendingItemFungibleObject {
+    impl ::std::fmt::Display for FetchTrendingFungiblesResponseTrendingItemFungibleObject {
         fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
             match *self {
                 Self::Fungible => f.write_str("fungible"),
             }
         }
     }
-    impl ::std::str::FromStr
-    for FetchTrendingFungiblesResponseTrendingItemFungibleObject {
+    impl ::std::str::FromStr for FetchTrendingFungiblesResponseTrendingItemFungibleObject {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "fungible" => Ok(Self::Fungible),
                 _ => Err("invalid value".into()),
             }
         }
     }
-    impl ::std::convert::TryFrom<&str>
-    for FetchTrendingFungiblesResponseTrendingItemFungibleObject {
+    impl ::std::convert::TryFrom<&str> for FetchTrendingFungiblesResponseTrendingItemFungibleObject {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
     impl ::std::convert::TryFrom<&::std::string::String>
-    for FetchTrendingFungiblesResponseTrendingItemFungibleObject {
+        for FetchTrendingFungiblesResponseTrendingItemFungibleObject
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -14301,7 +13910,8 @@ Supported formats are image/jpeg, image/gif and image/png*/
         }
     }
     impl ::std::convert::TryFrom<::std::string::String>
-    for FetchTrendingFungiblesResponseTrendingItemFungibleObject {
+        for FetchTrendingFungiblesResponseTrendingItemFungibleObject
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -14354,7 +13964,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum FetchTrendingFungiblesResponseTrendingItemObject {
         #[serde(rename = "trending_fungible")]
@@ -14369,26 +13979,22 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for FetchTrendingFungiblesResponseTrendingItemObject {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "trending_fungible" => Ok(Self::TrendingFungible),
                 _ => Err("invalid value".into()),
             }
         }
     }
-    impl ::std::convert::TryFrom<&str>
-    for FetchTrendingFungiblesResponseTrendingItemObject {
+    impl ::std::convert::TryFrom<&str> for FetchTrendingFungiblesResponseTrendingItemObject {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
     impl ::std::convert::TryFrom<&::std::string::String>
-    for FetchTrendingFungiblesResponseTrendingItemObject {
+        for FetchTrendingFungiblesResponseTrendingItemObject
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -14397,7 +14003,8 @@ Supported formats are image/jpeg, image/gif and image/png*/
         }
     }
     impl ::std::convert::TryFrom<::std::string::String>
-    for FetchTrendingFungiblesResponseTrendingItemObject {
+        for FetchTrendingFungiblesResponseTrendingItemObject
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -14433,7 +14040,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum FetchTrendingFungiblesTimeWindow {
         #[serde(rename = "1h")]
@@ -14460,9 +14067,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for FetchTrendingFungiblesTimeWindow {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "1h" => Ok(Self::X1h),
                 "6h" => Ok(Self::X6h),
@@ -14475,14 +14080,11 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for FetchTrendingFungiblesTimeWindow {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for FetchTrendingFungiblesTimeWindow {
+    impl ::std::convert::TryFrom<&::std::string::String> for FetchTrendingFungiblesTimeWindow {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -14490,8 +14092,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for FetchTrendingFungiblesTimeWindow {
+    impl ::std::convert::TryFrom<::std::string::String> for FetchTrendingFungiblesTimeWindow {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -14531,7 +14132,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum FetchUserFollowersSortType {
         #[serde(rename = "desc_chron")]
@@ -14549,9 +14150,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for FetchUserFollowersSortType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "desc_chron" => Ok(Self::DescChron),
                 "algorithmic" => Ok(Self::Algorithmic),
@@ -14561,9 +14160,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for FetchUserFollowersSortType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -14610,7 +14207,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum FetchUserFollowingSortType {
         #[serde(rename = "desc_chron")]
@@ -14628,9 +14225,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for FetchUserFollowingSortType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "desc_chron" => Ok(Self::DescChron),
                 "algorithmic" => Ok(Self::Algorithmic),
@@ -14640,9 +14235,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for FetchUserFollowingSortType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -14715,7 +14308,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum FetchUserInteractionsTypeItem {
         #[serde(rename = "follows")]
@@ -14745,9 +14338,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for FetchUserInteractionsTypeItem {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "follows" => Ok(Self::Follows),
                 "recasts" => Ok(Self::Recasts),
@@ -14761,14 +14352,11 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for FetchUserInteractionsTypeItem {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for FetchUserInteractionsTypeItem {
+    impl ::std::convert::TryFrom<&::std::string::String> for FetchUserInteractionsTypeItem {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -14776,8 +14364,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for FetchUserInteractionsTypeItem {
+    impl ::std::convert::TryFrom<::std::string::String> for FetchUserInteractionsTypeItem {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -14810,7 +14397,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum FetchUserReactionsType {
         #[serde(rename = "all")]
@@ -14831,9 +14418,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for FetchUserReactionsType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "all" => Ok(Self::All),
                 "likes" => Ok(Self::Likes),
@@ -14844,9 +14429,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for FetchUserReactionsType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -14921,7 +14504,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum FetchUserReciprocalFollowersSortType {
         #[serde(rename = "desc_chron")]
@@ -14939,9 +14522,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for FetchUserReciprocalFollowersSortType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "desc_chron" => Ok(Self::DescChron),
                 "algorithmic" => Ok(Self::Algorithmic),
@@ -14951,14 +14532,11 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for FetchUserReciprocalFollowersSortType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for FetchUserReciprocalFollowersSortType {
+    impl ::std::convert::TryFrom<&::std::string::String> for FetchUserReciprocalFollowersSortType {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -14966,8 +14544,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for FetchUserReciprocalFollowersSortType {
+    impl ::std::convert::TryFrom<::std::string::String> for FetchUserReciprocalFollowersSortType {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -15096,7 +14673,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum FilterType {
         #[serde(rename = "fids")]
@@ -15126,9 +14703,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for FilterType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "fids" => Ok(Self::Fids),
                 "parent_url" => Ok(Self::ParentUrl),
@@ -15142,9 +14717,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for FilterType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -15349,7 +14922,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum FollowerDehydratedObject {
         #[serde(rename = "follower_dehydrated")]
@@ -15364,9 +14937,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for FollowerDehydratedObject {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "follower_dehydrated" => Ok(Self::FollowerDehydrated),
                 _ => Err("invalid value".into()),
@@ -15375,9 +14946,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for FollowerDehydratedObject {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -15420,7 +14989,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum FollowerObject {
         #[serde(rename = "follower")]
@@ -15435,9 +15004,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for FollowerObject {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "follower" => Ok(Self::Follower),
                 _ => Err("invalid value".into()),
@@ -15446,9 +15013,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for FollowerObject {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -15620,7 +15185,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum FrameButtonActionType {
         #[serde(rename = "post")]
@@ -15647,9 +15212,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for FrameButtonActionType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "post" => Ok(Self::Post),
                 "post_redirect" => Ok(Self::PostRedirect),
@@ -15662,9 +15225,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for FrameButtonActionType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -15751,7 +15312,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum FrameCategory {
         #[serde(rename = "games")]
@@ -15802,9 +15363,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for FrameCategory {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "games" => Ok(Self::Games),
                 "social" => Ok(Self::Social),
@@ -15825,9 +15384,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for FrameCategory {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -15909,9 +15466,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct FrameNotificationTokens {
         pub next: NextCursor,
-        pub notification_tokens: ::std::vec::Vec<
-            FrameNotificationTokensNotificationTokensItem,
-        >,
+        pub notification_tokens: ::std::vec::Vec<FrameNotificationTokensNotificationTokensItem>,
     }
     ///`FrameNotificationTokensNotificationTokensItem`
     ///
@@ -15963,13 +15518,9 @@ Supported formats are image/jpeg, image/gif and image/png*/
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub fid: ::std::option::Option<Fid>,
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub object: ::std::option::Option<
-            FrameNotificationTokensNotificationTokensItemObject,
-        >,
+        pub object: ::std::option::Option<FrameNotificationTokensNotificationTokensItemObject>,
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub status: ::std::option::Option<
-            FrameNotificationTokensNotificationTokensItemStatus,
-        >,
+        pub status: ::std::option::Option<FrameNotificationTokensNotificationTokensItemStatus>,
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub token: ::std::option::Option<::std::string::String>,
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
@@ -16013,7 +15564,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum FrameNotificationTokensNotificationTokensItemObject {
         #[serde(rename = "notification_token")]
@@ -16028,26 +15579,22 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for FrameNotificationTokensNotificationTokensItemObject {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "notification_token" => Ok(Self::NotificationToken),
                 _ => Err("invalid value".into()),
             }
         }
     }
-    impl ::std::convert::TryFrom<&str>
-    for FrameNotificationTokensNotificationTokensItemObject {
+    impl ::std::convert::TryFrom<&str> for FrameNotificationTokensNotificationTokensItemObject {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
     impl ::std::convert::TryFrom<&::std::string::String>
-    for FrameNotificationTokensNotificationTokensItemObject {
+        for FrameNotificationTokensNotificationTokensItemObject
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -16056,7 +15603,8 @@ Supported formats are image/jpeg, image/gif and image/png*/
         }
     }
     impl ::std::convert::TryFrom<::std::string::String>
-    for FrameNotificationTokensNotificationTokensItemObject {
+        for FrameNotificationTokensNotificationTokensItemObject
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -16089,7 +15637,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum FrameNotificationTokensNotificationTokensItemStatus {
         #[serde(rename = "enabled")]
@@ -16110,9 +15658,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for FrameNotificationTokensNotificationTokensItemStatus {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "enabled" => Ok(Self::Enabled),
                 "disabled" => Ok(Self::Disabled),
@@ -16121,17 +15667,15 @@ Supported formats are image/jpeg, image/gif and image/png*/
             }
         }
     }
-    impl ::std::convert::TryFrom<&str>
-    for FrameNotificationTokensNotificationTokensItemStatus {
+    impl ::std::convert::TryFrom<&str> for FrameNotificationTokensNotificationTokensItemStatus {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
     impl ::std::convert::TryFrom<&::std::string::String>
-    for FrameNotificationTokensNotificationTokensItemStatus {
+        for FrameNotificationTokensNotificationTokensItemStatus
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -16140,7 +15684,8 @@ Supported formats are image/jpeg, image/gif and image/png*/
         }
     }
     impl ::std::convert::TryFrom<::std::string::String>
-    for FrameNotificationTokensNotificationTokensItemStatus {
+        for FrameNotificationTokensNotificationTokensItemStatus
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -16322,7 +15867,9 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::default::Default for FrameV1Input {
         fn default() -> Self {
-            Self { text: Default::default() }
+            Self {
+                text: Default::default(),
+            }
         }
     }
     ///`FrameV1State`
@@ -16721,7 +16268,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum FungibleBalanceObject {
         #[serde(rename = "fungible_balance")]
@@ -16736,9 +16283,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for FungibleBalanceObject {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "fungible_balance" => Ok(Self::FungibleBalance),
                 _ => Err("invalid value".into()),
@@ -16747,9 +16292,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for FungibleBalanceObject {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -16792,7 +16335,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum FungibleObject {
         #[serde(rename = "fungible")]
@@ -16807,9 +16350,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for FungibleObject {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "fungible" => Ok(Self::Fungible),
                 _ => Err("invalid value".into()),
@@ -16818,9 +16359,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for FungibleObject {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -16868,7 +16407,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum FungibleOwnerRelevantNetwork {
         #[serde(rename = "ethereum")]
@@ -16895,9 +16434,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for FungibleOwnerRelevantNetwork {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "ethereum" => Ok(Self::Ethereum),
                 "optimism" => Ok(Self::Optimism),
@@ -16910,14 +16447,11 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for FungibleOwnerRelevantNetwork {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for FungibleOwnerRelevantNetwork {
+    impl ::std::convert::TryFrom<&::std::string::String> for FungibleOwnerRelevantNetwork {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -16925,8 +16459,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for FungibleOwnerRelevantNetwork {
+    impl ::std::convert::TryFrom<::std::string::String> for FungibleOwnerRelevantNetwork {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -17066,7 +16599,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum GenerateImageBodyFormat {
         #[serde(rename = "png")]
@@ -17087,9 +16620,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for GenerateImageBodyFormat {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "png" => Ok(Self::Png),
                 "jpeg" => Ok(Self::Jpeg),
@@ -17100,9 +16631,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for GenerateImageBodyFormat {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -17155,9 +16684,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for GenerateImageBodyPrompt {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             if value.chars().count() < 1usize {
                 return Err("shorter than 1 characters".into());
             }
@@ -17166,9 +16693,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for GenerateImageBodyPrompt {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -17442,7 +16967,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum GetConversationMessagesResponseMessagesItemOrigin {
         #[serde(rename = "user")]
@@ -17463,9 +16988,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for GetConversationMessagesResponseMessagesItemOrigin {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "user" => Ok(Self::User),
                 "system" => Ok(Self::System),
@@ -17474,17 +16997,15 @@ Supported formats are image/jpeg, image/gif and image/png*/
             }
         }
     }
-    impl ::std::convert::TryFrom<&str>
-    for GetConversationMessagesResponseMessagesItemOrigin {
+    impl ::std::convert::TryFrom<&str> for GetConversationMessagesResponseMessagesItemOrigin {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
     impl ::std::convert::TryFrom<&::std::string::String>
-    for GetConversationMessagesResponseMessagesItemOrigin {
+        for GetConversationMessagesResponseMessagesItemOrigin
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -17493,7 +17014,8 @@ Supported formats are image/jpeg, image/gif and image/png*/
         }
     }
     impl ::std::convert::TryFrom<::std::string::String>
-    for GetConversationMessagesResponseMessagesItemOrigin {
+        for GetConversationMessagesResponseMessagesItemOrigin
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -17788,9 +17310,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         ///Kubernetes namespace
         pub namespace: ::std::string::String,
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub production_app_status: ::std::option::Option<
-            GetDeploymentResponseProductionAppStatus,
-        >,
+        pub production_app_status: ::std::option::Option<GetDeploymentResponseProductionAppStatus>,
         ///Last update timestamp
         pub updated_at: ::std::option::Option<::chrono::DateTime<::chrono::offset::Utc>>,
         ///Public URL for the deployment
@@ -17824,7 +17344,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum GetDeploymentResponseDevServerState {
         #[serde(rename = "stopped")]
@@ -17848,9 +17368,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for GetDeploymentResponseDevServerState {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "stopped" => Ok(Self::Stopped),
                 "starting" => Ok(Self::Starting),
@@ -17862,14 +17380,11 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for GetDeploymentResponseDevServerState {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for GetDeploymentResponseDevServerState {
+    impl ::std::convert::TryFrom<&::std::string::String> for GetDeploymentResponseDevServerState {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -17877,8 +17392,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for GetDeploymentResponseDevServerState {
+    impl ::std::convert::TryFrom<::std::string::String> for GetDeploymentResponseDevServerState {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -18078,9 +17592,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<f64> for GetDevStatusResponseVariant0SchemaVersion {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: f64,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: f64) -> ::std::result::Result<Self, self::error::ConversionError> {
             if ![0.0_f64].contains(&value) {
                 Err("invalid value".into())
             } else {
@@ -18094,7 +17606,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
             D: ::serde::Deserializer<'de>,
         {
             Self::try_from(<f64>::deserialize(deserializer)?)
-                .map_err(|e| { <D::Error as ::serde::de::Error>::custom(e.to_string()) })
+                .map_err(|e| <D::Error as ::serde::de::Error>::custom(e.to_string()))
         }
     }
     ///`GetDevStatusResponseVariant1SchemaVersion`
@@ -18126,9 +17638,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<f64> for GetDevStatusResponseVariant1SchemaVersion {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: f64,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: f64) -> ::std::result::Result<Self, self::error::ConversionError> {
             if ![1.0_f64].contains(&value) {
                 Err("invalid value".into())
             } else {
@@ -18142,7 +17652,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
             D: ::serde::Deserializer<'de>,
         {
             Self::try_from(<f64>::deserialize(deserializer)?)
-                .map_err(|e| { <D::Error as ::serde::de::Error>::custom(e.to_string()) })
+                .map_err(|e| <D::Error as ::serde::de::Error>::custom(e.to_string()))
         }
     }
     ///`GetNotificationCampaignStatsResponse`
@@ -18525,11 +18035,11 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for GetTokenMetadataAddress {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
-            static PATTERN: ::std::sync::LazyLock<::regress::Regex> = ::std::sync::LazyLock::new(||
-            { ::regress::Regex::new("^0x[a-fA-F0-9]{40}$").unwrap() });
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+            static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+                ::std::sync::LazyLock::new(|| {
+                    ::regress::Regex::new("^0x[a-fA-F0-9]{40}$").unwrap()
+                });
             if PATTERN.find(value).is_none() {
                 return Err("doesn't match pattern \"^0x[a-fA-F0-9]{40}$\"".into());
             }
@@ -18538,9 +18048,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for GetTokenMetadataAddress {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -19028,9 +18536,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         ///6-hour price change percentage
         pub price_change_6h_pct: ::std::option::Option<f64>,
         ///Source of price data
-        pub price_source: ::std::option::Option<
-            GetTokenMetadataResponseTokenPriceSource,
-        >,
+        pub price_source: ::std::option::Option<GetTokenMetadataResponseTokenPriceSource>,
         ///Timestamp when price data was last updated (milliseconds)
         pub price_updated_at: ::std::option::Option<i64>,
         ///Token price in USD
@@ -19068,19 +18574,18 @@ Supported formats are image/jpeg, image/gif and image/png*/
             &self.0
         }
     }
-    impl ::std::convert::From<GetTokenMetadataResponseTokenAddress>
-    for ::std::string::String {
+    impl ::std::convert::From<GetTokenMetadataResponseTokenAddress> for ::std::string::String {
         fn from(value: GetTokenMetadataResponseTokenAddress) -> Self {
             value.0
         }
     }
     impl ::std::str::FromStr for GetTokenMetadataResponseTokenAddress {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
-            static PATTERN: ::std::sync::LazyLock<::regress::Regex> = ::std::sync::LazyLock::new(||
-            { ::regress::Regex::new("^0x[a-fA-F0-9]{40}$").unwrap() });
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+            static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+                ::std::sync::LazyLock::new(|| {
+                    ::regress::Regex::new("^0x[a-fA-F0-9]{40}$").unwrap()
+                });
             if PATTERN.find(value).is_none() {
                 return Err("doesn't match pattern \"^0x[a-fA-F0-9]{40}$\"".into());
             }
@@ -19089,14 +18594,11 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for GetTokenMetadataResponseTokenAddress {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for GetTokenMetadataResponseTokenAddress {
+    impl ::std::convert::TryFrom<&::std::string::String> for GetTokenMetadataResponseTokenAddress {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -19104,8 +18606,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for GetTokenMetadataResponseTokenAddress {
+    impl ::std::convert::TryFrom<::std::string::String> for GetTokenMetadataResponseTokenAddress {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -19153,7 +18654,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum GetTokenMetadataResponseTokenPriceSource {
         #[serde(rename = "onchain")]
@@ -19171,9 +18672,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for GetTokenMetadataResponseTokenPriceSource {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "onchain" => Ok(Self::Onchain),
                 "coingecko" => Ok(Self::Coingecko),
@@ -19183,14 +18682,11 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for GetTokenMetadataResponseTokenPriceSource {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for GetTokenMetadataResponseTokenPriceSource {
+    impl ::std::convert::TryFrom<&::std::string::String> for GetTokenMetadataResponseTokenPriceSource {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -19198,8 +18694,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for GetTokenMetadataResponseTokenPriceSource {
+    impl ::std::convert::TryFrom<::std::string::String> for GetTokenMetadataResponseTokenPriceSource {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -19237,11 +18732,11 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for GetWalletBalancesAddress {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
-            static PATTERN: ::std::sync::LazyLock<::regress::Regex> = ::std::sync::LazyLock::new(||
-            { ::regress::Regex::new("^0x[a-fA-F0-9]{40}$").unwrap() });
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+            static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+                ::std::sync::LazyLock::new(|| {
+                    ::regress::Regex::new("^0x[a-fA-F0-9]{40}$").unwrap()
+                });
             if PATTERN.find(value).is_none() {
                 return Err("doesn't match pattern \"^0x[a-fA-F0-9]{40}$\"".into());
             }
@@ -19250,9 +18745,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for GetWalletBalancesAddress {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -19544,19 +19037,18 @@ Supported formats are image/jpeg, image/gif and image/png*/
             &self.0
         }
     }
-    impl ::std::convert::From<GetWalletBalancesResponseBalancesItemAddress>
-    for ::std::string::String {
+    impl ::std::convert::From<GetWalletBalancesResponseBalancesItemAddress> for ::std::string::String {
         fn from(value: GetWalletBalancesResponseBalancesItemAddress) -> Self {
             value.0
         }
     }
     impl ::std::str::FromStr for GetWalletBalancesResponseBalancesItemAddress {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
-            static PATTERN: ::std::sync::LazyLock<::regress::Regex> = ::std::sync::LazyLock::new(||
-            { ::regress::Regex::new("^0x[a-fA-F0-9]{40}$").unwrap() });
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+            static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+                ::std::sync::LazyLock::new(|| {
+                    ::regress::Regex::new("^0x[a-fA-F0-9]{40}$").unwrap()
+                });
             if PATTERN.find(value).is_none() {
                 return Err("doesn't match pattern \"^0x[a-fA-F0-9]{40}$\"".into());
             }
@@ -19565,14 +19057,13 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for GetWalletBalancesResponseBalancesItemAddress {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
     impl ::std::convert::TryFrom<&::std::string::String>
-    for GetWalletBalancesResponseBalancesItemAddress {
+        for GetWalletBalancesResponseBalancesItemAddress
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -19581,7 +19072,8 @@ Supported formats are image/jpeg, image/gif and image/png*/
         }
     }
     impl ::std::convert::TryFrom<::std::string::String>
-    for GetWalletBalancesResponseBalancesItemAddress {
+        for GetWalletBalancesResponseBalancesItemAddress
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -19589,8 +19081,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
             value.parse()
         }
     }
-    impl<'de> ::serde::Deserialize<'de>
-    for GetWalletBalancesResponseBalancesItemAddress {
+    impl<'de> ::serde::Deserialize<'de> for GetWalletBalancesResponseBalancesItemAddress {
         fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
         where
             D: ::serde::Deserializer<'de>,
@@ -20216,10 +19707,10 @@ Supported formats are image/jpeg, image/gif and image/png*/
         }
     }
     /**An Idempotency key is a unique identifier for the request.
-**Note:**
-1) This is used to prevent duplicate requests. Use the same idem key on retry attempts.
-2) This should be a unique identifier for each request.
-3) Recommended format is a 16-character string generated by the developer at the time of making this request.*/
+    **Note:**
+    1) This is used to prevent duplicate requests. Use the same idem key on retry attempts.
+    2) This should be a unique identifier for each request.
+    3) Recommended format is a 16-character string generated by the developer at the time of making this request.*/
     ///
     /// <details><summary>JSON schema</summary>
     ///
@@ -20232,15 +19723,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     /// ```
     /// </details>
     #[derive(
-        ::serde::Deserialize,
-        ::serde::Serialize,
-        Clone,
-        Debug,
-        Eq,
-        Hash,
-        Ord,
-        PartialEq,
-        PartialOrd
+        ::serde::Deserialize, ::serde::Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd,
     )]
     #[serde(transparent)]
     pub struct Idem(pub ::std::string::String);
@@ -20366,9 +19849,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub fid: ::std::option::Option<i32>,
         ///Rows to insert (max 100)
-        pub rows: ::std::vec::Vec<
-            ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-        >,
+        pub rows: ::std::vec::Vec<::serde_json::Map<::std::string::String, ::serde_json::Value>>,
     }
     ///`InsertRowsResponse`
     ///
@@ -20404,9 +19885,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         #[serde(rename = "insertedCount")]
         pub inserted_count: f64,
         ///Inserted rows with generated values
-        pub rows: ::std::vec::Vec<
-            ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-        >,
+        pub rows: ::std::vec::Vec<::serde_json::Map<::std::string::String, ::serde_json::Value>>,
     }
     ///`InviteChannelMemberReqBody`
     ///
@@ -20817,9 +20296,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         pub deleted_at: ::std::option::Option<::chrono::DateTime<::chrono::offset::Utc>>,
         ///Dev server process state: stopped, starting, running, or crashed
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub dev_server_state: ::std::option::Option<
-            ListDeploymentsResponseItemDevServerState,
-        >,
+        pub dev_server_state: ::std::option::Option<ListDeploymentsResponseItemDevServerState>,
         ///Display name for the project
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub display_name: ::std::option::Option<::std::string::String>,
@@ -20842,9 +20319,8 @@ Supported formats are image/jpeg, image/gif and image/png*/
         ///Kubernetes namespace
         pub namespace: ::std::string::String,
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub production_app_status: ::std::option::Option<
-            ListDeploymentsResponseItemProductionAppStatus,
-        >,
+        pub production_app_status:
+            ::std::option::Option<ListDeploymentsResponseItemProductionAppStatus>,
         ///Last update timestamp
         pub updated_at: ::std::option::Option<::chrono::DateTime<::chrono::offset::Utc>>,
         ///Public URL for the deployment
@@ -20878,7 +20354,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum ListDeploymentsResponseItemDevServerState {
         #[serde(rename = "stopped")]
@@ -20902,9 +20378,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for ListDeploymentsResponseItemDevServerState {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "stopped" => Ok(Self::Stopped),
                 "starting" => Ok(Self::Starting),
@@ -20916,14 +20390,11 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for ListDeploymentsResponseItemDevServerState {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for ListDeploymentsResponseItemDevServerState {
+    impl ::std::convert::TryFrom<&::std::string::String> for ListDeploymentsResponseItemDevServerState {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -20931,8 +20402,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for ListDeploymentsResponseItemDevServerState {
+    impl ::std::convert::TryFrom<::std::string::String> for ListDeploymentsResponseItemDevServerState {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -21018,7 +20488,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum ListDeploymentsSortBy {
         #[serde(rename = "created_at")]
@@ -21036,9 +20506,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for ListDeploymentsSortBy {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "created_at" => Ok(Self::CreatedAt),
                 "updated_at" => Ok(Self::UpdatedAt),
@@ -21048,9 +20516,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for ListDeploymentsSortBy {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -21210,7 +20676,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum ListSecretsResponseSecretsItemType {
         #[serde(rename = "system")]
@@ -21228,9 +20694,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for ListSecretsResponseSecretsItemType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "system" => Ok(Self::System),
                 "user" => Ok(Self::User),
@@ -21240,14 +20704,11 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for ListSecretsResponseSecretsItemType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for ListSecretsResponseSecretsItemType {
+    impl ::std::convert::TryFrom<&::std::string::String> for ListSecretsResponseSecretsItemType {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -21255,8 +20716,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for ListSecretsResponseSecretsItemType {
+    impl ::std::convert::TryFrom<::std::string::String> for ListSecretsResponseSecretsItemType {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -21401,7 +20861,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum ListTablesResponseTablesItemType {
         #[serde(rename = "BASE TABLE")]
@@ -21419,9 +20879,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for ListTablesResponseTablesItemType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "BASE TABLE" => Ok(Self::BaseTable),
                 "VIEW" => Ok(Self::View),
@@ -21431,14 +20889,11 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for ListTablesResponseTablesItemType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for ListTablesResponseTablesItemType {
+    impl ::std::convert::TryFrom<&::std::string::String> for ListTablesResponseTablesItemType {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -21446,8 +20901,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for ListTablesResponseTablesItemType {
+    impl ::std::convert::TryFrom<::std::string::String> for ListTablesResponseTablesItemType {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -21573,7 +21027,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum LookupCastByHashOrUrlType {
         #[serde(rename = "url")]
@@ -21591,9 +21045,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for LookupCastByHashOrUrlType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "url" => Ok(Self::Url),
                 "hash" => Ok(Self::Hash),
@@ -21603,9 +21055,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for LookupCastByHashOrUrlType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -21649,7 +21099,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum LookupCastConversationFold {
         #[serde(rename = "above")]
@@ -21667,9 +21117,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for LookupCastConversationFold {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "above" => Ok(Self::Above),
                 "below" => Ok(Self::Below),
@@ -21679,9 +21127,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for LookupCastConversationFold {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -21729,7 +21175,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum LookupCastConversationSortType {
         #[serde(rename = "chron")]
@@ -21750,9 +21196,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for LookupCastConversationSortType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "chron" => Ok(Self::Chron),
                 "desc_chron" => Ok(Self::DescChron),
@@ -21763,14 +21207,11 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for LookupCastConversationSortType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for LookupCastConversationSortType {
+    impl ::std::convert::TryFrom<&::std::string::String> for LookupCastConversationSortType {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -21778,8 +21219,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for LookupCastConversationSortType {
+    impl ::std::convert::TryFrom<::std::string::String> for LookupCastConversationSortType {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -21814,7 +21254,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum LookupCastConversationType {
         #[serde(rename = "url")]
@@ -21832,9 +21272,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for LookupCastConversationType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "url" => Ok(Self::Url),
                 "hash" => Ok(Self::Hash),
@@ -21844,9 +21282,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for LookupCastConversationType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -21893,7 +21329,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum LookupChannelType {
         #[serde(rename = "id")]
@@ -21911,9 +21347,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for LookupChannelType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "id" => Ok(Self::Id),
                 "parent_url" => Ok(Self::ParentUrl),
@@ -21923,9 +21357,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for LookupChannelType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -22013,7 +21445,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum LookupDeveloperManagedAuthAddressResponseStatus {
         #[serde(rename = "pending_approval")]
@@ -22034,9 +21466,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for LookupDeveloperManagedAuthAddressResponseStatus {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "pending_approval" => Ok(Self::PendingApproval),
                 "approved" => Ok(Self::Approved),
@@ -22045,17 +21475,15 @@ Supported formats are image/jpeg, image/gif and image/png*/
             }
         }
     }
-    impl ::std::convert::TryFrom<&str>
-    for LookupDeveloperManagedAuthAddressResponseStatus {
+    impl ::std::convert::TryFrom<&str> for LookupDeveloperManagedAuthAddressResponseStatus {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
     impl ::std::convert::TryFrom<&::std::string::String>
-    for LookupDeveloperManagedAuthAddressResponseStatus {
+        for LookupDeveloperManagedAuthAddressResponseStatus
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -22064,7 +21492,8 @@ Supported formats are image/jpeg, image/gif and image/png*/
         }
     }
     impl ::std::convert::TryFrom<::std::string::String>
-    for LookupDeveloperManagedAuthAddressResponseStatus {
+        for LookupDeveloperManagedAuthAddressResponseStatus
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -22144,7 +21573,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum MiniAppTimeWindow {
         #[serde(rename = "1h")]
@@ -22171,9 +21600,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for MiniAppTimeWindow {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "1h" => Ok(Self::X1h),
                 "6h" => Ok(Self::X6h),
@@ -22186,9 +21613,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for MiniAppTimeWindow {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -22302,9 +21727,8 @@ Supported formats are image/jpeg, image/gif and image/png*/
         pub fid: i32,
         ///Home URL metadata if available
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub home_url_metadata: ::std::option::Option<
-            ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-        >,
+        pub home_url_metadata:
+            ::std::option::Option<::serde_json::Map<::std::string::String, ::serde_json::Value>>,
         pub manifest: FarcasterManifest,
         ///Last update timestamp
         pub updated_at: ::chrono::DateTime<::chrono::offset::Utc>,
@@ -22358,7 +21782,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum MiniappNetworksSchemaItem {
         #[serde(rename = "ethereum")]
@@ -22418,9 +21842,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for MiniappNetworksSchemaItem {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "ethereum" => Ok(Self::Ethereum),
                 "base" => Ok(Self::Base),
@@ -22444,9 +21866,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for MiniappNetworksSchemaItem {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -22607,7 +22027,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum MintNftBodyNetwork {
         #[serde(rename = "base")]
@@ -22628,9 +22048,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for MintNftBodyNetwork {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "base" => Ok(Self::Base),
                 "optimism" => Ok(Self::Optimism),
@@ -22641,9 +22059,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for MintNftBodyNetwork {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -22801,7 +22217,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     #[serde(deny_unknown_fields)]
     pub enum MintNftBodyRecipientsItemSubtype0Fid {}
@@ -22862,7 +22278,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     #[serde(deny_unknown_fields)]
     pub enum MintNftBodyRecipientsItemSubtype1Address {}
@@ -23126,9 +22542,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Variant0 {
             ///Transaction receipt (if async is false).
             #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-            receipt: ::std::option::Option<
-                MintNftResponseTransactionsItemVariant0Receipt,
-            >,
+            receipt: ::std::option::Option<MintNftResponseTransactionsItemVariant0Receipt>,
             recipient: MintNftResponseTransactionsItemVariant0Recipient,
             transaction_hash: PrefixedHexString,
         },
@@ -23221,9 +22635,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         pub quantity: ::std::num::NonZeroU64,
         ///Minted token IDs parsed from Transfer events (sync mode only).
         #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
-        pub tokens: ::std::vec::Vec<
-            MintNftResponseTransactionsItemVariant0RecipientTokensItem,
-        >,
+        pub tokens: ::std::vec::Vec<MintNftResponseTransactionsItemVariant0RecipientTokensItem>,
     }
     ///`MintNftResponseTransactionsItemVariant0RecipientTokensItem`
     ///
@@ -23372,7 +22784,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum MuteRecordObject {
         #[serde(rename = "mute")]
@@ -23387,9 +22799,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for MuteRecordObject {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "mute" => Ok(Self::Mute),
                 _ => Err("invalid value".into()),
@@ -23398,9 +22808,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for MuteRecordObject {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -23507,7 +22915,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum Network {
         #[serde(rename = "ethereum")]
@@ -23531,9 +22939,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for Network {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "ethereum" => Ok(Self::Ethereum),
                 "optimism" => Ok(Self::Optimism),
@@ -23545,9 +22951,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for Network {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -23772,9 +23176,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         pub body: ::std::string::String,
         ///When the campaign reached a terminal state (completed/failed/canceled). Null while still queued or running.
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub completed_at: ::std::option::Option<
-            ::chrono::DateTime<::chrono::offset::Utc>,
-        >,
+        pub completed_at: ::std::option::Option<::chrono::DateTime<::chrono::offset::Utc>>,
         pub created_at: ::chrono::DateTime<::chrono::offset::Utc>,
         ///The unique identifier for the notification campaign.
         pub id: ::uuid::Uuid,
@@ -23896,24 +23298,15 @@ Supported formats are image/jpeg, image/gif and image/png*/
         ///The number of notifications successfully sent.
         pub successful_sends: i32,
         ///A record mapping app FIDs (as strings) to the number of successful sends for that app.
-        pub successful_sends_by_app_fid: ::std::collections::HashMap<
-            ::std::string::String,
-            i32,
-        >,
+        pub successful_sends_by_app_fid: ::std::collections::HashMap<::std::string::String, i32>,
         ///The total number of times notifications from this campaign have been opened.
         pub total_opens: i32,
         ///A record mapping app FIDs (as strings) to the number of opens for that app.
-        pub total_opens_by_app_fid: ::std::collections::HashMap<
-            ::std::string::String,
-            i32,
-        >,
+        pub total_opens_by_app_fid: ::std::collections::HashMap<::std::string::String, i32>,
         ///The number of unique recipients who opened a notification from this campaign.
         pub unique_opens: i32,
         ///A record mapping app FIDs (as strings) to the number of unique opens for that app.
-        pub unique_opens_by_app_fid: ::std::collections::HashMap<
-            ::std::string::String,
-            i32,
-        >,
+        pub unique_opens_by_app_fid: ::std::collections::HashMap<::std::string::String, i32>,
     }
     ///Detailed breakdown of errors encountered during notification delivery.
     ///
@@ -23995,7 +23388,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum NotificationCampaignStatus {
         #[serde(rename = "queued")]
@@ -24022,9 +23415,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for NotificationCampaignStatus {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "queued" => Ok(Self::Queued),
                 "running" => Ok(Self::Running),
@@ -24037,9 +23428,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for NotificationCampaignStatus {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -24088,7 +23477,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum NotificationCampaignStatusEnum {
         #[serde(rename = "queued")]
@@ -24115,9 +23504,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for NotificationCampaignStatusEnum {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "queued" => Ok(Self::Queued),
                 "running" => Ok(Self::Running),
@@ -24130,14 +23517,11 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for NotificationCampaignStatusEnum {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for NotificationCampaignStatusEnum {
+    impl ::std::convert::TryFrom<&::std::string::String> for NotificationCampaignStatusEnum {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -24145,8 +23529,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for NotificationCampaignStatusEnum {
+    impl ::std::convert::TryFrom<::std::string::String> for NotificationCampaignStatusEnum {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -24177,7 +23560,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum NotificationObject {
         #[serde(rename = "notification")]
@@ -24192,9 +23575,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for NotificationObject {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "notification" => Ok(Self::Notification),
                 _ => Err("invalid value".into()),
@@ -24203,9 +23584,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for NotificationObject {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -24253,7 +23632,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum NotificationType {
         #[serde(rename = "follows")]
@@ -24283,9 +23662,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for NotificationType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "follows" => Ok(Self::Follows),
                 "recasts" => Ok(Self::Recasts),
@@ -24299,9 +23676,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for NotificationType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -24351,7 +23726,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum NotificationTypeFilter {
         #[serde(rename = "follows")]
@@ -24381,9 +23756,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for NotificationTypeFilter {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "follows" => Ok(Self::Follows),
                 "recasts" => Ok(Self::Recasts),
@@ -24397,9 +23770,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for NotificationTypeFilter {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -24605,7 +23976,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum OembedLinkDataType {
         #[serde(rename = "link")]
@@ -24620,9 +23991,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for OembedLinkDataType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "link" => Ok(Self::Link),
                 _ => Err("invalid value".into()),
@@ -24631,9 +24000,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for OembedLinkDataType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -24832,7 +24199,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum OembedPhotoDataType {
         #[serde(rename = "photo")]
@@ -24847,9 +24214,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for OembedPhotoDataType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "photo" => Ok(Self::Photo),
                 _ => Err("invalid value".into()),
@@ -24858,9 +24223,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for OembedPhotoDataType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -25059,7 +24422,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum OembedRichDataType {
         #[serde(rename = "rich")]
@@ -25074,9 +24437,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for OembedRichDataType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "rich" => Ok(Self::Rich),
                 _ => Err("invalid value".into()),
@@ -25085,9 +24446,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for OembedRichDataType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -25286,7 +24645,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum OembedVideoDataType {
         #[serde(rename = "video")]
@@ -25301,9 +24660,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for OembedVideoDataType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "video" => Ok(Self::Video),
                 _ => Err("invalid value".into()),
@@ -25312,9 +24669,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for OembedVideoDataType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -25489,7 +24844,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     #[serde(deny_unknown_fields)]
     pub enum PostCastReqBodyEmbeds {}
@@ -25673,11 +25028,11 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for PostCastResponseCastHash {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
-            static PATTERN: ::std::sync::LazyLock<::regress::Regex> = ::std::sync::LazyLock::new(||
-            { ::regress::Regex::new("^(0x)?[a-fA-F0-9]{40}$").unwrap() });
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+            static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+                ::std::sync::LazyLock::new(|| {
+                    ::regress::Regex::new("^(0x)?[a-fA-F0-9]{40}$").unwrap()
+                });
             if PATTERN.find(value).is_none() {
                 return Err("doesn't match pattern \"^(0x)?[a-fA-F0-9]{40}$\"".into());
             }
@@ -25686,9 +25041,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for PostCastResponseCastHash {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -25749,11 +25102,9 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for PrefixedHexString {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
-            static PATTERN: ::std::sync::LazyLock<::regress::Regex> = ::std::sync::LazyLock::new(||
-            { ::regress::Regex::new("^0x[a-fA-F0-9]+$").unwrap() });
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+            static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+                ::std::sync::LazyLock::new(|| ::regress::Regex::new("^0x[a-fA-F0-9]+$").unwrap());
             if PATTERN.find(value).is_none() {
                 return Err("doesn't match pattern \"^0x[a-fA-F0-9]+$\"".into());
             }
@@ -25762,9 +25113,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for PrefixedHexString {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -25909,9 +25258,8 @@ Supported formats are image/jpeg, image/gif and image/png*/
         pub session_id: ::std::option::Option<::std::string::String>,
         ///System prompt variant to use. Defaults to stable if not provided.
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub system_prompt_variant: ::std::option::Option<
-            PromptDeploymentStreamBodySystemPromptVariant,
-        >,
+        pub system_prompt_variant:
+            ::std::option::Option<PromptDeploymentStreamBodySystemPromptVariant>,
     }
     ///`PromptDeploymentStreamBodyImagesItem`
     ///
@@ -25978,7 +25326,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum PromptDeploymentStreamBodyImagesItemMediaType {
         #[serde(rename = "image/jpeg")]
@@ -26002,9 +25350,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for PromptDeploymentStreamBodyImagesItemMediaType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "image/jpeg" => Ok(Self::ImageJpeg),
                 "image/png" => Ok(Self::ImagePng),
@@ -26014,17 +25360,15 @@ Supported formats are image/jpeg, image/gif and image/png*/
             }
         }
     }
-    impl ::std::convert::TryFrom<&str>
-    for PromptDeploymentStreamBodyImagesItemMediaType {
+    impl ::std::convert::TryFrom<&str> for PromptDeploymentStreamBodyImagesItemMediaType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
     impl ::std::convert::TryFrom<&::std::string::String>
-    for PromptDeploymentStreamBodyImagesItemMediaType {
+        for PromptDeploymentStreamBodyImagesItemMediaType
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -26033,7 +25377,8 @@ Supported formats are image/jpeg, image/gif and image/png*/
         }
     }
     impl ::std::convert::TryFrom<::std::string::String>
-    for PromptDeploymentStreamBodyImagesItemMediaType {
+        for PromptDeploymentStreamBodyImagesItemMediaType
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -26067,7 +25412,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum PromptDeploymentStreamBodySystemPromptVariant {
         #[serde(rename = "canary")]
@@ -26088,9 +25433,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for PromptDeploymentStreamBodySystemPromptVariant {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "canary" => Ok(Self::Canary),
                 "beta" => Ok(Self::Beta),
@@ -26099,17 +25442,15 @@ Supported formats are image/jpeg, image/gif and image/png*/
             }
         }
     }
-    impl ::std::convert::TryFrom<&str>
-    for PromptDeploymentStreamBodySystemPromptVariant {
+    impl ::std::convert::TryFrom<&str> for PromptDeploymentStreamBodySystemPromptVariant {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
     impl ::std::convert::TryFrom<&::std::string::String>
-    for PromptDeploymentStreamBodySystemPromptVariant {
+        for PromptDeploymentStreamBodySystemPromptVariant
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -26118,7 +25459,8 @@ Supported formats are image/jpeg, image/gif and image/png*/
         }
     }
     impl ::std::convert::TryFrom<::std::string::String>
-    for PromptDeploymentStreamBodySystemPromptVariant {
+        for PromptDeploymentStreamBodySystemPromptVariant
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -26197,7 +25539,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum Protocol {
         #[serde(rename = "evm")]
@@ -26215,9 +25557,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for Protocol {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "evm" => Ok(Self::Evm),
                 "solana" => Ok(Self::Solana),
@@ -26227,9 +25567,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for Protocol {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -26344,24 +25682,21 @@ Supported formats are image/jpeg, image/gif and image/png*/
     );
     impl ::std::ops::Deref for PublishMessageReqBody {
         type Target = ::serde_json::Map<::std::string::String, ::serde_json::Value>;
-        fn deref(
-            &self,
-        ) -> &::serde_json::Map<::std::string::String, ::serde_json::Value> {
+        fn deref(&self) -> &::serde_json::Map<::std::string::String, ::serde_json::Value> {
             &self.0
         }
     }
     impl ::std::convert::From<PublishMessageReqBody>
-    for ::serde_json::Map<::std::string::String, ::serde_json::Value> {
+        for ::serde_json::Map<::std::string::String, ::serde_json::Value>
+    {
         fn from(value: PublishMessageReqBody) -> Self {
             value.0
         }
     }
-    impl ::std::convert::From<
-        ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-    > for PublishMessageReqBody {
-        fn from(
-            value: ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-        ) -> Self {
+    impl ::std::convert::From<::serde_json::Map<::std::string::String, ::serde_json::Value>>
+        for PublishMessageReqBody
+    {
+        fn from(value: ::serde_json::Map<::std::string::String, ::serde_json::Value>) -> Self {
             Self(value)
         }
     }
@@ -26383,24 +25718,21 @@ Supported formats are image/jpeg, image/gif and image/png*/
     );
     impl ::std::ops::Deref for PublishMessageResponse {
         type Target = ::serde_json::Map<::std::string::String, ::serde_json::Value>;
-        fn deref(
-            &self,
-        ) -> &::serde_json::Map<::std::string::String, ::serde_json::Value> {
+        fn deref(&self) -> &::serde_json::Map<::std::string::String, ::serde_json::Value> {
             &self.0
         }
     }
     impl ::std::convert::From<PublishMessageResponse>
-    for ::serde_json::Map<::std::string::String, ::serde_json::Value> {
+        for ::serde_json::Map<::std::string::String, ::serde_json::Value>
+    {
         fn from(value: PublishMessageResponse) -> Self {
             value.0
         }
     }
-    impl ::std::convert::From<
-        ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-    > for PublishMessageResponse {
-        fn from(
-            value: ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-        ) -> Self {
+    impl ::std::convert::From<::serde_json::Map<::std::string::String, ::serde_json::Value>>
+        for PublishMessageResponse
+    {
+        fn from(value: ::serde_json::Map<::std::string::String, ::serde_json::Value>) -> Self {
             Self(value)
         }
     }
@@ -26527,7 +25859,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum QueryTableBodyOrderDirection {
         #[serde(rename = "asc")]
@@ -26545,9 +25877,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for QueryTableBodyOrderDirection {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "asc" => Ok(Self::Asc),
                 "desc" => Ok(Self::Desc),
@@ -26557,14 +25887,11 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for QueryTableBodyOrderDirection {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for QueryTableBodyOrderDirection {
+    impl ::std::convert::TryFrom<&::std::string::String> for QueryTableBodyOrderDirection {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -26572,8 +25899,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for QueryTableBodyOrderDirection {
+    impl ::std::convert::TryFrom<::std::string::String> for QueryTableBodyOrderDirection {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -26609,9 +25935,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for QueryTableBodyTable {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             if value.chars().count() < 1usize {
                 return Err("shorter than 1 characters".into());
             }
@@ -26620,9 +25944,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for QueryTableBodyTable {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -26731,9 +26053,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         ///Applied offset
         pub offset: f64,
         ///Query result rows
-        pub rows: ::std::vec::Vec<
-            ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-        >,
+        pub rows: ::std::vec::Vec<::serde_json::Map<::std::string::String, ::serde_json::Value>>,
         ///Total number of rows in table
         #[serde(rename = "totalCount")]
         pub total_count: f64,
@@ -26873,7 +26193,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum ReactionForCastObject {
         #[serde(rename = "likes")]
@@ -26891,9 +26211,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for ReactionForCastObject {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "likes" => Ok(Self::Likes),
                 "recasts" => Ok(Self::Recasts),
@@ -26903,9 +26221,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for ReactionForCastObject {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -27054,7 +26370,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum ReactionType {
         #[serde(rename = "like")]
@@ -27072,9 +26388,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for ReactionType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "like" => Ok(Self::Like),
                 "recast" => Ok(Self::Recast),
@@ -27084,9 +26398,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for ReactionType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -27187,7 +26499,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum ReactionWithCastInfoObject {
         #[serde(rename = "likes")]
@@ -27205,9 +26517,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for ReactionWithCastInfoObject {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "likes" => Ok(Self::Likes),
                 "recasts" => Ok(Self::Recasts),
@@ -27217,9 +26527,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for ReactionWithCastInfoObject {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -27263,7 +26571,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum ReactionWithCastInfoReactionType {
         #[serde(rename = "like")]
@@ -27281,9 +26589,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for ReactionWithCastInfoReactionType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "like" => Ok(Self::Like),
                 "recast" => Ok(Self::Recast),
@@ -27293,14 +26599,11 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for ReactionWithCastInfoReactionType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for ReactionWithCastInfoReactionType {
+    impl ::std::convert::TryFrom<&::std::string::String> for ReactionWithCastInfoReactionType {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -27308,8 +26611,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for ReactionWithCastInfoReactionType {
+    impl ::std::convert::TryFrom<::std::string::String> for ReactionWithCastInfoReactionType {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -27378,7 +26680,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum ReactionWithUserInfoObject {
         #[serde(rename = "likes")]
@@ -27396,9 +26698,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for ReactionWithUserInfoObject {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "likes" => Ok(Self::Likes),
                 "recasts" => Ok(Self::Recasts),
@@ -27408,9 +26708,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for ReactionWithUserInfoObject {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -27518,7 +26816,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum ReactionsType {
         #[serde(rename = "all")]
@@ -27539,9 +26837,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for ReactionsType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "all" => Ok(Self::All),
                 "likes" => Ok(Self::Likes),
@@ -27552,9 +26848,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for ReactionsType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -27634,7 +26928,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum ReciprocalFollowerObject {
         #[serde(rename = "reciprocal_follower")]
@@ -27649,9 +26943,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for ReciprocalFollowerObject {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "reciprocal_follower" => Ok(Self::ReciprocalFollower),
                 _ => Err("invalid value".into()),
@@ -27660,9 +26952,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for ReciprocalFollowerObject {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -27779,7 +27069,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         ///unix timestamp in seconds that controls how long the signed key request is valid for. (24 hours from now is recommended)
         pub deadline: i64,
         /**Url to redirect to after the signer is approved.
-**Note** : This should only be used when requesting a signer from a native mobile application.*/
+         **Note** : This should only be used when requesting a signer from a native mobile application.*/
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub redirect_url: ::std::option::Option<::std::string::String>,
         ///Signature generated by the custody address of the app. Signed data includes app_fid, deadline, 32 bytes padded auth address. [Refer guide for more details.](https://docs.neynar.com/docs/auth-address-signature-generation)
@@ -27804,33 +27094,25 @@ Supported formats are image/jpeg, image/gif and image/png*/
     /// </details>
     #[derive(::serde::Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
     #[serde(transparent)]
-    pub struct RegisterAuthAddressDeveloperManagedSignedKeyReqBodySignature(
-        ::std::string::String,
-    );
-    impl ::std::ops::Deref
-    for RegisterAuthAddressDeveloperManagedSignedKeyReqBodySignature {
+    pub struct RegisterAuthAddressDeveloperManagedSignedKeyReqBodySignature(::std::string::String);
+    impl ::std::ops::Deref for RegisterAuthAddressDeveloperManagedSignedKeyReqBodySignature {
         type Target = ::std::string::String;
         fn deref(&self) -> &::std::string::String {
             &self.0
         }
     }
-    impl ::std::convert::From<
-        RegisterAuthAddressDeveloperManagedSignedKeyReqBodySignature,
-    > for ::std::string::String {
-        fn from(
-            value: RegisterAuthAddressDeveloperManagedSignedKeyReqBodySignature,
-        ) -> Self {
+    impl ::std::convert::From<RegisterAuthAddressDeveloperManagedSignedKeyReqBodySignature>
+        for ::std::string::String
+    {
+        fn from(value: RegisterAuthAddressDeveloperManagedSignedKeyReqBodySignature) -> Self {
             value.0
         }
     }
-    impl ::std::str::FromStr
-    for RegisterAuthAddressDeveloperManagedSignedKeyReqBodySignature {
+    impl ::std::str::FromStr for RegisterAuthAddressDeveloperManagedSignedKeyReqBodySignature {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
-            static PATTERN: ::std::sync::LazyLock<::regress::Regex> = ::std::sync::LazyLock::new(||
-            { ::regress::Regex::new("^0x[a-fA-F0-9]+$").unwrap() });
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+            static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+                ::std::sync::LazyLock::new(|| ::regress::Regex::new("^0x[a-fA-F0-9]+$").unwrap());
             if PATTERN.find(value).is_none() {
                 return Err("doesn't match pattern \"^0x[a-fA-F0-9]+$\"".into());
             }
@@ -27838,16 +27120,16 @@ Supported formats are image/jpeg, image/gif and image/png*/
         }
     }
     impl ::std::convert::TryFrom<&str>
-    for RegisterAuthAddressDeveloperManagedSignedKeyReqBodySignature {
+        for RegisterAuthAddressDeveloperManagedSignedKeyReqBodySignature
+    {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
     impl ::std::convert::TryFrom<&::std::string::String>
-    for RegisterAuthAddressDeveloperManagedSignedKeyReqBodySignature {
+        for RegisterAuthAddressDeveloperManagedSignedKeyReqBodySignature
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -27856,7 +27138,8 @@ Supported formats are image/jpeg, image/gif and image/png*/
         }
     }
     impl ::std::convert::TryFrom<::std::string::String>
-    for RegisterAuthAddressDeveloperManagedSignedKeyReqBodySignature {
+        for RegisterAuthAddressDeveloperManagedSignedKeyReqBodySignature
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -27865,7 +27148,8 @@ Supported formats are image/jpeg, image/gif and image/png*/
         }
     }
     impl<'de> ::serde::Deserialize<'de>
-    for RegisterAuthAddressDeveloperManagedSignedKeyReqBodySignature {
+        for RegisterAuthAddressDeveloperManagedSignedKeyReqBodySignature
+    {
         fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
         where
             D: ::serde::Deserializer<'de>,
@@ -27927,7 +27211,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         pub deadline: i64,
         pub public_key: Ed25519PublicKey,
         /**Url to redirect to after the signer is approved.
-**Note** : This should only be used when requesting a signer from a native mobile application.*/
+         **Note** : This should only be used when requesting a signer from a native mobile application.*/
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub redirect_url: ::std::option::Option<::std::string::String>,
         ///Signature generated by the custody address of the app. Signed data includes app_fid, deadline, signer's public key
@@ -28003,7 +27287,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum RegisterSignedKeyForDeveloperManagedAuthAddressResponseStatus {
         #[serde(rename = "pending_approval")]
@@ -28013,8 +27297,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         #[serde(rename = "revoked")]
         Revoked,
     }
-    impl ::std::fmt::Display
-    for RegisterSignedKeyForDeveloperManagedAuthAddressResponseStatus {
+    impl ::std::fmt::Display for RegisterSignedKeyForDeveloperManagedAuthAddressResponseStatus {
         fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
             match *self {
                 Self::PendingApproval => f.write_str("pending_approval"),
@@ -28023,12 +27306,9 @@ Supported formats are image/jpeg, image/gif and image/png*/
             }
         }
     }
-    impl ::std::str::FromStr
-    for RegisterSignedKeyForDeveloperManagedAuthAddressResponseStatus {
+    impl ::std::str::FromStr for RegisterSignedKeyForDeveloperManagedAuthAddressResponseStatus {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "pending_approval" => Ok(Self::PendingApproval),
                 "approved" => Ok(Self::Approved),
@@ -28038,16 +27318,16 @@ Supported formats are image/jpeg, image/gif and image/png*/
         }
     }
     impl ::std::convert::TryFrom<&str>
-    for RegisterSignedKeyForDeveloperManagedAuthAddressResponseStatus {
+        for RegisterSignedKeyForDeveloperManagedAuthAddressResponseStatus
+    {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
     impl ::std::convert::TryFrom<&::std::string::String>
-    for RegisterSignedKeyForDeveloperManagedAuthAddressResponseStatus {
+        for RegisterSignedKeyForDeveloperManagedAuthAddressResponseStatus
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -28056,7 +27336,8 @@ Supported formats are image/jpeg, image/gif and image/png*/
         }
     }
     impl ::std::convert::TryFrom<::std::string::String>
-    for RegisterSignedKeyForDeveloperManagedAuthAddressResponseStatus {
+        for RegisterSignedKeyForDeveloperManagedAuthAddressResponseStatus
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -28110,7 +27391,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         ///unix timestamp in seconds that controls how long the signed key request is valid for. (24 hours from now is recommended)
         pub deadline: i64,
         /**Url to redirect to after the signer is approved.
-**Note** : This should only be used when requesting a signer from a native mobile application.*/
+         **Note** : This should only be used when requesting a signer from a native mobile application.*/
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub redirect_url: ::std::option::Option<::std::string::String>,
         ///Signature generated by the custody address of the app. Signed data includes app_fid, deadline, signer's public key
@@ -28252,17 +27533,16 @@ Supported formats are image/jpeg, image/gif and image/png*/
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct RegisterUserOnChainReqBody {
         /**An Idempotency key is a unique identifier for the request.
-**Note:**
-1) Pre-registration calls must be idempotent when using idempotency keys.
-2) This is used to prevent duplicate requests. Use the same idem key on retry attempts.
-3) This should be a unique identifier for each request.
-4) Recommended format is a 16-character string generated by the developer at the time of making this request.*/
+        **Note:**
+        1) Pre-registration calls must be idempotent when using idempotency keys.
+        2) This is used to prevent duplicate requests. Use the same idem key on retry attempts.
+        3) This should be a unique identifier for each request.
+        4) Recommended format is a 16-character string generated by the developer at the time of making this request.*/
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub idem: ::std::option::Option<::std::string::String>,
         #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
-        pub pre_registration_calls: ::std::vec::Vec<
-            RegisterUserOnChainReqBodyPreRegistrationCallsItem,
-        >,
+        pub pre_registration_calls:
+            ::std::vec::Vec<RegisterUserOnChainReqBodyPreRegistrationCallsItem>,
         pub registration: RegisterUserOnChainReqBodyRegistration,
         #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
         pub signers: ::std::vec::Vec<RegisterUserOnChainReqBodySignersItem>,
@@ -28336,9 +27616,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     /// </details>
     #[derive(::serde::Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
     #[serde(transparent)]
-    pub struct RegisterUserOnChainReqBodyPreRegistrationCallsItemData(
-        ::std::string::String,
-    );
+    pub struct RegisterUserOnChainReqBodyPreRegistrationCallsItemData(::std::string::String);
     impl ::std::ops::Deref for RegisterUserOnChainReqBodyPreRegistrationCallsItemData {
         type Target = ::std::string::String;
         fn deref(&self) -> &::std::string::String {
@@ -28346,35 +27624,32 @@ Supported formats are image/jpeg, image/gif and image/png*/
         }
     }
     impl ::std::convert::From<RegisterUserOnChainReqBodyPreRegistrationCallsItemData>
-    for ::std::string::String {
+        for ::std::string::String
+    {
         fn from(value: RegisterUserOnChainReqBodyPreRegistrationCallsItemData) -> Self {
             value.0
         }
     }
     impl ::std::str::FromStr for RegisterUserOnChainReqBodyPreRegistrationCallsItemData {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
-            static PATTERN: ::std::sync::LazyLock<::regress::Regex> = ::std::sync::LazyLock::new(||
-            { ::regress::Regex::new("^0x[a-fA-F0-9]+$").unwrap() });
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+            static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+                ::std::sync::LazyLock::new(|| ::regress::Regex::new("^0x[a-fA-F0-9]+$").unwrap());
             if PATTERN.find(value).is_none() {
                 return Err("doesn't match pattern \"^0x[a-fA-F0-9]+$\"".into());
             }
             Ok(Self(value.to_string()))
         }
     }
-    impl ::std::convert::TryFrom<&str>
-    for RegisterUserOnChainReqBodyPreRegistrationCallsItemData {
+    impl ::std::convert::TryFrom<&str> for RegisterUserOnChainReqBodyPreRegistrationCallsItemData {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
     impl ::std::convert::TryFrom<&::std::string::String>
-    for RegisterUserOnChainReqBodyPreRegistrationCallsItemData {
+        for RegisterUserOnChainReqBodyPreRegistrationCallsItemData
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -28383,7 +27658,8 @@ Supported formats are image/jpeg, image/gif and image/png*/
         }
     }
     impl ::std::convert::TryFrom<::std::string::String>
-    for RegisterUserOnChainReqBodyPreRegistrationCallsItemData {
+        for RegisterUserOnChainReqBodyPreRegistrationCallsItemData
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -28391,8 +27667,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
             value.parse()
         }
     }
-    impl<'de> ::serde::Deserialize<'de>
-    for RegisterUserOnChainReqBodyPreRegistrationCallsItemData {
+    impl<'de> ::serde::Deserialize<'de> for RegisterUserOnChainReqBodyPreRegistrationCallsItemData {
         fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
         where
             D: ::serde::Deserializer<'de>,
@@ -28421,9 +27696,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     /// </details>
     #[derive(::serde::Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
     #[serde(transparent)]
-    pub struct RegisterUserOnChainReqBodyPreRegistrationCallsItemTarget(
-        ::std::string::String,
-    );
+    pub struct RegisterUserOnChainReqBodyPreRegistrationCallsItemTarget(::std::string::String);
     impl ::std::ops::Deref for RegisterUserOnChainReqBodyPreRegistrationCallsItemTarget {
         type Target = ::std::string::String;
         fn deref(&self) -> &::std::string::String {
@@ -28431,38 +27704,34 @@ Supported formats are image/jpeg, image/gif and image/png*/
         }
     }
     impl ::std::convert::From<RegisterUserOnChainReqBodyPreRegistrationCallsItemTarget>
-    for ::std::string::String {
-        fn from(
-            value: RegisterUserOnChainReqBodyPreRegistrationCallsItemTarget,
-        ) -> Self {
+        for ::std::string::String
+    {
+        fn from(value: RegisterUserOnChainReqBodyPreRegistrationCallsItemTarget) -> Self {
             value.0
         }
     }
-    impl ::std::str::FromStr
-    for RegisterUserOnChainReqBodyPreRegistrationCallsItemTarget {
+    impl ::std::str::FromStr for RegisterUserOnChainReqBodyPreRegistrationCallsItemTarget {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
-            static PATTERN: ::std::sync::LazyLock<::regress::Regex> = ::std::sync::LazyLock::new(||
-            { ::regress::Regex::new("^0x[a-fA-F0-9]{40}$").unwrap() });
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+            static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+                ::std::sync::LazyLock::new(|| {
+                    ::regress::Regex::new("^0x[a-fA-F0-9]{40}$").unwrap()
+                });
             if PATTERN.find(value).is_none() {
                 return Err("doesn't match pattern \"^0x[a-fA-F0-9]{40}$\"".into());
             }
             Ok(Self(value.to_string()))
         }
     }
-    impl ::std::convert::TryFrom<&str>
-    for RegisterUserOnChainReqBodyPreRegistrationCallsItemTarget {
+    impl ::std::convert::TryFrom<&str> for RegisterUserOnChainReqBodyPreRegistrationCallsItemTarget {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
     impl ::std::convert::TryFrom<&::std::string::String>
-    for RegisterUserOnChainReqBodyPreRegistrationCallsItemTarget {
+        for RegisterUserOnChainReqBodyPreRegistrationCallsItemTarget
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -28471,7 +27740,8 @@ Supported formats are image/jpeg, image/gif and image/png*/
         }
     }
     impl ::std::convert::TryFrom<::std::string::String>
-    for RegisterUserOnChainReqBodyPreRegistrationCallsItemTarget {
+        for RegisterUserOnChainReqBodyPreRegistrationCallsItemTarget
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -28479,8 +27749,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
             value.parse()
         }
     }
-    impl<'de> ::serde::Deserialize<'de>
-    for RegisterUserOnChainReqBodyPreRegistrationCallsItemTarget {
+    impl<'de> ::serde::Deserialize<'de> for RegisterUserOnChainReqBodyPreRegistrationCallsItemTarget {
         fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
         where
             D: ::serde::Deserializer<'de>,
@@ -28831,9 +28100,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub username: ::std::option::Option<::std::string::String>,
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub verified_accounts: ::std::option::Option<
-            RegisterUserReqBodyMetadataVerifiedAccounts,
-        >,
+        pub verified_accounts: ::std::option::Option<RegisterUserReqBodyMetadataVerifiedAccounts>,
     }
     impl ::std::default::Default for RegisterUserReqBodyMetadata {
         fn default() -> Self {
@@ -29128,7 +28395,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum RegisterUserResponseSignersItemObject {
         #[serde(rename = "signer")]
@@ -29143,9 +28410,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for RegisterUserResponseSignersItemObject {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "signer" => Ok(Self::Signer),
                 _ => Err("invalid value".into()),
@@ -29154,14 +28419,11 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for RegisterUserResponseSignersItemObject {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for RegisterUserResponseSignersItemObject {
+    impl ::std::convert::TryFrom<&::std::string::String> for RegisterUserResponseSignersItemObject {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -29169,8 +28431,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for RegisterUserResponseSignersItemObject {
+    impl ::std::convert::TryFrom<::std::string::String> for RegisterUserResponseSignersItemObject {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -29204,7 +28465,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum RegisterUserResponseSignersItemStatus {
         #[serde(rename = "generated")]
@@ -29228,9 +28489,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for RegisterUserResponseSignersItemStatus {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "generated" => Ok(Self::Generated),
                 "pending_approval" => Ok(Self::PendingApproval),
@@ -29242,14 +28501,11 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for RegisterUserResponseSignersItemStatus {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for RegisterUserResponseSignersItemStatus {
+    impl ::std::convert::TryFrom<&::std::string::String> for RegisterUserResponseSignersItemStatus {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -29257,8 +28513,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for RegisterUserResponseSignersItemStatus {
+    impl ::std::convert::TryFrom<::std::string::String> for RegisterUserResponseSignersItemStatus {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -29484,7 +28739,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum SearchCastsMode {
         #[serde(rename = "literal")]
@@ -29505,9 +28760,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for SearchCastsMode {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "literal" => Ok(Self::Literal),
                 "semantic" => Ok(Self::Semantic),
@@ -29518,9 +28771,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for SearchCastsMode {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -29568,7 +28819,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum SearchCastsSortType {
         #[serde(rename = "desc_chron")]
@@ -29589,9 +28840,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for SearchCastsSortType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "desc_chron" => Ok(Self::DescChron),
                 "chron" => Ok(Self::Chron),
@@ -29602,9 +28851,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for SearchCastsSortType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -29651,9 +28898,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for SearchFramesQ {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             if value.chars().count() > 32usize {
                 return Err("longer than 32 characters".into());
             }
@@ -29662,9 +28907,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for SearchFramesQ {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -29947,9 +29190,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub minimum_user_score: ::std::option::Option<f64>,
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub near_location: ::std::option::Option<
-            SendFrameNotificationsReqBodyFiltersNearLocation,
-        >,
+        pub near_location: ::std::option::Option<SendFrameNotificationsReqBodyFiltersNearLocation>,
     }
     impl ::std::default::Default for SendFrameNotificationsReqBodyFilters {
         fn default() -> Self {
@@ -30097,17 +29338,14 @@ Supported formats are image/jpeg, image/gif and image/png*/
             &self.0
         }
     }
-    impl ::std::convert::From<SendFrameNotificationsReqBodyNotificationBody>
-    for ::std::string::String {
+    impl ::std::convert::From<SendFrameNotificationsReqBodyNotificationBody> for ::std::string::String {
         fn from(value: SendFrameNotificationsReqBodyNotificationBody) -> Self {
             value.0
         }
     }
     impl ::std::str::FromStr for SendFrameNotificationsReqBodyNotificationBody {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             if value.chars().count() > 128usize {
                 return Err("longer than 128 characters".into());
             }
@@ -30117,17 +29355,15 @@ Supported formats are image/jpeg, image/gif and image/png*/
             Ok(Self(value.to_string()))
         }
     }
-    impl ::std::convert::TryFrom<&str>
-    for SendFrameNotificationsReqBodyNotificationBody {
+    impl ::std::convert::TryFrom<&str> for SendFrameNotificationsReqBodyNotificationBody {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
     impl ::std::convert::TryFrom<&::std::string::String>
-    for SendFrameNotificationsReqBodyNotificationBody {
+        for SendFrameNotificationsReqBodyNotificationBody
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -30136,7 +29372,8 @@ Supported formats are image/jpeg, image/gif and image/png*/
         }
     }
     impl ::std::convert::TryFrom<::std::string::String>
-    for SendFrameNotificationsReqBodyNotificationBody {
+        for SendFrameNotificationsReqBodyNotificationBody
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -30144,8 +29381,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
             value.parse()
         }
     }
-    impl<'de> ::serde::Deserialize<'de>
-    for SendFrameNotificationsReqBodyNotificationBody {
+    impl<'de> ::serde::Deserialize<'de> for SendFrameNotificationsReqBodyNotificationBody {
         fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
         where
             D: ::serde::Deserializer<'de>,
@@ -30183,16 +29419,15 @@ Supported formats are image/jpeg, image/gif and image/png*/
         }
     }
     impl ::std::convert::From<SendFrameNotificationsReqBodyNotificationTitle>
-    for ::std::string::String {
+        for ::std::string::String
+    {
         fn from(value: SendFrameNotificationsReqBodyNotificationTitle) -> Self {
             value.0
         }
     }
     impl ::std::str::FromStr for SendFrameNotificationsReqBodyNotificationTitle {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             if value.chars().count() > 32usize {
                 return Err("longer than 32 characters".into());
             }
@@ -30202,17 +29437,15 @@ Supported formats are image/jpeg, image/gif and image/png*/
             Ok(Self(value.to_string()))
         }
     }
-    impl ::std::convert::TryFrom<&str>
-    for SendFrameNotificationsReqBodyNotificationTitle {
+    impl ::std::convert::TryFrom<&str> for SendFrameNotificationsReqBodyNotificationTitle {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
     impl ::std::convert::TryFrom<&::std::string::String>
-    for SendFrameNotificationsReqBodyNotificationTitle {
+        for SendFrameNotificationsReqBodyNotificationTitle
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -30221,7 +29454,8 @@ Supported formats are image/jpeg, image/gif and image/png*/
         }
     }
     impl ::std::convert::TryFrom<::std::string::String>
-    for SendFrameNotificationsReqBodyNotificationTitle {
+        for SendFrameNotificationsReqBodyNotificationTitle
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -30229,8 +29463,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
             value.parse()
         }
     }
-    impl<'de> ::serde::Deserialize<'de>
-    for SendFrameNotificationsReqBodyNotificationTitle {
+    impl<'de> ::serde::Deserialize<'de> for SendFrameNotificationsReqBodyNotificationTitle {
         fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
         where
             D: ::serde::Deserializer<'de>,
@@ -30340,7 +29573,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum SharedSignerPermission {
         #[serde(rename = "WRITE_ALL")]
@@ -30397,9 +29630,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::str::FromStr for SharedSignerPermission {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "WRITE_ALL" => Ok(Self::WriteAll),
                 "READ_ONLY" => Ok(Self::ReadOnly),
@@ -30422,9 +29653,7 @@ Supported formats are image/jpeg, image/gif and image/png*/
     }
     impl ::std::convert::TryFrom<&str> for SharedSignerPermission {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -30476,9 +29705,9 @@ Supported formats are image/jpeg, image/gif and image/png*/
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub signature: ::std::option::Option<::std::string::String>,
         /**Neynar will sponsor the signer if set to true.
-**Note: ** If sponsor.fid and sponsor.signature are provided along with sponsored_by_neynar set to true,
-the sponsor.fid and sponsor.signature will be ignored.
-Neynar will sponsor the signer on behalf of the user. The developer will get charged in credits.*/
+        **Note: ** If sponsor.fid and sponsor.signature are provided along with sponsored_by_neynar set to true,
+        the sponsor.fid and sponsor.signature will be ignored.
+        Neynar will sponsor the signer on behalf of the user. The developer will get charged in credits.*/
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub sponsored_by_neynar: ::std::option::Option<bool>,
     }
@@ -30557,8 +29786,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
         String(::std::string::String),
         EncodedJsonFarcasterSignature(EncodedJsonFarcasterSignature),
     }
-    impl ::std::convert::From<EncodedJsonFarcasterSignature>
-    for SignedMessageBodySignedMessage {
+    impl ::std::convert::From<EncodedJsonFarcasterSignature> for SignedMessageBodySignedMessage {
         fn from(value: EncodedJsonFarcasterSignature) -> Self {
             Self::EncodedJsonFarcasterSignature(value)
         }
@@ -30677,7 +29905,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum SignerObject {
         #[serde(rename = "signer")]
@@ -30692,9 +29920,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     }
     impl ::std::str::FromStr for SignerObject {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "signer" => Ok(Self::Signer),
                 _ => Err("invalid value".into()),
@@ -30703,9 +29929,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     }
     impl ::std::convert::TryFrom<&str> for SignerObject {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -30751,7 +29975,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum SignerStatus {
         #[serde(rename = "generated")]
@@ -30775,9 +29999,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     }
     impl ::std::str::FromStr for SignerStatus {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "generated" => Ok(Self::Generated),
                 "pending_approval" => Ok(Self::PendingApproval),
@@ -30789,9 +30011,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     }
     impl ::std::convert::TryFrom<&str> for SignerStatus {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -30812,7 +30032,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
         }
     }
     /**UUID of the signer.
-`signer_uuid` is paired with API key, can't use a `uuid` made with a different API key.*/
+    `signer_uuid` is paired with API key, can't use a `uuid` made with a different API key.*/
     ///
     /// <details><summary>JSON schema</summary>
     ///
@@ -30828,15 +30048,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     /// ```
     /// </details>
     #[derive(
-        ::serde::Deserialize,
-        ::serde::Serialize,
-        Clone,
-        Debug,
-        Eq,
-        Hash,
-        Ord,
-        PartialEq,
-        PartialOrd
+        ::serde::Deserialize, ::serde::Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd,
     )]
     #[serde(transparent)]
     pub struct SignerUuid(pub ::std::string::String);
@@ -30911,19 +30123,19 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
         ///Domain of the mini app
         pub app_domain: ::std::string::String,
         /**Types of events that can occur between a user and an app host:
-- frame_added: User adds a mini app to their account
-- frame_removed: User removes a mini app from their account
-- notifications_enabled: User enables notifications for a mini app
-- notifications_disabled: User disables notifications for a mini app*/
+        - frame_added: User adds a mini app to their account
+        - frame_removed: User removes a mini app from their account
+        - notifications_enabled: User enables notifications for a mini app
+        - notifications_disabled: User disables notifications for a mini app*/
         pub event: SignerUuidBodyEvent,
         pub fid: Fid,
         pub signer_uuid: SignerUuid,
     }
     /**Types of events that can occur between a user and an app host:
-- frame_added: User adds a mini app to their account
-- frame_removed: User removes a mini app from their account
-- notifications_enabled: User enables notifications for a mini app
-- notifications_disabled: User disables notifications for a mini app*/
+    - frame_added: User adds a mini app to their account
+    - frame_removed: User removes a mini app from their account
+    - notifications_enabled: User enables notifications for a mini app
+    - notifications_disabled: User disables notifications for a mini app*/
     ///
     /// <details><summary>JSON schema</summary>
     ///
@@ -30950,7 +30162,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum SignerUuidBodyEvent {
         #[serde(rename = "frame_added")]
@@ -30974,9 +30186,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     }
     impl ::std::str::FromStr for SignerUuidBodyEvent {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "frame_added" => Ok(Self::FrameAdded),
                 "frame_removed" => Ok(Self::FrameRemoved),
@@ -30988,9 +30198,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     }
     impl ::std::convert::TryFrom<&str> for SignerUuidBodyEvent {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -31035,7 +30243,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum SimulateNftMintNetwork {
         #[serde(rename = "base")]
@@ -31056,9 +30264,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     }
     impl ::std::str::FromStr for SimulateNftMintNetwork {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "base" => Ok(Self::Base),
                 "optimism" => Ok(Self::Optimism),
@@ -31069,9 +30275,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     }
     impl ::std::convert::TryFrom<&str> for SimulateNftMintNetwork {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -31228,13 +30432,15 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
         }
     }
     impl ::std::convert::From<SimulateNftMintResponse>
-    for ::std::vec::Vec<SimulateNftMintResponseItem> {
+        for ::std::vec::Vec<SimulateNftMintResponseItem>
+    {
         fn from(value: SimulateNftMintResponse) -> Self {
             value.0
         }
     }
     impl ::std::convert::From<::std::vec::Vec<SimulateNftMintResponseItem>>
-    for SimulateNftMintResponse {
+        for SimulateNftMintResponse
+    {
         fn from(value: ::std::vec::Vec<SimulateNftMintResponseItem>) -> Self {
             Self(value)
         }
@@ -31444,17 +30650,13 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
             default,
             skip_serializing_if = "::std::option::Option::is_none"
         )]
-        pub subtype_0: ::std::option::Option<
-            SimulateNftMintResponseItemRecipientSubtype0,
-        >,
+        pub subtype_0: ::std::option::Option<SimulateNftMintResponseItemRecipientSubtype0>,
         #[serde(
             flatten,
             default,
             skip_serializing_if = "::std::option::Option::is_none"
         )]
-        pub subtype_1: ::std::option::Option<
-            SimulateNftMintResponseItemRecipientSubtype1,
-        >,
+        pub subtype_1: ::std::option::Option<SimulateNftMintResponseItemRecipientSubtype1>,
     }
     impl ::std::default::Default for SimulateNftMintResponseItemRecipient {
         fn default() -> Self {
@@ -31521,7 +30723,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     #[serde(deny_unknown_fields)]
     pub enum SimulateNftMintResponseItemRecipientSubtype0Fid {}
@@ -31558,9 +30760,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct SimulateNftMintResponseItemRecipientSubtype1 {
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub address: ::std::option::Option<
-            SimulateNftMintResponseItemRecipientSubtype1Address,
-        >,
+        pub address: ::std::option::Option<SimulateNftMintResponseItemRecipientSubtype1Address>,
         pub fid: Fid,
         ///Quantity to mint (must be at least 1). Defaults to 1.
         #[serde(default = "defaults::default_nzu64::<::std::num::NonZeroU64, 1>")]
@@ -31584,7 +30784,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     #[serde(deny_unknown_fields)]
     pub enum SimulateNftMintResponseItemRecipientSubtype1Address {}
@@ -31617,24 +30817,20 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     }
     impl ::std::str::FromStr for SolAddress {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
-            static PATTERN: ::std::sync::LazyLock<::regress::Regex> = ::std::sync::LazyLock::new(||
-            { ::regress::Regex::new("^[1-9A-HJ-NP-Za-km-z]{32,44}$").unwrap() });
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+            static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+                ::std::sync::LazyLock::new(|| {
+                    ::regress::Regex::new("^[1-9A-HJ-NP-Za-km-z]{32,44}$").unwrap()
+                });
             if PATTERN.find(value).is_none() {
-                return Err(
-                    "doesn't match pattern \"^[1-9A-HJ-NP-Za-km-z]{32,44}$\"".into(),
-                );
+                return Err("doesn't match pattern \"^[1-9A-HJ-NP-Za-km-z]{32,44}$\"".into());
             }
             Ok(Self(value.to_string()))
         }
     }
     impl ::std::convert::TryFrom<&str> for SolAddress {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -32342,7 +31538,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum SubscribedToObject {
         #[serde(rename = "subscription")]
@@ -32357,9 +31553,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     }
     impl ::std::str::FromStr for SubscribedToObject {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "subscription" => Ok(Self::Subscription),
                 _ => Err("invalid value".into()),
@@ -32368,9 +31562,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     }
     impl ::std::convert::TryFrom<&str> for SubscribedToObject {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -32470,9 +31662,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
         pub protocol_version: ::std::option::Option<i64>,
         pub provider_name: ::std::string::String,
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub subscribed_at: ::std::option::Option<
-            ::chrono::DateTime<::chrono::offset::Utc>,
-        >,
+        pub subscribed_at: ::std::option::Option<::chrono::DateTime<::chrono::offset::Utc>>,
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub tier_id: ::std::option::Option<::std::string::String>,
     }
@@ -32499,7 +31689,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum SubscribedToObjectInfoObject {
         #[serde(rename = "subscription_dehydrated")]
@@ -32514,9 +31704,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     }
     impl ::std::str::FromStr for SubscribedToObjectInfoObject {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "subscription_dehydrated" => Ok(Self::SubscriptionDehydrated),
                 _ => Err("invalid value".into()),
@@ -32525,14 +31713,11 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     }
     impl ::std::convert::TryFrom<&str> for SubscribedToObjectInfoObject {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for SubscribedToObjectInfoObject {
+    impl ::std::convert::TryFrom<&::std::string::String> for SubscribedToObjectInfoObject {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -32540,8 +31725,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for SubscribedToObjectInfoObject {
+    impl ::std::convert::TryFrom<::std::string::String> for SubscribedToObjectInfoObject {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -32729,7 +31913,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum SubscriberObject {
         #[serde(rename = "subscriber")]
@@ -32744,9 +31928,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     }
     impl ::std::str::FromStr for SubscriberObject {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "subscriber" => Ok(Self::Subscriber),
                 _ => Err("invalid value".into()),
@@ -32755,9 +31937,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     }
     impl ::std::convert::TryFrom<&str> for SubscriberObject {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -33045,40 +32225,30 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     #[serde(transparent)]
     pub struct SubscriptionCheckResponse(
-        pub ::std::collections::HashMap<
-            ::std::string::String,
-            SubscriptionCheckResponseValue,
-        >,
+        pub ::std::collections::HashMap<::std::string::String, SubscriptionCheckResponseValue>,
     );
     impl ::std::ops::Deref for SubscriptionCheckResponse {
-        type Target = ::std::collections::HashMap<
-            ::std::string::String,
-            SubscriptionCheckResponseValue,
-        >;
+        type Target =
+            ::std::collections::HashMap<::std::string::String, SubscriptionCheckResponseValue>;
         fn deref(
             &self,
-        ) -> &::std::collections::HashMap<
-            ::std::string::String,
-            SubscriptionCheckResponseValue,
-        > {
+        ) -> &::std::collections::HashMap<::std::string::String, SubscriptionCheckResponseValue>
+        {
             &self.0
         }
     }
     impl ::std::convert::From<SubscriptionCheckResponse>
-    for ::std::collections::HashMap<
-        ::std::string::String,
-        SubscriptionCheckResponseValue,
-    > {
+        for ::std::collections::HashMap<::std::string::String, SubscriptionCheckResponseValue>
+    {
         fn from(value: SubscriptionCheckResponse) -> Self {
             value.0
         }
     }
-    impl ::std::convert::From<
-        ::std::collections::HashMap<
-            ::std::string::String,
-            SubscriptionCheckResponseValue,
-        >,
-    > for SubscriptionCheckResponse {
+    impl
+        ::std::convert::From<
+            ::std::collections::HashMap<::std::string::String, SubscriptionCheckResponseValue>,
+        > for SubscriptionCheckResponse
+    {
         fn from(
             value: ::std::collections::HashMap<
                 ::std::string::String,
@@ -33174,7 +32344,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum SubscriptionCheckResponseValueObject {
         #[serde(rename = "subscribed_to_dehydrated")]
@@ -33189,9 +32359,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     }
     impl ::std::str::FromStr for SubscriptionCheckResponseValueObject {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "subscribed_to_dehydrated" => Ok(Self::SubscribedToDehydrated),
                 _ => Err("invalid value".into()),
@@ -33200,14 +32368,11 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     }
     impl ::std::convert::TryFrom<&str> for SubscriptionCheckResponseValueObject {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for SubscriptionCheckResponseValueObject {
+    impl ::std::convert::TryFrom<&::std::string::String> for SubscriptionCheckResponseValueObject {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -33215,8 +32380,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for SubscriptionCheckResponseValueObject {
+    impl ::std::convert::TryFrom<::std::string::String> for SubscriptionCheckResponseValueObject {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -33288,7 +32452,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum SubscriptionObject {
         #[serde(rename = "subscription")]
@@ -33303,9 +32467,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     }
     impl ::std::str::FromStr for SubscriptionObject {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "subscription" => Ok(Self::Subscription),
                 _ => Err("invalid value".into()),
@@ -33314,9 +32476,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     }
     impl ::std::convert::TryFrom<&str> for SubscriptionObject {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -33401,7 +32561,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum SubscriptionProvider {
         #[serde(rename = "fabric_stp")]
@@ -33416,9 +32576,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     }
     impl ::std::str::FromStr for SubscriptionProvider {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "fabric_stp" => Ok(Self::FabricStp),
                 _ => Err("invalid value".into()),
@@ -33427,9 +32585,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     }
     impl ::std::convert::TryFrom<&str> for SubscriptionProvider {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -33477,7 +32633,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum SubscriptionProviders {
         #[serde(rename = "fabric_stp")]
@@ -33495,9 +32651,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     }
     impl ::std::str::FromStr for SubscriptionProviders {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "fabric_stp" => Ok(Self::FabricStp),
                 "paragraph" => Ok(Self::Paragraph),
@@ -33507,9 +32661,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     }
     impl ::std::convert::TryFrom<&str> for SubscriptionProviders {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -33904,7 +33056,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum TokenBalanceObject {
         #[serde(rename = "token_balance")]
@@ -33919,9 +33071,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     }
     impl ::std::str::FromStr for TokenBalanceObject {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "token_balance" => Ok(Self::TokenBalance),
                 _ => Err("invalid value".into()),
@@ -33930,9 +33080,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     }
     impl ::std::convert::TryFrom<&str> for TokenBalanceObject {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -34028,7 +33176,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum TokenBalanceTokenObject {
         #[serde(rename = "token")]
@@ -34043,9 +33191,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     }
     impl ::std::str::FromStr for TokenBalanceTokenObject {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "token" => Ok(Self::Token),
                 _ => Err("invalid value".into()),
@@ -34054,9 +33200,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     }
     impl ::std::convert::TryFrom<&str> for TokenBalanceTokenObject {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -34119,7 +33263,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum TopLevelTopic {
         #[serde(rename = "arts_culture")]
@@ -34188,9 +33332,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     }
     impl ::std::str::FromStr for TopLevelTopic {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "arts_culture" => Ok(Self::ArtsCulture),
                 "business_entrepreneurs" => Ok(Self::BusinessEntrepreneurs),
@@ -34217,9 +33359,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     }
     impl ::std::convert::TryFrom<&str> for TopLevelTopic {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -34449,35 +33589,34 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
         }
     }
     impl ::std::convert::From<TransactionFrameDestinationTokenContractAddress>
-    for ::std::string::String {
+        for ::std::string::String
+    {
         fn from(value: TransactionFrameDestinationTokenContractAddress) -> Self {
             value.0
         }
     }
     impl ::std::str::FromStr for TransactionFrameDestinationTokenContractAddress {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
-            static PATTERN: ::std::sync::LazyLock<::regress::Regex> = ::std::sync::LazyLock::new(||
-            { ::regress::Regex::new("^0x[a-fA-F0-9]{40}$").unwrap() });
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+            static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+                ::std::sync::LazyLock::new(|| {
+                    ::regress::Regex::new("^0x[a-fA-F0-9]{40}$").unwrap()
+                });
             if PATTERN.find(value).is_none() {
                 return Err("doesn't match pattern \"^0x[a-fA-F0-9]{40}$\"".into());
             }
             Ok(Self(value.to_string()))
         }
     }
-    impl ::std::convert::TryFrom<&str>
-    for TransactionFrameDestinationTokenContractAddress {
+    impl ::std::convert::TryFrom<&str> for TransactionFrameDestinationTokenContractAddress {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
     impl ::std::convert::TryFrom<&::std::string::String>
-    for TransactionFrameDestinationTokenContractAddress {
+        for TransactionFrameDestinationTokenContractAddress
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -34486,7 +33625,8 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
         }
     }
     impl ::std::convert::TryFrom<::std::string::String>
-    for TransactionFrameDestinationTokenContractAddress {
+        for TransactionFrameDestinationTokenContractAddress
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -34494,8 +33634,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
             value.parse()
         }
     }
-    impl<'de> ::serde::Deserialize<'de>
-    for TransactionFrameDestinationTokenContractAddress {
+    impl<'de> ::serde::Deserialize<'de> for TransactionFrameDestinationTokenContractAddress {
         fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
         where
             D: ::serde::Deserializer<'de>,
@@ -34687,7 +33826,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum TransactionFrameStatus {
         #[serde(rename = "created")]
@@ -34705,9 +33844,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     }
     impl ::std::str::FromStr for TransactionFrameStatus {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "created" => Ok(Self::Created),
                 "completed" => Ok(Self::Completed),
@@ -34717,9 +33854,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     }
     impl ::std::convert::TryFrom<&str> for TransactionFrameStatus {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -34764,7 +33899,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum TransactionFrameType {
         #[serde(rename = "pay")]
@@ -34779,9 +33914,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     }
     impl ::std::str::FromStr for TransactionFrameType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "pay" => Ok(Self::Pay),
                 _ => Err("invalid value".into()),
@@ -34790,9 +33923,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     }
     impl ::std::convert::TryFrom<&str> for TransactionFrameType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -34880,7 +34011,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum TransactionSendFungiblesReceiptStatus {
         #[serde(rename = "sent")]
@@ -34898,9 +34029,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     }
     impl ::std::str::FromStr for TransactionSendFungiblesReceiptStatus {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "sent" => Ok(Self::Sent),
                 "failed" => Ok(Self::Failed),
@@ -34910,14 +34039,11 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     }
     impl ::std::convert::TryFrom<&str> for TransactionSendFungiblesReceiptStatus {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for TransactionSendFungiblesReceiptStatus {
+    impl ::std::convert::TryFrom<&::std::string::String> for TransactionSendFungiblesReceiptStatus {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -34925,8 +34051,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for TransactionSendFungiblesReceiptStatus {
+    impl ::std::convert::TryFrom<::std::string::String> for TransactionSendFungiblesReceiptStatus {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -35010,9 +34135,8 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     pub struct TransactionSendFungiblesReqBody {
         ///Contract address of the fungible token to send. If not provided, the default is the native token of the network.
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub fungible_contract_address: ::std::option::Option<
-            TransactionSendFungiblesReqBodyFungibleContractAddress,
-        >,
+        pub fungible_contract_address:
+            ::std::option::Option<TransactionSendFungiblesReqBodyFungibleContractAddress>,
         pub network: TransactionSendFungiblesReqBodyNetwork,
         pub recipients: ::std::vec::Vec<TransactionSendFungiblesRecipient>,
     }
@@ -35033,9 +34157,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     /// </details>
     #[derive(::serde::Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
     #[serde(transparent)]
-    pub struct TransactionSendFungiblesReqBodyFungibleContractAddress(
-        ::std::string::String,
-    );
+    pub struct TransactionSendFungiblesReqBodyFungibleContractAddress(::std::string::String);
     impl ::std::ops::Deref for TransactionSendFungiblesReqBodyFungibleContractAddress {
         type Target = ::std::string::String;
         fn deref(&self) -> &::std::string::String {
@@ -35043,35 +34165,34 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
         }
     }
     impl ::std::convert::From<TransactionSendFungiblesReqBodyFungibleContractAddress>
-    for ::std::string::String {
+        for ::std::string::String
+    {
         fn from(value: TransactionSendFungiblesReqBodyFungibleContractAddress) -> Self {
             value.0
         }
     }
     impl ::std::str::FromStr for TransactionSendFungiblesReqBodyFungibleContractAddress {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
-            static PATTERN: ::std::sync::LazyLock<::regress::Regex> = ::std::sync::LazyLock::new(||
-            { ::regress::Regex::new("^0x[a-fA-F0-9]{40}$").unwrap() });
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+            static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+                ::std::sync::LazyLock::new(|| {
+                    ::regress::Regex::new("^0x[a-fA-F0-9]{40}$").unwrap()
+                });
             if PATTERN.find(value).is_none() {
                 return Err("doesn't match pattern \"^0x[a-fA-F0-9]{40}$\"".into());
             }
             Ok(Self(value.to_string()))
         }
     }
-    impl ::std::convert::TryFrom<&str>
-    for TransactionSendFungiblesReqBodyFungibleContractAddress {
+    impl ::std::convert::TryFrom<&str> for TransactionSendFungiblesReqBodyFungibleContractAddress {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
     impl ::std::convert::TryFrom<&::std::string::String>
-    for TransactionSendFungiblesReqBodyFungibleContractAddress {
+        for TransactionSendFungiblesReqBodyFungibleContractAddress
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -35080,7 +34201,8 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
         }
     }
     impl ::std::convert::TryFrom<::std::string::String>
-    for TransactionSendFungiblesReqBodyFungibleContractAddress {
+        for TransactionSendFungiblesReqBodyFungibleContractAddress
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -35088,8 +34210,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
             value.parse()
         }
     }
-    impl<'de> ::serde::Deserialize<'de>
-    for TransactionSendFungiblesReqBodyFungibleContractAddress {
+    impl<'de> ::serde::Deserialize<'de> for TransactionSendFungiblesReqBodyFungibleContractAddress {
         fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
         where
             D: ::serde::Deserializer<'de>,
@@ -35126,7 +34247,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum TransactionSendFungiblesReqBodyNetwork {
         #[serde(rename = "base")]
@@ -35147,9 +34268,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     }
     impl ::std::str::FromStr for TransactionSendFungiblesReqBodyNetwork {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "base" => Ok(Self::Base),
                 "optimism" => Ok(Self::Optimism),
@@ -35160,14 +34279,11 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     }
     impl ::std::convert::TryFrom<&str> for TransactionSendFungiblesReqBodyNetwork {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for TransactionSendFungiblesReqBodyNetwork {
+    impl ::std::convert::TryFrom<&::std::string::String> for TransactionSendFungiblesReqBodyNetwork {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -35175,8 +34291,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for TransactionSendFungiblesReqBodyNetwork {
+    impl ::std::convert::TryFrom<::std::string::String> for TransactionSendFungiblesReqBodyNetwork {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -35290,7 +34405,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum TransactionSendTxInfoNetwork {
         #[serde(rename = "base")]
@@ -35311,9 +34426,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     }
     impl ::std::str::FromStr for TransactionSendTxInfoNetwork {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "base" => Ok(Self::Base),
                 "optimism" => Ok(Self::Optimism),
@@ -35324,14 +34437,11 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     }
     impl ::std::convert::TryFrom<&str> for TransactionSendTxInfoNetwork {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for TransactionSendTxInfoNetwork {
+    impl ::std::convert::TryFrom<&::std::string::String> for TransactionSendTxInfoNetwork {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -35339,8 +34449,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for TransactionSendTxInfoNetwork {
+    impl ::std::convert::TryFrom<::std::string::String> for TransactionSendTxInfoNetwork {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -35654,14 +34763,10 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
         pub pfp_url: ::std::option::Option<::std::string::String>,
         ///Must be one of the verified addresses.
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub primary_eth_address: ::std::option::Option<
-            UpdateUserReqBodyPrimaryEthAddress,
-        >,
+        pub primary_eth_address: ::std::option::Option<UpdateUserReqBodyPrimaryEthAddress>,
         ///Must be one of the verified addresses.
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub primary_sol_address: ::std::option::Option<
-            UpdateUserReqBodyPrimarySolAddress,
-        >,
+        pub primary_sol_address: ::std::option::Option<UpdateUserReqBodyPrimarySolAddress>,
         pub signer_uuid: SignerUuid,
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub url: ::std::option::Option<::std::string::String>,
@@ -35727,19 +34832,18 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
             &self.0
         }
     }
-    impl ::std::convert::From<UpdateUserReqBodyPrimaryEthAddress>
-    for ::std::string::String {
+    impl ::std::convert::From<UpdateUserReqBodyPrimaryEthAddress> for ::std::string::String {
         fn from(value: UpdateUserReqBodyPrimaryEthAddress) -> Self {
             value.0
         }
     }
     impl ::std::str::FromStr for UpdateUserReqBodyPrimaryEthAddress {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
-            static PATTERN: ::std::sync::LazyLock<::regress::Regex> = ::std::sync::LazyLock::new(||
-            { ::regress::Regex::new("^0x[a-fA-F0-9]{40}$").unwrap() });
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+            static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+                ::std::sync::LazyLock::new(|| {
+                    ::regress::Regex::new("^0x[a-fA-F0-9]{40}$").unwrap()
+                });
             if PATTERN.find(value).is_none() {
                 return Err("doesn't match pattern \"^0x[a-fA-F0-9]{40}$\"".into());
             }
@@ -35748,14 +34852,11 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     }
     impl ::std::convert::TryFrom<&str> for UpdateUserReqBodyPrimaryEthAddress {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for UpdateUserReqBodyPrimaryEthAddress {
+    impl ::std::convert::TryFrom<&::std::string::String> for UpdateUserReqBodyPrimaryEthAddress {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -35763,8 +34864,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for UpdateUserReqBodyPrimaryEthAddress {
+    impl ::std::convert::TryFrom<::std::string::String> for UpdateUserReqBodyPrimaryEthAddress {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -35805,37 +34905,31 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
             &self.0
         }
     }
-    impl ::std::convert::From<UpdateUserReqBodyPrimarySolAddress>
-    for ::std::string::String {
+    impl ::std::convert::From<UpdateUserReqBodyPrimarySolAddress> for ::std::string::String {
         fn from(value: UpdateUserReqBodyPrimarySolAddress) -> Self {
             value.0
         }
     }
     impl ::std::str::FromStr for UpdateUserReqBodyPrimarySolAddress {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
-            static PATTERN: ::std::sync::LazyLock<::regress::Regex> = ::std::sync::LazyLock::new(||
-            { ::regress::Regex::new("^[1-9A-HJ-NP-Za-km-z]{32,44}$").unwrap() });
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+            static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+                ::std::sync::LazyLock::new(|| {
+                    ::regress::Regex::new("^[1-9A-HJ-NP-Za-km-z]{32,44}$").unwrap()
+                });
             if PATTERN.find(value).is_none() {
-                return Err(
-                    "doesn't match pattern \"^[1-9A-HJ-NP-Za-km-z]{32,44}$\"".into(),
-                );
+                return Err("doesn't match pattern \"^[1-9A-HJ-NP-Za-km-z]{32,44}$\"".into());
             }
             Ok(Self(value.to_string()))
         }
     }
     impl ::std::convert::TryFrom<&str> for UpdateUserReqBodyPrimarySolAddress {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for UpdateUserReqBodyPrimarySolAddress {
+    impl ::std::convert::TryFrom<&::std::string::String> for UpdateUserReqBodyPrimarySolAddress {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -35843,8 +34937,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for UpdateUserReqBodyPrimarySolAddress {
+    impl ::std::convert::TryFrom<::std::string::String> for UpdateUserReqBodyPrimarySolAddress {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -35957,7 +35050,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum UpgradeBodyProductCategory {
         #[serde(rename = "API")]
@@ -35975,9 +35068,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     }
     impl ::std::str::FromStr for UpgradeBodyProductCategory {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "API" => Ok(Self::Api),
                 "STUDIO" => Ok(Self::Studio),
@@ -35987,9 +35078,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     }
     impl ::std::convert::TryFrom<&str> for UpgradeBodyProductCategory {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -36033,7 +35122,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum UpgradePreviewProductCategory {
         #[serde(rename = "API")]
@@ -36051,9 +35140,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     }
     impl ::std::str::FromStr for UpgradePreviewProductCategory {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "API" => Ok(Self::Api),
                 "STUDIO" => Ok(Self::Studio),
@@ -36063,14 +35150,11 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     }
     impl ::std::convert::TryFrom<&str> for UpgradePreviewProductCategory {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for UpgradePreviewProductCategory {
+    impl ::std::convert::TryFrom<&::std::string::String> for UpgradePreviewProductCategory {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -36078,8 +35162,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for UpgradePreviewProductCategory {
+    impl ::std::convert::TryFrom<::std::string::String> for UpgradePreviewProductCategory {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -36637,7 +35720,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum UploadTokenMetadataBodyNetwork {
         #[serde(rename = "base")]
@@ -36658,9 +35741,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     }
     impl ::std::str::FromStr for UploadTokenMetadataBodyNetwork {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "base" => Ok(Self::Base),
                 "optimism" => Ok(Self::Optimism),
@@ -36671,14 +35752,11 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     }
     impl ::std::convert::TryFrom<&str> for UploadTokenMetadataBodyNetwork {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for UploadTokenMetadataBodyNetwork {
+    impl ::std::convert::TryFrom<&::std::string::String> for UploadTokenMetadataBodyNetwork {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -36686,8 +35764,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for UploadTokenMetadataBodyNetwork {
+    impl ::std::convert::TryFrom<::std::string::String> for UploadTokenMetadataBodyNetwork {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -36867,13 +35944,10 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub animation_url: ::std::option::Option<::std::string::String>,
         #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
-        pub attributes: ::std::vec::Vec<
-            UploadTokenMetadataBodyTokensItemMetadataAttributesItem,
-        >,
+        pub attributes: ::std::vec::Vec<UploadTokenMetadataBodyTokensItemMetadataAttributesItem>,
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub background_color: ::std::option::Option<
-            UploadTokenMetadataBodyTokensItemMetadataBackgroundColor,
-        >,
+        pub background_color:
+            ::std::option::Option<UploadTokenMetadataBodyTokensItemMetadataBackgroundColor>,
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub description: ::std::option::Option<::std::string::String>,
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
@@ -36961,7 +36035,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum UploadTokenMetadataBodyTokensItemMetadataAttributesItemDisplayType {
         #[serde(rename = "number")]
@@ -36973,8 +36047,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
         #[serde(rename = "date")]
         Date,
     }
-    impl ::std::fmt::Display
-    for UploadTokenMetadataBodyTokensItemMetadataAttributesItemDisplayType {
+    impl ::std::fmt::Display for UploadTokenMetadataBodyTokensItemMetadataAttributesItemDisplayType {
         fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
             match *self {
                 Self::Number => f.write_str("number"),
@@ -36984,12 +36057,9 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
             }
         }
     }
-    impl ::std::str::FromStr
-    for UploadTokenMetadataBodyTokensItemMetadataAttributesItemDisplayType {
+    impl ::std::str::FromStr for UploadTokenMetadataBodyTokensItemMetadataAttributesItemDisplayType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "number" => Ok(Self::Number),
                 "boost_number" => Ok(Self::BoostNumber),
@@ -37000,16 +36070,16 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
         }
     }
     impl ::std::convert::TryFrom<&str>
-    for UploadTokenMetadataBodyTokensItemMetadataAttributesItemDisplayType {
+        for UploadTokenMetadataBodyTokensItemMetadataAttributesItemDisplayType
+    {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
     impl ::std::convert::TryFrom<&::std::string::String>
-    for UploadTokenMetadataBodyTokensItemMetadataAttributesItemDisplayType {
+        for UploadTokenMetadataBodyTokensItemMetadataAttributesItemDisplayType
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -37018,7 +36088,8 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
         }
     }
     impl ::std::convert::TryFrom<::std::string::String>
-    for UploadTokenMetadataBodyTokensItemMetadataAttributesItemDisplayType {
+        for UploadTokenMetadataBodyTokensItemMetadataAttributesItemDisplayType
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -37049,8 +36120,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
         String(::std::string::String),
         Number(f64),
     }
-    impl ::std::fmt::Display
-    for UploadTokenMetadataBodyTokensItemMetadataAttributesItemValue {
+    impl ::std::fmt::Display for UploadTokenMetadataBodyTokensItemMetadataAttributesItemValue {
         fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
             match self {
                 Self::String(x) => x.fmt(f),
@@ -37058,8 +36128,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
             }
         }
     }
-    impl ::std::convert::From<f64>
-    for UploadTokenMetadataBodyTokensItemMetadataAttributesItemValue {
+    impl ::std::convert::From<f64> for UploadTokenMetadataBodyTokensItemMetadataAttributesItemValue {
         fn from(value: f64) -> Self {
             Self::Number(value)
         }
@@ -37077,9 +36146,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     /// </details>
     #[derive(::serde::Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
     #[serde(transparent)]
-    pub struct UploadTokenMetadataBodyTokensItemMetadataBackgroundColor(
-        ::std::string::String,
-    );
+    pub struct UploadTokenMetadataBodyTokensItemMetadataBackgroundColor(::std::string::String);
     impl ::std::ops::Deref for UploadTokenMetadataBodyTokensItemMetadataBackgroundColor {
         type Target = ::std::string::String;
         fn deref(&self) -> &::std::string::String {
@@ -37087,38 +36154,32 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
         }
     }
     impl ::std::convert::From<UploadTokenMetadataBodyTokensItemMetadataBackgroundColor>
-    for ::std::string::String {
-        fn from(
-            value: UploadTokenMetadataBodyTokensItemMetadataBackgroundColor,
-        ) -> Self {
+        for ::std::string::String
+    {
+        fn from(value: UploadTokenMetadataBodyTokensItemMetadataBackgroundColor) -> Self {
             value.0
         }
     }
-    impl ::std::str::FromStr
-    for UploadTokenMetadataBodyTokensItemMetadataBackgroundColor {
+    impl ::std::str::FromStr for UploadTokenMetadataBodyTokensItemMetadataBackgroundColor {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
-            static PATTERN: ::std::sync::LazyLock<::regress::Regex> = ::std::sync::LazyLock::new(||
-            { ::regress::Regex::new("^[0-9a-fA-F]{6}$").unwrap() });
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+            static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+                ::std::sync::LazyLock::new(|| ::regress::Regex::new("^[0-9a-fA-F]{6}$").unwrap());
             if PATTERN.find(value).is_none() {
                 return Err("doesn't match pattern \"^[0-9a-fA-F]{6}$\"".into());
             }
             Ok(Self(value.to_string()))
         }
     }
-    impl ::std::convert::TryFrom<&str>
-    for UploadTokenMetadataBodyTokensItemMetadataBackgroundColor {
+    impl ::std::convert::TryFrom<&str> for UploadTokenMetadataBodyTokensItemMetadataBackgroundColor {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
     impl ::std::convert::TryFrom<&::std::string::String>
-    for UploadTokenMetadataBodyTokensItemMetadataBackgroundColor {
+        for UploadTokenMetadataBodyTokensItemMetadataBackgroundColor
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -37127,7 +36188,8 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
         }
     }
     impl ::std::convert::TryFrom<::std::string::String>
-    for UploadTokenMetadataBodyTokensItemMetadataBackgroundColor {
+        for UploadTokenMetadataBodyTokensItemMetadataBackgroundColor
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -37135,8 +36197,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
             value.parse()
         }
     }
-    impl<'de> ::serde::Deserialize<'de>
-    for UploadTokenMetadataBodyTokensItemMetadataBackgroundColor {
+    impl<'de> ::serde::Deserialize<'de> for UploadTokenMetadataBodyTokensItemMetadataBackgroundColor {
         fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
         where
             D: ::serde::Deserializer<'de>,
@@ -37248,8 +36309,14 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     #[serde(untagged)]
     pub enum UploadTokenMetadataResponseTokensItem {
-        Variant0 { token_id: ::std::string::String, uri: ::std::string::String },
-        Variant1 { error: ::std::string::String, token_id: ::std::string::String },
+        Variant0 {
+            token_id: ::std::string::String,
+            uri: ::std::string::String,
+        },
+        Variant1 {
+            error: ::std::string::String,
+            token_id: ::std::string::String,
+        },
     }
     ///`UpsertSecretsBody`
     ///
@@ -37446,9 +36513,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
         pub object: UserObject,
         pub profile: UserProfile,
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub registered_at: ::std::option::Option<
-            ::chrono::DateTime<::chrono::offset::Utc>,
-        >,
+        pub registered_at: ::std::option::Option<::chrono::DateTime<::chrono::offset::Utc>>,
         pub username: ::std::string::String,
     }
     ///`UserDehydrated`
@@ -37523,7 +36588,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum UserDehydratedObject {
         #[serde(rename = "user_dehydrated")]
@@ -37538,9 +36603,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     }
     impl ::std::str::FromStr for UserDehydratedObject {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "user_dehydrated" => Ok(Self::UserDehydrated),
                 _ => Err("invalid value".into()),
@@ -37549,9 +36612,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     }
     impl ::std::convert::TryFrom<&str> for UserDehydratedObject {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -37617,7 +36678,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum UserObject {
         #[serde(rename = "user")]
@@ -37632,9 +36693,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     }
     impl ::std::str::FromStr for UserObject {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "user" => Ok(Self::User),
                 _ => Err("invalid value".into()),
@@ -37643,9 +36702,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     }
     impl ::std::convert::TryFrom<&str> for UserObject {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -38247,7 +37304,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     #[serde(deny_unknown_fields)]
     pub enum VerificationChainId {}
@@ -38274,7 +37331,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum VerificationObject {
         #[serde(rename = "verification")]
@@ -38289,9 +37346,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     }
     impl ::std::str::FromStr for VerificationObject {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "verification" => Ok(Self::Verification),
                 _ => Err("invalid value".into()),
@@ -38300,9 +37355,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     }
     impl ::std::convert::TryFrom<&str> for VerificationObject {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -38360,7 +37413,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     #[serde(deny_unknown_fields)]
     pub enum VerificationType {}
@@ -38583,7 +37636,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum WebhookObject {
         #[serde(rename = "webhook")]
@@ -38598,9 +37651,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     }
     impl ::std::str::FromStr for WebhookObject {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "webhook" => Ok(Self::Webhook),
                 _ => Err("invalid value".into()),
@@ -38609,9 +37660,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     }
     impl ::std::convert::TryFrom<&str> for WebhookObject {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -38687,7 +37736,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum WebhookPatchReqBodyActive {
         #[serde(rename = "true")]
@@ -38705,9 +37754,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     }
     impl ::std::str::FromStr for WebhookPatchReqBodyActive {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "true" => Ok(Self::True),
                 "false" => Ok(Self::False),
@@ -38717,9 +37764,7 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
     }
     impl ::std::convert::TryFrom<&str> for WebhookPatchReqBodyActive {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -39170,23 +38215,21 @@ Neynar will sponsor the signer on behalf of the user. The developer will get cha
         #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
         pub embedded_cast_hashes: ::std::vec::Vec<::std::string::String>,
         /**Regex pattern to match the embeded_url (key embeds) of the cast.
-**Note:**
-1) Regex must be parsed by Go's RE2 engine (Test your expression here: https://www.lddgo.net/en/string/golangregex)
-2) Use backslashes to escape special characters.
-For example: \\b(farcaster|neynar)\\b should be written as \\\\b(farcaster|neynar)\\\\b*/
+        **Note:**
+        1) Regex must be parsed by Go's RE2 engine (Test your expression here: https://www.lddgo.net/en/string/golangregex)
+        2) Use backslashes to escape special characters.
+        For example: \\b(farcaster|neynar)\\b should be written as \\\\b(farcaster|neynar)\\\\b*/
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub embeds: ::std::option::Option<::std::string::String>,
         /**Exclude casts that matches these authors.
-**Note:**
-This is applied as an AND operation against rest of the filters.
-Rest of the filters are bundled as an OR operation.*/
+        **Note:**
+        This is applied as an AND operation against rest of the filters.
+        Rest of the filters are bundled as an OR operation.*/
         #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
         pub exclude_author_fids: ::std::vec::Vec<i64>,
         #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
         pub mentioned_fids: ::std::vec::Vec<i64>,
-        #[serde(
-            default = "defaults::webhook_subscription_filters_cast_minimum_author_score"
-        )]
+        #[serde(default = "defaults::webhook_subscription_filters_cast_minimum_author_score")]
         pub minimum_author_score: f64,
         #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
         pub parent_author_fids: ::std::vec::Vec<i64>,
@@ -39197,10 +38240,10 @@ Rest of the filters are bundled as an OR operation.*/
         #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
         pub root_parent_urls: ::std::vec::Vec<::std::string::String>,
         /**Regex pattern to match the text key of the cast.
-**Note:**
-1) Regex must be parsed by Go's RE2 engine (Test your expression here: https://www.lddgo.net/en/string/golangregex)
-2) Use backslashes to escape special characters.
-For example: (?i)\\$degen should be written as (?i)\\\\$degen*/
+        **Note:**
+        1) Regex must be parsed by Go's RE2 engine (Test your expression here: https://www.lddgo.net/en/string/golangregex)
+        2) Use backslashes to escape special characters.
+        For example: (?i)\\$degen should be written as (?i)\\\\$degen*/
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub text: ::std::option::Option<::std::string::String>,
     }
@@ -39213,7 +38256,8 @@ For example: (?i)\\$degen should be written as (?i)\\\\$degen*/
                 embeds: Default::default(),
                 exclude_author_fids: Default::default(),
                 mentioned_fids: Default::default(),
-                minimum_author_score: defaults::webhook_subscription_filters_cast_minimum_author_score(),
+                minimum_author_score:
+                    defaults::webhook_subscription_filters_cast_minimum_author_score(),
                 parent_author_fids: Default::default(),
                 parent_hashes: Default::default(),
                 parent_urls: Default::default(),
@@ -39302,9 +38346,8 @@ For example: (?i)\\$degen should be written as (?i)\\\\$degen*/
         #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
         pub fids: ::std::vec::Vec<i64>,
         #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
-        pub target_cast_hashes: ::std::vec::Vec<
-            WebhookSubscriptionFiltersReactionTargetCastHashesItem,
-        >,
+        pub target_cast_hashes:
+            ::std::vec::Vec<WebhookSubscriptionFiltersReactionTargetCastHashesItem>,
         #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
         pub target_fids: ::std::vec::Vec<i64>,
     }
@@ -39333,9 +38376,7 @@ For example: (?i)\\$degen should be written as (?i)\\\\$degen*/
     /// </details>
     #[derive(::serde::Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
     #[serde(transparent)]
-    pub struct WebhookSubscriptionFiltersReactionTargetCastHashesItem(
-        ::std::string::String,
-    );
+    pub struct WebhookSubscriptionFiltersReactionTargetCastHashesItem(::std::string::String);
     impl ::std::ops::Deref for WebhookSubscriptionFiltersReactionTargetCastHashesItem {
         type Target = ::std::string::String;
         fn deref(&self) -> &::std::string::String {
@@ -39343,35 +38384,34 @@ For example: (?i)\\$degen should be written as (?i)\\\\$degen*/
         }
     }
     impl ::std::convert::From<WebhookSubscriptionFiltersReactionTargetCastHashesItem>
-    for ::std::string::String {
+        for ::std::string::String
+    {
         fn from(value: WebhookSubscriptionFiltersReactionTargetCastHashesItem) -> Self {
             value.0
         }
     }
     impl ::std::str::FromStr for WebhookSubscriptionFiltersReactionTargetCastHashesItem {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
-            static PATTERN: ::std::sync::LazyLock<::regress::Regex> = ::std::sync::LazyLock::new(||
-            { ::regress::Regex::new("^(0x)?[a-fA-F0-9]{40}$").unwrap() });
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+            static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+                ::std::sync::LazyLock::new(|| {
+                    ::regress::Regex::new("^(0x)?[a-fA-F0-9]{40}$").unwrap()
+                });
             if PATTERN.find(value).is_none() {
                 return Err("doesn't match pattern \"^(0x)?[a-fA-F0-9]{40}$\"".into());
             }
             Ok(Self(value.to_string()))
         }
     }
-    impl ::std::convert::TryFrom<&str>
-    for WebhookSubscriptionFiltersReactionTargetCastHashesItem {
+    impl ::std::convert::TryFrom<&str> for WebhookSubscriptionFiltersReactionTargetCastHashesItem {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
     impl ::std::convert::TryFrom<&::std::string::String>
-    for WebhookSubscriptionFiltersReactionTargetCastHashesItem {
+        for WebhookSubscriptionFiltersReactionTargetCastHashesItem
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -39380,7 +38420,8 @@ For example: (?i)\\$degen should be written as (?i)\\\\$degen*/
         }
     }
     impl ::std::convert::TryFrom<::std::string::String>
-    for WebhookSubscriptionFiltersReactionTargetCastHashesItem {
+        for WebhookSubscriptionFiltersReactionTargetCastHashesItem
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -39388,8 +38429,7 @@ For example: (?i)\\$degen should be written as (?i)\\\\$degen*/
             value.parse()
         }
     }
-    impl<'de> ::serde::Deserialize<'de>
-    for WebhookSubscriptionFiltersReactionTargetCastHashesItem {
+    impl<'de> ::serde::Deserialize<'de> for WebhookSubscriptionFiltersReactionTargetCastHashesItem {
         fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
         where
             D: ::serde::Deserializer<'de>,
@@ -39472,7 +38512,9 @@ For example: (?i)\\$degen should be written as (?i)\\\\$degen*/
     }
     impl ::std::default::Default for WebhookSubscriptionFiltersUserUpdated {
         fn default() -> Self {
-            Self { fids: Default::default() }
+            Self {
+                fids: Default::default(),
+            }
         }
     }
     ///`WebhookSubscriptionObject`
@@ -39498,7 +38540,7 @@ For example: (?i)\\$degen should be written as (?i)\\\\$degen*/
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum WebhookSubscriptionObject {
         #[serde(rename = "webhook_subscription")]
@@ -39513,9 +38555,7 @@ For example: (?i)\\$degen should be written as (?i)\\\\$degen*/
     }
     impl ::std::str::FromStr for WebhookSubscriptionObject {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "webhook_subscription" => Ok(Self::WebhookSubscription),
                 _ => Err("invalid value".into()),
@@ -39524,9 +38564,7 @@ For example: (?i)\\$degen should be written as (?i)\\\\$degen*/
     }
     impl ::std::convert::TryFrom<&str> for WebhookSubscriptionObject {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -39665,16 +38703,15 @@ For example: (?i)\\$degen should be written as (?i)\\\\$degen*/
         pub(super) fn default_nzu64<T, const V: u64>() -> T
         where
             T: ::std::convert::TryFrom<::std::num::NonZeroU64>,
-            <T as ::std::convert::TryFrom<
-                ::std::num::NonZeroU64,
-            >>::Error: ::std::fmt::Debug,
+            <T as ::std::convert::TryFrom<::std::num::NonZeroU64>>::Error: ::std::fmt::Debug,
         {
             T::try_from(::std::num::NonZeroU64::try_from(V).unwrap()).unwrap()
         }
         pub(super) fn build_body_build_type() -> super::BuildBodyBuildType {
             super::BuildBodyBuildType::Vercel
         }
-        pub(super) fn deploy_erc721_body_mint_config_price_per_token() -> super::DeployErc721BodyMintConfigPricePerToken {
+        pub(super) fn deploy_erc721_body_mint_config_price_per_token()
+        -> super::DeployErc721BodyMintConfigPricePerToken {
             super::DeployErc721BodyMintConfigPricePerToken("0".to_string())
         }
         pub(super) fn deploy_fungible_req_body_factory() -> super::DeployFungibleReqBodyFactory {
@@ -39711,7 +38748,9 @@ impl Client {
         #[cfg(not(target_arch = "wasm32"))]
         let client = {
             let dur = ::std::time::Duration::from_secs(15u64);
-            reqwest::ClientBuilder::new().connect_timeout(dur).timeout(dur)
+            reqwest::ClientBuilder::new()
+                .connect_timeout(dur)
+                .timeout(dur)
         };
         #[cfg(target_arch = "wasm32")]
         let client = reqwest::ClientBuilder::new();
@@ -39749,21 +38788,18 @@ impl ClientHooks<()> for &Client {}
 impl Client {
     /**Get billing information for the current organization
 
-Retrieves billing and subscription details for the current organization, including plan status, product category, billing email, and effective plan.
+    Retrieves billing and subscription details for the current organization, including plan status, product category, billing email, and effective plan.
 
-Sends a `GET` request to `/portal/organization/billing`
+    Sends a `GET` request to `/portal/organization/billing`
 
-*/
-    pub async fn billing<'a>(
-        &'a self,
-    ) -> Result<ResponseValue<types::BillingResponse>, Error<()>> {
+    */
+    pub async fn billing<'a>(&'a self) -> Result<ResponseValue<types::BillingResponse>, Error<()>> {
         let url = format!("{}/portal/organization/billing", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -39788,22 +38824,21 @@ Sends a `GET` request to `/portal/organization/billing`
     }
     /**Process subscription upgrade with credit
 
-Applies a subscription plan change for the current organization and returns the applied credit, charge amount, and whether the change takes effect immediately.
+    Applies a subscription plan change for the current organization and returns the applied credit, charge amount, and whether the change takes effect immediately.
 
-Sends a `POST` request to `/portal/subscription/upgrade`
+    Sends a `POST` request to `/portal/subscription/upgrade`
 
-*/
+    */
     pub async fn upgrade<'a>(
         &'a self,
         body: &'a types::UpgradeBody,
     ) -> Result<ResponseValue<types::UpgradeResponse>, Error<()>> {
         let url = format!("{}/portal/subscription/upgrade", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -39829,11 +38864,11 @@ Sends a `POST` request to `/portal/subscription/upgrade`
     }
     /**Get upgrade preview with credit calculation
 
-Calculates the billing impact of changing to a new subscription plan, including available credit, charge amount, and whether the billing date or usage carryover changes.
+    Calculates the billing impact of changing to a new subscription plan, including available credit, charge amount, and whether the billing date or usage carryover changes.
 
-Sends a `GET` request to `/portal/subscription/upgrade/preview`
+    Sends a `GET` request to `/portal/subscription/upgrade/preview`
 
-*/
+    */
     pub async fn upgrade_preview<'a>(
         &'a self,
         new_plan: &'a str,
@@ -39841,11 +38876,10 @@ Sends a `GET` request to `/portal/subscription/upgrade/preview`
     ) -> Result<ResponseValue<types::UpgradePreviewResponse>, Error<()>> {
         let url = format!("{}/portal/subscription/upgrade/preview", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -39855,9 +38889,10 @@ Sends a `GET` request to `/portal/subscription/upgrade/preview`
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
             .query(&progenitor_client::QueryParam::new("newPlan", &new_plan))
-            .query(
-                &progenitor_client::QueryParam::new("productCategory", &product_category),
-            )
+            .query(&progenitor_client::QueryParam::new(
+                "productCategory",
+                &product_category,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -39874,11 +38909,11 @@ Sends a `GET` request to `/portal/subscription/upgrade/preview`
     }
     /**User actions across apps
 
-Securely communicate and perform actions on behalf of users across different apps. It enables an app to send data or trigger actions in another app on behalf of a mutual user by signing messages using the user's Farcaster signer.
+    Securely communicate and perform actions on behalf of users across different apps. It enables an app to send data or trigger actions in another app on behalf of a mutual user by signing messages using the user's Farcaster signer.
 
-Sends a `POST` request to `/v2/farcaster/action/`
+    Sends a `POST` request to `/v2/farcaster/action/`
 
-*/
+    */
     pub async fn publish_farcaster_action<'a>(
         &'a self,
         body: &'a types::FarcasterActionReqBody,
@@ -39888,11 +38923,10 @@ Sends a `POST` request to `/v2/farcaster/action/`
     > {
         let url = format!("{}/v2/farcaster/action/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -39918,15 +38952,15 @@ Sends a `POST` request to `/v2/farcaster/action/`
     }
     /**Generate event
 
-Returns event object for app host events. Used if the app host intends to sign the event message instead of using Neynar-hosted signers.
+    Returns event object for app host events. Used if the app host intends to sign the event message instead of using Neynar-hosted signers.
 
-Sends a `GET` request to `/v2/farcaster/app_host/user/event/`
+    Sends a `GET` request to `/v2/farcaster/app_host/user/event/`
 
-Arguments:
-- `app_domain`: The domain of the mini app
-- `event`: The type of event
-- `fid`: The FID of the user who initiated the event
-*/
+    Arguments:
+    - `app_domain`: The domain of the mini app
+    - `event`: The type of event
+    - `fid`: The FID of the user who initiated the event
+    */
     pub async fn app_host_get_event<'a>(
         &'a self,
         app_domain: &'a str,
@@ -39935,11 +38969,10 @@ Arguments:
     ) -> Result<ResponseValue<types::AppHostGetEventResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/app_host/user/event/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -39948,7 +38981,10 @@ Arguments:
                 ::reqwest::header::ACCEPT,
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
-            .query(&progenitor_client::QueryParam::new("app_domain", &app_domain))
+            .query(&progenitor_client::QueryParam::new(
+                "app_domain",
+                &app_domain,
+            ))
             .query(&progenitor_client::QueryParam::new("event", &event))
             .query(&progenitor_client::QueryParam::new("fid", &fid))
             .headers(header_map)
@@ -39967,22 +39003,21 @@ Arguments:
     }
     /**Send event
 
-Post an app_host event to the domain's webhook. Events such as enabling or disabling notifications for a user. Provide either a signed message or the signer UUID of an authorized neynar-hosted signers.
+    Post an app_host event to the domain's webhook. Events such as enabling or disabling notifications for a user. Provide either a signed message or the signer UUID of an authorized neynar-hosted signers.
 
-Sends a `POST` request to `/v2/farcaster/app_host/user/event/`
+    Sends a `POST` request to `/v2/farcaster/app_host/user/event/`
 
-*/
+    */
     pub async fn app_host_post_event<'a>(
         &'a self,
         body: &'a types::AppHostPostEventReqBody,
     ) -> Result<ResponseValue<types::AppHostPostEventResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/app_host/user/event/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -40008,24 +39043,23 @@ Sends a `POST` request to `/v2/farcaster/app_host/user/event/`
     }
     /**Enabled notifications
 
-Returns the current notification state for a specific user across all mini app domains in this app host. Shows which domains have notifications enabled.
+    Returns the current notification state for a specific user across all mini app domains in this app host. Shows which domains have notifications enabled.
 
-Sends a `GET` request to `/v2/farcaster/app_host/user/state/`
+    Sends a `GET` request to `/v2/farcaster/app_host/user/state/`
 
-Arguments:
-- `fid`: The FID of the user
-*/
+    Arguments:
+    - `fid`: The FID of the user
+    */
     pub async fn app_host_get_user_state<'a>(
         &'a self,
         fid: ::std::num::NonZeroU64,
     ) -> Result<ResponseValue<types::AppHostUserStateResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/app_host/user/state/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -40051,29 +39085,26 @@ Arguments:
     }
     /**Status by auth address
 
-Fetches the status of a developer managed auth address by auth address
+    Fetches the status of a developer managed auth address by auth address
 
-Sends a `GET` request to `/v2/farcaster/auth_address/developer_managed/`
+    Sends a `GET` request to `/v2/farcaster/auth_address/developer_managed/`
 
-Arguments:
-- `address`: Ethereum address
-*/
+    Arguments:
+    - `address`: Ethereum address
+    */
     pub async fn lookup_developer_managed_auth_address<'a>(
         &'a self,
         address: &'a types::EthAddress,
-    ) -> Result<
-        ResponseValue<types::LookupDeveloperManagedAuthAddressResponse>,
-        Error<()>,
-    > {
+    ) -> Result<ResponseValue<types::LookupDeveloperManagedAuthAddressResponse>, Error<()>> {
         let url = format!(
-            "{}/v2/farcaster/auth_address/developer_managed/", self.baseurl,
+            "{}/v2/farcaster/auth_address/developer_managed/",
+            self.baseurl,
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -40099,11 +39130,11 @@ Arguments:
     }
     /**Register Signed Key
 
-Allow apps to register an Ethereum addresses as authorized "auth addresses" for a user's Farcaster account, enabling seamless Sign-In With Farcaster (SIWF) across applications without repeated custody wallet authorizations.
+    Allow apps to register an Ethereum addresses as authorized "auth addresses" for a user's Farcaster account, enabling seamless Sign-In With Farcaster (SIWF) across applications without repeated custody wallet authorizations.
 
-Sends a `POST` request to `/v2/farcaster/auth_address/developer_managed/signed_key/`
+    Sends a `POST` request to `/v2/farcaster/auth_address/developer_managed/signed_key/`
 
-*/
+    */
     pub async fn register_signed_key_for_developer_managed_auth_address<'a>(
         &'a self,
         body: &'a types::RegisterAuthAddressDeveloperManagedSignedKeyReqBody,
@@ -40112,14 +39143,14 @@ Sends a `POST` request to `/v2/farcaster/auth_address/developer_managed/signed_k
         Error<()>,
     > {
         let url = format!(
-            "{}/v2/farcaster/auth_address/developer_managed/signed_key/", self.baseurl,
+            "{}/v2/farcaster/auth_address/developer_managed/signed_key/",
+            self.baseurl,
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -40145,22 +39176,21 @@ Sends a `POST` request to `/v2/farcaster/auth_address/developer_managed/signed_k
     }
     /**Ban FIDs from app
 
-Bans a list of FIDs from the app associated with your API key. Banned users, their casts and reactions will not appear in feeds.
+    Bans a list of FIDs from the app associated with your API key. Banned users, their casts and reactions will not appear in feeds.
 
-Sends a `POST` request to `/v2/farcaster/ban/`
+    Sends a `POST` request to `/v2/farcaster/ban/`
 
-*/
+    */
     pub async fn publish_bans<'a>(
         &'a self,
         body: &'a types::BanReqBody,
     ) -> Result<ResponseValue<types::BanResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/ban/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -40186,22 +39216,21 @@ Sends a `POST` request to `/v2/farcaster/ban/`
     }
     /**Unban FIDs from app
 
-Deletes a list of FIDs from the app associated with your API key.
+    Deletes a list of FIDs from the app associated with your API key.
 
-Sends a `DELETE` request to `/v2/farcaster/ban/`
+    Sends a `DELETE` request to `/v2/farcaster/ban/`
 
-*/
+    */
     pub async fn delete_bans<'a>(
         &'a self,
         body: &'a types::BanReqBody,
     ) -> Result<ResponseValue<types::BanResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/ban/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -40227,15 +39256,15 @@ Sends a `DELETE` request to `/v2/farcaster/ban/`
     }
     /**Banned FIDs of app
 
-Fetches all FIDs that your app has banned.
+    Fetches all FIDs that your app has banned.
 
-Sends a `GET` request to `/v2/farcaster/ban/list/`
+    Sends a `GET` request to `/v2/farcaster/ban/list/`
 
-Arguments:
-- `cursor`: Pagination cursor.
-- `limit`: Number of results to fetch
-- `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
-*/
+    Arguments:
+    - `cursor`: Pagination cursor.
+    - `limit`: Number of results to fetch
+    - `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
+    */
     pub async fn fetch_ban_list<'a>(
         &'a self,
         cursor: Option<&'a str>,
@@ -40244,11 +39273,10 @@ Arguments:
     ) -> Result<ResponseValue<types::BanListResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/ban/list/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         if let Some(value) = x_neynar_experimental {
             header_map.append("x-neynar-experimental", value.to_string().try_into()?);
         }
@@ -40278,22 +39306,21 @@ Arguments:
     }
     /**Block FID
 
-Adds a block for a given FID.
+    Adds a block for a given FID.
 
-Sends a `POST` request to `/v2/farcaster/block/`
+    Sends a `POST` request to `/v2/farcaster/block/`
 
-*/
+    */
     pub async fn publish_block<'a>(
         &'a self,
         body: &'a types::BlockReqBody,
     ) -> Result<ResponseValue<types::OperationResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/block/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -40319,22 +39346,21 @@ Sends a `POST` request to `/v2/farcaster/block/`
     }
     /**Unblock FID
 
-Deletes a block for a given FID.
+    Deletes a block for a given FID.
 
-Sends a `DELETE` request to `/v2/farcaster/block/`
+    Sends a `DELETE` request to `/v2/farcaster/block/`
 
-*/
+    */
     pub async fn delete_block<'a>(
         &'a self,
         body: &'a types::BlockReqBody,
     ) -> Result<ResponseValue<types::OperationResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/block/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -40360,17 +39386,17 @@ Sends a `DELETE` request to `/v2/farcaster/block/`
     }
     /**Blocked / Blocked by FIDs
 
-Fetches all FIDs that a user has blocked or has been blocked by
+    Fetches all FIDs that a user has blocked or has been blocked by
 
-Sends a `GET` request to `/v2/farcaster/block/list/`
+    Sends a `GET` request to `/v2/farcaster/block/list/`
 
-Arguments:
-- `blocked_fid`: Providing this will return the users that have blocked this user
-- `blocker_fid`: Providing this will return the users that this user has blocked
-- `cursor`: Pagination cursor.
-- `limit`: Number of results to fetch
-- `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
-*/
+    Arguments:
+    - `blocked_fid`: Providing this will return the users that have blocked this user
+    - `blocker_fid`: Providing this will return the users that this user has blocked
+    - `cursor`: Pagination cursor.
+    - `limit`: Number of results to fetch
+    - `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
+    */
     pub async fn fetch_block_list<'a>(
         &'a self,
         blocked_fid: Option<::std::num::NonZeroU64>,
@@ -40381,11 +39407,10 @@ Arguments:
     ) -> Result<ResponseValue<types::BlockListResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/block/list/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         if let Some(value) = x_neynar_experimental {
             header_map.append("x-neynar-experimental", value.to_string().try_into()?);
         }
@@ -40397,8 +39422,14 @@ Arguments:
                 ::reqwest::header::ACCEPT,
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
-            .query(&progenitor_client::QueryParam::new("blocked_fid", &blocked_fid))
-            .query(&progenitor_client::QueryParam::new("blocker_fid", &blocker_fid))
+            .query(&progenitor_client::QueryParam::new(
+                "blocked_fid",
+                &blocked_fid,
+            ))
+            .query(&progenitor_client::QueryParam::new(
+                "blocker_fid",
+                &blocker_fid,
+            ))
             .query(&progenitor_client::QueryParam::new("cursor", &cursor))
             .query(&progenitor_client::QueryParam::new("limit", &limit))
             .headers(header_map)
@@ -40417,18 +39448,18 @@ Arguments:
     }
     /**By hash or URL
 
-Gets information about an individual cast by passing in a Farcaster web URL or cast hash
+    Gets information about an individual cast by passing in a Farcaster web URL or cast hash
 
-Sends a `GET` request to `/v2/farcaster/cast/`
+    Sends a `GET` request to `/v2/farcaster/cast/`
 
-Arguments:
-- `identifier`: Cast identifier (It's either a URL or a hash)
-- `type_`: The query param accepted by the API. Sent along with identifier param.
-url - Cast identifier is a url
-hash - Cast identifier is a hash
-- `viewer_fid`: adds viewer_context to cast object to show whether viewer has liked or recasted the cast.
-- `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
-*/
+    Arguments:
+    - `identifier`: Cast identifier (It's either a URL or a hash)
+    - `type_`: The query param accepted by the API. Sent along with identifier param.
+    url - Cast identifier is a url
+    hash - Cast identifier is a hash
+    - `viewer_fid`: adds viewer_context to cast object to show whether viewer has liked or recasted the cast.
+    - `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
+    */
     pub async fn lookup_cast_by_hash_or_url<'a>(
         &'a self,
         identifier: &'a str,
@@ -40438,11 +39469,10 @@ hash - Cast identifier is a hash
     ) -> Result<ResponseValue<types::CastResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/cast/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         if let Some(value) = x_neynar_experimental {
             header_map.append("x-neynar-experimental", value.to_string().try_into()?);
         }
@@ -40454,9 +39484,15 @@ hash - Cast identifier is a hash
                 ::reqwest::header::ACCEPT,
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
-            .query(&progenitor_client::QueryParam::new("identifier", &identifier))
+            .query(&progenitor_client::QueryParam::new(
+                "identifier",
+                &identifier,
+            ))
             .query(&progenitor_client::QueryParam::new("type", &type_))
-            .query(&progenitor_client::QueryParam::new("viewer_fid", &viewer_fid))
+            .query(&progenitor_client::QueryParam::new(
+                "viewer_fid",
+                &viewer_fid,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -40473,23 +39509,22 @@ hash - Cast identifier is a hash
     }
     /**Post a cast
 
-Posts a cast or cast reply. Works with mentions and embeds.
-(In order to post a cast `signer_uuid` must be approved)
+    Posts a cast or cast reply. Works with mentions and embeds.
+    (In order to post a cast `signer_uuid` must be approved)
 
-Sends a `POST` request to `/v2/farcaster/cast/`
+    Sends a `POST` request to `/v2/farcaster/cast/`
 
-*/
+    */
     pub async fn publish_cast<'a>(
         &'a self,
         body: &'a types::PostCastReqBody,
     ) -> Result<ResponseValue<types::PostCastResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/cast/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -40515,23 +39550,22 @@ Sends a `POST` request to `/v2/farcaster/cast/`
     }
     /**Delete a cast
 
-Delete an existing cast.
-(In order to delete a cast `signer_uuid` must be approved)
+    Delete an existing cast.
+    (In order to delete a cast `signer_uuid` must be approved)
 
-Sends a `DELETE` request to `/v2/farcaster/cast/`
+    Sends a `DELETE` request to `/v2/farcaster/cast/`
 
-*/
+    */
     pub async fn delete_cast<'a>(
         &'a self,
         body: &'a types::DeleteCastReqBody,
     ) -> Result<ResponseValue<types::OperationResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/cast/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -40557,24 +39591,24 @@ Sends a `DELETE` request to `/v2/farcaster/cast/`
     }
     /**Conversation for a cast
 
-Gets all casts related to a conversation surrounding a cast by passing in a cast hash or Farcaster URL. Includes all the ancestors of a cast up to the root parent in a chronological order. Includes all direct_replies to the cast up to the reply_depth specified in the query parameter.
+    Gets all casts related to a conversation surrounding a cast by passing in a cast hash or Farcaster URL. Includes all the ancestors of a cast up to the root parent in a chronological order. Includes all direct_replies to the cast up to the reply_depth specified in the query parameter.
 
-Sends a `GET` request to `/v2/farcaster/cast/conversation/`
+    Sends a `GET` request to `/v2/farcaster/cast/conversation/`
 
-Arguments:
-- `cursor`: Pagination cursor.
-- `fold`: Show conversation above or below the fold. Lower quality responses are hidden below the fold. Not passing in a value shows the full conversation without any folding.
-- `identifier`: Cast identifier (It's either a URL or a hash)
-- `include_chronological_parent_casts`: Include all parent casts in chronological order
-- `limit`: Number of results to fetch
-- `reply_depth`: The depth of replies in the conversation that will be returned (default 2)
-- `sort_type`: Sort type for the ordering of descendants. Default is `chron`
-- `type_`: The query param accepted by the API. Sent along with identifier param.
-url - Cast identifier is a url
-hash - Cast identifier is a hash
-- `viewer_fid`: Providing this will return a conversation that respects this user's mutes and blocks and includes `viewer_context`.
-- `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
-*/
+    Arguments:
+    - `cursor`: Pagination cursor.
+    - `fold`: Show conversation above or below the fold. Lower quality responses are hidden below the fold. Not passing in a value shows the full conversation without any folding.
+    - `identifier`: Cast identifier (It's either a URL or a hash)
+    - `include_chronological_parent_casts`: Include all parent casts in chronological order
+    - `limit`: Number of results to fetch
+    - `reply_depth`: The depth of replies in the conversation that will be returned (default 2)
+    - `sort_type`: Sort type for the ordering of descendants. Default is `chron`
+    - `type_`: The query param accepted by the API. Sent along with identifier param.
+    url - Cast identifier is a url
+    hash - Cast identifier is a hash
+    - `viewer_fid`: Providing this will return a conversation that respects this user's mutes and blocks and includes `viewer_context`.
+    - `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
+    */
     pub async fn lookup_cast_conversation<'a>(
         &'a self,
         cursor: Option<&'a str>,
@@ -40590,11 +39624,10 @@ hash - Cast identifier is a hash
     ) -> Result<ResponseValue<types::Conversation>, Error<()>> {
         let url = format!("{}/v2/farcaster/cast/conversation/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         if let Some(value) = x_neynar_experimental {
             header_map.append("x-neynar-experimental", value.to_string().try_into()?);
         }
@@ -40608,18 +39641,25 @@ hash - Cast identifier is a hash
             )
             .query(&progenitor_client::QueryParam::new("cursor", &cursor))
             .query(&progenitor_client::QueryParam::new("fold", &fold))
-            .query(&progenitor_client::QueryParam::new("identifier", &identifier))
-            .query(
-                &progenitor_client::QueryParam::new(
-                    "include_chronological_parent_casts",
-                    &include_chronological_parent_casts,
-                ),
-            )
+            .query(&progenitor_client::QueryParam::new(
+                "identifier",
+                &identifier,
+            ))
+            .query(&progenitor_client::QueryParam::new(
+                "include_chronological_parent_casts",
+                &include_chronological_parent_casts,
+            ))
             .query(&progenitor_client::QueryParam::new("limit", &limit))
-            .query(&progenitor_client::QueryParam::new("reply_depth", &reply_depth))
+            .query(&progenitor_client::QueryParam::new(
+                "reply_depth",
+                &reply_depth,
+            ))
             .query(&progenitor_client::QueryParam::new("sort_type", &sort_type))
             .query(&progenitor_client::QueryParam::new("type", &type_))
-            .query(&progenitor_client::QueryParam::new("viewer_fid", &viewer_fid))
+            .query(&progenitor_client::QueryParam::new(
+                "viewer_fid",
+                &viewer_fid,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -40636,15 +39676,15 @@ hash - Cast identifier is a hash
     }
     /**Cast conversation summary
 
-Generates a summary of all casts related to a conversation surrounding a cast by passing in a cast hash or Farcaster URL.  Summary is generated by an LLM and is intended to be passed as a context to AI agents.
+    Generates a summary of all casts related to a conversation surrounding a cast by passing in a cast hash or Farcaster URL.  Summary is generated by an LLM and is intended to be passed as a context to AI agents.
 
-Sends a `GET` request to `/v2/farcaster/cast/conversation/summary/`
+    Sends a `GET` request to `/v2/farcaster/cast/conversation/summary/`
 
-Arguments:
-- `identifier`: Cast identifier (It's either a URL or a hash))
-- `limit`: Number of casts to consider in a summary up to a point of target cast
-- `prompt`: Additional prompt used to generate a summary
-*/
+    Arguments:
+    - `identifier`: Cast identifier (It's either a URL or a hash))
+    - `limit`: Number of casts to consider in a summary up to a point of target cast
+    - `prompt`: Additional prompt used to generate a summary
+    */
     pub async fn lookup_cast_conversation_summary<'a>(
         &'a self,
         identifier: &'a str,
@@ -40653,11 +39693,10 @@ Arguments:
     ) -> Result<ResponseValue<types::ConversationSummary>, Error<()>> {
         let url = format!("{}/v2/farcaster/cast/conversation/summary/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -40666,7 +39705,10 @@ Arguments:
                 ::reqwest::header::ACCEPT,
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
-            .query(&progenitor_client::QueryParam::new("identifier", &identifier))
+            .query(&progenitor_client::QueryParam::new(
+                "identifier",
+                &identifier,
+            ))
             .query(&progenitor_client::QueryParam::new("limit", &limit))
             .query(&progenitor_client::QueryParam::new("prompt", &prompt))
             .headers(header_map)
@@ -40685,24 +39727,23 @@ Arguments:
     }
     /**Embedded URL metadata
 
-Crawls the given URL and returns metadata useful when embedding the URL in a cast.
+    Crawls the given URL and returns metadata useful when embedding the URL in a cast.
 
-Sends a `GET` request to `/v2/farcaster/cast/embed/crawl/`
+    Sends a `GET` request to `/v2/farcaster/cast/embed/crawl/`
 
-Arguments:
-- `url`: URL to crawl metadata of
-*/
+    Arguments:
+    - `url`: URL to crawl metadata of
+    */
     pub async fn fetch_embedded_url_metadata<'a>(
         &'a self,
         url: &'a str,
     ) -> Result<ResponseValue<types::CastEmbedCrawlResponse>, Error<()>> {
         let _url = format!("{}/v2/farcaster/cast/embed/crawl/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -40728,17 +39769,17 @@ Arguments:
     }
     /**Metrics for casts
 
-Fetches metrics casts matching a query
+    Fetches metrics casts matching a query
 
-Sends a `GET` request to `/v2/farcaster/cast/metrics/`
+    Sends a `GET` request to `/v2/farcaster/cast/metrics/`
 
-Arguments:
-- `author_fid`: Fid of the user whose casts you want to search
-- `channel_id`: Channel ID of the casts you want to search
-- `interval`: Interval of time for which to fetch metrics. Default is 30d.
-- `q`: Query string to search for casts
-- `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
-*/
+    Arguments:
+    - `author_fid`: Fid of the user whose casts you want to search
+    - `channel_id`: Channel ID of the casts you want to search
+    - `interval`: Interval of time for which to fetch metrics. Default is 30d.
+    - `q`: Query string to search for casts
+    - `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
+    */
     pub async fn fetch_cast_metrics<'a>(
         &'a self,
         author_fid: Option<::std::num::NonZeroU64>,
@@ -40749,11 +39790,10 @@ Arguments:
     ) -> Result<ResponseValue<types::CastsMetricsResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/cast/metrics/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         if let Some(value) = x_neynar_experimental {
             header_map.append("x-neynar-experimental", value.to_string().try_into()?);
         }
@@ -40765,8 +39805,14 @@ Arguments:
                 ::reqwest::header::ACCEPT,
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
-            .query(&progenitor_client::QueryParam::new("author_fid", &author_fid))
-            .query(&progenitor_client::QueryParam::new("channel_id", &channel_id))
+            .query(&progenitor_client::QueryParam::new(
+                "author_fid",
+                &author_fid,
+            ))
+            .query(&progenitor_client::QueryParam::new(
+                "channel_id",
+                &channel_id,
+            ))
             .query(&progenitor_client::QueryParam::new("interval", &interval))
             .query(&progenitor_client::QueryParam::new("q", &q))
             .headers(header_map)
@@ -40785,20 +39831,20 @@ Arguments:
     }
     /**Cast Quotes
 
-Fetch casts that quote a given cast
+    Fetch casts that quote a given cast
 
-Sends a `GET` request to `/v2/farcaster/cast/quotes/`
+    Sends a `GET` request to `/v2/farcaster/cast/quotes/`
 
-Arguments:
-- `cursor`: Pagination cursor.
-- `identifier`: Cast identifier (It's either a URL or a hash)
-- `limit`: Number of results to fetch
-- `type_`: The query param accepted by the API. Sent along with identifier param.
-url - Cast identifier is a url
-hash - Cast identifier is a hash
-- `viewer_fid`
-- `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
-*/
+    Arguments:
+    - `cursor`: Pagination cursor.
+    - `identifier`: Cast identifier (It's either a URL or a hash)
+    - `limit`: Number of results to fetch
+    - `type_`: The query param accepted by the API. Sent along with identifier param.
+    url - Cast identifier is a url
+    hash - Cast identifier is a hash
+    - `viewer_fid`
+    - `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
+    */
     pub async fn fetch_cast_quotes<'a>(
         &'a self,
         cursor: Option<&'a str>,
@@ -40810,11 +39856,10 @@ hash - Cast identifier is a hash
     ) -> Result<ResponseValue<types::FetchCastQuotesResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/cast/quotes/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         if let Some(value) = x_neynar_experimental {
             header_map.append("x-neynar-experimental", value.to_string().try_into()?);
         }
@@ -40827,10 +39872,16 @@ hash - Cast identifier is a hash
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
             .query(&progenitor_client::QueryParam::new("cursor", &cursor))
-            .query(&progenitor_client::QueryParam::new("identifier", &identifier))
+            .query(&progenitor_client::QueryParam::new(
+                "identifier",
+                &identifier,
+            ))
             .query(&progenitor_client::QueryParam::new("limit", &limit))
             .query(&progenitor_client::QueryParam::new("type", &type_))
-            .query(&progenitor_client::QueryParam::new("viewer_fid", &viewer_fid))
+            .query(&progenitor_client::QueryParam::new(
+                "viewer_fid",
+                &viewer_fid,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -40845,42 +39896,7 @@ hash - Cast identifier is a hash
             _ => Err(Error::UnexpectedResponse(response)),
         }
     }
-    /**Search for casts
-
-Search for casts based on a query string, with optional AND filters
-
-Sends a `GET` request to `/v2/farcaster/cast/search/`
-
-Arguments:
-- `author_fid`: Fid of the user whose casts you want to search
-- `channel_id`: Channel ID of the casts you want to search
-- `cursor`: Pagination cursor
-- `limit`: Number of results to fetch
-- `mode`: Choices are:
-- `literal` - Searches for the words in the query string (default)
-- `semantic` - Searches for the meaning of the query string
-- `hybrid` - Combines both literal and semantic results
-- `parent_url`: Parent URL of the casts you want to search
-- `q`: Query string to search for casts. Supported operators:
-
-| Operator  | Description                                                                                              |
-| --------- | -------------------------------------------------------------------------------------------------------- |
-| `+`       | Acts as the AND operator. This is the default operator between terms and can usually be omitted.         |
-| `\|`      | Acts as the OR operator.                                                                                 |
-| `*`       | When used at the end of a term, signifies a prefix query.                                                  |
-| `"`       | Wraps several terms into a phrase (for example, `"star wars"`).                                          |
-| `(`, `)`  | Wrap a clause for precedence (for example, `star + (wars \| trek)`).                                     |
-| `~n`      | When used after a term (for example, `satr~3`), sets `fuzziness`. When used after a phrase, sets `slop`. |
-| `-`       | Negates the term.                                                                                        |
-| `before:` | Search for casts before a specific date. (e.g. `before:2025-04-20` or `before:2025-04-20T23:59:59`)      |
-| `after:`  | Search for casts after a specific date. (e.g. `after:2025-04-20` or `after:2025-04-20T00:00:00`)         |
-- `sort_type`: Choices are:
-- `desc_chron` - All casts sorted by time in a descending order (default)
-- `chron` - All casts sorted by time in ascending order
-- `algorithmic` - Casts sorted by engagement and time
-- `viewer_fid`: Providing this will return search results that respects this user's mutes and blocks and includes `viewer_context`.
-- `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
-*/
+    /**Search for casts with optional filters.*/
     pub async fn search_casts<'a>(
         &'a self,
         author_fid: Option<::std::num::NonZeroU64>,
@@ -40896,11 +39912,10 @@ Arguments:
     ) -> Result<ResponseValue<types::CastsSearchResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/cast/search/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         if let Some(value) = x_neynar_experimental {
             header_map.append("x-neynar-experimental", value.to_string().try_into()?);
         }
@@ -40912,15 +39927,27 @@ Arguments:
                 ::reqwest::header::ACCEPT,
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
-            .query(&progenitor_client::QueryParam::new("author_fid", &author_fid))
-            .query(&progenitor_client::QueryParam::new("channel_id", &channel_id))
+            .query(&progenitor_client::QueryParam::new(
+                "author_fid",
+                &author_fid,
+            ))
+            .query(&progenitor_client::QueryParam::new(
+                "channel_id",
+                &channel_id,
+            ))
             .query(&progenitor_client::QueryParam::new("cursor", &cursor))
             .query(&progenitor_client::QueryParam::new("limit", &limit))
             .query(&progenitor_client::QueryParam::new("mode", &mode))
-            .query(&progenitor_client::QueryParam::new("parent_url", &parent_url))
+            .query(&progenitor_client::QueryParam::new(
+                "parent_url",
+                &parent_url,
+            ))
             .query(&progenitor_client::QueryParam::new("q", &q))
             .query(&progenitor_client::QueryParam::new("sort_type", &sort_type))
-            .query(&progenitor_client::QueryParam::new("viewer_fid", &viewer_fid))
+            .query(&progenitor_client::QueryParam::new(
+                "viewer_fid",
+                &viewer_fid,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -40937,16 +39964,16 @@ Arguments:
     }
     /**Bulk fetch casts
 
-Fetch multiple casts using their respective hashes.
+    Fetch multiple casts using their respective hashes.
 
-Sends a `GET` request to `/v2/farcaster/casts/`
+    Sends a `GET` request to `/v2/farcaster/casts/`
 
-Arguments:
-- `casts`: Hashes of the cast to be retrived (Comma separated, no spaces)
-- `sort_type`: Optional parameter to sort the casts based on different criteria
-- `viewer_fid`: adds viewer_context to cast object to show whether viewer has liked or recasted the cast.
-- `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
-*/
+    Arguments:
+    - `casts`: Hashes of the cast to be retrived (Comma separated, no spaces)
+    - `sort_type`: Optional parameter to sort the casts based on different criteria
+    - `viewer_fid`: adds viewer_context to cast object to show whether viewer has liked or recasted the cast.
+    - `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
+    */
     pub async fn fetch_bulk_casts<'a>(
         &'a self,
         casts: &'a str,
@@ -40956,11 +39983,10 @@ Arguments:
     ) -> Result<ResponseValue<types::CastsResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/casts/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         if let Some(value) = x_neynar_experimental {
             header_map.append("x-neynar-experimental", value.to_string().try_into()?);
         }
@@ -40974,7 +40000,10 @@ Arguments:
             )
             .query(&progenitor_client::QueryParam::new("casts", &casts))
             .query(&progenitor_client::QueryParam::new("sort_type", &sort_type))
-            .query(&progenitor_client::QueryParam::new("viewer_fid", &viewer_fid))
+            .query(&progenitor_client::QueryParam::new(
+                "viewer_fid",
+                &viewer_fid,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -40991,15 +40020,15 @@ Arguments:
     }
     /**By ID or parent_url
 
-Returns details of a channel
+    Returns details of a channel
 
-Sends a `GET` request to `/v2/farcaster/channel/`
+    Sends a `GET` request to `/v2/farcaster/channel/`
 
-Arguments:
-- `id`: Channel ID for the channel being queried
-- `type_`: Type of identifier being used to query the channel. Defaults to ID.
-- `viewer_fid`: FID of the user viewing the channel.
-*/
+    Arguments:
+    - `id`: Channel ID for the channel being queried
+    - `type_`: Type of identifier being used to query the channel. Defaults to ID.
+    - `viewer_fid`: FID of the user viewing the channel.
+    */
     pub async fn lookup_channel<'a>(
         &'a self,
         id: &'a str,
@@ -41008,11 +40037,10 @@ Arguments:
     ) -> Result<ResponseValue<types::ChannelResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/channel/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -41023,7 +40051,10 @@ Arguments:
             )
             .query(&progenitor_client::QueryParam::new("id", &id))
             .query(&progenitor_client::QueryParam::new("type", &type_))
-            .query(&progenitor_client::QueryParam::new("viewer_fid", &viewer_fid))
+            .query(&progenitor_client::QueryParam::new(
+                "viewer_fid",
+                &viewer_fid,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -41040,15 +40071,15 @@ Arguments:
     }
     /**Bulk fetch
 
-Returns details of multiple channels
+    Returns details of multiple channels
 
-Sends a `GET` request to `/v2/farcaster/channel/bulk/`
+    Sends a `GET` request to `/v2/farcaster/channel/bulk/`
 
-Arguments:
-- `ids`: Comma separated list of channel IDs or parent_urls, up to 100 at a time
-- `type_`: Type of identifier being used to query the channels. Defaults to ID.
-- `viewer_fid`: FID of the user viewing the channels.
-*/
+    Arguments:
+    - `ids`: Comma separated list of channel IDs or parent_urls, up to 100 at a time
+    - `type_`: Type of identifier being used to query the channels. Defaults to ID.
+    - `viewer_fid`: FID of the user viewing the channels.
+    */
     pub async fn fetch_bulk_channels<'a>(
         &'a self,
         ids: &'a str,
@@ -41057,11 +40088,10 @@ Arguments:
     ) -> Result<ResponseValue<types::ChannelResponseBulk>, Error<()>> {
         let url = format!("{}/v2/farcaster/channel/bulk/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -41072,7 +40102,10 @@ Arguments:
             )
             .query(&progenitor_client::QueryParam::new("ids", &ids))
             .query(&progenitor_client::QueryParam::new("type", &type_))
-            .query(&progenitor_client::QueryParam::new("viewer_fid", &viewer_fid))
+            .query(&progenitor_client::QueryParam::new(
+                "viewer_fid",
+                &viewer_fid,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -41089,22 +40122,21 @@ Arguments:
     }
     /**Follow a channel
 
-Follow a channel
+    Follow a channel
 
-Sends a `POST` request to `/v2/farcaster/channel/follow/`
+    Sends a `POST` request to `/v2/farcaster/channel/follow/`
 
-*/
+    */
     pub async fn follow_channel<'a>(
         &'a self,
         body: &'a types::ChannelFollowReqBody,
     ) -> Result<ResponseValue<types::OperationResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/channel/follow/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -41130,22 +40162,21 @@ Sends a `POST` request to `/v2/farcaster/channel/follow/`
     }
     /**Unfollow a channel
 
-Unfollow a channel
+    Unfollow a channel
 
-Sends a `DELETE` request to `/v2/farcaster/channel/follow/`
+    Sends a `DELETE` request to `/v2/farcaster/channel/follow/`
 
-*/
+    */
     pub async fn unfollow_channel<'a>(
         &'a self,
         body: &'a types::ChannelFollowReqBody,
     ) -> Result<ResponseValue<types::OperationResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/channel/follow/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -41171,17 +40202,17 @@ Sends a `DELETE` request to `/v2/farcaster/channel/follow/`
     }
     /**For channel
 
-Returns a list of followers for a specific channel. Max limit is 1000. Use cursor for pagination.
+    Returns a list of followers for a specific channel. Max limit is 1000. Use cursor for pagination.
 
-Sends a `GET` request to `/v2/farcaster/channel/followers/`
+    Sends a `GET` request to `/v2/farcaster/channel/followers/`
 
-Arguments:
-- `cursor`: Pagination cursor.
-- `id`: Channel ID for the channel being queried
-- `limit`: Number of followers to fetch
-- `viewer_fid`: Providing this will return a list of followers that respects this user's mutes and blocks and includes `viewer_context`.
-- `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
-*/
+    Arguments:
+    - `cursor`: Pagination cursor.
+    - `id`: Channel ID for the channel being queried
+    - `limit`: Number of followers to fetch
+    - `viewer_fid`: Providing this will return a list of followers that respects this user's mutes and blocks and includes `viewer_context`.
+    - `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
+    */
     pub async fn fetch_followers_for_a_channel<'a>(
         &'a self,
         cursor: Option<&'a str>,
@@ -41192,11 +40223,10 @@ Arguments:
     ) -> Result<ResponseValue<types::UsersResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/channel/followers/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         if let Some(value) = x_neynar_experimental {
             header_map.append("x-neynar-experimental", value.to_string().try_into()?);
         }
@@ -41211,7 +40241,10 @@ Arguments:
             .query(&progenitor_client::QueryParam::new("cursor", &cursor))
             .query(&progenitor_client::QueryParam::new("id", &id))
             .query(&progenitor_client::QueryParam::new("limit", &limit))
-            .query(&progenitor_client::QueryParam::new("viewer_fid", &viewer_fid))
+            .query(&progenitor_client::QueryParam::new(
+                "viewer_fid",
+                &viewer_fid,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -41228,15 +40261,15 @@ Arguments:
     }
     /**Relevant followers
 
-Returns a list of relevant channel followers for a specific FID. This usually shows on a channel as "X, Y, Z follow this channel".
+    Returns a list of relevant channel followers for a specific FID. This usually shows on a channel as "X, Y, Z follow this channel".
 
-Sends a `GET` request to `/v2/farcaster/channel/followers/relevant/`
+    Sends a `GET` request to `/v2/farcaster/channel/followers/relevant/`
 
-Arguments:
-- `id`: Channel ID being queried
-- `viewer_fid`: The FID of the user to customize this response for. Providing this will also return a list of followers that respects this user's mutes and blocks and includes `viewer_context`.
-- `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
-*/
+    Arguments:
+    - `id`: Channel ID being queried
+    - `viewer_fid`: The FID of the user to customize this response for. Providing this will also return a list of followers that respects this user's mutes and blocks and includes `viewer_context`.
+    - `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
+    */
     pub async fn fetch_relevant_followers_for_a_channel<'a>(
         &'a self,
         id: &'a str,
@@ -41245,11 +40278,10 @@ Arguments:
     ) -> Result<ResponseValue<types::RelevantFollowersResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/channel/followers/relevant/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         if let Some(value) = x_neynar_experimental {
             header_map.append("x-neynar-experimental", value.to_string().try_into()?);
         }
@@ -41262,7 +40294,10 @@ Arguments:
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
             .query(&progenitor_client::QueryParam::new("id", &id))
-            .query(&progenitor_client::QueryParam::new("viewer_fid", &viewer_fid))
+            .query(&progenitor_client::QueryParam::new(
+                "viewer_fid",
+                &viewer_fid,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -41279,14 +40314,14 @@ Arguments:
     }
     /**Fetch all channels with their details
 
-Returns a list of all channels with their details
+    Returns a list of all channels with their details
 
-Sends a `GET` request to `/v2/farcaster/channel/list/`
+    Sends a `GET` request to `/v2/farcaster/channel/list/`
 
-Arguments:
-- `cursor`: Pagination cursor.
-- `limit`: Number of results to fetch
-*/
+    Arguments:
+    - `cursor`: Pagination cursor.
+    - `limit`: Number of results to fetch
+    */
     pub async fn fetch_all_channels<'a>(
         &'a self,
         cursor: Option<&'a str>,
@@ -41294,11 +40329,10 @@ Arguments:
     ) -> Result<ResponseValue<types::ChannelListResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/channel/list/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -41325,22 +40359,21 @@ Arguments:
     }
     /**Remove user
 
-Remove a user from a channel or a user's invite to a channel role
+    Remove a user from a channel or a user's invite to a channel role
 
-Sends a `DELETE` request to `/v2/farcaster/channel/member/`
+    Sends a `DELETE` request to `/v2/farcaster/channel/member/`
 
-*/
+    */
     pub async fn remove_channel_member<'a>(
         &'a self,
         body: &'a types::RemoveChannelMemberReqBody,
     ) -> Result<ResponseValue<types::OperationResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/channel/member/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -41366,22 +40399,21 @@ Sends a `DELETE` request to `/v2/farcaster/channel/member/`
     }
     /**Accept or reject an invite
 
-Accept or reject a channel invite
+    Accept or reject a channel invite
 
-Sends a `PUT` request to `/v2/farcaster/channel/member/invite/`
+    Sends a `PUT` request to `/v2/farcaster/channel/member/invite/`
 
-*/
+    */
     pub async fn respond_channel_invite<'a>(
         &'a self,
         body: &'a types::RespondChannelInviteReqBody,
     ) -> Result<ResponseValue<types::OperationResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/channel/member/invite/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -41407,22 +40439,21 @@ Sends a `PUT` request to `/v2/farcaster/channel/member/invite/`
     }
     /**Invite
 
-Invite a user to a channel
+    Invite a user to a channel
 
-Sends a `POST` request to `/v2/farcaster/channel/member/invite/`
+    Sends a `POST` request to `/v2/farcaster/channel/member/invite/`
 
-*/
+    */
     pub async fn invite_channel_member<'a>(
         &'a self,
         body: &'a types::InviteChannelMemberReqBody,
     ) -> Result<ResponseValue<types::OperationResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/channel/member/invite/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -41448,16 +40479,16 @@ Sends a `POST` request to `/v2/farcaster/channel/member/invite/`
     }
     /**Open invites
 
-Fetch a list of invites, either in a channel or for a user. If both are provided, open channel invite for that user is returned.
+    Fetch a list of invites, either in a channel or for a user. If both are provided, open channel invite for that user is returned.
 
-Sends a `GET` request to `/v2/farcaster/channel/member/invite/list/`
+    Sends a `GET` request to `/v2/farcaster/channel/member/invite/list/`
 
-Arguments:
-- `channel_id`: Channel ID for the channel being queried
-- `cursor`: Pagination cursor.
-- `invited_fid`: FID of the user being invited
-- `limit`: Number of results to fetch
-*/
+    Arguments:
+    - `channel_id`: Channel ID for the channel being queried
+    - `cursor`: Pagination cursor.
+    - `invited_fid`: FID of the user being invited
+    - `limit`: Number of results to fetch
+    */
     pub async fn fetch_channel_invites<'a>(
         &'a self,
         channel_id: Option<&'a str>,
@@ -41467,11 +40498,10 @@ Arguments:
     ) -> Result<ResponseValue<types::ChannelMemberInviteListResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/channel/member/invite/list/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -41480,9 +40510,15 @@ Arguments:
                 ::reqwest::header::ACCEPT,
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
-            .query(&progenitor_client::QueryParam::new("channel_id", &channel_id))
+            .query(&progenitor_client::QueryParam::new(
+                "channel_id",
+                &channel_id,
+            ))
             .query(&progenitor_client::QueryParam::new("cursor", &cursor))
-            .query(&progenitor_client::QueryParam::new("invited_fid", &invited_fid))
+            .query(&progenitor_client::QueryParam::new(
+                "invited_fid",
+                &invited_fid,
+            ))
             .query(&progenitor_client::QueryParam::new("limit", &limit))
             .headers(header_map)
             .build()?;
@@ -41500,17 +40536,17 @@ Arguments:
     }
     /**Fetch members
 
-Fetch a list of members in a channel
+    Fetch a list of members in a channel
 
-Sends a `GET` request to `/v2/farcaster/channel/member/list/`
+    Sends a `GET` request to `/v2/farcaster/channel/member/list/`
 
-Arguments:
-- `channel_id`: Channel ID for the channel being queried
-- `cursor`: Pagination cursor.
-- `fid`: FID of the user being queried. Specify this to check if a user is a member of the channel without paginating through all members.
-- `limit`: Number of results to fetch
-- `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
-*/
+    Arguments:
+    - `channel_id`: Channel ID for the channel being queried
+    - `cursor`: Pagination cursor.
+    - `fid`: FID of the user being queried. Specify this to check if a user is a member of the channel without paginating through all members.
+    - `limit`: Number of results to fetch
+    - `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
+    */
     pub async fn fetch_channel_members<'a>(
         &'a self,
         channel_id: &'a str,
@@ -41521,11 +40557,10 @@ Arguments:
     ) -> Result<ResponseValue<types::ChannelMemberListResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/channel/member/list/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         if let Some(value) = x_neynar_experimental {
             header_map.append("x-neynar-experimental", value.to_string().try_into()?);
         }
@@ -41537,7 +40572,10 @@ Arguments:
                 ::reqwest::header::ACCEPT,
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
-            .query(&progenitor_client::QueryParam::new("channel_id", &channel_id))
+            .query(&progenitor_client::QueryParam::new(
+                "channel_id",
+                &channel_id,
+            ))
             .query(&progenitor_client::QueryParam::new("cursor", &cursor))
             .query(&progenitor_client::QueryParam::new("fid", &fid))
             .query(&progenitor_client::QueryParam::new("limit", &limit))
@@ -41557,16 +40595,16 @@ Arguments:
     }
     /**Search by ID or name
 
-Returns a list of channels based on ID or name
+    Returns a list of channels based on ID or name
 
-Sends a `GET` request to `/v2/farcaster/channel/search/`
+    Sends a `GET` request to `/v2/farcaster/channel/search/`
 
-Arguments:
-- `cursor`: Pagination cursor.
-- `limit`: Number of results to fetch
-- `q`: Channel ID or name for the channel being queried
-- `viewer_fid`: FID of the user viewing the channels.
-*/
+    Arguments:
+    - `cursor`: Pagination cursor.
+    - `limit`: Number of results to fetch
+    - `q`: Channel ID or name for the channel being queried
+    - `viewer_fid`: FID of the user viewing the channels.
+    */
     pub async fn search_channels<'a>(
         &'a self,
         cursor: Option<&'a str>,
@@ -41576,11 +40614,10 @@ Arguments:
     ) -> Result<ResponseValue<types::ChannelSearchResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/channel/search/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -41592,7 +40629,10 @@ Arguments:
             .query(&progenitor_client::QueryParam::new("cursor", &cursor))
             .query(&progenitor_client::QueryParam::new("limit", &limit))
             .query(&progenitor_client::QueryParam::new("q", &q))
-            .query(&progenitor_client::QueryParam::new("viewer_fid", &viewer_fid))
+            .query(&progenitor_client::QueryParam::new(
+                "viewer_fid",
+                &viewer_fid,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -41609,15 +40649,15 @@ Arguments:
     }
     /**Channels by activity
 
-Returns a list of trending channels based on activity
+    Returns a list of trending channels based on activity
 
-Sends a `GET` request to `/v2/farcaster/channel/trending/`
+    Sends a `GET` request to `/v2/farcaster/channel/trending/`
 
-Arguments:
-- `cursor`: Pagination cursor.
-- `limit`: Number of results to fetch
-- `time_window`
-*/
+    Arguments:
+    - `cursor`: Pagination cursor.
+    - `limit`: Number of results to fetch
+    - `time_window`
+    */
     pub async fn fetch_trending_channels<'a>(
         &'a self,
         cursor: Option<&'a str>,
@@ -41626,11 +40666,10 @@ Arguments:
     ) -> Result<ResponseValue<types::TrendingChannelResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/channel/trending/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -41641,7 +40680,10 @@ Arguments:
             )
             .query(&progenitor_client::QueryParam::new("cursor", &cursor))
             .query(&progenitor_client::QueryParam::new("limit", &limit))
-            .query(&progenitor_client::QueryParam::new("time_window", &time_window))
+            .query(&progenitor_client::QueryParam::new(
+                "time_window",
+                &time_window,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -41658,15 +40700,15 @@ Arguments:
     }
     /**Fetch channels that user is active in
 
-Fetches all channels that a user has casted in, in reverse chronological order.
+    Fetches all channels that a user has casted in, in reverse chronological order.
 
-Sends a `GET` request to `/v2/farcaster/channel/user/`
+    Sends a `GET` request to `/v2/farcaster/channel/user/`
 
-Arguments:
-- `cursor`: Pagination cursor.
-- `fid`: The user's FID (identifier)
-- `limit`: Number of results to fetch
-*/
+    Arguments:
+    - `cursor`: Pagination cursor.
+    - `fid`: The user's FID (identifier)
+    - `limit`: Number of results to fetch
+    */
     pub async fn fetch_users_active_channels<'a>(
         &'a self,
         cursor: Option<&'a str>,
@@ -41675,11 +40717,10 @@ Arguments:
     ) -> Result<ResponseValue<types::UsersActiveChannelsResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/channel/user/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -41707,26 +40748,26 @@ Arguments:
     }
     /**By filters
 
-Fetch casts based on filters. Ensure setting the correct parameters based on the feed_type and filter_type.
+    Fetch casts based on filters. Ensure setting the correct parameters based on the feed_type and filter_type.
 
-Sends a `GET` request to `/v2/farcaster/feed/`
+    Sends a `GET` request to `/v2/farcaster/feed/`
 
-Arguments:
-- `channel_id`: Used when filter_type=channel_id can be used to fetch casts under a channel. Requires feed_type and filter_type.
-- `cursor`: Pagination cursor.
-- `embed_types`: Used when filter_type=embed_types can be used to fetch all casts with matching content types. Requires feed_type and filter_type.
-- `embed_url`: Used when filter_type=embed_url. Casts with embedded URLs prefixed by this embed_url param will be returned. We normalize your given URL prefix and prepend 'https://' if no protocol is included. Requires feed_type and filter_type.
-- `feed_type`: Defaults to following (requires FID or address). If set to filter (requires filter_type)
-- `fid`: (Optional) FID of user whose feed you want to create. By default, the API expects this field, except if you pass a filter_type
-- `fids`: Used when filter_type=FIDs . Create a feed based on a list of FIDs. Max array size is 100. Requires feed_type and filter_type.
-- `filter_type`: Used when feed_type=filter. Options include fids (requires fids), parent_url (requires parent_url), channel_id (requires channel_id), embed_url (requires embed_url), embed_types (requires embed_types), or global_trending.
-- `limit`: Number of results to fetch
-- `members_only`: Used when filter_type=channel_id. Only include casts from members of the channel. True by default.
-- `parent_url`: Used when filter_type=parent_url can be used to fetch content under any parent url e.g. FIP-2 channels on Warpcast. Requires feed_type and filter_type.
-- `viewer_fid`: Providing this will return a feed that respects this user's mutes and blocks and includes `viewer_context`.
-- `with_recasts`: Include recasts in the response, true by default
-- `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
-*/
+    Arguments:
+    - `channel_id`: Used when filter_type=channel_id can be used to fetch casts under a channel. Requires feed_type and filter_type.
+    - `cursor`: Pagination cursor.
+    - `embed_types`: Used when filter_type=embed_types can be used to fetch all casts with matching content types. Requires feed_type and filter_type.
+    - `embed_url`: Used when filter_type=embed_url. Casts with embedded URLs prefixed by this embed_url param will be returned. We normalize your given URL prefix and prepend 'https://' if no protocol is included. Requires feed_type and filter_type.
+    - `feed_type`: Defaults to following (requires FID or address). If set to filter (requires filter_type)
+    - `fid`: (Optional) FID of user whose feed you want to create. By default, the API expects this field, except if you pass a filter_type
+    - `fids`: Used when filter_type=FIDs . Create a feed based on a list of FIDs. Max array size is 100. Requires feed_type and filter_type.
+    - `filter_type`: Used when feed_type=filter. Options include fids (requires fids), parent_url (requires parent_url), channel_id (requires channel_id), embed_url (requires embed_url), embed_types (requires embed_types), or global_trending.
+    - `limit`: Number of results to fetch
+    - `members_only`: Used when filter_type=channel_id. Only include casts from members of the channel. True by default.
+    - `parent_url`: Used when filter_type=parent_url can be used to fetch content under any parent url e.g. FIP-2 channels on Warpcast. Requires feed_type and filter_type.
+    - `viewer_fid`: Providing this will return a feed that respects this user's mutes and blocks and includes `viewer_context`.
+    - `with_recasts`: Include recasts in the response, true by default
+    - `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
+    */
     pub async fn fetch_feed<'a>(
         &'a self,
         channel_id: Option<&'a str>,
@@ -41746,11 +40787,10 @@ Arguments:
     ) -> Result<ResponseValue<types::FeedResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/feed/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         if let Some(value) = x_neynar_experimental {
             header_map.append("x-neynar-experimental", value.to_string().try_into()?);
         }
@@ -41762,19 +40802,40 @@ Arguments:
                 ::reqwest::header::ACCEPT,
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
-            .query(&progenitor_client::QueryParam::new("channel_id", &channel_id))
+            .query(&progenitor_client::QueryParam::new(
+                "channel_id",
+                &channel_id,
+            ))
             .query(&progenitor_client::QueryParam::new("cursor", &cursor))
-            .query(&progenitor_client::QueryParam::new("embed_types", &embed_types))
+            .query(&progenitor_client::QueryParam::new(
+                "embed_types",
+                &embed_types,
+            ))
             .query(&progenitor_client::QueryParam::new("embed_url", &embed_url))
             .query(&progenitor_client::QueryParam::new("feed_type", &feed_type))
             .query(&progenitor_client::QueryParam::new("fid", &fid))
             .query(&progenitor_client::QueryParam::new("fids", &fids))
-            .query(&progenitor_client::QueryParam::new("filter_type", &filter_type))
+            .query(&progenitor_client::QueryParam::new(
+                "filter_type",
+                &filter_type,
+            ))
             .query(&progenitor_client::QueryParam::new("limit", &limit))
-            .query(&progenitor_client::QueryParam::new("members_only", &members_only))
-            .query(&progenitor_client::QueryParam::new("parent_url", &parent_url))
-            .query(&progenitor_client::QueryParam::new("viewer_fid", &viewer_fid))
-            .query(&progenitor_client::QueryParam::new("with_recasts", &with_recasts))
+            .query(&progenitor_client::QueryParam::new(
+                "members_only",
+                &members_only,
+            ))
+            .query(&progenitor_client::QueryParam::new(
+                "parent_url",
+                &parent_url,
+            ))
+            .query(&progenitor_client::QueryParam::new(
+                "viewer_fid",
+                &viewer_fid,
+            ))
+            .query(&progenitor_client::QueryParam::new(
+                "with_recasts",
+                &with_recasts,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -41791,22 +40852,22 @@ Arguments:
     }
     /**By channel IDs
 
-Fetch feed based on channel IDs
+    Fetch feed based on channel IDs
 
-Sends a `GET` request to `/v2/farcaster/feed/channels/`
+    Sends a `GET` request to `/v2/farcaster/feed/channels/`
 
-Arguments:
-- `channel_ids`: Comma separated list of up to 10 channel IDs e.g. neynar,farcaster
-- `cursor`: Pagination cursor.
-- `fids`: Comma separated list of FIDs to filter the feed by, up to 10 at a time
-- `limit`: Number of results to fetch
-- `members_only`: Used when filter_type=channel_id. Only include casts from members of the channel. True by default.
-- `should_moderate`: If true, only casts that have been liked by the moderator (if one exists) will be returned.
-- `viewer_fid`: Providing this will return a feed that respects this user's mutes and blocks and includes `viewer_context`.
-- `with_recasts`: Include recasts in the response, true by default
-- `with_replies`: Include replies in the response, false by default
-- `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
-*/
+    Arguments:
+    - `channel_ids`: Comma separated list of up to 10 channel IDs e.g. neynar,farcaster
+    - `cursor`: Pagination cursor.
+    - `fids`: Comma separated list of FIDs to filter the feed by, up to 10 at a time
+    - `limit`: Number of results to fetch
+    - `members_only`: Used when filter_type=channel_id. Only include casts from members of the channel. True by default.
+    - `should_moderate`: If true, only casts that have been liked by the moderator (if one exists) will be returned.
+    - `viewer_fid`: Providing this will return a feed that respects this user's mutes and blocks and includes `viewer_context`.
+    - `with_recasts`: Include recasts in the response, true by default
+    - `with_replies`: Include replies in the response, false by default
+    - `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
+    */
     pub async fn fetch_feed_by_channel_ids<'a>(
         &'a self,
         channel_ids: &'a str,
@@ -41822,11 +40883,10 @@ Arguments:
     ) -> Result<ResponseValue<types::FeedResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/feed/channels/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         if let Some(value) = x_neynar_experimental {
             header_map.append("x-neynar-experimental", value.to_string().try_into()?);
         }
@@ -41838,17 +40898,33 @@ Arguments:
                 ::reqwest::header::ACCEPT,
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
-            .query(&progenitor_client::QueryParam::new("channel_ids", &channel_ids))
+            .query(&progenitor_client::QueryParam::new(
+                "channel_ids",
+                &channel_ids,
+            ))
             .query(&progenitor_client::QueryParam::new("cursor", &cursor))
             .query(&progenitor_client::QueryParam::new("fids", &fids))
             .query(&progenitor_client::QueryParam::new("limit", &limit))
-            .query(&progenitor_client::QueryParam::new("members_only", &members_only))
-            .query(
-                &progenitor_client::QueryParam::new("should_moderate", &should_moderate),
-            )
-            .query(&progenitor_client::QueryParam::new("viewer_fid", &viewer_fid))
-            .query(&progenitor_client::QueryParam::new("with_recasts", &with_recasts))
-            .query(&progenitor_client::QueryParam::new("with_replies", &with_replies))
+            .query(&progenitor_client::QueryParam::new(
+                "members_only",
+                &members_only,
+            ))
+            .query(&progenitor_client::QueryParam::new(
+                "should_moderate",
+                &should_moderate,
+            ))
+            .query(&progenitor_client::QueryParam::new(
+                "viewer_fid",
+                &viewer_fid,
+            ))
+            .query(&progenitor_client::QueryParam::new(
+                "with_recasts",
+                &with_recasts,
+            ))
+            .query(&progenitor_client::QueryParam::new(
+                "with_replies",
+                &with_replies,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -41865,18 +40941,18 @@ Arguments:
     }
     /**Following
 
-Fetch feed based on who a user is following
+    Fetch feed based on who a user is following
 
-Sends a `GET` request to `/v2/farcaster/feed/following/`
+    Sends a `GET` request to `/v2/farcaster/feed/following/`
 
-Arguments:
-- `cursor`: Pagination cursor.
-- `fid`: FID of user whose feed you want to create
-- `limit`: Number of results to fetch
-- `viewer_fid`: Providing this will return a feed that respects this user's mutes and blocks and includes `viewer_context`.
-- `with_recasts`: Include recasts in the response, true by default
-- `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
-*/
+    Arguments:
+    - `cursor`: Pagination cursor.
+    - `fid`: FID of user whose feed you want to create
+    - `limit`: Number of results to fetch
+    - `viewer_fid`: Providing this will return a feed that respects this user's mutes and blocks and includes `viewer_context`.
+    - `with_recasts`: Include recasts in the response, true by default
+    - `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
+    */
     pub async fn fetch_user_following_feed<'a>(
         &'a self,
         cursor: Option<&'a str>,
@@ -41888,11 +40964,10 @@ Arguments:
     ) -> Result<ResponseValue<types::FeedResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/feed/following/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         if let Some(value) = x_neynar_experimental {
             header_map.append("x-neynar-experimental", value.to_string().try_into()?);
         }
@@ -41907,8 +40982,14 @@ Arguments:
             .query(&progenitor_client::QueryParam::new("cursor", &cursor))
             .query(&progenitor_client::QueryParam::new("fid", &fid))
             .query(&progenitor_client::QueryParam::new("limit", &limit))
-            .query(&progenitor_client::QueryParam::new("viewer_fid", &viewer_fid))
-            .query(&progenitor_client::QueryParam::new("with_recasts", &with_recasts))
+            .query(&progenitor_client::QueryParam::new(
+                "viewer_fid",
+                &viewer_fid,
+            ))
+            .query(&progenitor_client::QueryParam::new(
+                "with_recasts",
+                &with_recasts,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -41925,18 +41006,18 @@ Arguments:
     }
     /**For you
 
-Fetch a personalized For You feed for a user
+    Fetch a personalized For You feed for a user
 
-Sends a `GET` request to `/v2/farcaster/feed/for_you/`
+    Sends a `GET` request to `/v2/farcaster/feed/for_you/`
 
-Arguments:
-- `cursor`: Pagination cursor.
-- `fid`: FID of user whose feed you want to create
-- `limit`: Number of results to fetch
-- `provider`: The provider of the For You feed.
-- `viewer_fid`: Providing this will return a feed that respects this user's mutes and blocks and includes `viewer_context`.
-- `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
-*/
+    Arguments:
+    - `cursor`: Pagination cursor.
+    - `fid`: FID of user whose feed you want to create
+    - `limit`: Number of results to fetch
+    - `provider`: The provider of the For You feed.
+    - `viewer_fid`: Providing this will return a feed that respects this user's mutes and blocks and includes `viewer_context`.
+    - `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
+    */
     pub async fn fetch_feed_for_you<'a>(
         &'a self,
         cursor: Option<&'a str>,
@@ -41948,11 +41029,10 @@ Arguments:
     ) -> Result<ResponseValue<types::FeedResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/feed/for_you/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         if let Some(value) = x_neynar_experimental {
             header_map.append("x-neynar-experimental", value.to_string().try_into()?);
         }
@@ -41968,7 +41048,10 @@ Arguments:
             .query(&progenitor_client::QueryParam::new("fid", &fid))
             .query(&progenitor_client::QueryParam::new("limit", &limit))
             .query(&progenitor_client::QueryParam::new("provider", &provider))
-            .query(&progenitor_client::QueryParam::new("viewer_fid", &viewer_fid))
+            .query(&progenitor_client::QueryParam::new(
+                "viewer_fid",
+                &viewer_fid,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -41985,19 +41068,19 @@ Arguments:
     }
     /**By parent URLs
 
-Fetch feed based on parent URLs
+    Fetch feed based on parent URLs
 
-Sends a `GET` request to `/v2/farcaster/feed/parent_urls/`
+    Sends a `GET` request to `/v2/farcaster/feed/parent_urls/`
 
-Arguments:
-- `cursor`: Pagination cursor.
-- `limit`: Number of results to fetch
-- `parent_urls`: Comma separated list of parent_urls
-- `viewer_fid`: Providing this will return a feed that respects this user's mutes and blocks and includes `viewer_context`.
-- `with_recasts`: Include recasts in the response, true by default
-- `with_replies`: Include replies in the response, false by default
-- `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
-*/
+    Arguments:
+    - `cursor`: Pagination cursor.
+    - `limit`: Number of results to fetch
+    - `parent_urls`: Comma separated list of parent_urls
+    - `viewer_fid`: Providing this will return a feed that respects this user's mutes and blocks and includes `viewer_context`.
+    - `with_recasts`: Include recasts in the response, true by default
+    - `with_replies`: Include replies in the response, false by default
+    - `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
+    */
     pub async fn fetch_feed_by_parent_urls<'a>(
         &'a self,
         cursor: Option<&'a str>,
@@ -42010,11 +41093,10 @@ Arguments:
     ) -> Result<ResponseValue<types::FeedResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/feed/parent_urls/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         if let Some(value) = x_neynar_experimental {
             header_map.append("x-neynar-experimental", value.to_string().try_into()?);
         }
@@ -42028,10 +41110,22 @@ Arguments:
             )
             .query(&progenitor_client::QueryParam::new("cursor", &cursor))
             .query(&progenitor_client::QueryParam::new("limit", &limit))
-            .query(&progenitor_client::QueryParam::new("parent_urls", &parent_urls))
-            .query(&progenitor_client::QueryParam::new("viewer_fid", &viewer_fid))
-            .query(&progenitor_client::QueryParam::new("with_recasts", &with_recasts))
-            .query(&progenitor_client::QueryParam::new("with_replies", &with_replies))
+            .query(&progenitor_client::QueryParam::new(
+                "parent_urls",
+                &parent_urls,
+            ))
+            .query(&progenitor_client::QueryParam::new(
+                "viewer_fid",
+                &viewer_fid,
+            ))
+            .query(&progenitor_client::QueryParam::new(
+                "with_recasts",
+                &with_recasts,
+            ))
+            .query(&progenitor_client::QueryParam::new(
+                "with_replies",
+                &with_replies,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -42048,18 +41142,18 @@ Arguments:
     }
     /**By topic
 
-Fetch feed based on a topic slug.
+    Fetch feed based on a topic slug.
 
-Sends a `GET` request to `/v2/farcaster/feed/topic/`
+    Sends a `GET` request to `/v2/farcaster/feed/topic/`
 
-Arguments:
-- `cursor`: Pagination cursor.
-- `limit`: Number of results to fetch.
-- `slug`: Topic slug to filter casts by. Must be lowercase and contain only alphanumeric characters and underscores.
-- `viewer_fid`: Providing this will return a feed that respects this user's mutes and blocks and includes `viewer_context`.
-- `with_recasts`: Include recasts in the response, true by default.
-- `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
-*/
+    Arguments:
+    - `cursor`: Pagination cursor.
+    - `limit`: Number of results to fetch.
+    - `slug`: Topic slug to filter casts by. Must be lowercase and contain only alphanumeric characters and underscores.
+    - `viewer_fid`: Providing this will return a feed that respects this user's mutes and blocks and includes `viewer_context`.
+    - `with_recasts`: Include recasts in the response, true by default.
+    - `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
+    */
     pub async fn fetch_feed_by_topic<'a>(
         &'a self,
         cursor: Option<&'a str>,
@@ -42071,11 +41165,10 @@ Arguments:
     ) -> Result<ResponseValue<types::FeedResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/feed/topic/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         if let Some(value) = x_neynar_experimental {
             header_map.append("x-neynar-experimental", value.to_string().try_into()?);
         }
@@ -42090,8 +41183,14 @@ Arguments:
             .query(&progenitor_client::QueryParam::new("cursor", &cursor))
             .query(&progenitor_client::QueryParam::new("limit", &limit))
             .query(&progenitor_client::QueryParam::new("slug", &slug))
-            .query(&progenitor_client::QueryParam::new("viewer_fid", &viewer_fid))
-            .query(&progenitor_client::QueryParam::new("with_recasts", &with_recasts))
+            .query(&progenitor_client::QueryParam::new(
+                "viewer_fid",
+                &viewer_fid,
+            ))
+            .query(&progenitor_client::QueryParam::new(
+                "with_recasts",
+                &with_recasts,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -42108,20 +41207,20 @@ Arguments:
     }
     /**Trending feeds
 
-Fetch trending casts or on the global feed or channels feeds. 7d time window available for channel feeds only.
+    Fetch trending casts or on the global feed or channels feeds. 7d time window available for channel feeds only.
 
-Sends a `GET` request to `/v2/farcaster/feed/trending/`
+    Sends a `GET` request to `/v2/farcaster/feed/trending/`
 
-Arguments:
-- `channel_id`: Channel ID to filter trending casts. Less active channels might have no casts in the time window selected. Provide either `channel_id` or `parent_url`, not both.
-- `cursor`: Pagination cursor
-- `limit`: Number of results to fetch
-- `parent_url`: Parent URL to filter trending casts. Less active channels might have no casts in the time window selected. Provide either `channel_id` or `parent_url`, not both.
-- `provider`: The provider of the trending casts feed.
-- `time_window`: Time window for trending casts (7d window for channel feeds only)
-- `viewer_fid`: Providing this will return a feed that respects this user's mutes and blocks and includes `viewer_context`.
-- `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
-*/
+    Arguments:
+    - `channel_id`: Channel ID to filter trending casts. Less active channels might have no casts in the time window selected. Provide either `channel_id` or `parent_url`, not both.
+    - `cursor`: Pagination cursor
+    - `limit`: Number of results to fetch
+    - `parent_url`: Parent URL to filter trending casts. Less active channels might have no casts in the time window selected. Provide either `channel_id` or `parent_url`, not both.
+    - `provider`: The provider of the trending casts feed.
+    - `time_window`: Time window for trending casts (7d window for channel feeds only)
+    - `viewer_fid`: Providing this will return a feed that respects this user's mutes and blocks and includes `viewer_context`.
+    - `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
+    */
     pub async fn fetch_trending_feed<'a>(
         &'a self,
         channel_id: Option<&'a str>,
@@ -42135,11 +41234,10 @@ Arguments:
     ) -> Result<ResponseValue<types::FeedResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/feed/trending/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         if let Some(value) = x_neynar_experimental {
             header_map.append("x-neynar-experimental", value.to_string().try_into()?);
         }
@@ -42151,13 +41249,25 @@ Arguments:
                 ::reqwest::header::ACCEPT,
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
-            .query(&progenitor_client::QueryParam::new("channel_id", &channel_id))
+            .query(&progenitor_client::QueryParam::new(
+                "channel_id",
+                &channel_id,
+            ))
             .query(&progenitor_client::QueryParam::new("cursor", &cursor))
             .query(&progenitor_client::QueryParam::new("limit", &limit))
-            .query(&progenitor_client::QueryParam::new("parent_url", &parent_url))
+            .query(&progenitor_client::QueryParam::new(
+                "parent_url",
+                &parent_url,
+            ))
             .query(&progenitor_client::QueryParam::new("provider", &provider))
-            .query(&progenitor_client::QueryParam::new("time_window", &time_window))
-            .query(&progenitor_client::QueryParam::new("viewer_fid", &viewer_fid))
+            .query(&progenitor_client::QueryParam::new(
+                "time_window",
+                &time_window,
+            ))
+            .query(&progenitor_client::QueryParam::new(
+                "viewer_fid",
+                &viewer_fid,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -42174,21 +41284,21 @@ Arguments:
     }
     /**Chronologically
 
-Fetch casts for a given user FID in reverse chronological order. Also allows filtering by parent_url and channel
+    Fetch casts for a given user FID in reverse chronological order. Also allows filtering by parent_url and channel
 
-Sends a `GET` request to `/v2/farcaster/feed/user/casts/`
+    Sends a `GET` request to `/v2/farcaster/feed/user/casts/`
 
-Arguments:
-- `app_fid`: Optionally filter to casts created via a specific app FID, e.g. 9152 for Warpcast
-- `channel_id`: Channel ID to filter the feed; mutually exclusive with parent_url
-- `cursor`: Pagination cursor
-- `fid`: FID of user whose recent casts you want to fetch
-- `include_replies`: Include reply casts by the author in the response, true by default
-- `limit`: Number of results to fetch
-- `parent_url`: Parent URL to filter the feed; mutually exclusive with channel_id
-- `viewer_fid`: FID of the user viewing the feed
-- `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
-*/
+    Arguments:
+    - `app_fid`: Optionally filter to casts created via a specific app FID, e.g. 9152 for Warpcast
+    - `channel_id`: Channel ID to filter the feed; mutually exclusive with parent_url
+    - `cursor`: Pagination cursor
+    - `fid`: FID of user whose recent casts you want to fetch
+    - `include_replies`: Include reply casts by the author in the response, true by default
+    - `limit`: Number of results to fetch
+    - `parent_url`: Parent URL to filter the feed; mutually exclusive with channel_id
+    - `viewer_fid`: FID of the user viewing the feed
+    - `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
+    */
     pub async fn fetch_casts_for_user<'a>(
         &'a self,
         app_fid: Option<::std::num::NonZeroU64>,
@@ -42203,11 +41313,10 @@ Arguments:
     ) -> Result<ResponseValue<types::FeedResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/feed/user/casts/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         if let Some(value) = x_neynar_experimental {
             header_map.append("x-neynar-experimental", value.to_string().try_into()?);
         }
@@ -42220,15 +41329,25 @@ Arguments:
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
             .query(&progenitor_client::QueryParam::new("app_fid", &app_fid))
-            .query(&progenitor_client::QueryParam::new("channel_id", &channel_id))
+            .query(&progenitor_client::QueryParam::new(
+                "channel_id",
+                &channel_id,
+            ))
             .query(&progenitor_client::QueryParam::new("cursor", &cursor))
             .query(&progenitor_client::QueryParam::new("fid", &fid))
-            .query(
-                &progenitor_client::QueryParam::new("include_replies", &include_replies),
-            )
+            .query(&progenitor_client::QueryParam::new(
+                "include_replies",
+                &include_replies,
+            ))
             .query(&progenitor_client::QueryParam::new("limit", &limit))
-            .query(&progenitor_client::QueryParam::new("parent_url", &parent_url))
-            .query(&progenitor_client::QueryParam::new("viewer_fid", &viewer_fid))
+            .query(&progenitor_client::QueryParam::new(
+                "parent_url",
+                &parent_url,
+            ))
+            .query(&progenitor_client::QueryParam::new(
+                "viewer_fid",
+                &viewer_fid,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -42245,14 +41364,14 @@ Arguments:
     }
     /**10 most popular casts
 
-Fetch 10 most popular casts for a given user FID; popularity based on replies, likes and recasts; sorted by most popular first
+    Fetch 10 most popular casts for a given user FID; popularity based on replies, likes and recasts; sorted by most popular first
 
-Sends a `GET` request to `/v2/farcaster/feed/user/popular/`
+    Sends a `GET` request to `/v2/farcaster/feed/user/popular/`
 
-Arguments:
-- `fid`: FID of user whose feed you want to create
-- `viewer_fid`
-*/
+    Arguments:
+    - `fid`: FID of user whose feed you want to create
+    - `viewer_fid`
+    */
     pub async fn fetch_popular_casts_by_user<'a>(
         &'a self,
         fid: ::std::num::NonZeroU64,
@@ -42260,11 +41379,10 @@ Arguments:
     ) -> Result<ResponseValue<types::BulkCastsResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/feed/user/popular/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -42274,7 +41392,10 @@ Arguments:
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
             .query(&progenitor_client::QueryParam::new("fid", &fid))
-            .query(&progenitor_client::QueryParam::new("viewer_fid", &viewer_fid))
+            .query(&progenitor_client::QueryParam::new(
+                "viewer_fid",
+                &viewer_fid,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -42291,17 +41412,17 @@ Arguments:
     }
     /**Replies and recasts
 
-Fetch recent replies and recasts for a given user FID; sorted by most recent first
+    Fetch recent replies and recasts for a given user FID; sorted by most recent first
 
-Sends a `GET` request to `/v2/farcaster/feed/user/replies_and_recasts/`
+    Sends a `GET` request to `/v2/farcaster/feed/user/replies_and_recasts/`
 
-Arguments:
-- `cursor`: Pagination cursor.
-- `fid`: FID of user whose replies and recasts you want to fetch
-- `filter`: Filter to fetch only replies or recasts
-- `limit`: Number of results to fetch
-- `viewer_fid`: Providing this will return a feed that respects this user's mutes and blocks and includes `viewer_context`.
-*/
+    Arguments:
+    - `cursor`: Pagination cursor.
+    - `fid`: FID of user whose replies and recasts you want to fetch
+    - `filter`: Filter to fetch only replies or recasts
+    - `limit`: Number of results to fetch
+    - `viewer_fid`: Providing this will return a feed that respects this user's mutes and blocks and includes `viewer_context`.
+    */
     pub async fn fetch_replies_and_recasts_for_user<'a>(
         &'a self,
         cursor: Option<&'a str>,
@@ -42311,14 +41432,14 @@ Arguments:
         viewer_fid: Option<::std::num::NonZeroU64>,
     ) -> Result<ResponseValue<types::FeedResponse>, Error<()>> {
         let url = format!(
-            "{}/v2/farcaster/feed/user/replies_and_recasts/", self.baseurl,
+            "{}/v2/farcaster/feed/user/replies_and_recasts/",
+            self.baseurl,
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -42331,7 +41452,10 @@ Arguments:
             .query(&progenitor_client::QueryParam::new("fid", &fid))
             .query(&progenitor_client::QueryParam::new("filter", &filter))
             .query(&progenitor_client::QueryParam::new("limit", &limit))
-            .query(&progenitor_client::QueryParam::new("viewer_fid", &viewer_fid))
+            .query(&progenitor_client::QueryParam::new(
+                "viewer_fid",
+                &viewer_fid,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -42348,22 +41472,21 @@ Arguments:
     }
     /**Check fname availability
 
-Check if a given fname is available
+    Check if a given fname is available
 
-Sends a `GET` request to `/v2/farcaster/fname/availability/`
+    Sends a `GET` request to `/v2/farcaster/fname/availability/`
 
-*/
+    */
     pub async fn is_fname_available<'a>(
         &'a self,
         fname: &'a str,
     ) -> Result<ResponseValue<types::FnameAvailabilityResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/fname/availability/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -42389,18 +41512,18 @@ Sends a `GET` request to `/v2/farcaster/fname/availability/`
     }
     /**Followers
 
-Returns a list of followers for a specific FID.
+    Returns a list of followers for a specific FID.
 
-Sends a `GET` request to `/v2/farcaster/followers/`
+    Sends a `GET` request to `/v2/farcaster/followers/`
 
-Arguments:
-- `cursor`: Pagination cursor.
-- `fid`: User who's profile you are looking at
-- `limit`: Number of results to fetch
-- `sort_type`: Sort type for fetch followers. Default is `desc_chron`
-- `viewer_fid`: Providing this will return a list of followers that respects this user's mutes and blocks and includes `viewer_context`.
-- `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
-*/
+    Arguments:
+    - `cursor`: Pagination cursor.
+    - `fid`: User who's profile you are looking at
+    - `limit`: Number of results to fetch
+    - `sort_type`: Sort type for fetch followers. Default is `desc_chron`
+    - `viewer_fid`: Providing this will return a list of followers that respects this user's mutes and blocks and includes `viewer_context`.
+    - `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
+    */
     pub async fn fetch_user_followers<'a>(
         &'a self,
         cursor: Option<&'a str>,
@@ -42412,11 +41535,10 @@ Arguments:
     ) -> Result<ResponseValue<types::FollowersResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/followers/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         if let Some(value) = x_neynar_experimental {
             header_map.append("x-neynar-experimental", value.to_string().try_into()?);
         }
@@ -42432,7 +41554,10 @@ Arguments:
             .query(&progenitor_client::QueryParam::new("fid", &fid))
             .query(&progenitor_client::QueryParam::new("limit", &limit))
             .query(&progenitor_client::QueryParam::new("sort_type", &sort_type))
-            .query(&progenitor_client::QueryParam::new("viewer_fid", &viewer_fid))
+            .query(&progenitor_client::QueryParam::new(
+                "viewer_fid",
+                &viewer_fid,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -42449,18 +41574,18 @@ Arguments:
     }
     /**Reciprocal Followers
 
-Returns users who the given FID follows and they follow the FID back (reciprocal following relationship)
+    Returns users who the given FID follows and they follow the FID back (reciprocal following relationship)
 
-Sends a `GET` request to `/v2/farcaster/followers/reciprocal/`
+    Sends a `GET` request to `/v2/farcaster/followers/reciprocal/`
 
-Arguments:
-- `cursor`: Pagination cursor
-- `fid`
-- `limit`
-- `sort_type`
-- `viewer_fid`
-- `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
-*/
+    Arguments:
+    - `cursor`: Pagination cursor
+    - `fid`
+    - `limit`
+    - `sort_type`
+    - `viewer_fid`
+    - `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
+    */
     pub async fn fetch_user_reciprocal_followers<'a>(
         &'a self,
         cursor: Option<&'a str>,
@@ -42472,11 +41597,10 @@ Arguments:
     ) -> Result<ResponseValue<types::FetchUserReciprocalFollowersResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/followers/reciprocal/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         if let Some(value) = x_neynar_experimental {
             header_map.append("x-neynar-experimental", value.to_string().try_into()?);
         }
@@ -42492,7 +41616,10 @@ Arguments:
             .query(&progenitor_client::QueryParam::new("fid", &fid))
             .query(&progenitor_client::QueryParam::new("limit", &limit))
             .query(&progenitor_client::QueryParam::new("sort_type", &sort_type))
-            .query(&progenitor_client::QueryParam::new("viewer_fid", &viewer_fid))
+            .query(&progenitor_client::QueryParam::new(
+                "viewer_fid",
+                &viewer_fid,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -42509,15 +41636,15 @@ Arguments:
     }
     /**Relevant followers
 
-Returns a list of relevant followers for a specific FID. This usually shows on a profile as "X, Y and Z follow this user".
+    Returns a list of relevant followers for a specific FID. This usually shows on a profile as "X, Y and Z follow this user".
 
-Sends a `GET` request to `/v2/farcaster/followers/relevant/`
+    Sends a `GET` request to `/v2/farcaster/followers/relevant/`
 
-Arguments:
-- `target_fid`: User who's profile you are looking at
-- `viewer_fid`: The FID of the user to customize this response for. Providing this will also return a list of followers that respects this user's mutes and blocks and includes `viewer_context`.
-- `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
-*/
+    Arguments:
+    - `target_fid`: User who's profile you are looking at
+    - `viewer_fid`: The FID of the user to customize this response for. Providing this will also return a list of followers that respects this user's mutes and blocks and includes `viewer_context`.
+    - `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
+    */
     pub async fn fetch_relevant_followers<'a>(
         &'a self,
         target_fid: ::std::num::NonZeroU64,
@@ -42526,11 +41653,10 @@ Arguments:
     ) -> Result<ResponseValue<types::RelevantFollowersResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/followers/relevant/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         if let Some(value) = x_neynar_experimental {
             header_map.append("x-neynar-experimental", value.to_string().try_into()?);
         }
@@ -42542,8 +41668,14 @@ Arguments:
                 ::reqwest::header::ACCEPT,
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
-            .query(&progenitor_client::QueryParam::new("target_fid", &target_fid))
-            .query(&progenitor_client::QueryParam::new("viewer_fid", &viewer_fid))
+            .query(&progenitor_client::QueryParam::new(
+                "target_fid",
+                &target_fid,
+            ))
+            .query(&progenitor_client::QueryParam::new(
+                "viewer_fid",
+                &viewer_fid,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -42560,18 +41692,18 @@ Arguments:
     }
     /**Following
 
-Fetch a list of users who a given user is following. Can optionally include a viewer_fid and sort_type.
+    Fetch a list of users who a given user is following. Can optionally include a viewer_fid and sort_type.
 
-Sends a `GET` request to `/v2/farcaster/following/`
+    Sends a `GET` request to `/v2/farcaster/following/`
 
-Arguments:
-- `cursor`: Pagination cursor.
-- `fid`: FID of the user whose following you want to fetch.
-- `limit`: Number of results to fetch
-- `sort_type`: Optional parameter to sort the users based on different criteria.
-- `viewer_fid`: Providing this will return a list of users that respects this user's mutes and blocks and includes `viewer_context`.
-- `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
-*/
+    Arguments:
+    - `cursor`: Pagination cursor.
+    - `fid`: FID of the user whose following you want to fetch.
+    - `limit`: Number of results to fetch
+    - `sort_type`: Optional parameter to sort the users based on different criteria.
+    - `viewer_fid`: Providing this will return a list of users that respects this user's mutes and blocks and includes `viewer_context`.
+    - `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
+    */
     pub async fn fetch_user_following<'a>(
         &'a self,
         cursor: Option<&'a str>,
@@ -42583,11 +41715,10 @@ Arguments:
     ) -> Result<ResponseValue<types::FollowersResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/following/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         if let Some(value) = x_neynar_experimental {
             header_map.append("x-neynar-experimental", value.to_string().try_into()?);
         }
@@ -42603,7 +41734,10 @@ Arguments:
             .query(&progenitor_client::QueryParam::new("fid", &fid))
             .query(&progenitor_client::QueryParam::new("limit", &limit))
             .query(&progenitor_client::QueryParam::new("sort_type", &sort_type))
-            .query(&progenitor_client::QueryParam::new("viewer_fid", &viewer_fid))
+            .query(&progenitor_client::QueryParam::new(
+                "viewer_fid",
+                &viewer_fid,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -42620,16 +41754,16 @@ Arguments:
     }
     /**Suggest Follows
 
-Fetch a list of suggested users to follow. Used to help users discover new users to follow
+    Fetch a list of suggested users to follow. Used to help users discover new users to follow
 
-Sends a `GET` request to `/v2/farcaster/following/suggested/`
+    Sends a `GET` request to `/v2/farcaster/following/suggested/`
 
-Arguments:
-- `fid`: FID of the user whose following you want to fetch.
-- `limit`: Number of results to fetch
-- `viewer_fid`: Providing this will return a list of users that respects this user's mutes and blocks and includes `viewer_context`.
-- `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
-*/
+    Arguments:
+    - `fid`: FID of the user whose following you want to fetch.
+    - `limit`: Number of results to fetch
+    - `viewer_fid`: Providing this will return a list of users that respects this user's mutes and blocks and includes `viewer_context`.
+    - `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
+    */
     pub async fn fetch_follow_suggestions<'a>(
         &'a self,
         fid: i64,
@@ -42639,11 +41773,10 @@ Arguments:
     ) -> Result<ResponseValue<types::UsersResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/following/suggested/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         if let Some(value) = x_neynar_experimental {
             header_map.append("x-neynar-experimental", value.to_string().try_into()?);
         }
@@ -42657,7 +41790,10 @@ Arguments:
             )
             .query(&progenitor_client::QueryParam::new("fid", &fid))
             .query(&progenitor_client::QueryParam::new("limit", &limit))
-            .query(&progenitor_client::QueryParam::new("viewer_fid", &viewer_fid))
+            .query(&progenitor_client::QueryParam::new(
+                "viewer_fid",
+                &viewer_fid,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -42674,17 +41810,17 @@ Arguments:
     }
     /**Mini apps catalog
 
-A curated list of featured mini apps
+    A curated list of featured mini apps
 
-Sends a `GET` request to `/v2/farcaster/frame/catalog/`
+    Sends a `GET` request to `/v2/farcaster/frame/catalog/`
 
-Arguments:
-- `categories`: Comma separated list of categories to include in the results. Includes all if left blank. Example: categories=games,social OR categories=games&categories=social
-- `cursor`: Pagination cursor
-- `limit`: Number of results to fetch
-- `networks`: List of blockchain networks by which to filter results.  Mini apps included in the results will specify at least one of the supplied networks or specify none. The list can be provided as comma-separated string or array.
-- `time_window`: Time window used to calculate the change in trending score for each mini app, used to sort mini app results
-*/
+    Arguments:
+    - `categories`: Comma separated list of categories to include in the results. Includes all if left blank. Example: categories=games,social OR categories=games&categories=social
+    - `cursor`: Pagination cursor
+    - `limit`: Number of results to fetch
+    - `networks`: List of blockchain networks by which to filter results.  Mini apps included in the results will specify at least one of the supplied networks or specify none. The list can be provided as comma-separated string or array.
+    - `time_window`: Time window used to calculate the change in trending score for each mini app, used to sort mini app results
+    */
     pub async fn fetch_frame_catalog<'a>(
         &'a self,
         categories: Option<&'a ::std::vec::Vec<types::FrameCategory>>,
@@ -42695,11 +41831,10 @@ Arguments:
     ) -> Result<ResponseValue<types::FrameCatalogResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/frame/catalog/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -42708,11 +41843,17 @@ Arguments:
                 ::reqwest::header::ACCEPT,
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
-            .query(&progenitor_client::QueryParam::new("categories", &categories))
+            .query(&progenitor_client::QueryParam::new(
+                "categories",
+                &categories,
+            ))
             .query(&progenitor_client::QueryParam::new("cursor", &cursor))
             .query(&progenitor_client::QueryParam::new("limit", &limit))
             .query(&progenitor_client::QueryParam::new("networks", &networks))
-            .query(&progenitor_client::QueryParam::new("time_window", &time_window))
+            .query(&progenitor_client::QueryParam::new(
+                "time_window",
+                &time_window,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -42729,15 +41870,15 @@ Arguments:
     }
     /**List of mini app notification tokens
 
-Returns a list of notifications tokens related to a mini app
+    Returns a list of notifications tokens related to a mini app
 
-Sends a `GET` request to `/v2/farcaster/frame/notification_tokens/`
+    Sends a `GET` request to `/v2/farcaster/frame/notification_tokens/`
 
-Arguments:
-- `cursor`: Pagination cursor
-- `fids`: Comma separated list of FIDs, up to 100 at a time. If you pass in FIDs, you will get back the notification tokens for those FIDs. If you don't pass in FIDs, you will get back all the notification tokens for the mini app.
-- `limit`: Number of results to fetch
-*/
+    Arguments:
+    - `cursor`: Pagination cursor
+    - `fids`: Comma separated list of FIDs, up to 100 at a time. If you pass in FIDs, you will get back the notification tokens for those FIDs. If you don't pass in FIDs, you will get back all the notification tokens for the mini app.
+    - `limit`: Number of results to fetch
+    */
     pub async fn fetch_notification_tokens<'a>(
         &'a self,
         cursor: Option<&'a str>,
@@ -42746,11 +41887,10 @@ Arguments:
     ) -> Result<ResponseValue<types::FrameNotificationTokens>, Error<()>> {
         let url = format!("{}/v2/farcaster/frame/notification_tokens/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -42778,15 +41918,15 @@ Arguments:
     }
     /**Get notification campaign stats
 
-Retrieve notification delivery and opened stats for notification campaigns
+    Retrieve notification delivery and opened stats for notification campaigns
 
-Sends a `GET` request to `/v2/farcaster/frame/notifications/`
+    Sends a `GET` request to `/v2/farcaster/frame/notifications/`
 
-Arguments:
-- `campaign_id`: An ID of a specific notification campaign to query
-- `cursor`: Pagination cursor
-- `limit`: The number of results to return
-*/
+    Arguments:
+    - `campaign_id`: An ID of a specific notification campaign to query
+    - `cursor`: Pagination cursor
+    - `limit`: The number of results to return
+    */
     pub async fn get_notification_campaign_stats<'a>(
         &'a self,
         campaign_id: Option<&'a ::uuid::Uuid>,
@@ -42795,11 +41935,10 @@ Arguments:
     ) -> Result<ResponseValue<types::GetNotificationCampaignStatsResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/frame/notifications/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -42808,7 +41947,10 @@ Arguments:
                 ::reqwest::header::ACCEPT,
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
-            .query(&progenitor_client::QueryParam::new("campaign_id", &campaign_id))
+            .query(&progenitor_client::QueryParam::new(
+                "campaign_id",
+                &campaign_id,
+            ))
             .query(&progenitor_client::QueryParam::new("cursor", &cursor))
             .query(&progenitor_client::QueryParam::new("limit", &limit))
             .headers(header_map)
@@ -42827,22 +41969,21 @@ Arguments:
     }
     /**Send notifications
 
-Send notifications to interactors of a mini app. By default every broadcast is delivered synchronously and returns 200 with aggregate counts. When the `ASYNC_NOTIFICATIONS_ENABLED` server flag is on, broadcasts with more than 100 notification tokens are queued and return 202 with a campaign_id instead; poll the campaign stats endpoint for progress. Small broadcasts always stay synchronous.
+    Send notifications to interactors of a mini app. By default every broadcast is delivered synchronously and returns 200 with aggregate counts. When the `ASYNC_NOTIFICATIONS_ENABLED` server flag is on, broadcasts with more than 100 notification tokens are queued and return 202 with a campaign_id instead; poll the campaign stats endpoint for progress. Small broadcasts always stay synchronous.
 
-Sends a `POST` request to `/v2/farcaster/frame/notifications/`
+    Sends a `POST` request to `/v2/farcaster/frame/notifications/`
 
-*/
+    */
     pub async fn publish_frame_notifications<'a>(
         &'a self,
         body: &'a types::SendFrameNotificationsReqBody,
     ) -> Result<ResponseValue<types::SendFrameNotificationsResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/frame/notifications/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -42868,15 +42009,15 @@ Sends a `POST` request to `/v2/farcaster/frame/notifications/`
     }
     /**Relevant mini apps
 
-Fetch a list of mini apps relevant to the user based on casts by users with strong affinity score for the user
+    Fetch a list of mini apps relevant to the user based on casts by users with strong affinity score for the user
 
-Sends a `GET` request to `/v2/farcaster/frame/relevant/`
+    Sends a `GET` request to `/v2/farcaster/frame/relevant/`
 
-Arguments:
-- `networks`: List of blockchain networks by which to filter results.  Mini apps included in the results will specify at least one of the supplied networks or specify none. The list can be provided as comma-separated string or array.
-- `time_window`: Time window used to limit statistics used to calculate mini app relevance
-- `viewer_fid`: FID of the user to fetch relevant mini apps for
-*/
+    Arguments:
+    - `networks`: List of blockchain networks by which to filter results.  Mini apps included in the results will specify at least one of the supplied networks or specify none. The list can be provided as comma-separated string or array.
+    - `time_window`: Time window used to limit statistics used to calculate mini app relevance
+    - `viewer_fid`: FID of the user to fetch relevant mini apps for
+    */
     pub async fn fetch_relevant_frames<'a>(
         &'a self,
         networks: Option<&'a ::std::vec::Vec<types::MiniappNetworksSchemaItem>>,
@@ -42885,11 +42026,10 @@ Arguments:
     ) -> Result<ResponseValue<types::FetchRelevantFramesResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/frame/relevant/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -42899,8 +42039,14 @@ Arguments:
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
             .query(&progenitor_client::QueryParam::new("networks", &networks))
-            .query(&progenitor_client::QueryParam::new("time_window", &time_window))
-            .query(&progenitor_client::QueryParam::new("viewer_fid", &viewer_fid))
+            .query(&progenitor_client::QueryParam::new(
+                "time_window",
+                &time_window,
+            ))
+            .query(&progenitor_client::QueryParam::new(
+                "viewer_fid",
+                &viewer_fid,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -42917,16 +42063,16 @@ Arguments:
     }
     /**Search mini apps
 
-Search for mini apps based on a query string
+    Search for mini apps based on a query string
 
-Sends a `GET` request to `/v2/farcaster/frame/search/`
+    Sends a `GET` request to `/v2/farcaster/frame/search/`
 
-Arguments:
-- `cursor`: Pagination cursor
-- `limit`: Number of results to fetch
-- `networks`: List of blockchain networks by which to filter results.  Mini apps included in the results will specify at least one of the supplied networks or specify none. The list can be provided as comma-separated string or array.
-- `q`: Query string to search for mini apps
-*/
+    Arguments:
+    - `cursor`: Pagination cursor
+    - `limit`: Number of results to fetch
+    - `networks`: List of blockchain networks by which to filter results.  Mini apps included in the results will specify at least one of the supplied networks or specify none. The list can be provided as comma-separated string or array.
+    - `q`: Query string to search for mini apps
+    */
     pub async fn search_frames<'a>(
         &'a self,
         cursor: Option<&'a str>,
@@ -42936,11 +42082,10 @@ Arguments:
     ) -> Result<ResponseValue<types::FrameCatalogResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/frame/search/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -42969,24 +42114,23 @@ Arguments:
     }
     /**Get transaction pay mini app
 
-Retrieves details about a transaction pay mini app by ID
+    Retrieves details about a transaction pay mini app by ID
 
-Sends a `GET` request to `/v2/farcaster/frame/transaction/pay/`
+    Sends a `GET` request to `/v2/farcaster/frame/transaction/pay/`
 
-Arguments:
-- `id`: ID of the transaction mini app to retrieve
-*/
+    Arguments:
+    - `id`: ID of the transaction mini app to retrieve
+    */
     pub async fn get_transaction_pay_frame<'a>(
         &'a self,
         id: &'a str,
     ) -> Result<ResponseValue<types::TransactionFrameResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/frame/transaction/pay/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -43012,22 +42156,21 @@ Arguments:
     }
     /**Create transaction pay mini app
 
-Creates a new transaction pay mini app that can be used to collect payments through a mini app
+    Creates a new transaction pay mini app that can be used to collect payments through a mini app
 
-Sends a `POST` request to `/v2/farcaster/frame/transaction/pay/`
+    Sends a `POST` request to `/v2/farcaster/frame/transaction/pay/`
 
-*/
+    */
     pub async fn create_transaction_pay_frame<'a>(
         &'a self,
         body: &'a types::FramePayTransactionReqBody,
     ) -> Result<ResponseValue<types::TransactionFrameResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/frame/transaction/pay/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -43053,15 +42196,15 @@ Sends a `POST` request to `/v2/farcaster/frame/transaction/pay/`
     }
     /**Relevant owners
 
-Fetch a list of relevant owners for a on chain asset. If a viewer is provided, only relevant holders will be shown. This usually shows on a fungible asset page as "X, Y, Z and N others you know own this asset".
+    Fetch a list of relevant owners for a on chain asset. If a viewer is provided, only relevant holders will be shown. This usually shows on a fungible asset page as "X, Y, Z and N others you know own this asset".
 
-Sends a `GET` request to `/v2/farcaster/fungible/owner/relevant/`
+    Sends a `GET` request to `/v2/farcaster/fungible/owner/relevant/`
 
-Arguments:
-- `contract_address`: Contract address of the fungible asset (Ethereum or Solana)
-- `network`: Network of the fungible asset.
-- `viewer_fid`: If you provide a viewer_fid, the response will include token holders from the user's network, respecting their mutes and blocks and including viewer_context; if not provided, the response will show top token holders across the network—both sets can be combined to generate a longer list if desired.
-*/
+    Arguments:
+    - `contract_address`: Contract address of the fungible asset (Ethereum or Solana)
+    - `network`: Network of the fungible asset.
+    - `viewer_fid`: If you provide a viewer_fid, the response will include token holders from the user's network, respecting their mutes and blocks and including viewer_context; if not provided, the response will show top token holders across the network—both sets can be combined to generate a longer list if desired.
+    */
     pub async fn fetch_relevant_fungible_owners<'a>(
         &'a self,
         contract_address: &'a str,
@@ -43070,11 +42213,10 @@ Arguments:
     ) -> Result<ResponseValue<types::RelevantFungibleOwnersResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/fungible/owner/relevant/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -43083,14 +42225,15 @@ Arguments:
                 ::reqwest::header::ACCEPT,
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
-            .query(
-                &progenitor_client::QueryParam::new(
-                    "contract_address",
-                    &contract_address,
-                ),
-            )
+            .query(&progenitor_client::QueryParam::new(
+                "contract_address",
+                &contract_address,
+            ))
             .query(&progenitor_client::QueryParam::new("network", &network))
-            .query(&progenitor_client::QueryParam::new("viewer_fid", &viewer_fid))
+            .query(&progenitor_client::QueryParam::new(
+                "viewer_fid",
+                &viewer_fid,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -43107,15 +42250,15 @@ Arguments:
     }
     /**Bulk relevant owners
 
-Fetch relevant owners for multiple on chain assets in a single request, up to 10 contract addresses at a time.
+    Fetch relevant owners for multiple on chain assets in a single request, up to 10 contract addresses at a time.
 
-Sends a `GET` request to `/v2/farcaster/fungible/owner/relevant/bulk`
+    Sends a `GET` request to `/v2/farcaster/fungible/owner/relevant/bulk`
 
-Arguments:
-- `contract_addresses`: Comma separated list of contract addresses, up to 10 at a time
-- `network`: Network of the fungible assets.
-- `viewer_fid`: If you provide a viewer_fid, the response will include token holders from the user's network, respecting their mutes and blocks and including viewer_context.
-*/
+    Arguments:
+    - `contract_addresses`: Comma separated list of contract addresses, up to 10 at a time
+    - `network`: Network of the fungible assets.
+    - `viewer_fid`: If you provide a viewer_fid, the response will include token holders from the user's network, respecting their mutes and blocks and including viewer_context.
+    */
     pub async fn fetch_bulk_relevant_fungible_owners<'a>(
         &'a self,
         contract_addresses: &'a str,
@@ -43124,11 +42267,10 @@ Arguments:
     ) -> Result<ResponseValue<types::BulkRelevantFungibleOwnersResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/fungible/owner/relevant/bulk", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -43137,14 +42279,15 @@ Arguments:
                 ::reqwest::header::ACCEPT,
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
-            .query(
-                &progenitor_client::QueryParam::new(
-                    "contract_addresses",
-                    &contract_addresses,
-                ),
-            )
+            .query(&progenitor_client::QueryParam::new(
+                "contract_addresses",
+                &contract_addresses,
+            ))
             .query(&progenitor_client::QueryParam::new("network", &network))
-            .query(&progenitor_client::QueryParam::new("viewer_fid", &viewer_fid))
+            .query(&progenitor_client::QueryParam::new(
+                "viewer_fid",
+                &viewer_fid,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -43161,14 +42304,14 @@ Arguments:
     }
     /**Send fungibles
 
-Send fungibles in bulk to several farcaster users. A funded wallet is to required use this API. React out to us on the Neynar channel on farcaster to get your wallet address.
+    Send fungibles in bulk to several farcaster users. A funded wallet is to required use this API. React out to us on the Neynar channel on farcaster to get your wallet address.
 
-Sends a `POST` request to `/v2/farcaster/fungible/send/`
+    Sends a `POST` request to `/v2/farcaster/fungible/send/`
 
-Arguments:
-- `x_wallet_id`: Wallet ID to use for transactions
-- `body`
-*/
+    Arguments:
+    - `x_wallet_id`: Wallet ID to use for transactions
+    - `body`
+    */
     pub async fn send_fungibles_to_users<'a>(
         &'a self,
         x_wallet_id: &'a str,
@@ -43176,11 +42319,10 @@ Arguments:
     ) -> Result<ResponseValue<types::TransactionSendFungiblesResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/fungible/send/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("x-wallet-id", x_wallet_id.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -43207,16 +42349,16 @@ Arguments:
     }
     /**Get fungible trades
 
-Get recent trades for a specific fungible within a timeframe. Returns trades ordered by timestamp (most recent first).
+    Get recent trades for a specific fungible within a timeframe. Returns trades ordered by timestamp (most recent first).
 
-Sends a `GET` request to `/v2/farcaster/fungible/trades/`
+    Sends a `GET` request to `/v2/farcaster/fungible/trades/`
 
-Arguments:
-- `address`: Contract address
-- `min_amount_usd`: Minimum USD amount to filter trades
-- `network`
-- `time_window`: Time window for trades e.g. "1h", "6h", "12h", "24h", "7d"
-*/
+    Arguments:
+    - `address`: Contract address
+    - `min_amount_usd`: Minimum USD amount to filter trades
+    - `network`
+    - `time_window`: Time window for trades e.g. "1h", "6h", "12h", "24h", "7d"
+    */
     pub async fn fetch_fungible_trades<'a>(
         &'a self,
         address: &'a str,
@@ -43226,11 +42368,10 @@ Arguments:
     ) -> Result<ResponseValue<types::FetchFungibleTradesResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/fungible/trades/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -43240,11 +42381,15 @@ Arguments:
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
             .query(&progenitor_client::QueryParam::new("address", &address))
-            .query(
-                &progenitor_client::QueryParam::new("min_amount_usd", &min_amount_usd),
-            )
+            .query(&progenitor_client::QueryParam::new(
+                "min_amount_usd",
+                &min_amount_usd,
+            ))
             .query(&progenitor_client::QueryParam::new("network", &network))
-            .query(&progenitor_client::QueryParam::new("time_window", &time_window))
+            .query(&progenitor_client::QueryParam::new(
+                "time_window",
+                &time_window,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -43261,14 +42406,14 @@ Arguments:
     }
     /**Trending fungibles
 
-Fetch trending fungibles based on buy activity from watched addresses. Returns fungibles ranked by USD buy volume and buy count within the specified time window.
+    Fetch trending fungibles based on buy activity from watched addresses. Returns fungibles ranked by USD buy volume and buy count within the specified time window.
 
-Sends a `GET` request to `/v2/farcaster/fungible/trending/`
+    Sends a `GET` request to `/v2/farcaster/fungible/trending/`
 
-Arguments:
-- `network`
-- `time_window`: Time window for trending calculations e.g. "1h", "6h", "12h", "24h", "7d"
-*/
+    Arguments:
+    - `network`
+    - `time_window`: Time window for trending calculations e.g. "1h", "6h", "12h", "24h", "7d"
+    */
     pub async fn fetch_trending_fungibles<'a>(
         &'a self,
         network: types::FetchTrendingFungiblesNetwork,
@@ -43276,11 +42421,10 @@ Arguments:
     ) -> Result<ResponseValue<types::FetchTrendingFungiblesResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/fungible/trending/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -43290,7 +42434,10 @@ Arguments:
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
             .query(&progenitor_client::QueryParam::new("network", &network))
-            .query(&progenitor_client::QueryParam::new("time_window", &time_window))
+            .query(&progenitor_client::QueryParam::new(
+                "time_window",
+                &time_window,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -43307,15 +42454,15 @@ Arguments:
     }
     /**Fetch fungibles
 
-Fetch details for fungible assets identified by fungible identifiers.
+    Fetch details for fungible assets identified by fungible identifiers.
 
-Sends a `GET` request to `/v2/farcaster/fungibles/`
+    Sends a `GET` request to `/v2/farcaster/fungibles/`
 
-Arguments:
-- `fungibles`: Comma-separated fungible identifiers
-- `viewer_fid`: Optional FID of the viewer to personalize cast count filtering
-- `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
-*/
+    Arguments:
+    - `fungibles`: Comma-separated fungible identifiers
+    - `viewer_fid`: Optional FID of the viewer to personalize cast count filtering
+    - `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
+    */
     pub async fn fetch_fungibles<'a>(
         &'a self,
         fungibles: &'a str,
@@ -43324,11 +42471,10 @@ Arguments:
     ) -> Result<ResponseValue<types::FungiblesResponseSchema>, Error<()>> {
         let url = format!("{}/v2/farcaster/fungibles/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         if let Some(value) = x_neynar_experimental {
             header_map.append("x-neynar-experimental", value.to_string().try_into()?);
         }
@@ -43341,7 +42487,10 @@ Arguments:
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
             .query(&progenitor_client::QueryParam::new("fungibles", &fungibles))
-            .query(&progenitor_client::QueryParam::new("viewer_fid", &viewer_fid))
+            .query(&progenitor_client::QueryParam::new(
+                "viewer_fid",
+                &viewer_fid,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -43358,11 +42507,11 @@ Arguments:
     }
     /**Fetch authorization url
 
-Fetch authorization url (Fetched authorized url useful for SIWN login operation)
+    Fetch authorization url (Fetched authorized url useful for SIWN login operation)
 
-Sends a `GET` request to `/v2/farcaster/login/authorize/`
+    Sends a `GET` request to `/v2/farcaster/login/authorize/`
 
-*/
+    */
     pub async fn fetch_authorization_url<'a>(
         &'a self,
         client_id: &'a ::uuid::Uuid,
@@ -43370,11 +42519,10 @@ Sends a `GET` request to `/v2/farcaster/login/authorize/`
     ) -> Result<ResponseValue<types::AuthorizationUrlResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/login/authorize/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -43384,7 +42532,10 @@ Sends a `GET` request to `/v2/farcaster/login/authorize/`
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
             .query(&progenitor_client::QueryParam::new("client_id", &client_id))
-            .query(&progenitor_client::QueryParam::new("response_type", &response_type))
+            .query(&progenitor_client::QueryParam::new(
+                "response_type",
+                &response_type,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -43401,21 +42552,20 @@ Sends a `GET` request to `/v2/farcaster/login/authorize/`
     }
     /**Fetch nonce
 
-Nonce to sign a message
+    Nonce to sign a message
 
-Sends a `GET` request to `/v2/farcaster/login/nonce/`
+    Sends a `GET` request to `/v2/farcaster/login/nonce/`
 
-*/
+    */
     pub async fn fetch_nonce<'a>(
         &'a self,
     ) -> Result<ResponseValue<types::NonceResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/login/nonce/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -43440,22 +42590,21 @@ Sends a `GET` request to `/v2/farcaster/login/nonce/`
     }
     /**Publish message
 
-Publish a message to farcaster. The message must be signed by a signer managed by the developer. Use the @farcaster/core library to construct and sign the message. Use the Message.toJSON method on the signed message and pass the JSON in the body of this POST request.
+    Publish a message to farcaster. The message must be signed by a signer managed by the developer. Use the @farcaster/core library to construct and sign the message. Use the Message.toJSON method on the signed message and pass the JSON in the body of this POST request.
 
-Sends a `POST` request to `/v2/farcaster/message/`
+    Sends a `POST` request to `/v2/farcaster/message/`
 
-*/
+    */
     pub async fn publish_message_to_farcaster<'a>(
         &'a self,
         body: &'a types::PublishMessageReqBody,
     ) -> Result<ResponseValue<types::PublishMessageResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/message/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -43481,22 +42630,21 @@ Sends a `POST` request to `/v2/farcaster/message/`
     }
     /**Mute FID
 
-Adds a mute for a given FID. This is an allowlisted API, reach out if you want access.
+    Adds a mute for a given FID. This is an allowlisted API, reach out if you want access.
 
-Sends a `POST` request to `/v2/farcaster/mute/`
+    Sends a `POST` request to `/v2/farcaster/mute/`
 
-*/
+    */
     pub async fn publish_mute<'a>(
         &'a self,
         body: &'a types::MuteReqBody,
     ) -> Result<ResponseValue<types::MuteResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/mute/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -43522,22 +42670,21 @@ Sends a `POST` request to `/v2/farcaster/mute/`
     }
     /**Unmute FID
 
-Deletes a mute for a given FID. This is an allowlisted API, reach out if you want access.
+    Deletes a mute for a given FID. This is an allowlisted API, reach out if you want access.
 
-Sends a `DELETE` request to `/v2/farcaster/mute/`
+    Sends a `DELETE` request to `/v2/farcaster/mute/`
 
-*/
+    */
     pub async fn delete_mute<'a>(
         &'a self,
         body: &'a types::MuteReqBody,
     ) -> Result<ResponseValue<types::MuteResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/mute/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -43563,16 +42710,16 @@ Sends a `DELETE` request to `/v2/farcaster/mute/`
     }
     /**Muted FIDs of user
 
-Fetches all FIDs that a user has muted.
+    Fetches all FIDs that a user has muted.
 
-Sends a `GET` request to `/v2/farcaster/mute/list/`
+    Sends a `GET` request to `/v2/farcaster/mute/list/`
 
-Arguments:
-- `cursor`: Pagination cursor.
-- `fid`: The user's FID (identifier)
-- `limit`: Number of results to fetch
-- `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
-*/
+    Arguments:
+    - `cursor`: Pagination cursor.
+    - `fid`: The user's FID (identifier)
+    - `limit`: Number of results to fetch
+    - `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
+    */
     pub async fn fetch_mute_list<'a>(
         &'a self,
         cursor: Option<&'a str>,
@@ -43582,11 +42729,10 @@ Arguments:
     ) -> Result<ResponseValue<types::MuteListResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/mute/list/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         if let Some(value) = x_neynar_experimental {
             header_map.append("x-neynar-experimental", value.to_string().try_into()?);
         }
@@ -43617,14 +42763,14 @@ Arguments:
     }
     /**Deploy ERC-721 collection
 
-Deploy a new ERC-721A (series) NFT collection.
+    Deploy a new ERC-721A (series) NFT collection.
 
-Sends a `POST` request to `/v2/farcaster/nft/deploy/erc721/`
+    Sends a `POST` request to `/v2/farcaster/nft/deploy/erc721/`
 
-Arguments:
-- `x_wallet_id`: Wallet ID to use for transactions
-- `body`
-*/
+    Arguments:
+    - `x_wallet_id`: Wallet ID to use for transactions
+    - `body`
+    */
     pub async fn deploy_erc721<'a>(
         &'a self,
         x_wallet_id: &'a str,
@@ -43632,11 +42778,10 @@ Arguments:
     ) -> Result<ResponseValue<types::DeployErc721Response>, Error<()>> {
         let url = format!("{}/v2/farcaster/nft/deploy/erc721/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("x-wallet-id", x_wallet_id.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -43663,14 +42808,14 @@ Arguments:
     }
     /**Generate an NFT image
 
-Generate a new image or edit existing images using AI. Returns a publicly accessible URL to the generated image.
+    Generate a new image or edit existing images using AI. Returns a publicly accessible URL to the generated image.
 
-Sends a `POST` request to `/v2/farcaster/nft/image/`
+    Sends a `POST` request to `/v2/farcaster/nft/image/`
 
-Arguments:
-- `x_wallet_id`: Wallet ID to use for transactions
-- `body`
-*/
+    Arguments:
+    - `x_wallet_id`: Wallet ID to use for transactions
+    - `body`
+    */
     pub async fn generate_image<'a>(
         &'a self,
         x_wallet_id: &'a str,
@@ -43678,11 +42823,10 @@ Arguments:
     ) -> Result<ResponseValue<types::GenerateImageResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/nft/image/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("x-wallet-id", x_wallet_id.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -43709,14 +42853,14 @@ Arguments:
     }
     /**Upload NFT token metadata
 
-Uploads metadata JSON to S3 for one or more tokens on a deployed contract. Requires contract ownership via the wallet header.
+    Uploads metadata JSON to S3 for one or more tokens on a deployed contract. Requires contract ownership via the wallet header.
 
-Sends a `POST` request to `/v2/farcaster/nft/metadata/token`
+    Sends a `POST` request to `/v2/farcaster/nft/metadata/token`
 
-Arguments:
-- `x_wallet_id`: Wallet ID to use for transactions
-- `body`
-*/
+    Arguments:
+    - `x_wallet_id`: Wallet ID to use for transactions
+    - `body`
+    */
     pub async fn upload_token_metadata<'a>(
         &'a self,
         x_wallet_id: &'a str,
@@ -43724,11 +42868,10 @@ Arguments:
     ) -> Result<ResponseValue<types::UploadTokenMetadataResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/nft/metadata/token", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("x-wallet-id", x_wallet_id.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -43755,15 +42898,15 @@ Arguments:
     }
     /**Simulate NFT mint calldata
 
-Simulates mint calldata for the given recipients, contract, and network. Useful for previewing calldata and ABI before minting.
+    Simulates mint calldata for the given recipients, contract, and network. Useful for previewing calldata and ABI before minting.
 
-Sends a `GET` request to `/v2/farcaster/nft/mint/`
+    Sends a `GET` request to `/v2/farcaster/nft/mint/`
 
-Arguments:
-- `network`: Network to mint on.
-- `nft_contract_address`: Ethereum address
-- `recipients`: JSON array of recipients (same structure as POST).
-*/
+    Arguments:
+    - `network`: Network to mint on.
+    - `nft_contract_address`: Ethereum address
+    - `recipients`: JSON array of recipients (same structure as POST).
+    */
     pub async fn simulate_nft_mint<'a>(
         &'a self,
         network: types::SimulateNftMintNetwork,
@@ -43772,11 +42915,10 @@ Arguments:
     ) -> Result<ResponseValue<types::SimulateNftMintResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/nft/mint/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -43786,13 +42928,14 @@ Arguments:
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
             .query(&progenitor_client::QueryParam::new("network", &network))
-            .query(
-                &progenitor_client::QueryParam::new(
-                    "nft_contract_address",
-                    &nft_contract_address,
-                ),
-            )
-            .query(&progenitor_client::QueryParam::new("recipients", &recipients))
+            .query(&progenitor_client::QueryParam::new(
+                "nft_contract_address",
+                &nft_contract_address,
+            ))
+            .query(&progenitor_client::QueryParam::new(
+                "recipients",
+                &recipients,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -43809,14 +42952,14 @@ Arguments:
     }
     /**Mint NFT(s)
 
-Mints an NFT to one or more recipients on a specified network and contract, using a configured server wallet. Contact us to set up your wallet configuration if you don't have one.
+    Mints an NFT to one or more recipients on a specified network and contract, using a configured server wallet. Contact us to set up your wallet configuration if you don't have one.
 
-Sends a `POST` request to `/v2/farcaster/nft/mint/`
+    Sends a `POST` request to `/v2/farcaster/nft/mint/`
 
-Arguments:
-- `x_wallet_id`: Wallet ID to use for transactions
-- `body`
-*/
+    Arguments:
+    - `x_wallet_id`: Wallet ID to use for transactions
+    - `body`
+    */
     pub async fn mint_nft<'a>(
         &'a self,
         x_wallet_id: &'a str,
@@ -43824,11 +42967,10 @@ Arguments:
     ) -> Result<ResponseValue<types::MintNftResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/nft/mint/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("x-wallet-id", x_wallet_id.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -43855,17 +42997,17 @@ Arguments:
     }
     /**For user
 
-Returns a list of notifications for a specific FID.
+    Returns a list of notifications for a specific FID.
 
-Sends a `GET` request to `/v2/farcaster/notifications/`
+    Sends a `GET` request to `/v2/farcaster/notifications/`
 
-Arguments:
-- `cursor`: Pagination cursor.
-- `fid`: FID of the user you you want to fetch notifications for. The response will respect this user's mutes and blocks.
-- `limit`: Number of results to fetch
-- `type_`: Notification type to fetch. Comma separated values of follows, recasts, likes, mentions, replies.
-- `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
-*/
+    Arguments:
+    - `cursor`: Pagination cursor.
+    - `fid`: FID of the user you you want to fetch notifications for. The response will respect this user's mutes and blocks.
+    - `limit`: Number of results to fetch
+    - `type_`: Notification type to fetch. Comma separated values of follows, recasts, likes, mentions, replies.
+    - `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
+    */
     pub async fn fetch_all_notifications<'a>(
         &'a self,
         cursor: Option<&'a str>,
@@ -43876,11 +43018,10 @@ Arguments:
     ) -> Result<ResponseValue<types::NotificationsResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/notifications/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         if let Some(value) = x_neynar_experimental {
             header_map.append("x-neynar-experimental", value.to_string().try_into()?);
         }
@@ -43912,17 +43053,17 @@ Arguments:
     }
     /**For user by channel
 
-Returns a list of notifications for a user in specific channels
+    Returns a list of notifications for a user in specific channels
 
-Sends a `GET` request to `/v2/farcaster/notifications/channel/`
+    Sends a `GET` request to `/v2/farcaster/notifications/channel/`
 
-Arguments:
-- `channel_ids`: Comma separated channel_ids (find list of all channels here - https://docs.neynar.com/reference/list-all-channels)
-- `cursor`: Pagination cursor.
-- `fid`: FID of the user you you want to fetch notifications for. The response will respect this user's mutes and blocks.
-- `limit`: Number of results to fetch
-- `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
-*/
+    Arguments:
+    - `channel_ids`: Comma separated channel_ids (find list of all channels here - https://docs.neynar.com/reference/list-all-channels)
+    - `cursor`: Pagination cursor.
+    - `fid`: FID of the user you you want to fetch notifications for. The response will respect this user's mutes and blocks.
+    - `limit`: Number of results to fetch
+    - `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
+    */
     pub async fn fetch_channel_notifications_for_user<'a>(
         &'a self,
         channel_ids: &'a str,
@@ -43933,11 +43074,10 @@ Arguments:
     ) -> Result<ResponseValue<types::NotificationsResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/notifications/channel/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         if let Some(value) = x_neynar_experimental {
             header_map.append("x-neynar-experimental", value.to_string().try_into()?);
         }
@@ -43949,7 +43089,10 @@ Arguments:
                 ::reqwest::header::ACCEPT,
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
-            .query(&progenitor_client::QueryParam::new("channel_ids", &channel_ids))
+            .query(&progenitor_client::QueryParam::new(
+                "channel_ids",
+                &channel_ids,
+            ))
             .query(&progenitor_client::QueryParam::new("cursor", &cursor))
             .query(&progenitor_client::QueryParam::new("fid", &fid))
             .query(&progenitor_client::QueryParam::new("limit", &limit))
@@ -43969,17 +43112,17 @@ Arguments:
     }
     /**For user by parent_urls
 
-Returns a list of notifications for a user in specific parent_urls
+    Returns a list of notifications for a user in specific parent_urls
 
-Sends a `GET` request to `/v2/farcaster/notifications/parent_url/`
+    Sends a `GET` request to `/v2/farcaster/notifications/parent_url/`
 
-Arguments:
-- `cursor`: Pagination cursor.
-- `fid`: FID of the user you you want to fetch notifications for. The response will respect this user's mutes and blocks.
-- `limit`: Number of results to fetch
-- `parent_urls`: Comma separated parent_urls
-- `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
-*/
+    Arguments:
+    - `cursor`: Pagination cursor.
+    - `fid`: FID of the user you you want to fetch notifications for. The response will respect this user's mutes and blocks.
+    - `limit`: Number of results to fetch
+    - `parent_urls`: Comma separated parent_urls
+    - `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
+    */
     pub async fn fetch_notifications_by_parent_url_for_user<'a>(
         &'a self,
         cursor: Option<&'a str>,
@@ -43990,11 +43133,10 @@ Arguments:
     ) -> Result<ResponseValue<types::NotificationsResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/notifications/parent_url/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         if let Some(value) = x_neynar_experimental {
             header_map.append("x-neynar-experimental", value.to_string().try_into()?);
         }
@@ -44009,7 +43151,10 @@ Arguments:
             .query(&progenitor_client::QueryParam::new("cursor", &cursor))
             .query(&progenitor_client::QueryParam::new("fid", &fid))
             .query(&progenitor_client::QueryParam::new("limit", &limit))
-            .query(&progenitor_client::QueryParam::new("parent_urls", &parent_urls))
+            .query(&progenitor_client::QueryParam::new(
+                "parent_urls",
+                &parent_urls,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -44026,18 +43171,18 @@ Arguments:
     }
     /**Mark as seen
 
-Mark notifications as seen.
-You can choose one of two authorization methods, either:
-  1. Provide a valid signer_uuid in the request body (Most common)
-  2. Provide a valid, signed "Bearer" token in the request's `Authorization` header similar to the
-     approach described [here](https://docs.farcaster.xyz/reference/warpcast/api#authentication)
+    Mark notifications as seen.
+    You can choose one of two authorization methods, either:
+      1. Provide a valid signer_uuid in the request body (Most common)
+      2. Provide a valid, signed "Bearer" token in the request's `Authorization` header similar to the
+         approach described [here](https://docs.farcaster.xyz/reference/warpcast/api#authentication)
 
-Sends a `POST` request to `/v2/farcaster/notifications/seen/`
+    Sends a `POST` request to `/v2/farcaster/notifications/seen/`
 
-Arguments:
-- `authorization`: Optional Bearer token for certain endpoints. The token format is described [here](https://docs.farcaster.xyz/reference/warpcast/api#authentication).
-- `body`
-*/
+    Arguments:
+    - `authorization`: Optional Bearer token for certain endpoints. The token format is described [here](https://docs.farcaster.xyz/reference/warpcast/api#authentication).
+    - `body`
+    */
     pub async fn mark_notifications_as_seen<'a>(
         &'a self,
         authorization: Option<&'a str>,
@@ -44045,11 +43190,10 @@ Arguments:
     ) -> Result<ResponseValue<types::OperationResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/notifications/seen/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         if let Some(value) = authorization {
             header_map.append("Authorization", value.to_string().try_into()?);
         }
@@ -44078,23 +43222,22 @@ Arguments:
     }
     /**Post a reaction
 
-Post a reaction (like or recast) to a given cast
-(In order to post a reaction `signer_uuid` must be approved)
+    Post a reaction (like or recast) to a given cast
+    (In order to post a reaction `signer_uuid` must be approved)
 
-Sends a `POST` request to `/v2/farcaster/reaction/`
+    Sends a `POST` request to `/v2/farcaster/reaction/`
 
-*/
+    */
     pub async fn publish_reaction<'a>(
         &'a self,
         body: &'a types::ReactionReqBody,
     ) -> Result<ResponseValue<types::OperationResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/reaction/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -44120,23 +43263,22 @@ Sends a `POST` request to `/v2/farcaster/reaction/`
     }
     /**Delete reaction
 
-Delete a reaction (like or recast) to a cast
-(In order to delete a reaction `signer_uuid` must be approved)
+    Delete a reaction (like or recast) to a cast
+    (In order to delete a reaction `signer_uuid` must be approved)
 
-Sends a `DELETE` request to `/v2/farcaster/reaction/`
+    Sends a `DELETE` request to `/v2/farcaster/reaction/`
 
-*/
+    */
     pub async fn delete_reaction<'a>(
         &'a self,
         body: &'a types::ReactionReqBody,
     ) -> Result<ResponseValue<types::OperationResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/reaction/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -44162,17 +43304,17 @@ Sends a `DELETE` request to `/v2/farcaster/reaction/`
     }
     /**Reactions for cast
 
-Fetches reactions for a given cast
+    Fetches reactions for a given cast
 
-Sends a `GET` request to `/v2/farcaster/reactions/cast/`
+    Sends a `GET` request to `/v2/farcaster/reactions/cast/`
 
-Arguments:
-- `cursor`: Pagination cursor.
-- `hash`
-- `limit`: Number of results to fetch
-- `types`: Customize which reaction types the request should search for. This is a comma-separated string that can include the following values: 'likes' and 'recasts'. By default api returns both. To select multiple types, use a comma-separated list of these values.
-- `viewer_fid`: Providing this will return a list of reactions that respects this user's mutes and blocks and includes `viewer_context`.
-*/
+    Arguments:
+    - `cursor`: Pagination cursor.
+    - `hash`
+    - `limit`: Number of results to fetch
+    - `types`: Customize which reaction types the request should search for. This is a comma-separated string that can include the following values: 'likes' and 'recasts'. By default api returns both. To select multiple types, use a comma-separated list of these values.
+    - `viewer_fid`: Providing this will return a list of reactions that respects this user's mutes and blocks and includes `viewer_context`.
+    */
     pub async fn fetch_cast_reactions<'a>(
         &'a self,
         cursor: Option<&'a str>,
@@ -44183,11 +43325,10 @@ Arguments:
     ) -> Result<ResponseValue<types::ReactionsCastResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/reactions/cast/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -44200,7 +43341,10 @@ Arguments:
             .query(&progenitor_client::QueryParam::new("hash", &hash))
             .query(&progenitor_client::QueryParam::new("limit", &limit))
             .query(&progenitor_client::QueryParam::new("types", &types))
-            .query(&progenitor_client::QueryParam::new("viewer_fid", &viewer_fid))
+            .query(&progenitor_client::QueryParam::new(
+                "viewer_fid",
+                &viewer_fid,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -44217,17 +43361,17 @@ Arguments:
     }
     /**Reactions for user
 
-Fetches reactions for a given user
+    Fetches reactions for a given user
 
-Sends a `GET` request to `/v2/farcaster/reactions/user/`
+    Sends a `GET` request to `/v2/farcaster/reactions/user/`
 
-Arguments:
-- `cursor`: Pagination cursor.
-- `fid`: The unique identifier of a farcaster user or app (unsigned integer)
-- `limit`: Number of results to fetch
-- `type_`: Type of reaction to fetch (likes or recasts or all)
-- `viewer_fid`: Providing this will return a list of reactions that respects this user's mutes and blocks and includes `viewer_context`.
-*/
+    Arguments:
+    - `cursor`: Pagination cursor.
+    - `fid`: The unique identifier of a farcaster user or app (unsigned integer)
+    - `limit`: Number of results to fetch
+    - `type_`: Type of reaction to fetch (likes or recasts or all)
+    - `viewer_fid`: Providing this will return a list of reactions that respects this user's mutes and blocks and includes `viewer_context`.
+    */
     pub async fn fetch_user_reactions<'a>(
         &'a self,
         cursor: Option<&'a str>,
@@ -44238,11 +43382,10 @@ Arguments:
     ) -> Result<ResponseValue<types::ReactionsResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/reactions/user/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -44255,7 +43398,10 @@ Arguments:
             .query(&progenitor_client::QueryParam::new("fid", &fid))
             .query(&progenitor_client::QueryParam::new("limit", &limit))
             .query(&progenitor_client::QueryParam::new("type", &type_))
-            .query(&progenitor_client::QueryParam::new("viewer_fid", &viewer_fid))
+            .query(&progenitor_client::QueryParam::new(
+                "viewer_fid",
+                &viewer_fid,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -44272,25 +43418,24 @@ Arguments:
     }
     /**Status
 
-Gets information status of a signer by passing in a signer_uuid (Use post API to generate a signer)
+    Gets information status of a signer by passing in a signer_uuid (Use post API to generate a signer)
 
-Sends a `GET` request to `/v2/farcaster/signer/`
+    Sends a `GET` request to `/v2/farcaster/signer/`
 
-Arguments:
-- `signer_uuid`: UUID of the signer.
-`signer_uuid` is paired with API key, can't use a `uuid` made with a different API key.
-*/
+    Arguments:
+    - `signer_uuid`: UUID of the signer.
+    `signer_uuid` is paired with API key, can't use a `uuid` made with a different API key.
+    */
     pub async fn lookup_signer<'a>(
         &'a self,
         signer_uuid: &'a str,
     ) -> Result<ResponseValue<types::Signer>, Error<()>> {
         let url = format!("{}/v2/farcaster/signer/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -44299,7 +43444,10 @@ Arguments:
                 ::reqwest::header::ACCEPT,
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
-            .query(&progenitor_client::QueryParam::new("signer_uuid", &signer_uuid))
+            .query(&progenitor_client::QueryParam::new(
+                "signer_uuid",
+                &signer_uuid,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -44316,23 +43464,20 @@ Arguments:
     }
     /**Create signer
 
-Creates a signer and returns the signer status.
+    Creates a signer and returns the signer status.
 
-**Note**: While tesing please reuse the signer, it costs money to approve a signer.
+    **Note**: While tesing please reuse the signer, it costs money to approve a signer.
 
-Sends a `POST` request to `/v2/farcaster/signer/`
+    Sends a `POST` request to `/v2/farcaster/signer/`
 
-*/
-    pub async fn create_signer<'a>(
-        &'a self,
-    ) -> Result<ResponseValue<types::Signer>, Error<()>> {
+    */
+    pub async fn create_signer<'a>(&'a self) -> Result<ResponseValue<types::Signer>, Error<()>> {
         let url = format!("{}/v2/farcaster/signer/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -44357,24 +43502,23 @@ Sends a `POST` request to `/v2/farcaster/signer/`
     }
     /**Status by public key
 
-Fetches the status of a developer managed signer by public key
+    Fetches the status of a developer managed signer by public key
 
-Sends a `GET` request to `/v2/farcaster/signer/developer_managed/`
+    Sends a `GET` request to `/v2/farcaster/signer/developer_managed/`
 
-Arguments:
-- `public_key`: Ed25519 public key
-*/
+    Arguments:
+    - `public_key`: Ed25519 public key
+    */
     pub async fn lookup_developer_managed_signer<'a>(
         &'a self,
         public_key: &'a types::Ed25519PublicKey,
     ) -> Result<ResponseValue<types::DeveloperManagedSigner>, Error<()>> {
         let url = format!("{}/v2/farcaster/signer/developer_managed/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -44383,7 +43527,10 @@ Arguments:
                 ::reqwest::header::ACCEPT,
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
-            .query(&progenitor_client::QueryParam::new("public_key", &public_key))
+            .query(&progenitor_client::QueryParam::new(
+                "public_key",
+                &public_key,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -44400,24 +43547,24 @@ Arguments:
     }
     /**Register Signed Key
 
-Registers an signed key and returns the developer managed signer status with an approval url.
+    Registers an signed key and returns the developer managed signer status with an approval url.
 
-Sends a `POST` request to `/v2/farcaster/signer/developer_managed/signed_key/`
+    Sends a `POST` request to `/v2/farcaster/signer/developer_managed/signed_key/`
 
-*/
+    */
     pub async fn register_signed_key_for_developer_managed_signer<'a>(
         &'a self,
         body: &'a types::RegisterDeveloperManagedSignedKeyReqBody,
     ) -> Result<ResponseValue<types::DeveloperManagedSigner>, Error<()>> {
         let url = format!(
-            "{}/v2/farcaster/signer/developer_managed/signed_key/", self.baseurl,
+            "{}/v2/farcaster/signer/developer_managed/signed_key/",
+            self.baseurl,
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -44443,14 +43590,14 @@ Sends a `POST` request to `/v2/farcaster/signer/developer_managed/signed_key/`
     }
     /**List signers
 
-Fetches a list of signers for a custody address
+    Fetches a list of signers for a custody address
 
-Sends a `GET` request to `/v2/farcaster/signer/list/`
+    Sends a `GET` request to `/v2/farcaster/signer/list/`
 
-Arguments:
-- `message`: A Sign-In with Ethereum (SIWE) message that the user's Ethereum wallet signs. This message includes details such as the domain, address, statement, URI, nonce, and other relevant information following the EIP-4361 standard. It should be structured and URL-encoded.
-- `signature`: The digital signature produced by signing the provided SIWE message with the user's Ethereum private key. This signature is used to verify the authenticity of the message and the identity of the signer.
-*/
+    Arguments:
+    - `message`: A Sign-In with Ethereum (SIWE) message that the user's Ethereum wallet signs. This message includes details such as the domain, address, statement, URI, nonce, and other relevant information following the EIP-4361 standard. It should be structured and URL-encoded.
+    - `signature`: The digital signature produced by signing the provided SIWE message with the user's Ethereum private key. This signature is used to verify the authenticity of the message and the identity of the signer.
+    */
     pub async fn fetch_signers<'a>(
         &'a self,
         message: &'a str,
@@ -44458,11 +43605,10 @@ Arguments:
     ) -> Result<ResponseValue<types::SignerListResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/signer/list/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -44489,22 +43635,21 @@ Arguments:
     }
     /**Register Signed Key
 
-Registers an app FID, deadline and a signature. Returns the signer status with an approval url.
+    Registers an app FID, deadline and a signature. Returns the signer status with an approval url.
 
-Sends a `POST` request to `/v2/farcaster/signer/signed_key/`
+    Sends a `POST` request to `/v2/farcaster/signer/signed_key/`
 
-*/
+    */
     pub async fn register_signed_key<'a>(
         &'a self,
         body: &'a types::RegisterSignerKeyReqBody,
     ) -> Result<ResponseValue<types::Signer>, Error<()>> {
         let url = format!("{}/v2/farcaster/signer/signed_key/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -44530,24 +43675,23 @@ Sends a `POST` request to `/v2/farcaster/signer/signed_key/`
     }
     /**Allocation of user
 
-Fetches storage allocations for a given user
+    Fetches storage allocations for a given user
 
-Sends a `GET` request to `/v2/farcaster/storage/allocations/`
+    Sends a `GET` request to `/v2/farcaster/storage/allocations/`
 
-Arguments:
-- `fid`: The unique identifier of a farcaster user or app (unsigned integer)
-*/
+    Arguments:
+    - `fid`: The unique identifier of a farcaster user or app (unsigned integer)
+    */
     pub async fn lookup_user_storage_allocations<'a>(
         &'a self,
         fid: i32,
     ) -> Result<ResponseValue<types::StorageAllocationsResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/storage/allocations/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -44573,15 +43717,15 @@ Arguments:
     }
     /**Buy storage
 
-This api will help you rent units of storage for an year for a specific FID.
-A storage unit lets you store 5000 casts, 2500 reactions and 2500 links. Requires x-wallet-id header.
+    This api will help you rent units of storage for an year for a specific FID.
+    A storage unit lets you store 5000 casts, 2500 reactions and 2500 links. Requires x-wallet-id header.
 
-Sends a `POST` request to `/v2/farcaster/storage/buy/`
+    Sends a `POST` request to `/v2/farcaster/storage/buy/`
 
-Arguments:
-- `x_wallet_id`: Wallet ID to use for transactions
-- `body`
-*/
+    Arguments:
+    - `x_wallet_id`: Wallet ID to use for transactions
+    - `body`
+    */
     pub async fn buy_storage<'a>(
         &'a self,
         x_wallet_id: &'a str,
@@ -44589,11 +43733,10 @@ Arguments:
     ) -> Result<ResponseValue<types::StorageAllocationsResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/storage/buy/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("x-wallet-id", x_wallet_id.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -44620,24 +43763,23 @@ Arguments:
     }
     /**Usage of user
 
-Fetches storage usage for a given user
+    Fetches storage usage for a given user
 
-Sends a `GET` request to `/v2/farcaster/storage/usage/`
+    Sends a `GET` request to `/v2/farcaster/storage/usage/`
 
-Arguments:
-- `fid`: The unique identifier of a farcaster user or app (unsigned integer)
-*/
+    Arguments:
+    - `fid`: The unique identifier of a farcaster user or app (unsigned integer)
+    */
     pub async fn lookup_user_storage_usage<'a>(
         &'a self,
         fid: i32,
     ) -> Result<ResponseValue<types::StorageUsageResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/storage/usage/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -44663,14 +43805,14 @@ Arguments:
     }
     /**Fetch trending topics
 
-Returns a list of trending topics for casts.
+    Returns a list of trending topics for casts.
 
-Sends a `GET` request to `/v2/farcaster/topic/trending/`
+    Sends a `GET` request to `/v2/farcaster/topic/trending/`
 
-Arguments:
-- `cursor`: Pagination cursor.
-- `limit`: Number of topics to fetch.
-*/
+    Arguments:
+    - `cursor`: Pagination cursor.
+    - `limit`: Number of topics to fetch.
+    */
     pub async fn list_trending_topics<'a>(
         &'a self,
         cursor: Option<&'a str>,
@@ -44678,11 +43820,10 @@ Arguments:
     ) -> Result<ResponseValue<types::TrendingTopicsResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/topic/trending/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -44709,16 +43850,16 @@ Arguments:
     }
     /**Register new account
 
-Register account on farcaster. Optionally provide x-wallet-id header to use your own wallet.
+    Register account on farcaster. Optionally provide x-wallet-id header to use your own wallet.
 
-**Note:** This API must be called within 10 minutes of the fetch FID API call (i.e., /v2/farcaster/user/fid). Otherwise, Neynar will assign this FID to another available user.
+    **Note:** This API must be called within 10 minutes of the fetch FID API call (i.e., /v2/farcaster/user/fid). Otherwise, Neynar will assign this FID to another available user.
 
-Sends a `POST` request to `/v2/farcaster/user/`
+    Sends a `POST` request to `/v2/farcaster/user/`
 
-Arguments:
-- `x_wallet_id`: Wallet ID to use for transactions
-- `body`
-*/
+    Arguments:
+    - `x_wallet_id`: Wallet ID to use for transactions
+    - `body`
+    */
     pub async fn register_account<'a>(
         &'a self,
         x_wallet_id: &'a str,
@@ -44726,11 +43867,10 @@ Arguments:
     ) -> Result<ResponseValue<types::RegisterUserResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/user/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("x-wallet-id", x_wallet_id.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -44757,23 +43897,22 @@ Arguments:
     }
     /**Update user profile
 
-Update user profile
-(In order to update user's profile `signer_uuid` must be approved)
+    Update user profile
+    (In order to update user's profile `signer_uuid` must be approved)
 
-Sends a `PATCH` request to `/v2/farcaster/user/`
+    Sends a `PATCH` request to `/v2/farcaster/user/`
 
-*/
+    */
     pub async fn update_user<'a>(
         &'a self,
         body: &'a types::UpdateUserReqBody,
     ) -> Result<ResponseValue<types::OperationResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/user/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -44799,14 +43938,14 @@ Sends a `PATCH` request to `/v2/farcaster/user/`
     }
     /**Token balance
 
-Fetches the token balances of a user given their FID
+    Fetches the token balances of a user given their FID
 
-Sends a `GET` request to `/v2/farcaster/user/balance/`
+    Sends a `GET` request to `/v2/farcaster/user/balance/`
 
-Arguments:
-- `fid`: FID of the user to fetch
-- `networks`: Comma separated list of networks to fetch balances for
-*/
+    Arguments:
+    - `fid`: FID of the user to fetch
+    - `networks`: Comma separated list of networks to fetch balances for
+    */
     pub async fn fetch_user_balance<'a>(
         &'a self,
         fid: ::std::num::NonZeroU64,
@@ -44814,11 +43953,10 @@ Arguments:
     ) -> Result<ResponseValue<types::BalanceResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/user/balance/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -44845,15 +43983,15 @@ Arguments:
     }
     /**Best friends
 
-Returns the best friends of a user ranked by mutual affinity score based on interactions with each other.
+    Returns the best friends of a user ranked by mutual affinity score based on interactions with each other.
 
-Sends a `GET` request to `/v2/farcaster/user/best_friends/`
+    Sends a `GET` request to `/v2/farcaster/user/best_friends/`
 
-Arguments:
-- `cursor`: Pagination cursor
-- `fid`: The FID of the user
-- `limit`: Number of results to fetch
-*/
+    Arguments:
+    - `cursor`: Pagination cursor
+    - `fid`: The FID of the user
+    - `limit`: Number of results to fetch
+    */
     pub async fn get_user_best_friends<'a>(
         &'a self,
         cursor: Option<&'a str>,
@@ -44862,11 +44000,10 @@ Arguments:
     ) -> Result<ResponseValue<types::BestFriendsResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/user/best_friends/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -44894,21 +44031,21 @@ Arguments:
     }
     /**By Eth or Sol addresses
 
-Fetches all users based on multiple Ethereum or Solana addresses.
+    Fetches all users based on multiple Ethereum or Solana addresses.
 
-Each farcaster user has a custody Ethereum address and optionally verified Ethereum or Solana addresses. This endpoint returns all users that have any of the given addresses as their custody or verified Ethereum or Solana addresses.
+    Each farcaster user has a custody Ethereum address and optionally verified Ethereum or Solana addresses. This endpoint returns all users that have any of the given addresses as their custody or verified Ethereum or Solana addresses.
 
-A custody address can be associated with only 1 farcaster user at a time but a verified address can be associated with multiple users.
-You can pass in Ethereum and Solana addresses, comma separated, in the same request. The response will contain users associated with the given addresses.
+    A custody address can be associated with only 1 farcaster user at a time but a verified address can be associated with multiple users.
+    You can pass in Ethereum and Solana addresses, comma separated, in the same request. The response will contain users associated with the given addresses.
 
-Sends a `GET` request to `/v2/farcaster/user/bulk-by-address/`
+    Sends a `GET` request to `/v2/farcaster/user/bulk-by-address/`
 
-Arguments:
-- `address_types`: Customize which address types the request should search for. This is a comma-separated string that can include the following values: 'custody_address' and 'verified_address'. By default api returns both. To select multiple types, use a comma-separated list of these values.
-- `addresses`: Comma separated list of Ethereum or Solana addresses, up to 350 at a time
-- `viewer_fid`
-- `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
-*/
+    Arguments:
+    - `address_types`: Customize which address types the request should search for. This is a comma-separated string that can include the following values: 'custody_address' and 'verified_address'. By default api returns both. To select multiple types, use a comma-separated list of these values.
+    - `addresses`: Comma separated list of Ethereum or Solana addresses, up to 350 at a time
+    - `viewer_fid`
+    - `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
+    */
     pub async fn fetch_bulk_users_by_eth_or_sol_address<'a>(
         &'a self,
         address_types: Option<&'a ::std::vec::Vec<types::BulkUserAddressType>>,
@@ -44918,11 +44055,10 @@ Arguments:
     ) -> Result<ResponseValue<types::BulkUsersByAddressResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/user/bulk-by-address/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         if let Some(value) = x_neynar_experimental {
             header_map.append("x-neynar-experimental", value.to_string().try_into()?);
         }
@@ -44934,9 +44070,15 @@ Arguments:
                 ::reqwest::header::ACCEPT,
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
-            .query(&progenitor_client::QueryParam::new("address_types", &address_types))
+            .query(&progenitor_client::QueryParam::new(
+                "address_types",
+                &address_types,
+            ))
             .query(&progenitor_client::QueryParam::new("addresses", &addresses))
-            .query(&progenitor_client::QueryParam::new("viewer_fid", &viewer_fid))
+            .query(&progenitor_client::QueryParam::new(
+                "viewer_fid",
+                &viewer_fid,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -44953,15 +44095,15 @@ Arguments:
     }
     /**By FIDs
 
-Fetches information about multiple users based on FIDs
+    Fetches information about multiple users based on FIDs
 
-Sends a `GET` request to `/v2/farcaster/user/bulk/`
+    Sends a `GET` request to `/v2/farcaster/user/bulk/`
 
-Arguments:
-- `fids`: Comma separated list of FIDs, up to 100 at a time
-- `viewer_fid`
-- `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
-*/
+    Arguments:
+    - `fids`: Comma separated list of FIDs, up to 100 at a time
+    - `viewer_fid`
+    - `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
+    */
     pub async fn fetch_bulk_users<'a>(
         &'a self,
         fids: &'a str,
@@ -44970,11 +44112,10 @@ Arguments:
     ) -> Result<ResponseValue<types::BulkUsersResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/user/bulk/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         if let Some(value) = x_neynar_experimental {
             header_map.append("x-neynar-experimental", value.to_string().try_into()?);
         }
@@ -44987,7 +44128,10 @@ Arguments:
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
             .query(&progenitor_client::QueryParam::new("fids", &fids))
-            .query(&progenitor_client::QueryParam::new("viewer_fid", &viewer_fid))
+            .query(&progenitor_client::QueryParam::new(
+                "viewer_fid",
+                &viewer_fid,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -45004,18 +44148,18 @@ Arguments:
     }
     /**By location
 
-Fetches a list of users given a location
+    Fetches a list of users given a location
 
-Sends a `GET` request to `/v2/farcaster/user/by_location/`
+    Sends a `GET` request to `/v2/farcaster/user/by_location/`
 
-Arguments:
-- `cursor`: Pagination cursor
-- `latitude`: Latitude of the location
-- `limit`: Number of results to fetch
-- `longitude`: Longitude of the location
-- `viewer_fid`: FID of the user viewing the feed. Providing this will return a list of users that respects this user's mutes and blocks and includes `viewer_context`.
-- `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
-*/
+    Arguments:
+    - `cursor`: Pagination cursor
+    - `latitude`: Latitude of the location
+    - `limit`: Number of results to fetch
+    - `longitude`: Longitude of the location
+    - `viewer_fid`: FID of the user viewing the feed. Providing this will return a list of users that respects this user's mutes and blocks and includes `viewer_context`.
+    - `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
+    */
     pub async fn fetch_users_by_location<'a>(
         &'a self,
         cursor: Option<&'a str>,
@@ -45027,11 +44171,10 @@ Arguments:
     ) -> Result<ResponseValue<types::UsersResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/user/by_location/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         if let Some(value) = x_neynar_experimental {
             header_map.append("x-neynar-experimental", value.to_string().try_into()?);
         }
@@ -45047,7 +44190,10 @@ Arguments:
             .query(&progenitor_client::QueryParam::new("latitude", &latitude))
             .query(&progenitor_client::QueryParam::new("limit", &limit))
             .query(&progenitor_client::QueryParam::new("longitude", &longitude))
-            .query(&progenitor_client::QueryParam::new("viewer_fid", &viewer_fid))
+            .query(&progenitor_client::QueryParam::new(
+                "viewer_fid",
+                &viewer_fid,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -45064,15 +44210,15 @@ Arguments:
     }
     /**By username
 
-Fetches a single hydrated user object given a username
+    Fetches a single hydrated user object given a username
 
-Sends a `GET` request to `/v2/farcaster/user/by_username/`
+    Sends a `GET` request to `/v2/farcaster/user/by_username/`
 
-Arguments:
-- `username`: Username of the user to fetch
-- `viewer_fid`
-- `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
-*/
+    Arguments:
+    - `username`: Username of the user to fetch
+    - `viewer_fid`
+    - `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
+    */
     pub async fn lookup_user_by_username<'a>(
         &'a self,
         username: &'a str,
@@ -45081,11 +44227,10 @@ Arguments:
     ) -> Result<ResponseValue<types::UserResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/user/by_username/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         if let Some(value) = x_neynar_experimental {
             header_map.append("x-neynar-experimental", value.to_string().try_into()?);
         }
@@ -45098,7 +44243,10 @@ Arguments:
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
             .query(&progenitor_client::QueryParam::new("username", &username))
-            .query(&progenitor_client::QueryParam::new("viewer_fid", &viewer_fid))
+            .query(&progenitor_client::QueryParam::new(
+                "viewer_fid",
+                &viewer_fid,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -45115,15 +44263,15 @@ Arguments:
     }
     /**By X username
 
-Fetches the users who have verified the specified X (Twitter) username
+    Fetches the users who have verified the specified X (Twitter) username
 
-Sends a `GET` request to `/v2/farcaster/user/by_x_username/`
+    Sends a `GET` request to `/v2/farcaster/user/by_x_username/`
 
-Arguments:
-- `viewer_fid`: FID of the viewer for contextual information like follows and blocks
-- `x_username`: X (Twitter) username to search for, without the @ symbol
-- `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
-*/
+    Arguments:
+    - `viewer_fid`: FID of the viewer for contextual information like follows and blocks
+    - `x_username`: X (Twitter) username to search for, without the @ symbol
+    - `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
+    */
     pub async fn lookup_users_by_x_username<'a>(
         &'a self,
         viewer_fid: Option<::std::num::NonZeroU64>,
@@ -45132,11 +44280,10 @@ Arguments:
     ) -> Result<ResponseValue<types::BulkUsersResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/user/by_x_username/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         if let Some(value) = x_neynar_experimental {
             header_map.append("x-neynar-experimental", value.to_string().try_into()?);
         }
@@ -45148,8 +44295,14 @@ Arguments:
                 ::reqwest::header::ACCEPT,
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
-            .query(&progenitor_client::QueryParam::new("viewer_fid", &viewer_fid))
-            .query(&progenitor_client::QueryParam::new("x_username", &x_username))
+            .query(&progenitor_client::QueryParam::new(
+                "viewer_fid",
+                &viewer_fid,
+            ))
+            .query(&progenitor_client::QueryParam::new(
+                "x_username",
+                &x_username,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -45166,15 +44319,15 @@ Arguments:
     }
     /**Following
 
-Returns a list of all channels with their details that a FID follows.
+    Returns a list of all channels with their details that a FID follows.
 
-Sends a `GET` request to `/v2/farcaster/user/channels/`
+    Sends a `GET` request to `/v2/farcaster/user/channels/`
 
-Arguments:
-- `cursor`: Pagination cursor.
-- `fid`: The FID of the user.
-- `limit`: Number of results to fetch
-*/
+    Arguments:
+    - `cursor`: Pagination cursor.
+    - `fid`: The FID of the user.
+    - `limit`: Number of results to fetch
+    */
     pub async fn fetch_user_channels<'a>(
         &'a self,
         cursor: Option<&'a str>,
@@ -45183,11 +44336,10 @@ Arguments:
     ) -> Result<ResponseValue<types::ChannelListResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/user/channels/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -45215,24 +44367,23 @@ Arguments:
     }
     /**By custody-address
 
-Lookup a user by custody-address
+    Lookup a user by custody-address
 
-Sends a `GET` request to `/v2/farcaster/user/custody-address/`
+    Sends a `GET` request to `/v2/farcaster/user/custody-address/`
 
-Arguments:
-- `custody_address`: Custody Address associated with mnemonic
-*/
+    Arguments:
+    - `custody_address`: Custody Address associated with mnemonic
+    */
     pub async fn lookup_user_by_custody_address<'a>(
         &'a self,
         custody_address: &'a str,
     ) -> Result<ResponseValue<types::UserResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/user/custody-address/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -45241,9 +44392,10 @@ Arguments:
                 ::reqwest::header::ACCEPT,
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
-            .query(
-                &progenitor_client::QueryParam::new("custody_address", &custody_address),
-            )
+            .query(&progenitor_client::QueryParam::new(
+                "custody_address",
+                &custody_address,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -45260,14 +44412,14 @@ Arguments:
     }
     /**Fetch fresh FID
 
-Fetches FID to [assign it to new user](https://docs.neynar.com/reference/register-account).
+    Fetches FID to [assign it to new user](https://docs.neynar.com/reference/register-account).
 
-Sends a `GET` request to `/v2/farcaster/user/fid/`
+    Sends a `GET` request to `/v2/farcaster/user/fid/`
 
-Arguments:
-- `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
-- `x_wallet_id`: Wallet ID to use for transactions
-*/
+    Arguments:
+    - `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
+    - `x_wallet_id`: Wallet ID to use for transactions
+    */
     pub async fn get_fresh_account_fid<'a>(
         &'a self,
         x_neynar_experimental: Option<bool>,
@@ -45275,11 +44427,10 @@ Arguments:
     ) -> Result<ResponseValue<types::UserFidResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/user/fid/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(3usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         if let Some(value) = x_neynar_experimental {
             header_map.append("x-neynar-experimental", value.to_string().try_into()?);
         }
@@ -45308,23 +44459,22 @@ Arguments:
     }
     /**Follow user
 
-Follow a user
-(In order to follow a user `signer_uuid` must be approved)
+    Follow a user
+    (In order to follow a user `signer_uuid` must be approved)
 
-Sends a `POST` request to `/v2/farcaster/user/follow/`
+    Sends a `POST` request to `/v2/farcaster/user/follow/`
 
-*/
+    */
     pub async fn follow_user<'a>(
         &'a self,
         body: &'a types::FollowReqBody,
     ) -> Result<ResponseValue<types::BulkFollowResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/user/follow/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -45350,23 +44500,22 @@ Sends a `POST` request to `/v2/farcaster/user/follow/`
     }
     /**Unfollow user
 
-Unfollow a user
-(In order to unfollow a user `signer_uuid` must be approved)
+    Unfollow a user
+    (In order to unfollow a user `signer_uuid` must be approved)
 
-Sends a `DELETE` request to `/v2/farcaster/user/follow/`
+    Sends a `DELETE` request to `/v2/farcaster/user/follow/`
 
-*/
+    */
     pub async fn unfollow_user<'a>(
         &'a self,
         body: &'a types::FollowReqBody,
     ) -> Result<ResponseValue<types::BulkFollowResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/user/follow/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -45392,14 +44541,14 @@ Sends a `DELETE` request to `/v2/farcaster/user/follow/`
     }
     /**User interactions
 
-Returns a list of interactions between two users
+    Returns a list of interactions between two users
 
-Sends a `GET` request to `/v2/farcaster/user/interactions/`
+    Sends a `GET` request to `/v2/farcaster/user/interactions/`
 
-Arguments:
-- `fids`: Comma separated list of two FIDs
-- `type_`: Comma seperated list of Interaction type to fetch
-*/
+    Arguments:
+    - `fids`: Comma separated list of two FIDs
+    - `type_`: Comma seperated list of Interaction type to fetch
+    */
     pub async fn fetch_user_interactions<'a>(
         &'a self,
         fids: &'a str,
@@ -45407,11 +44556,10 @@ Arguments:
     ) -> Result<ResponseValue<types::FetchUserInteractionsResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/user/interactions/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -45438,15 +44586,15 @@ Arguments:
     }
     /**Member of
 
-Returns a list of all channels with their details that an FID is a member of. Data may have a delay of up to 1 hour.
+    Returns a list of all channels with their details that an FID is a member of. Data may have a delay of up to 1 hour.
 
-Sends a `GET` request to `/v2/farcaster/user/memberships/list/`
+    Sends a `GET` request to `/v2/farcaster/user/memberships/list/`
 
-Arguments:
-- `cursor`: Pagination cursor.
-- `fid`: The FID of the user.
-- `limit`: Number of results to fetch
-*/
+    Arguments:
+    - `cursor`: Pagination cursor.
+    - `fid`: The FID of the user.
+    - `limit`: Number of results to fetch
+    */
     pub async fn fetch_user_channel_memberships<'a>(
         &'a self,
         cursor: Option<&'a str>,
@@ -45455,11 +44603,10 @@ Arguments:
     ) -> Result<ResponseValue<types::ChannelMemberListResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/user/memberships/list/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -45487,14 +44634,14 @@ Arguments:
     }
     /**Register Farcaster account onchain
 
-Register a new farcaster account onchain. Optionally you can pass in signers to register a new account and create multiple signers in a single transaction. Requires x-wallet-id header.
+    Register a new farcaster account onchain. Optionally you can pass in signers to register a new account and create multiple signers in a single transaction. Requires x-wallet-id header.
 
-Sends a `POST` request to `/v2/farcaster/user/register/`
+    Sends a `POST` request to `/v2/farcaster/user/register/`
 
-Arguments:
-- `x_wallet_id`: Wallet ID to use for transactions
-- `body`
-*/
+    Arguments:
+    - `x_wallet_id`: Wallet ID to use for transactions
+    - `body`
+    */
     pub async fn register_account_onchain<'a>(
         &'a self,
         x_wallet_id: &'a str,
@@ -45502,11 +44649,10 @@ Arguments:
     ) -> Result<ResponseValue<types::RegisterUserOnChainResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/user/register/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("x-wallet-id", x_wallet_id.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -45533,17 +44679,17 @@ Arguments:
     }
     /**Search for Usernames
 
-Search for Usernames
+    Search for Usernames
 
-Sends a `GET` request to `/v2/farcaster/user/search/`
+    Sends a `GET` request to `/v2/farcaster/user/search/`
 
-Arguments:
-- `cursor`: Pagination cursor.
-- `limit`: Number of users to fetch
-- `q`
-- `viewer_fid`: Providing this will return search results that respects this user's mutes and blocks and includes `viewer_context`.
-- `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
-*/
+    Arguments:
+    - `cursor`: Pagination cursor.
+    - `limit`: Number of users to fetch
+    - `q`
+    - `viewer_fid`: Providing this will return search results that respects this user's mutes and blocks and includes `viewer_context`.
+    - `x_neynar_experimental`: Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details.
+    */
     pub async fn search_user<'a>(
         &'a self,
         cursor: Option<&'a str>,
@@ -45554,11 +44700,10 @@ Arguments:
     ) -> Result<ResponseValue<types::UserSearchResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/user/search/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         if let Some(value) = x_neynar_experimental {
             header_map.append("x-neynar-experimental", value.to_string().try_into()?);
         }
@@ -45573,7 +44718,10 @@ Arguments:
             .query(&progenitor_client::QueryParam::new("cursor", &cursor))
             .query(&progenitor_client::QueryParam::new("limit", &limit))
             .query(&progenitor_client::QueryParam::new("q", &q))
-            .query(&progenitor_client::QueryParam::new("viewer_fid", &viewer_fid))
+            .query(&progenitor_client::QueryParam::new(
+                "viewer_fid",
+                &viewer_fid,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -45590,15 +44738,15 @@ Arguments:
     }
     /**Subscribed to
 
-Fetch what FIDs and contracts a FID is subscribed to.
+    Fetch what FIDs and contracts a FID is subscribed to.
 
-Sends a `GET` request to `/v2/farcaster/user/subscribed_to/`
+    Sends a `GET` request to `/v2/farcaster/user/subscribed_to/`
 
-Arguments:
-- `fid`: The unique identifier of a farcaster user or app (unsigned integer)
-- `subscription_provider`: The provider of the subscription.
-- `viewer_fid`
-*/
+    Arguments:
+    - `fid`: The unique identifier of a farcaster user or app (unsigned integer)
+    - `subscription_provider`: The provider of the subscription.
+    - `viewer_fid`
+    */
     pub async fn fetch_subscribed_to_for_fid<'a>(
         &'a self,
         fid: i32,
@@ -45607,11 +44755,10 @@ Arguments:
     ) -> Result<ResponseValue<types::SubscribedToResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/user/subscribed_to/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -45621,13 +44768,14 @@ Arguments:
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
             .query(&progenitor_client::QueryParam::new("fid", &fid))
-            .query(
-                &progenitor_client::QueryParam::new(
-                    "subscription_provider",
-                    &subscription_provider,
-                ),
-            )
-            .query(&progenitor_client::QueryParam::new("viewer_fid", &viewer_fid))
+            .query(&progenitor_client::QueryParam::new(
+                "subscription_provider",
+                &subscription_provider,
+            ))
+            .query(&progenitor_client::QueryParam::new(
+                "viewer_fid",
+                &viewer_fid,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -45644,15 +44792,15 @@ Arguments:
     }
     /**Subscribers of a user
 
-Fetch subscribers for a given FID's contracts. Doesn't return addresses that don't have an FID.
+    Fetch subscribers for a given FID's contracts. Doesn't return addresses that don't have an FID.
 
-Sends a `GET` request to `/v2/farcaster/user/subscribers/`
+    Sends a `GET` request to `/v2/farcaster/user/subscribers/`
 
-Arguments:
-- `fid`: The unique identifier of a farcaster user or app (unsigned integer)
-- `subscription_provider`: The provider of the subscription.
-- `viewer_fid`
-*/
+    Arguments:
+    - `fid`: The unique identifier of a farcaster user or app (unsigned integer)
+    - `subscription_provider`: The provider of the subscription.
+    - `viewer_fid`
+    */
     pub async fn fetch_subscribers_for_fid<'a>(
         &'a self,
         fid: i32,
@@ -45661,11 +44809,10 @@ Arguments:
     ) -> Result<ResponseValue<types::SubscribersResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/user/subscribers/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -45675,13 +44822,14 @@ Arguments:
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
             .query(&progenitor_client::QueryParam::new("fid", &fid))
-            .query(
-                &progenitor_client::QueryParam::new(
-                    "subscription_provider",
-                    &subscription_provider,
-                ),
-            )
-            .query(&progenitor_client::QueryParam::new("viewer_fid", &viewer_fid))
+            .query(&progenitor_client::QueryParam::new(
+                "subscription_provider",
+                &subscription_provider,
+            ))
+            .query(&progenitor_client::QueryParam::new(
+                "viewer_fid",
+                &viewer_fid,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -45698,14 +44846,14 @@ Arguments:
     }
     /**Subscriptions created by FID
 
-Fetch created subscriptions for a given FID's.
+    Fetch created subscriptions for a given FID's.
 
-Sends a `GET` request to `/v2/farcaster/user/subscriptions_created/`
+    Sends a `GET` request to `/v2/farcaster/user/subscriptions_created/`
 
-Arguments:
-- `fid`: The unique identifier of a farcaster user or app (unsigned integer)
-- `subscription_provider`: The provider of the subscription.
-*/
+    Arguments:
+    - `fid`: The unique identifier of a farcaster user or app (unsigned integer)
+    - `subscription_provider`: The provider of the subscription.
+    */
     pub async fn fetch_subscriptions_for_fid<'a>(
         &'a self,
         fid: i32,
@@ -45713,11 +44861,10 @@ Arguments:
     ) -> Result<ResponseValue<types::SubscriptionsResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/user/subscriptions_created/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -45727,12 +44874,10 @@ Arguments:
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
             .query(&progenitor_client::QueryParam::new("fid", &fid))
-            .query(
-                &progenitor_client::QueryParam::new(
-                    "subscription_provider",
-                    &subscription_provider,
-                ),
-            )
+            .query(&progenitor_client::QueryParam::new(
+                "subscription_provider",
+                &subscription_provider,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -45749,23 +44894,22 @@ Arguments:
     }
     /**Add verification
 
-Adds verification for an eth address or contract for the user
-(In order to add verification `signer_uuid` must be approved)
+    Adds verification for an eth address or contract for the user
+    (In order to add verification `signer_uuid` must be approved)
 
-Sends a `POST` request to `/v2/farcaster/user/verification/`
+    Sends a `POST` request to `/v2/farcaster/user/verification/`
 
-*/
+    */
     pub async fn publish_verification<'a>(
         &'a self,
         body: &'a types::AddVerificationReqBody,
     ) -> Result<ResponseValue<types::OperationResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/user/verification/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -45791,23 +44935,22 @@ Sends a `POST` request to `/v2/farcaster/user/verification/`
     }
     /**Delete verification
 
-Removes verification for an eth address for the user
-(In order to delete verification `signer_uuid` must be approved)
+    Removes verification for an eth address for the user
+    (In order to delete verification `signer_uuid` must be approved)
 
-Sends a `DELETE` request to `/v2/farcaster/user/verification/`
+    Sends a `DELETE` request to `/v2/farcaster/user/verification/`
 
-*/
+    */
     pub async fn delete_verification<'a>(
         &'a self,
         body: &'a types::RemoveVerificationReqBody,
     ) -> Result<ResponseValue<types::OperationResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/user/verification/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -45833,24 +44976,23 @@ Sends a `DELETE` request to `/v2/farcaster/user/verification/`
     }
     /**Fetch verifications
 
-Fetch all Ethereum and Solana verified addresses for a Farcaster user. Use this endpoint to identify which wallets are associated with which Farcaster applications for the specified user.
+    Fetch all Ethereum and Solana verified addresses for a Farcaster user. Use this endpoint to identify which wallets are associated with which Farcaster applications for the specified user.
 
-Sends a `GET` request to `/v2/farcaster/user/verifications/`
+    Sends a `GET` request to `/v2/farcaster/user/verifications/`
 
-Arguments:
-- `fid`: FID of the user whose verifications to fetch
-*/
+    Arguments:
+    - `fid`: FID of the user whose verifications to fetch
+    */
     pub async fn fetch_verifications<'a>(
         &'a self,
         fid: i32,
     ) -> Result<ResponseValue<types::FetchVerificationsResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/user/verifications/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -45876,22 +45018,21 @@ Arguments:
     }
     /**Fetch a webhook
 
-Fetch a webhook
+    Fetch a webhook
 
-Sends a `GET` request to `/v2/farcaster/webhook/`
+    Sends a `GET` request to `/v2/farcaster/webhook/`
 
-*/
+    */
     pub async fn lookup_webhook<'a>(
         &'a self,
         webhook_id: &'a str,
     ) -> Result<ResponseValue<types::WebhookResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/webhook/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -45900,7 +45041,10 @@ Sends a `GET` request to `/v2/farcaster/webhook/`
                 ::reqwest::header::ACCEPT,
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
-            .query(&progenitor_client::QueryParam::new("webhook_id", &webhook_id))
+            .query(&progenitor_client::QueryParam::new(
+                "webhook_id",
+                &webhook_id,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -45917,22 +45061,21 @@ Sends a `GET` request to `/v2/farcaster/webhook/`
     }
     /**Update a webhook
 
-Update a webhook
+    Update a webhook
 
-Sends a `PUT` request to `/v2/farcaster/webhook/`
+    Sends a `PUT` request to `/v2/farcaster/webhook/`
 
-*/
+    */
     pub async fn update_webhook<'a>(
         &'a self,
         body: &'a types::WebhookPutReqBody,
     ) -> Result<ResponseValue<types::WebhookResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/webhook/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -45958,22 +45101,21 @@ Sends a `PUT` request to `/v2/farcaster/webhook/`
     }
     /**Create a webhook
 
-Create a webhook
+    Create a webhook
 
-Sends a `POST` request to `/v2/farcaster/webhook/`
+    Sends a `POST` request to `/v2/farcaster/webhook/`
 
-*/
+    */
     pub async fn publish_webhook<'a>(
         &'a self,
         body: &'a types::WebhookPostReqBody,
     ) -> Result<ResponseValue<types::WebhookResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/webhook/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -45999,22 +45141,21 @@ Sends a `POST` request to `/v2/farcaster/webhook/`
     }
     /**Delete a webhook
 
-Delete a webhook
+    Delete a webhook
 
-Sends a `DELETE` request to `/v2/farcaster/webhook/`
+    Sends a `DELETE` request to `/v2/farcaster/webhook/`
 
-*/
+    */
     pub async fn delete_webhook<'a>(
         &'a self,
         body: &'a types::WebhookDeleteReqBody,
     ) -> Result<ResponseValue<types::WebhookResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/webhook/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -46040,22 +45181,21 @@ Sends a `DELETE` request to `/v2/farcaster/webhook/`
     }
     /**Update webhook status
 
-Update webhook active status
+    Update webhook active status
 
-Sends a `PATCH` request to `/v2/farcaster/webhook/`
+    Sends a `PATCH` request to `/v2/farcaster/webhook/`
 
-*/
+    */
     pub async fn update_webhook_active_status<'a>(
         &'a self,
         body: &'a types::WebhookPatchReqBody,
     ) -> Result<ResponseValue<types::WebhookResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/webhook/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -46081,21 +45221,20 @@ Sends a `PATCH` request to `/v2/farcaster/webhook/`
     }
     /**Associated webhooks of user
 
-Fetch a list of webhooks associated to a user
+    Fetch a list of webhooks associated to a user
 
-Sends a `GET` request to `/v2/farcaster/webhook/list/`
+    Sends a `GET` request to `/v2/farcaster/webhook/list/`
 
-*/
+    */
     pub async fn fetch_webhooks<'a>(
         &'a self,
     ) -> Result<ResponseValue<types::WebhookListResponse>, Error<()>> {
         let url = format!("{}/v2/farcaster/webhook/list/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -46120,16 +45259,16 @@ Sends a `GET` request to `/v2/farcaster/webhook/list/`
     }
     /**Get wallet token balances
 
-Fetch all token balances for a wallet address across multiple networks. Results are paginated.
+    Fetch all token balances for a wallet address across multiple networks. Results are paginated.
 
-Sends a `GET` request to `/v2/onchain/token/balances`
+    Sends a `GET` request to `/v2/onchain/token/balances`
 
-Arguments:
-- `address`: Wallet address
-- `cursor`: Pagination cursor.
-- `limit`: Number of results to return (max 100)
-- `networks`: Comma-separated list of networks to query. Each value must be a valid network (ethereum, optimism, base, arbitrum).
-*/
+    Arguments:
+    - `address`: Wallet address
+    - `cursor`: Pagination cursor.
+    - `limit`: Number of results to return (max 100)
+    - `networks`: Comma-separated list of networks to query. Each value must be a valid network (ethereum, optimism, base, arbitrum).
+    */
     pub async fn get_wallet_balances<'a>(
         &'a self,
         address: &'a types::GetWalletBalancesAddress,
@@ -46139,11 +45278,10 @@ Arguments:
     ) -> Result<ResponseValue<types::GetWalletBalancesResponse>, Error<()>> {
         let url = format!("{}/v2/onchain/token/balances", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -46172,14 +45310,14 @@ Arguments:
     }
     /**Get token metadata
 
-Fetch metadata for a specific token including price, market data, and basic information. Data is fetched from onchain-indexer with fallback to third-party providers.
+    Fetch metadata for a specific token including price, market data, and basic information. Data is fetched from onchain-indexer with fallback to third-party providers.
 
-Sends a `GET` request to `/v2/onchain/token/metadata`
+    Sends a `GET` request to `/v2/onchain/token/metadata`
 
-Arguments:
-- `address`: Token contract address
-- `network`: A blockchain network e.g. "ethereum", "optimism", "base", "arbitrum"
-*/
+    Arguments:
+    - `address`: Token contract address
+    - `network`: A blockchain network e.g. "ethereum", "optimism", "base", "arbitrum"
+    */
     pub async fn get_token_metadata<'a>(
         &'a self,
         address: &'a types::GetTokenMetadataAddress,
@@ -46187,11 +45325,10 @@ Arguments:
     ) -> Result<ResponseValue<types::GetTokenMetadataResponse>, Error<()>> {
         let url = format!("{}/v2/onchain/token/metadata", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -46218,14 +45355,14 @@ Arguments:
     }
     /**Batch get token metadata
 
-Fetch metadata for multiple tokens in a single request. Provide comma-separated networks and addresses in the same order. Maximum 100 tokens per request.
+    Fetch metadata for multiple tokens in a single request. Provide comma-separated networks and addresses in the same order. Maximum 100 tokens per request.
 
-Sends a `GET` request to `/v2/onchain/token/metadata/batch`
+    Sends a `GET` request to `/v2/onchain/token/metadata/batch`
 
-Arguments:
-- `addresses`: Comma-separated list of token contract addresses corresponding to each network
-- `networks`: Comma-separated list of blockchain networks. Each value must be a valid network (ethereum, optimism, base, arbitrum).
-*/
+    Arguments:
+    - `addresses`: Comma-separated list of token contract addresses corresponding to each network
+    - `networks`: Comma-separated list of blockchain networks. Each value must be a valid network (ethereum, optimism, base, arbitrum).
+    */
     pub async fn batch_get_token_metadata<'a>(
         &'a self,
         addresses: &'a str,
@@ -46233,11 +45370,10 @@ Arguments:
     ) -> Result<ResponseValue<types::BatchGetTokenMetadataResponse>, Error<()>> {
         let url = format!("{}/v2/onchain/token/metadata/batch", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -46264,15 +45400,15 @@ Arguments:
     }
     /**Create x402 signature
 
-Create a signature for a given x402 resource using the specified wallet.
+    Create a signature for a given x402 resource using the specified wallet.
 
-Sends a `POST` request to `/v2/signature/x402/`
+    Sends a `POST` request to `/v2/signature/x402/`
 
-Arguments:
-- `x_api_key`
-- `x_wallet_id`: Wallet ID to use for transactions
-- `body`
-*/
+    Arguments:
+    - `x_api_key`
+    - `x_wallet_id`: Wallet ID to use for transactions
+    - `body`
+    */
     pub async fn create_x402_signature<'a>(
         &'a self,
         x_api_key: &'a str,
@@ -46281,11 +45417,10 @@ Arguments:
     ) -> Result<ResponseValue<types::CreateX402SignatureResponse>, Error<()>> {
         let url = format!("{}/v2/signature/x402/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(3usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("x-api-key", x_api_key.to_string().try_into()?);
         header_map.append("x-wallet-id", x_wallet_id.to_string().try_into()?);
         #[allow(unused_mut)]
@@ -46313,15 +45448,15 @@ Arguments:
     }
     /**Hypersub subscription check
 
-Check if a wallet address is subscribed to a given STP (Hypersub) contract.
+    Check if a wallet address is subscribed to a given STP (Hypersub) contract.
 
-Sends a `GET` request to `/v2/stp/subscription_check/`
+    Sends a `GET` request to `/v2/stp/subscription_check/`
 
-Arguments:
-- `addresses`: Comma separated list of Ethereum addresses, up to 350 at a time
-- `chain_id`: Chain ID of the STP contract
-- `contract_address`: Ethereum address of the STP contract
-*/
+    Arguments:
+    - `addresses`: Comma separated list of Ethereum addresses, up to 350 at a time
+    - `chain_id`: Chain ID of the STP contract
+    - `contract_address`: Ethereum address of the STP contract
+    */
     pub async fn fetch_subscription_check<'a>(
         &'a self,
         addresses: &'a str,
@@ -46330,11 +45465,10 @@ Arguments:
     ) -> Result<ResponseValue<types::SubscriptionCheckResponse>, Error<()>> {
         let url = format!("{}/v2/stp/subscription_check/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -46345,12 +45479,10 @@ Arguments:
             )
             .query(&progenitor_client::QueryParam::new("addresses", &addresses))
             .query(&progenitor_client::QueryParam::new("chain_id", &chain_id))
-            .query(
-                &progenitor_client::QueryParam::new(
-                    "contract_address",
-                    &contract_address,
-                ),
-            )
+            .query(&progenitor_client::QueryParam::new(
+                "contract_address",
+                &contract_address,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -46367,24 +45499,23 @@ Arguments:
     }
     /**Get most recent credit drop
 
-Returns the most recent credit drop for the authenticated user. Returns the drop regardless of claimed/expired status.
+    Returns the most recent credit drop for the authenticated user. Returns the drop regardless of claimed/expired status.
 
-Sends a `GET` request to `/v2/studio/credit-drops/`
+    Sends a `GET` request to `/v2/studio/credit-drops/`
 
-Arguments:
-- `fid`: Farcaster ID of the user
-*/
+    Arguments:
+    - `fid`: Farcaster ID of the user
+    */
     pub async fn get_credit_drop<'a>(
         &'a self,
         fid: i32,
     ) -> Result<ResponseValue<types::GetCreditDropResponse>, Error<()>> {
         let url = format!("{}/v2/studio/credit-drops/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -46410,22 +45541,21 @@ Arguments:
     }
     /**Claim credit drop
 
-Claims the most recent credit drop for the authenticated user. The drop's allowance is surfaced dynamically until expires_at and does not mutate extra_credits. Only drops created within the past 24 hours can be claimed.
+    Claims the most recent credit drop for the authenticated user. The drop's allowance is surfaced dynamically until expires_at and does not mutate extra_credits. Only drops created within the past 24 hours can be claimed.
 
-Sends a `POST` request to `/v2/studio/credit-drops/claim`
+    Sends a `POST` request to `/v2/studio/credit-drops/claim`
 
-*/
+    */
     pub async fn claim_credit_drop<'a>(
         &'a self,
         body: &'a types::ClaimCreditDropBody,
     ) -> Result<ResponseValue<types::ClaimCreditDropResponse>, Error<()>> {
         let url = format!("{}/v2/studio/credit-drops/claim", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -46451,18 +45581,18 @@ Sends a `POST` request to `/v2/studio/credit-drops/claim`
     }
     /**List deployments
 
-Lists all miniapp generator deployments for a user. Requires API key authentication. Note: Studio CU is tracked based on LLM token usage, not per API call.
+    Lists all miniapp generator deployments for a user. Requires API key authentication. Note: Studio CU is tracked based on LLM token usage, not per API call.
 
-Sends a `GET` request to `/v2/studio/deployment/`
+    Sends a `GET` request to `/v2/studio/deployment/`
 
-Arguments:
-- `fid`: Farcaster ID of the user. Required for non-admin users. Studio admins can omit to query all deployments.
-- `include_deleted`: Include deleted deployments in the response. Defaults to false.
-- `limit`: Maximum number of deployments to return. Defaults to 50, max 1000.
-- `offset`: Number of deployments to skip for pagination. Defaults to 0.
-- `query`: Search string to filter deployments by name, display name, or FID.
-- `sort_by`: Field to sort deployments by. Defaults to updated_at (most recently updated first).
-*/
+    Arguments:
+    - `fid`: Farcaster ID of the user. Required for non-admin users. Studio admins can omit to query all deployments.
+    - `include_deleted`: Include deleted deployments in the response. Defaults to false.
+    - `limit`: Maximum number of deployments to return. Defaults to 50, max 1000.
+    - `offset`: Number of deployments to skip for pagination. Defaults to 0.
+    - `query`: Search string to filter deployments by name, display name, or FID.
+    - `sort_by`: Field to sort deployments by. Defaults to updated_at (most recently updated first).
+    */
     pub async fn list_deployments<'a>(
         &'a self,
         fid: Option<i32>,
@@ -46471,17 +45601,13 @@ Arguments:
         offset: Option<u64>,
         query: Option<&'a str>,
         sort_by: Option<types::ListDeploymentsSortBy>,
-    ) -> Result<
-        ResponseValue<::std::vec::Vec<types::ListDeploymentsResponseItem>>,
-        Error<()>,
-    > {
+    ) -> Result<ResponseValue<::std::vec::Vec<types::ListDeploymentsResponseItem>>, Error<()>> {
         let url = format!("{}/v2/studio/deployment/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -46491,9 +45617,10 @@ Arguments:
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
             .query(&progenitor_client::QueryParam::new("fid", &fid))
-            .query(
-                &progenitor_client::QueryParam::new("include_deleted", &include_deleted),
-            )
+            .query(&progenitor_client::QueryParam::new(
+                "include_deleted",
+                &include_deleted,
+            ))
             .query(&progenitor_client::QueryParam::new("limit", &limit))
             .query(&progenitor_client::QueryParam::new("offset", &offset))
             .query(&progenitor_client::QueryParam::new("query", &query))
@@ -46514,22 +45641,21 @@ Arguments:
     }
     /**Create a miniapp generator deployment
 
-Creates and deploys an instance of the miniapp generator for a user. Requires authentication via API key in the request header. Note: Studio CU is tracked based on LLM token usage, not per API call.
+    Creates and deploys an instance of the miniapp generator for a user. Requires authentication via API key in the request header. Note: Studio CU is tracked based on LLM token usage, not per API call.
 
-Sends a `POST` request to `/v2/studio/deployment/`
+    Sends a `POST` request to `/v2/studio/deployment/`
 
-*/
+    */
     pub async fn create_deployment<'a>(
         &'a self,
         body: &'a types::CreateDeploymentBody,
     ) -> Result<ResponseValue<types::CreateDeploymentResponse>, Error<()>> {
         let url = format!("{}/v2/studio/deployment/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -46555,22 +45681,21 @@ Sends a `POST` request to `/v2/studio/deployment/`
     }
     /**Delete deployment(s)
 
-Deletes a specific miniapp generator deployment or all deployments for a FID. If deployment_id or name is provided, deletes single deployment. If only FID is provided, deletes all deployments for that FID. Requires API key authentication. Note: Studio CU is tracked based on LLM token usage, not per API call.
+    Deletes a specific miniapp generator deployment or all deployments for a FID. If deployment_id or name is provided, deletes single deployment. If only FID is provided, deletes all deployments for that FID. Requires API key authentication. Note: Studio CU is tracked based on LLM token usage, not per API call.
 
-Sends a `DELETE` request to `/v2/studio/deployment/`
+    Sends a `DELETE` request to `/v2/studio/deployment/`
 
-*/
+    */
     pub async fn delete_deployment<'a>(
         &'a self,
         body: &'a types::DeleteDeploymentBody,
     ) -> Result<ResponseValue<types::DeleteDeploymentResponse>, Error<()>> {
         let url = format!("{}/v2/studio/deployment/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -46596,15 +45721,15 @@ Sends a `DELETE` request to `/v2/studio/deployment/`
     }
     /**Get account association of a miniapp
 
-Retrieves the account-association.json file from a miniapp deployment, which contains the JFS-signed domain association. Requires API key authentication.
+    Retrieves the account-association.json file from a miniapp deployment, which contains the JFS-signed domain association. Requires API key authentication.
 
-Sends a `GET` request to `/v2/studio/deployment/account-association`
+    Sends a `GET` request to `/v2/studio/deployment/account-association`
 
-Arguments:
-- `deployment_id`: Deployment ID
-- `name`: Kubernetes deployment name
-- `namespace`: Kubernetes namespace name
-*/
+    Arguments:
+    - `deployment_id`: Deployment ID
+    - `name`: Kubernetes deployment name
+    - `namespace`: Kubernetes namespace name
+    */
     pub async fn get_account_association<'a>(
         &'a self,
         deployment_id: Option<&'a ::uuid::Uuid>,
@@ -46613,11 +45738,10 @@ Arguments:
     ) -> Result<ResponseValue<types::GetAccountAssociationResponse>, Error<()>> {
         let url = format!("{}/v2/studio/deployment/account-association", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -46626,7 +45750,10 @@ Arguments:
                 ::reqwest::header::ACCEPT,
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
-            .query(&progenitor_client::QueryParam::new("deployment_id", &deployment_id))
+            .query(&progenitor_client::QueryParam::new(
+                "deployment_id",
+                &deployment_id,
+            ))
             .query(&progenitor_client::QueryParam::new("name", &name))
             .query(&progenitor_client::QueryParam::new("namespace", &namespace))
             .headers(header_map)
@@ -46645,22 +45772,21 @@ Arguments:
     }
     /**Set account association
 
-Associates a generated miniapp with a Farcaster account using a JFS-signed domain association. Requires API key authentication. Note: Studio CU is tracked based on LLM token usage, not per API call.
+    Associates a generated miniapp with a Farcaster account using a JFS-signed domain association. Requires API key authentication. Note: Studio CU is tracked based on LLM token usage, not per API call.
 
-Sends a `POST` request to `/v2/studio/deployment/account-association`
+    Sends a `POST` request to `/v2/studio/deployment/account-association`
 
-*/
+    */
     pub async fn associate_deployment<'a>(
         &'a self,
         body: &'a types::AssociateDeploymentBody,
     ) -> Result<ResponseValue<types::AssociateDeploymentResponse>, Error<()>> {
         let url = format!("{}/v2/studio/deployment/account-association", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -46686,24 +45812,28 @@ Sends a `POST` request to `/v2/studio/deployment/account-association`
     }
     /**Build generated app with automatic error fixing
 
-Runs Next.js build process for the generated app. If build fails, automatically calls a build-fixer agent to resolve errors. Streams build output and agent responses via Server-Sent Events. Requires API key authentication. Note: Studio CU is tracked based on LLM token usage, not per API call.
+    Runs Next.js build process for the generated app. If build fails, automatically calls a build-fixer agent to resolve errors. Streams build output and agent responses via Server-Sent Events. Requires API key authentication. Note: Studio CU is tracked based on LLM token usage, not per API call.
 
-Sends a `POST` request to `/v2/studio/deployment/build`
+    Sends a `POST` request to `/v2/studio/deployment/build`
 
-*/
+    */
     pub async fn build<'a>(
         &'a self,
         body: &'a types::BuildBody,
     ) -> Result<ResponseValue<()>, Error<()>> {
         let url = format!("{}/v2/studio/deployment/build", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
-        let mut request = self.client.post(url).json(&body).headers(header_map).build()?;
+        let mut request = self
+            .client
+            .post(url)
+            .json(&body)
+            .headers(header_map)
+            .build()?;
         let info = OperationInfo {
             operation_id: "build",
         };
@@ -46718,16 +45848,16 @@ Sends a `POST` request to `/v2/studio/deployment/build`
     }
     /**Get deployment info
 
-Fetches info about a miniapp generator deployment by its deployment_id or name and creator's Farcaster ID. Requires API key authentication. Note: Studio CU is tracked based on LLM token usage, not per API call.
+    Fetches info about a miniapp generator deployment by its deployment_id or name and creator's Farcaster ID. Requires API key authentication. Note: Studio CU is tracked based on LLM token usage, not per API call.
 
-Sends a `GET` request to `/v2/studio/deployment/by-name-and-fid`
+    Sends a `GET` request to `/v2/studio/deployment/by-name-and-fid`
 
-Arguments:
-- `deployment_id`: Deployment ID (UUID). Required if name not provided.
-- `fid`: Farcaster ID of the user; if not provided, namespace must be provided
-- `name`: Kubernetes deployment name. Required if deployment_id not provided.
-- `namespace`: Optional Kubernetes namespace. If not provided, will query for the active namespace for the given FID.
-*/
+    Arguments:
+    - `deployment_id`: Deployment ID (UUID). Required if name not provided.
+    - `fid`: Farcaster ID of the user; if not provided, namespace must be provided
+    - `name`: Kubernetes deployment name. Required if deployment_id not provided.
+    - `namespace`: Optional Kubernetes namespace. If not provided, will query for the active namespace for the given FID.
+    */
     pub async fn get_deployment<'a>(
         &'a self,
         deployment_id: Option<&'a ::uuid::Uuid>,
@@ -46737,11 +45867,10 @@ Arguments:
     ) -> Result<ResponseValue<types::GetDeploymentResponse>, Error<()>> {
         let url = format!("{}/v2/studio/deployment/by-name-and-fid", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -46750,7 +45879,10 @@ Arguments:
                 ::reqwest::header::ACCEPT,
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
-            .query(&progenitor_client::QueryParam::new("deployment_id", &deployment_id))
+            .query(&progenitor_client::QueryParam::new(
+                "deployment_id",
+                &deployment_id,
+            ))
             .query(&progenitor_client::QueryParam::new("fid", &fid))
             .query(&progenitor_client::QueryParam::new("name", &name))
             .query(&progenitor_client::QueryParam::new("namespace", &namespace))
@@ -46770,16 +45902,16 @@ Arguments:
     }
     /**List conversations for a deployment
 
-Lists all conversations for a specific deployment. Requires API key authentication. Note: Studio CU is tracked based on LLM token usage, not per API call.
+    Lists all conversations for a specific deployment. Requires API key authentication. Note: Studio CU is tracked based on LLM token usage, not per API call.
 
-Sends a `GET` request to `/v2/studio/deployment/conversations`
+    Sends a `GET` request to `/v2/studio/deployment/conversations`
 
-Arguments:
-- `deployment_id`: Deployment ID (UUID). If provided, filters conversations to this deployment only.
-- `fid`: Farcaster ID of the user. Required for non-admin users. Studio admins can omit to query all conversations.
-- `include_deleted`: Include deleted conversations in the response. Defaults to false.
-- `name`: Kubernetes deployment name. If provided, filters conversations to this deployment only.
-*/
+    Arguments:
+    - `deployment_id`: Deployment ID (UUID). If provided, filters conversations to this deployment only.
+    - `fid`: Farcaster ID of the user. Required for non-admin users. Studio admins can omit to query all conversations.
+    - `include_deleted`: Include deleted conversations in the response. Defaults to false.
+    - `name`: Kubernetes deployment name. If provided, filters conversations to this deployment only.
+    */
     pub async fn list_conversations<'a>(
         &'a self,
         deployment_id: Option<&'a ::uuid::Uuid>,
@@ -46789,11 +45921,10 @@ Arguments:
     ) -> Result<ResponseValue<types::ListConversationsResponse>, Error<()>> {
         let url = format!("{}/v2/studio/deployment/conversations", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -46802,11 +45933,15 @@ Arguments:
                 ::reqwest::header::ACCEPT,
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
-            .query(&progenitor_client::QueryParam::new("deployment_id", &deployment_id))
+            .query(&progenitor_client::QueryParam::new(
+                "deployment_id",
+                &deployment_id,
+            ))
             .query(&progenitor_client::QueryParam::new("fid", &fid))
-            .query(
-                &progenitor_client::QueryParam::new("include_deleted", &include_deleted),
-            )
+            .query(&progenitor_client::QueryParam::new(
+                "include_deleted",
+                &include_deleted,
+            ))
             .query(&progenitor_client::QueryParam::new("name", &name))
             .headers(header_map)
             .build()?;
@@ -46824,20 +45959,20 @@ Arguments:
     }
     /**Get messages in a conversation
 
-Retrieves messages in a specific conversation with cursor-based pagination (newest first). Requires API key authentication. Note: Studio CU is tracked based on LLM token usage, not per API call.
+    Retrieves messages in a specific conversation with cursor-based pagination (newest first). Requires API key authentication. Note: Studio CU is tracked based on LLM token usage, not per API call.
 
-Sends a `GET` request to `/v2/studio/deployment/conversations/messages`
+    Sends a `GET` request to `/v2/studio/deployment/conversations/messages`
 
-Arguments:
-- `conversation_id`: Conversation ID
-- `cursor`: Pagination cursor for fetching older messages. Omit to start from most recent.
-- `deployment_id`: Deployment ID (UUID). Required if name not provided.
-- `fid`: Farcaster ID of the user; if not provided, namespace must be provided
-- `include_deleted`: Include deleted messages in the response. Defaults to false.
-- `limit`: Maximum number of messages to return per page. Defaults to 50, max 100.
-- `name`: Kubernetes deployment name. Required if deployment_id not provided.
-- `namespace`: Optional Kubernetes namespace. If not provided, will query for the active namespace for the given FID.
-*/
+    Arguments:
+    - `conversation_id`: Conversation ID
+    - `cursor`: Pagination cursor for fetching older messages. Omit to start from most recent.
+    - `deployment_id`: Deployment ID (UUID). Required if name not provided.
+    - `fid`: Farcaster ID of the user; if not provided, namespace must be provided
+    - `include_deleted`: Include deleted messages in the response. Defaults to false.
+    - `limit`: Maximum number of messages to return per page. Defaults to 50, max 100.
+    - `name`: Kubernetes deployment name. Required if deployment_id not provided.
+    - `namespace`: Optional Kubernetes namespace. If not provided, will query for the active namespace for the given FID.
+    */
     pub async fn get_conversation_messages<'a>(
         &'a self,
         conversation_id: &'a ::uuid::Uuid,
@@ -46850,14 +45985,14 @@ Arguments:
         namespace: Option<&'a str>,
     ) -> Result<ResponseValue<types::GetConversationMessagesResponse>, Error<()>> {
         let url = format!(
-            "{}/v2/studio/deployment/conversations/messages", self.baseurl,
+            "{}/v2/studio/deployment/conversations/messages",
+            self.baseurl,
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -46866,15 +46001,20 @@ Arguments:
                 ::reqwest::header::ACCEPT,
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
-            .query(
-                &progenitor_client::QueryParam::new("conversation_id", &conversation_id),
-            )
+            .query(&progenitor_client::QueryParam::new(
+                "conversation_id",
+                &conversation_id,
+            ))
             .query(&progenitor_client::QueryParam::new("cursor", &cursor))
-            .query(&progenitor_client::QueryParam::new("deployment_id", &deployment_id))
+            .query(&progenitor_client::QueryParam::new(
+                "deployment_id",
+                &deployment_id,
+            ))
             .query(&progenitor_client::QueryParam::new("fid", &fid))
-            .query(
-                &progenitor_client::QueryParam::new("include_deleted", &include_deleted),
-            )
+            .query(&progenitor_client::QueryParam::new(
+                "include_deleted",
+                &include_deleted,
+            ))
             .query(&progenitor_client::QueryParam::new("limit", &limit))
             .query(&progenitor_client::QueryParam::new("name", &name))
             .query(&progenitor_client::QueryParam::new("namespace", &namespace))
@@ -46894,22 +46034,21 @@ Arguments:
     }
     /**Provision a database for a deployment
 
-Provisions a Neon PostgreSQL database for the deployment, or validates and attaches a user-provided (BYO) connection string. Idempotent — returns success if already provisioned.
+    Provisions a Neon PostgreSQL database for the deployment, or validates and attaches a user-provided (BYO) connection string. Idempotent — returns success if already provisioned.
 
-Sends a `POST` request to `/v2/studio/deployment/database/provision`
+    Sends a `POST` request to `/v2/studio/deployment/database/provision`
 
-*/
+    */
     pub async fn provision<'a>(
         &'a self,
         body: &'a types::ProvisionBody,
     ) -> Result<ResponseValue<types::ProvisionResponse>, Error<()>> {
         let url = format!("{}/v2/studio/deployment/database/provision", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -46935,22 +46074,21 @@ Sends a `POST` request to `/v2/studio/deployment/database/provision`
     }
     /**Query table data
 
-Query data from a table with pagination and sorting.
+    Query data from a table with pagination and sorting.
 
-Sends a `POST` request to `/v2/studio/deployment/database/query`
+    Sends a `POST` request to `/v2/studio/deployment/database/query`
 
-*/
+    */
     pub async fn query_table<'a>(
         &'a self,
         body: &'a types::QueryTableBody,
     ) -> Result<ResponseValue<types::QueryTableResponse>, Error<()>> {
         let url = format!("{}/v2/studio/deployment/database/query", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -46976,22 +46114,21 @@ Sends a `POST` request to `/v2/studio/deployment/database/query`
     }
     /**Execute raw SQL query (admin only)
 
-Executes a raw SQL query against the deployment database. Only SELECT, WITH, and EXPLAIN queries are allowed. Admin access required.
+    Executes a raw SQL query against the deployment database. Only SELECT, WITH, and EXPLAIN queries are allowed. Admin access required.
 
-Sends a `POST` request to `/v2/studio/deployment/database/sql`
+    Sends a `POST` request to `/v2/studio/deployment/database/sql`
 
-*/
+    */
     pub async fn execute_sql<'a>(
         &'a self,
         body: &'a types::ExecuteSqlBody,
     ) -> Result<ResponseValue<types::ExecuteSqlResponse>, Error<()>> {
         let url = format!("{}/v2/studio/deployment/database/sql", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -47017,14 +46154,14 @@ Sends a `POST` request to `/v2/studio/deployment/database/sql`
     }
     /**List all tables in deployment database
 
-Lists all tables and views in the deployment database, excluding system tables.
+    Lists all tables and views in the deployment database, excluding system tables.
 
-Sends a `GET` request to `/v2/studio/deployment/database/tables`
+    Sends a `GET` request to `/v2/studio/deployment/database/tables`
 
-Arguments:
-- `deployment_id`: Deployment ID (UUID)
-- `fid`: Farcaster ID of the user. Required for non-admin users.
-*/
+    Arguments:
+    - `deployment_id`: Deployment ID (UUID)
+    - `fid`: Farcaster ID of the user. Required for non-admin users.
+    */
     pub async fn list_tables<'a>(
         &'a self,
         deployment_id: &'a ::uuid::Uuid,
@@ -47032,11 +46169,10 @@ Arguments:
     ) -> Result<ResponseValue<types::ListTablesResponse>, Error<()>> {
         let url = format!("{}/v2/studio/deployment/database/tables", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -47045,7 +46181,10 @@ Arguments:
                 ::reqwest::header::ACCEPT,
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
-            .query(&progenitor_client::QueryParam::new("deployment_id", &deployment_id))
+            .query(&progenitor_client::QueryParam::new(
+                "deployment_id",
+                &deployment_id,
+            ))
             .query(&progenitor_client::QueryParam::new("fid", &fid))
             .headers(header_map)
             .build()?;
@@ -47063,26 +46202,26 @@ Arguments:
     }
     /**Insert rows into table
 
-Inserts one or more rows into the specified table. Returns the inserted rows with generated values.
+    Inserts one or more rows into the specified table. Returns the inserted rows with generated values.
 
-Sends a `POST` request to `/v2/studio/deployment/database/tables/{table_name}/rows`
+    Sends a `POST` request to `/v2/studio/deployment/database/tables/{table_name}/rows`
 
-*/
+    */
     pub async fn insert_rows<'a>(
         &'a self,
         table_name: &'a str,
         body: &'a types::InsertRowsBody,
     ) -> Result<ResponseValue<types::InsertRowsResponse>, Error<()>> {
         let url = format!(
-            "{}/v2/studio/deployment/database/tables/{}/rows", self.baseurl,
-            encode_path(& table_name.to_string()),
+            "{}/v2/studio/deployment/database/tables/{}/rows",
+            self.baseurl,
+            encode_path(&table_name.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -47108,26 +46247,26 @@ Sends a `POST` request to `/v2/studio/deployment/database/tables/{table_name}/ro
     }
     /**Delete rows from table
 
-Deletes rows matching the WHERE conditions. WHERE clause is required to prevent accidental bulk deletes.
+    Deletes rows matching the WHERE conditions. WHERE clause is required to prevent accidental bulk deletes.
 
-Sends a `DELETE` request to `/v2/studio/deployment/database/tables/{table_name}/rows`
+    Sends a `DELETE` request to `/v2/studio/deployment/database/tables/{table_name}/rows`
 
-*/
+    */
     pub async fn delete_rows<'a>(
         &'a self,
         table_name: &'a str,
         body: &'a types::DeleteRowsBody,
     ) -> Result<ResponseValue<types::DeleteRowsResponse>, Error<()>> {
         let url = format!(
-            "{}/v2/studio/deployment/database/tables/{}/rows", self.baseurl,
-            encode_path(& table_name.to_string()),
+            "{}/v2/studio/deployment/database/tables/{}/rows",
+            self.baseurl,
+            encode_path(&table_name.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -47153,26 +46292,26 @@ Sends a `DELETE` request to `/v2/studio/deployment/database/tables/{table_name}/
     }
     /**Update rows in table
 
-Updates rows matching the WHERE conditions. WHERE clause is required to prevent accidental bulk updates.
+    Updates rows matching the WHERE conditions. WHERE clause is required to prevent accidental bulk updates.
 
-Sends a `PATCH` request to `/v2/studio/deployment/database/tables/{table_name}/rows`
+    Sends a `PATCH` request to `/v2/studio/deployment/database/tables/{table_name}/rows`
 
-*/
+    */
     pub async fn update_rows<'a>(
         &'a self,
         table_name: &'a str,
         body: &'a types::UpdateRowsBody,
     ) -> Result<ResponseValue<types::UpdateRowsResponse>, Error<()>> {
         let url = format!(
-            "{}/v2/studio/deployment/database/tables/{}/rows", self.baseurl,
-            encode_path(& table_name.to_string()),
+            "{}/v2/studio/deployment/database/tables/{}/rows",
+            self.baseurl,
+            encode_path(&table_name.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -47198,15 +46337,15 @@ Sends a `PATCH` request to `/v2/studio/deployment/database/tables/{table_name}/r
     }
     /**Get table schema
 
-Retrieves the complete schema for a table including columns, indexes, and foreign keys.
+    Retrieves the complete schema for a table including columns, indexes, and foreign keys.
 
-Sends a `GET` request to `/v2/studio/deployment/database/tables/{table_name}/schema`
+    Sends a `GET` request to `/v2/studio/deployment/database/tables/{table_name}/schema`
 
-Arguments:
-- `table_name`
-- `deployment_id`: Deployment ID (UUID)
-- `fid`: Farcaster ID of the user. Required for non-admin users.
-*/
+    Arguments:
+    - `table_name`
+    - `deployment_id`: Deployment ID (UUID)
+    - `fid`: Farcaster ID of the user. Required for non-admin users.
+    */
     pub async fn get_table_schema<'a>(
         &'a self,
         table_name: &'a str,
@@ -47214,15 +46353,15 @@ Arguments:
         fid: Option<i32>,
     ) -> Result<ResponseValue<types::GetTableSchemaResponse>, Error<()>> {
         let url = format!(
-            "{}/v2/studio/deployment/database/tables/{}/schema", self.baseurl,
-            encode_path(& table_name.to_string()),
+            "{}/v2/studio/deployment/database/tables/{}/schema",
+            self.baseurl,
+            encode_path(&table_name.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -47231,7 +46370,10 @@ Arguments:
                 ::reqwest::header::ACCEPT,
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
-            .query(&progenitor_client::QueryParam::new("deployment_id", &deployment_id))
+            .query(&progenitor_client::QueryParam::new(
+                "deployment_id",
+                &deployment_id,
+            ))
             .query(&progenitor_client::QueryParam::new("fid", &fid))
             .headers(header_map)
             .build()?;
@@ -47249,15 +46391,15 @@ Arguments:
     }
     /**Get dev status of a miniapp
 
-Retrieves the dev-status.json file from a miniapp deployment, which tracks the progress of app development phases. Requires API key authentication. Note: Studio CU is tracked based on LLM token usage, not per API call.
+    Retrieves the dev-status.json file from a miniapp deployment, which tracks the progress of app development phases. Requires API key authentication. Note: Studio CU is tracked based on LLM token usage, not per API call.
 
-Sends a `GET` request to `/v2/studio/deployment/dev-status`
+    Sends a `GET` request to `/v2/studio/deployment/dev-status`
 
-Arguments:
-- `deployment_id`: Deployment ID
-- `name`: Kubernetes deployment name
-- `namespace`: Kubernetes namespace name
-*/
+    Arguments:
+    - `deployment_id`: Deployment ID
+    - `name`: Kubernetes deployment name
+    - `namespace`: Kubernetes namespace name
+    */
     pub async fn get_dev_status<'a>(
         &'a self,
         deployment_id: Option<&'a ::uuid::Uuid>,
@@ -47266,11 +46408,10 @@ Arguments:
     ) -> Result<ResponseValue<types::GetDevStatusResponse>, Error<()>> {
         let url = format!("{}/v2/studio/deployment/dev-status", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -47279,7 +46420,10 @@ Arguments:
                 ::reqwest::header::ACCEPT,
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
-            .query(&progenitor_client::QueryParam::new("deployment_id", &deployment_id))
+            .query(&progenitor_client::QueryParam::new(
+                "deployment_id",
+                &deployment_id,
+            ))
             .query(&progenitor_client::QueryParam::new("name", &name))
             .query(&progenitor_client::QueryParam::new("namespace", &namespace))
             .headers(header_map)
@@ -47298,16 +46442,16 @@ Arguments:
     }
     /**Export deployment source code as ZIP
 
-Downloads the generated miniapp source code as a binary ZIP archive (Content-Type: application/zip). Requires a paid Studio subscription (GROWTH, STUDIO_PLUS, STUDIO_MAX, or INTERNAL). The deployment must be running. The 200 response body is a raw binary stream, not JSON.
+    Downloads the generated miniapp source code as a binary ZIP archive (Content-Type: application/zip). Requires a paid Studio subscription (GROWTH, STUDIO_PLUS, STUDIO_MAX, or INTERNAL). The deployment must be running. The 200 response body is a raw binary stream, not JSON.
 
-Sends a `GET` request to `/v2/studio/deployment/export-zip`
+    Sends a `GET` request to `/v2/studio/deployment/export-zip`
 
-Arguments:
-- `deployment_id`: Deployment ID (UUID). Required if name not provided.
-- `fid`: Farcaster ID of the user; if not provided, namespace must be provided
-- `name`: Kubernetes deployment name. Required if deployment_id not provided.
-- `namespace`: Optional Kubernetes namespace. If not provided, will query for the active namespace for the given FID.
-*/
+    Arguments:
+    - `deployment_id`: Deployment ID (UUID). Required if name not provided.
+    - `fid`: Farcaster ID of the user; if not provided, namespace must be provided
+    - `name`: Kubernetes deployment name. Required if deployment_id not provided.
+    - `namespace`: Optional Kubernetes namespace. If not provided, will query for the active namespace for the given FID.
+    */
     pub async fn export_zip<'a>(
         &'a self,
         deployment_id: Option<&'a ::uuid::Uuid>,
@@ -47317,16 +46461,18 @@ Arguments:
     ) -> Result<ResponseValue<()>, Error<()>> {
         let url = format!("{}/v2/studio/deployment/export-zip", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
             .get(url)
-            .query(&progenitor_client::QueryParam::new("deployment_id", &deployment_id))
+            .query(&progenitor_client::QueryParam::new(
+                "deployment_id",
+                &deployment_id,
+            ))
             .query(&progenitor_client::QueryParam::new("fid", &fid))
             .query(&progenitor_client::QueryParam::new("name", &name))
             .query(&progenitor_client::QueryParam::new("namespace", &namespace))
@@ -47346,17 +46492,17 @@ Arguments:
     }
     /**Get deployment file contents
 
-Retrieves the contents of a specific file from the generated app. Requires Studio admin authentication or FID ownership validation. Note: Studio CU is tracked based on LLM token usage, not per API call.
+    Retrieves the contents of a specific file from the generated app. Requires Studio admin authentication or FID ownership validation. Note: Studio CU is tracked based on LLM token usage, not per API call.
 
-Sends a `GET` request to `/v2/studio/deployment/file`
+    Sends a `GET` request to `/v2/studio/deployment/file`
 
-Arguments:
-- `deployment_id`: Deployment ID (UUID). Required if name not provided.
-- `fid`: Farcaster ID of the user; if not provided, namespace must be provided
-- `file_path`: File path relative to gen/
-- `name`: Kubernetes deployment name. Required if deployment_id not provided.
-- `namespace`: Optional Kubernetes namespace. If not provided, will query for the active namespace for the given FID.
-*/
+    Arguments:
+    - `deployment_id`: Deployment ID (UUID). Required if name not provided.
+    - `fid`: Farcaster ID of the user; if not provided, namespace must be provided
+    - `file_path`: File path relative to gen/
+    - `name`: Kubernetes deployment name. Required if deployment_id not provided.
+    - `namespace`: Optional Kubernetes namespace. If not provided, will query for the active namespace for the given FID.
+    */
     pub async fn get_deployment_file<'a>(
         &'a self,
         deployment_id: Option<&'a ::uuid::Uuid>,
@@ -47367,11 +46513,10 @@ Arguments:
     ) -> Result<ResponseValue<types::GetDeploymentFileResponse>, Error<()>> {
         let url = format!("{}/v2/studio/deployment/file", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -47380,7 +46525,10 @@ Arguments:
                 ::reqwest::header::ACCEPT,
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
-            .query(&progenitor_client::QueryParam::new("deployment_id", &deployment_id))
+            .query(&progenitor_client::QueryParam::new(
+                "deployment_id",
+                &deployment_id,
+            ))
             .query(&progenitor_client::QueryParam::new("fid", &fid))
             .query(&progenitor_client::QueryParam::new("file_path", &file_path))
             .query(&progenitor_client::QueryParam::new("name", &name))
@@ -47401,17 +46549,17 @@ Arguments:
     }
     /**List deployment files
 
-Lists files in a directory of the generated app. Requires Studio admin authentication or FID ownership validation. Note: Studio CU is tracked based on LLM token usage, not per API call.
+    Lists files in a directory of the generated app. Requires Studio admin authentication or FID ownership validation. Note: Studio CU is tracked based on LLM token usage, not per API call.
 
-Sends a `GET` request to `/v2/studio/deployment/files`
+    Sends a `GET` request to `/v2/studio/deployment/files`
 
-Arguments:
-- `deployment_id`: Deployment ID (UUID). Required if name not provided.
-- `directory`: Directory path relative to gen/ (defaults to root)
-- `fid`: Farcaster ID of the user; if not provided, namespace must be provided
-- `name`: Kubernetes deployment name. Required if deployment_id not provided.
-- `namespace`: Optional Kubernetes namespace. If not provided, will query for the active namespace for the given FID.
-*/
+    Arguments:
+    - `deployment_id`: Deployment ID (UUID). Required if name not provided.
+    - `directory`: Directory path relative to gen/ (defaults to root)
+    - `fid`: Farcaster ID of the user; if not provided, namespace must be provided
+    - `name`: Kubernetes deployment name. Required if deployment_id not provided.
+    - `namespace`: Optional Kubernetes namespace. If not provided, will query for the active namespace for the given FID.
+    */
     pub async fn list_deployment_files<'a>(
         &'a self,
         deployment_id: Option<&'a ::uuid::Uuid>,
@@ -47422,11 +46570,10 @@ Arguments:
     ) -> Result<ResponseValue<types::ListDeploymentFilesResponse>, Error<()>> {
         let url = format!("{}/v2/studio/deployment/files", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -47435,7 +46582,10 @@ Arguments:
                 ::reqwest::header::ACCEPT,
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
-            .query(&progenitor_client::QueryParam::new("deployment_id", &deployment_id))
+            .query(&progenitor_client::QueryParam::new(
+                "deployment_id",
+                &deployment_id,
+            ))
             .query(&progenitor_client::QueryParam::new("directory", &directory))
             .query(&progenitor_client::QueryParam::new("fid", &fid))
             .query(&progenitor_client::QueryParam::new("name", &name))
@@ -47456,22 +46606,21 @@ Arguments:
     }
     /**Prompt a deployment with streaming response
 
-Sends a prompt to a specific miniapp generator deployment and returns a streaming response using Server-Sent Events. The response is a continuous stream of Server-Sent Events, not a single JSON payload. Each event contains a JSON object with type, message, and other fields specific to the message type. Requires authentication via API key in the request header. Note: Studio CU is tracked based on LLM token usage, not per API call.
+    Sends a prompt to a specific miniapp generator deployment and returns a streaming response using Server-Sent Events. The response is a continuous stream of Server-Sent Events, not a single JSON payload. Each event contains a JSON object with type, message, and other fields specific to the message type. Requires authentication via API key in the request header. Note: Studio CU is tracked based on LLM token usage, not per API call.
 
-Sends a `POST` request to `/v2/studio/deployment/prompt/stream`
+    Sends a `POST` request to `/v2/studio/deployment/prompt/stream`
 
-*/
+    */
     pub async fn prompt_deployment_stream<'a>(
         &'a self,
         body: &'a types::PromptDeploymentStreamBody,
     ) -> Result<ResponseValue<types::PromptDeploymentStreamResponse>, Error<()>> {
         let url = format!("{}/v2/studio/deployment/prompt/stream", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -47497,24 +46646,28 @@ Sends a `POST` request to `/v2/studio/deployment/prompt/stream`
     }
     /**Recover dev server with two-phase strategy
 
-Attempts to recover a broken dev server. Phase 1: reads dev server error logs and sends them to an AI agent for fixing, then waits for HMR to auto-rebuild. Phase 2: if HMR fails, falls back to a full npm build with AI retry loop. Streams progress events via Server-Sent Events. Requires API key authentication. Note: Studio CU is tracked based on LLM token usage, not per API call.
+    Attempts to recover a broken dev server. Phase 1: reads dev server error logs and sends them to an AI agent for fixing, then waits for HMR to auto-rebuild. Phase 2: if HMR fails, falls back to a full npm build with AI retry loop. Streams progress events via Server-Sent Events. Requires API key authentication. Note: Studio CU is tracked based on LLM token usage, not per API call.
 
-Sends a `POST` request to `/v2/studio/deployment/recover`
+    Sends a `POST` request to `/v2/studio/deployment/recover`
 
-*/
+    */
     pub async fn recover<'a>(
         &'a self,
         body: &'a types::RecoverBody,
     ) -> Result<ResponseValue<()>, Error<()>> {
         let url = format!("{}/v2/studio/deployment/recover", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
-        let mut request = self.client.post(url).json(&body).headers(header_map).build()?;
+        let mut request = self
+            .client
+            .post(url)
+            .json(&body)
+            .headers(header_map)
+            .build()?;
         let info = OperationInfo {
             operation_id: "recover",
         };
@@ -47529,14 +46682,14 @@ Sends a `POST` request to `/v2/studio/deployment/recover`
     }
     /**List deployment secrets
 
-Retrieves all secrets for a deployment.
+    Retrieves all secrets for a deployment.
 
-Sends a `GET` request to `/v2/studio/deployment/secrets/`
+    Sends a `GET` request to `/v2/studio/deployment/secrets/`
 
-Arguments:
-- `deployment_id`: Deployment ID to list secrets for
-- `key`: Optional filter by environment variable name
-*/
+    Arguments:
+    - `deployment_id`: Deployment ID to list secrets for
+    - `key`: Optional filter by environment variable name
+    */
     pub async fn list_secrets<'a>(
         &'a self,
         deployment_id: &'a ::uuid::Uuid,
@@ -47544,11 +46697,10 @@ Arguments:
     ) -> Result<ResponseValue<types::ListSecretsResponse>, Error<()>> {
         let url = format!("{}/v2/studio/deployment/secrets/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -47557,7 +46709,10 @@ Arguments:
                 ::reqwest::header::ACCEPT,
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
-            .query(&progenitor_client::QueryParam::new("deployment_id", &deployment_id))
+            .query(&progenitor_client::QueryParam::new(
+                "deployment_id",
+                &deployment_id,
+            ))
             .query(&progenitor_client::QueryParam::new("key", &key))
             .headers(header_map)
             .build()?;
@@ -47575,22 +46730,21 @@ Arguments:
     }
     /**Upsert deployment secrets
 
-Upsert secrets for a deployment.
+    Upsert secrets for a deployment.
 
-Sends a `POST` request to `/v2/studio/deployment/secrets/`
+    Sends a `POST` request to `/v2/studio/deployment/secrets/`
 
-*/
+    */
     pub async fn upsert_secrets<'a>(
         &'a self,
         body: &'a types::UpsertSecretsBody,
     ) -> Result<ResponseValue<types::UpsertSecretsResponse>, Error<()>> {
         let url = format!("{}/v2/studio/deployment/secrets/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -47616,22 +46770,21 @@ Sends a `POST` request to `/v2/studio/deployment/secrets/`
     }
     /**Delete deployment secrets
 
-Deletes environment variables (secrets) from a deployment.
+    Deletes environment variables (secrets) from a deployment.
 
-Sends a `DELETE` request to `/v2/studio/deployment/secrets/`
+    Sends a `DELETE` request to `/v2/studio/deployment/secrets/`
 
-*/
+    */
     pub async fn delete_secrets<'a>(
         &'a self,
         body: &'a types::DeleteSecretsBody,
     ) -> Result<ResponseValue<types::DeleteSecretsResponse>, Error<()>> {
         let url = format!("{}/v2/studio/deployment/secrets/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -47657,22 +46810,21 @@ Sends a `DELETE` request to `/v2/studio/deployment/secrets/`
     }
     /**Cancel an active Claude session for a deployment
 
-Cancels an in-progress Claude Code session for a deployment. Safe to call even if no session is active — returns cancelled: false in that case.
+    Cancels an in-progress Claude Code session for a deployment. Safe to call even if no session is active — returns cancelled: false in that case.
 
-Sends a `POST` request to `/v2/studio/deployment/session/cancel`
+    Sends a `POST` request to `/v2/studio/deployment/session/cancel`
 
-*/
+    */
     pub async fn cancel_session<'a>(
         &'a self,
         body: &'a types::CancelSessionBody,
     ) -> Result<ResponseValue<types::CancelSessionResponse>, Error<()>> {
         let url = format!("{}/v2/studio/deployment/session/cancel", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -47698,22 +46850,21 @@ Sends a `POST` request to `/v2/studio/deployment/session/cancel`
     }
     /**Start generated miniapp
 
-Starts the Next.js development server for the generated miniapp. Requires Studio admin authentication. Note: Studio CU is tracked based on LLM token usage, not per API call.
+    Starts the Next.js development server for the generated miniapp. Requires Studio admin authentication. Note: Studio CU is tracked based on LLM token usage, not per API call.
 
-Sends a `POST` request to `/v2/studio/deployment/start`
+    Sends a `POST` request to `/v2/studio/deployment/start`
 
-*/
+    */
     pub async fn start_app<'a>(
         &'a self,
         body: &'a types::StartAppBody,
     ) -> Result<ResponseValue<types::StartAppResponse>, Error<()>> {
         let url = format!("{}/v2/studio/deployment/start", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -47739,22 +46890,21 @@ Sends a `POST` request to `/v2/studio/deployment/start`
     }
     /**Stop generated miniapp
 
-Stops the Next.js development server for the generated miniapp. Requires Studio admin authentication. Note: Studio CU is tracked based on LLM token usage, not per API call.
+    Stops the Next.js development server for the generated miniapp. Requires Studio admin authentication. Note: Studio CU is tracked based on LLM token usage, not per API call.
 
-Sends a `POST` request to `/v2/studio/deployment/stop`
+    Sends a `POST` request to `/v2/studio/deployment/stop`
 
-*/
+    */
     pub async fn stop_app<'a>(
         &'a self,
         body: &'a types::StopAppBody,
     ) -> Result<ResponseValue<types::StopAppResponse>, Error<()>> {
         let url = format!("{}/v2/studio/deployment/stop", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -47780,21 +46930,20 @@ Sends a `POST` request to `/v2/studio/deployment/stop`
     }
     /**Upload image to deployment
 
-Uploads an image file to the generated miniapp public folder. The image will be accessible as a static asset on the deployed miniapp. Requires API key authentication. Note: Studio CU is tracked based on LLM token usage, not per API call.
+    Uploads an image file to the generated miniapp public folder. The image will be accessible as a static asset on the deployed miniapp. Requires API key authentication. Note: Studio CU is tracked based on LLM token usage, not per API call.
 
-Sends a `POST` request to `/v2/studio/deployment/upload-image`
+    Sends a `POST` request to `/v2/studio/deployment/upload-image`
 
-*/
+    */
     pub async fn upload_image<'a>(
         &'a self,
     ) -> Result<ResponseValue<types::UploadImageResponse>, Error<()>> {
         let url = format!("{}/v2/studio/deployment/upload-image", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -47819,22 +46968,21 @@ Sends a `POST` request to `/v2/studio/deployment/upload-image`
     }
     /**Upload image from URL to deployment
 
-Downloads an image from the provided URL and saves it to the generated miniapp public folder. The image will be accessible as a static asset on the deployed miniapp. Requires API key authentication. Note: Studio CU is tracked based on LLM token usage, not per API call.
+    Downloads an image from the provided URL and saves it to the generated miniapp public folder. The image will be accessible as a static asset on the deployed miniapp. Requires API key authentication. Note: Studio CU is tracked based on LLM token usage, not per API call.
 
-Sends a `POST` request to `/v2/studio/deployment/upload-image-url`
+    Sends a `POST` request to `/v2/studio/deployment/upload-image-url`
 
-*/
+    */
     pub async fn upload_image_url<'a>(
         &'a self,
         body: &'a types::UploadImageUrlBody,
     ) -> Result<ResponseValue<types::UploadImageUrlResponse>, Error<()>> {
         let url = format!("{}/v2/studio/deployment/upload-image-url", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -47860,22 +47008,21 @@ Sends a `POST` request to `/v2/studio/deployment/upload-image-url`
     }
     /**Deploy miniapp to Vercel
 
-Publishes the generated miniapp to Vercel via GitHub. Creates a GitHub repository, pushes code, creates a Vercel project linked to GitHub, and triggers deployment. Requires API key authentication. Note: Studio CU is tracked based on LLM token usage, not per API call.
+    Publishes the generated miniapp to Vercel via GitHub. Creates a GitHub repository, pushes code, creates a Vercel project linked to GitHub, and triggers deployment. Requires API key authentication. Note: Studio CU is tracked based on LLM token usage, not per API call.
 
-Sends a `POST` request to `/v2/studio/vercel/`
+    Sends a `POST` request to `/v2/studio/vercel/`
 
-*/
+    */
     pub async fn deploy_to_vercel<'a>(
         &'a self,
         body: &'a types::DeployToVercelBody,
     ) -> Result<ResponseValue<types::DeployToVercelResponse>, Error<()>> {
         let url = format!("{}/v2/studio/vercel/", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -47901,14 +47048,14 @@ Sends a `POST` request to `/v2/studio/vercel/`
     }
     /**Assign a custom subdomain to a deployed miniapp
 
-Assigns a custom *.neynar.app subdomain to the user's deployed miniapp. The new domain is added to the Vercel project alongside the existing auto-assigned domain. The productionDomain in the database is updated to the custom domain. Requires API key authentication. Note: Studio CU is tracked based on LLM token usage, not per API call.
+    Assigns a custom *.neynar.app subdomain to the user's deployed miniapp. The new domain is added to the Vercel project alongside the existing auto-assigned domain. The productionDomain in the database is updated to the custom domain. Requires API key authentication. Note: Studio CU is tracked based on LLM token usage, not per API call.
 
-Sends a `PUT` request to `/v2/studio/vercel/domain`
+    Sends a `PUT` request to `/v2/studio/vercel/domain`
 
-Arguments:
-- `fid`: Farcaster ID of the requesting user
-- `body`
-*/
+    Arguments:
+    - `fid`: Farcaster ID of the requesting user
+    - `body`
+    */
     pub async fn assign_custom_domain<'a>(
         &'a self,
         fid: i32,
@@ -47916,11 +47063,10 @@ Arguments:
     ) -> Result<ResponseValue<types::AssignCustomDomainResponse>, Error<()>> {
         let url = format!("{}/v2/studio/vercel/domain", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -47947,14 +47093,14 @@ Arguments:
     }
     /**Check if a custom subdomain is available
 
-Checks whether a custom *.neynar.app subdomain is available for assignment. Validates format, checks reserved names, and verifies no other active deployment is using it. Note: Studio CU is tracked based on LLM token usage, not per API call.
+    Checks whether a custom *.neynar.app subdomain is available for assignment. Validates format, checks reserved names, and verifies no other active deployment is using it. Note: Studio CU is tracked based on LLM token usage, not per API call.
 
-Sends a `GET` request to `/v2/studio/vercel/domain/check`
+    Sends a `GET` request to `/v2/studio/vercel/domain/check`
 
-Arguments:
-- `fid`: Farcaster ID of the requesting user
-- `subdomain`: The desired subdomain (without .neynar.app suffix). Must be 3-63 characters, lowercase alphanumeric and hyphens only.
-*/
+    Arguments:
+    - `fid`: Farcaster ID of the requesting user
+    - `subdomain`: The desired subdomain (without .neynar.app suffix). Must be 3-63 characters, lowercase alphanumeric and hyphens only.
+    */
     pub async fn check_domain_availability<'a>(
         &'a self,
         fid: i32,
@@ -47962,11 +47108,10 @@ Arguments:
     ) -> Result<ResponseValue<types::CheckDomainAvailabilityResponse>, Error<()>> {
         let url = format!("{}/v2/studio/vercel/domain/check", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -47993,17 +47138,17 @@ Arguments:
     }
     /**Get Vercel deployment build logs
 
-Retrieves the build logs for a Vercel deployment. Useful for debugging failed deployments. Requires Studio admin authentication. Note: Studio CU is tracked based on LLM token usage, not per API call.
+    Retrieves the build logs for a Vercel deployment. Useful for debugging failed deployments. Requires Studio admin authentication. Note: Studio CU is tracked based on LLM token usage, not per API call.
 
-Sends a `GET` request to `/v2/studio/vercel/logs`
+    Sends a `GET` request to `/v2/studio/vercel/logs`
 
-Arguments:
-- `deployment_id`: Deployment ID (UUID). Required if name not provided.
-- `fid`: Farcaster ID of the user
-- `limit`: Maximum number of log events to return. Defaults to 100.
-- `name`: Deployment name used to identify the Vercel project. Required if deployment_id not provided.
-- `namespace`: K8s Namespace name
-*/
+    Arguments:
+    - `deployment_id`: Deployment ID (UUID). Required if name not provided.
+    - `fid`: Farcaster ID of the user
+    - `limit`: Maximum number of log events to return. Defaults to 100.
+    - `name`: Deployment name used to identify the Vercel project. Required if deployment_id not provided.
+    - `namespace`: K8s Namespace name
+    */
     pub async fn vercel_deployment_logs<'a>(
         &'a self,
         deployment_id: Option<&'a ::uuid::Uuid>,
@@ -48014,11 +47159,10 @@ Arguments:
     ) -> Result<ResponseValue<types::VercelDeploymentLogsResponse>, Error<()>> {
         let url = format!("{}/v2/studio/vercel/logs", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -48027,7 +47171,10 @@ Arguments:
                 ::reqwest::header::ACCEPT,
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
-            .query(&progenitor_client::QueryParam::new("deployment_id", &deployment_id))
+            .query(&progenitor_client::QueryParam::new(
+                "deployment_id",
+                &deployment_id,
+            ))
             .query(&progenitor_client::QueryParam::new("fid", &fid))
             .query(&progenitor_client::QueryParam::new("limit", &limit))
             .query(&progenitor_client::QueryParam::new("name", &name))
@@ -48048,16 +47195,16 @@ Arguments:
     }
     /**Get Vercel deployment status
 
-Retrieves the status of a Vercel deployment for a miniapp. Looks up the Vercel project ID from the deployment and queries Vercel API for deployment status. Requires API key authentication. Note: Studio CU is tracked based on LLM token usage, not per API call.
+    Retrieves the status of a Vercel deployment for a miniapp. Looks up the Vercel project ID from the deployment and queries Vercel API for deployment status. Requires API key authentication. Note: Studio CU is tracked based on LLM token usage, not per API call.
 
-Sends a `GET` request to `/v2/studio/vercel/status`
+    Sends a `GET` request to `/v2/studio/vercel/status`
 
-Arguments:
-- `deployment_id`: Deployment ID (UUID). Required if name not provided.
-- `fid`: Farcaster ID of the user; if not provided, namespace must be provided
-- `name`: Deployment name used to identify the Vercel project. Required if deployment_id not provided.
-- `namespace`: K8s Namespace name
-*/
+    Arguments:
+    - `deployment_id`: Deployment ID (UUID). Required if name not provided.
+    - `fid`: Farcaster ID of the user; if not provided, namespace must be provided
+    - `name`: Deployment name used to identify the Vercel project. Required if deployment_id not provided.
+    - `namespace`: K8s Namespace name
+    */
     pub async fn vercel_deployment_status<'a>(
         &'a self,
         deployment_id: Option<&'a ::uuid::Uuid>,
@@ -48067,11 +47214,10 @@ Arguments:
     ) -> Result<ResponseValue<types::VercelDeploymentStatusResponse>, Error<()>> {
         let url = format!("{}/v2/studio/vercel/status", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -48080,7 +47226,10 @@ Arguments:
                 ::reqwest::header::ACCEPT,
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
-            .query(&progenitor_client::QueryParam::new("deployment_id", &deployment_id))
+            .query(&progenitor_client::QueryParam::new(
+                "deployment_id",
+                &deployment_id,
+            ))
             .query(&progenitor_client::QueryParam::new("fid", &fid))
             .query(&progenitor_client::QueryParam::new("name", &name))
             .query(&progenitor_client::QueryParam::new("namespace", &namespace))

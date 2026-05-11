@@ -1,7 +1,7 @@
 #[allow(unused_imports)]
 pub use progenitor_client::{ByteStream, ClientInfo, Error, ResponseValue};
 #[allow(unused_imports)]
-use progenitor_client::{encode_path, ClientHooks, OperationInfo, RequestBuilderExt};
+use progenitor_client::{ClientHooks, OperationInfo, RequestBuilderExt, encode_path};
 /// Types used as operation parameters and responses.
 #[allow(clippy::all)]
 pub mod types {
@@ -11,18 +11,12 @@ pub mod types {
         pub struct ConversionError(::std::borrow::Cow<'static, str>);
         impl ::std::error::Error for ConversionError {}
         impl ::std::fmt::Display for ConversionError {
-            fn fmt(
-                &self,
-                f: &mut ::std::fmt::Formatter<'_>,
-            ) -> Result<(), ::std::fmt::Error> {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> Result<(), ::std::fmt::Error> {
                 ::std::fmt::Display::fmt(&self.0, f)
             }
         }
         impl ::std::fmt::Debug for ConversionError {
-            fn fmt(
-                &self,
-                f: &mut ::std::fmt::Formatter<'_>,
-            ) -> Result<(), ::std::fmt::Error> {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> Result<(), ::std::fmt::Error> {
                 ::std::fmt::Debug::fmt(&self.0, f)
             }
         }
@@ -415,7 +409,7 @@ pub mod types {
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub category: ::std::option::Option<::std::string::String>,
         /**Each candle is `[startTime, open, high, low, close, volume, turnover]`.
-*/
+         */
         #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
         pub list: ::std::vec::Vec<::std::vec::Vec<::std::string::String>>,
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
@@ -1562,7 +1556,9 @@ pub mod types {
     }
     impl ::std::default::Default for WalletBalanceResult {
         fn default() -> Self {
-            Self { list: Default::default() }
+            Self {
+                list: Default::default(),
+            }
         }
     }
     ///`WalletCoin`
@@ -1667,7 +1663,9 @@ impl Client {
         #[cfg(not(target_arch = "wasm32"))]
         let client = {
             let dur = ::std::time::Duration::from_secs(15u64);
-            reqwest::ClientBuilder::new().connect_timeout(dur).timeout(dur)
+            reqwest::ClientBuilder::new()
+                .connect_timeout(dur)
+                .timeout(dur)
         };
         #[cfg(target_arch = "wasm32")]
         let client = reqwest::ClientBuilder::new();
@@ -1705,18 +1703,18 @@ impl ClientHooks<()> for &Client {}
 impl Client {
     /**Latest price snapshot for symbols in a category
 
-Returns the latest price snapshot (last price, 24h volume, best bid/ask, etc.) for one
-or all symbols in a product category. Public endpoint — no signing required.
+    Returns the latest price snapshot (last price, 24h volume, best bid/ask, etc.) for one
+    or all symbols in a product category. Public endpoint — no signing required.
 
 
-Sends a `GET` request to `/v5/market/tickers`
+    Sends a `GET` request to `/v5/market/tickers`
 
-Arguments:
-- `base_coin`
-- `category`: Product category — `spot`, `linear`, `inverse`, or `option`.
-- `exp_date`
-- `symbol`: Symbol like `BTCUSDT`. Omit to return all symbols in the category.
-*/
+    Arguments:
+    - `base_coin`
+    - `category`: Product category — `spot`, `linear`, `inverse`, or `option`.
+    - `exp_date`
+    - `symbol`: Symbol like `BTCUSDT`. Omit to return all symbols in the category.
+    */
     pub async fn get_tickers<'a>(
         &'a self,
         base_coin: Option<&'a str>,
@@ -1726,11 +1724,10 @@ Arguments:
     ) -> Result<ResponseValue<types::TickersEnvelope>, Error<()>> {
         let url = format!("{}/v5/market/tickers", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -1759,15 +1756,15 @@ Arguments:
     }
     /**Order book snapshot
 
-Bids and asks for a symbol at the requested depth. Public endpoint.
+    Bids and asks for a symbol at the requested depth. Public endpoint.
 
-Sends a `GET` request to `/v5/market/orderbook`
+    Sends a `GET` request to `/v5/market/orderbook`
 
-Arguments:
-- `category`: Product category — `spot`, `linear`, `inverse`, or `option`.
-- `limit`: Depth — typical values 1, 25, 50, 200.
-- `symbol`
-*/
+    Arguments:
+    - `category`: Product category — `spot`, `linear`, `inverse`, or `option`.
+    - `limit`: Depth — typical values 1, 25, 50, 200.
+    - `symbol`
+    */
     pub async fn get_orderbook<'a>(
         &'a self,
         category: &'a str,
@@ -1776,11 +1773,10 @@ Arguments:
     ) -> Result<ResponseValue<types::OrderbookEnvelope>, Error<()>> {
         let url = format!("{}/v5/market/orderbook", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -1808,20 +1804,20 @@ Arguments:
     }
     /**Historical candles (OHLCV)
 
-OHLCV candles for a symbol at the chosen interval. Public endpoint. Intervals:
-`1`, `3`, `5`, `15`, `30`, `60`, `120`, `240`, `360`, `720`, `D`, `W`, `M`.
+    OHLCV candles for a symbol at the chosen interval. Public endpoint. Intervals:
+    `1`, `3`, `5`, `15`, `30`, `60`, `120`, `240`, `360`, `720`, `D`, `W`, `M`.
 
 
-Sends a `GET` request to `/v5/market/kline`
+    Sends a `GET` request to `/v5/market/kline`
 
-Arguments:
-- `category`: Product category — `spot`, `linear`, `inverse`, or `option`.
-- `end`: End timestamp in ms.
-- `interval`
-- `limit`
-- `start`: Start timestamp in ms.
-- `symbol`
-*/
+    Arguments:
+    - `category`: Product category — `spot`, `linear`, `inverse`, or `option`.
+    - `end`: End timestamp in ms.
+    - `interval`
+    - `limit`
+    - `start`: Start timestamp in ms.
+    - `symbol`
+    */
     pub async fn get_kline<'a>(
         &'a self,
         category: &'a str,
@@ -1833,11 +1829,10 @@ Arguments:
     ) -> Result<ResponseValue<types::KlineEnvelope>, Error<()>> {
         let url = format!("{}/v5/market/kline", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -1868,18 +1863,18 @@ Arguments:
     }
     /**Account wallet balance
 
-Wallet balance per coin for the unified or contract account. Signed.
+    Wallet balance per coin for the unified or contract account. Signed.
 
-Sends a `GET` request to `/v5/account/wallet-balance`
+    Sends a `GET` request to `/v5/account/wallet-balance`
 
-Arguments:
-- `account_type`: `UNIFIED` (default) or `CONTRACT`.
-- `coin`
-- `x_bapi_api_key`
-- `x_bapi_recv_window`
-- `x_bapi_sign`
-- `x_bapi_timestamp`
-*/
+    Arguments:
+    - `account_type`: `UNIFIED` (default) or `CONTRACT`.
+    - `coin`
+    - `x_bapi_api_key`
+    - `x_bapi_recv_window`
+    - `x_bapi_sign`
+    - `x_bapi_timestamp`
+    */
     pub async fn get_wallet_balance<'a>(
         &'a self,
         account_type: &'a str,
@@ -1891,14 +1886,15 @@ Arguments:
     ) -> Result<ResponseValue<types::WalletBalanceEnvelope>, Error<()>> {
         let url = format!("{}/v5/account/wallet-balance", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(5usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-BAPI-API-KEY", x_bapi_api_key.to_string().try_into()?);
-        header_map
-            .append("X-BAPI-RECV-WINDOW", x_bapi_recv_window.to_string().try_into()?);
+        header_map.append(
+            "X-BAPI-RECV-WINDOW",
+            x_bapi_recv_window.to_string().try_into()?,
+        );
         header_map.append("X-BAPI-SIGN", x_bapi_sign.to_string().try_into()?);
         header_map.append("X-BAPI-TIMESTAMP", x_bapi_timestamp.to_string().try_into()?);
         #[allow(unused_mut)]
@@ -1909,7 +1905,10 @@ Arguments:
                 ::reqwest::header::ACCEPT,
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
-            .query(&progenitor_client::QueryParam::new("accountType", &account_type))
+            .query(&progenitor_client::QueryParam::new(
+                "accountType",
+                &account_type,
+            ))
             .query(&progenitor_client::QueryParam::new("coin", &coin))
             .headers(header_map)
             .build()?;
@@ -1927,19 +1926,19 @@ Arguments:
     }
     /**Open derivative positions
 
-Open perpetual or inverse positions. Signed. `category` must be `linear` or `inverse`.
+    Open perpetual or inverse positions. Signed. `category` must be `linear` or `inverse`.
 
-Sends a `GET` request to `/v5/position/list`
+    Sends a `GET` request to `/v5/position/list`
 
-Arguments:
-- `category`: Product category — `spot`, `linear`, `inverse`, or `option`.
-- `settle_coin`
-- `symbol`
-- `x_bapi_api_key`
-- `x_bapi_recv_window`
-- `x_bapi_sign`
-- `x_bapi_timestamp`
-*/
+    Arguments:
+    - `category`: Product category — `spot`, `linear`, `inverse`, or `option`.
+    - `settle_coin`
+    - `symbol`
+    - `x_bapi_api_key`
+    - `x_bapi_recv_window`
+    - `x_bapi_sign`
+    - `x_bapi_timestamp`
+    */
     pub async fn get_positions<'a>(
         &'a self,
         category: &'a str,
@@ -1952,14 +1951,15 @@ Arguments:
     ) -> Result<ResponseValue<types::PositionListEnvelope>, Error<()>> {
         let url = format!("{}/v5/position/list", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(5usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-BAPI-API-KEY", x_bapi_api_key.to_string().try_into()?);
-        header_map
-            .append("X-BAPI-RECV-WINDOW", x_bapi_recv_window.to_string().try_into()?);
+        header_map.append(
+            "X-BAPI-RECV-WINDOW",
+            x_bapi_recv_window.to_string().try_into()?,
+        );
         header_map.append("X-BAPI-SIGN", x_bapi_sign.to_string().try_into()?);
         header_map.append("X-BAPI-TIMESTAMP", x_bapi_timestamp.to_string().try_into()?);
         #[allow(unused_mut)]
@@ -1971,7 +1971,10 @@ Arguments:
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
             .query(&progenitor_client::QueryParam::new("category", &category))
-            .query(&progenitor_client::QueryParam::new("settleCoin", &settle_coin))
+            .query(&progenitor_client::QueryParam::new(
+                "settleCoin",
+                &settle_coin,
+            ))
             .query(&progenitor_client::QueryParam::new("symbol", &symbol))
             .headers(header_map)
             .build()?;
@@ -1989,20 +1992,20 @@ Arguments:
     }
     /**Open / unfilled orders
 
-Real-time open orders. Signed.
+    Real-time open orders. Signed.
 
-Sends a `GET` request to `/v5/order/realtime`
+    Sends a `GET` request to `/v5/order/realtime`
 
-Arguments:
-- `category`: Product category — `spot`, `linear`, `inverse`, or `option`.
-- `limit`
-- `order_id`
-- `symbol`
-- `x_bapi_api_key`
-- `x_bapi_recv_window`
-- `x_bapi_sign`
-- `x_bapi_timestamp`
-*/
+    Arguments:
+    - `category`: Product category — `spot`, `linear`, `inverse`, or `option`.
+    - `limit`
+    - `order_id`
+    - `symbol`
+    - `x_bapi_api_key`
+    - `x_bapi_recv_window`
+    - `x_bapi_sign`
+    - `x_bapi_timestamp`
+    */
     pub async fn get_open_orders<'a>(
         &'a self,
         category: &'a str,
@@ -2016,14 +2019,15 @@ Arguments:
     ) -> Result<ResponseValue<types::OrderListEnvelope>, Error<()>> {
         let url = format!("{}/v5/order/realtime", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(5usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-BAPI-API-KEY", x_bapi_api_key.to_string().try_into()?);
-        header_map
-            .append("X-BAPI-RECV-WINDOW", x_bapi_recv_window.to_string().try_into()?);
+        header_map.append(
+            "X-BAPI-RECV-WINDOW",
+            x_bapi_recv_window.to_string().try_into()?,
+        );
         header_map.append("X-BAPI-SIGN", x_bapi_sign.to_string().try_into()?);
         header_map.append("X-BAPI-TIMESTAMP", x_bapi_timestamp.to_string().try_into()?);
         #[allow(unused_mut)]
@@ -2054,20 +2058,20 @@ Arguments:
     }
     /**Filled / cancelled order history
 
-Historical orders (filled, cancelled, rejected). Signed.
+    Historical orders (filled, cancelled, rejected). Signed.
 
-Sends a `GET` request to `/v5/order/history`
+    Sends a `GET` request to `/v5/order/history`
 
-Arguments:
-- `category`: Product category — `spot`, `linear`, `inverse`, or `option`.
-- `limit`
-- `order_id`
-- `symbol`
-- `x_bapi_api_key`
-- `x_bapi_recv_window`
-- `x_bapi_sign`
-- `x_bapi_timestamp`
-*/
+    Arguments:
+    - `category`: Product category — `spot`, `linear`, `inverse`, or `option`.
+    - `limit`
+    - `order_id`
+    - `symbol`
+    - `x_bapi_api_key`
+    - `x_bapi_recv_window`
+    - `x_bapi_sign`
+    - `x_bapi_timestamp`
+    */
     pub async fn get_order_history<'a>(
         &'a self,
         category: &'a str,
@@ -2081,14 +2085,15 @@ Arguments:
     ) -> Result<ResponseValue<types::OrderListEnvelope>, Error<()>> {
         let url = format!("{}/v5/order/history", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(5usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-BAPI-API-KEY", x_bapi_api_key.to_string().try_into()?);
-        header_map
-            .append("X-BAPI-RECV-WINDOW", x_bapi_recv_window.to_string().try_into()?);
+        header_map.append(
+            "X-BAPI-RECV-WINDOW",
+            x_bapi_recv_window.to_string().try_into()?,
+        );
         header_map.append("X-BAPI-SIGN", x_bapi_sign.to_string().try_into()?);
         header_map.append("X-BAPI-TIMESTAMP", x_bapi_timestamp.to_string().try_into()?);
         #[allow(unused_mut)]
@@ -2119,11 +2124,11 @@ Arguments:
     }
     /**Place a new order
 
-Place a new spot or derivatives order. Signed.
+    Place a new spot or derivatives order. Signed.
 
-Sends a `POST` request to `/v5/order/create`
+    Sends a `POST` request to `/v5/order/create`
 
-*/
+    */
     pub async fn create_order<'a>(
         &'a self,
         x_bapi_api_key: &'a str,
@@ -2134,14 +2139,15 @@ Sends a `POST` request to `/v5/order/create`
     ) -> Result<ResponseValue<types::OrderActionEnvelope>, Error<()>> {
         let url = format!("{}/v5/order/create", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(5usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-BAPI-API-KEY", x_bapi_api_key.to_string().try_into()?);
-        header_map
-            .append("X-BAPI-RECV-WINDOW", x_bapi_recv_window.to_string().try_into()?);
+        header_map.append(
+            "X-BAPI-RECV-WINDOW",
+            x_bapi_recv_window.to_string().try_into()?,
+        );
         header_map.append("X-BAPI-SIGN", x_bapi_sign.to_string().try_into()?);
         header_map.append("X-BAPI-TIMESTAMP", x_bapi_timestamp.to_string().try_into()?);
         #[allow(unused_mut)]
@@ -2169,11 +2175,11 @@ Sends a `POST` request to `/v5/order/create`
     }
     /**Cancel an order
 
-Cancel a single order by orderId. Signed.
+    Cancel a single order by orderId. Signed.
 
-Sends a `POST` request to `/v5/order/cancel`
+    Sends a `POST` request to `/v5/order/cancel`
 
-*/
+    */
     pub async fn cancel_order<'a>(
         &'a self,
         x_bapi_api_key: &'a str,
@@ -2184,14 +2190,15 @@ Sends a `POST` request to `/v5/order/cancel`
     ) -> Result<ResponseValue<types::OrderActionEnvelope>, Error<()>> {
         let url = format!("{}/v5/order/cancel", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(5usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-BAPI-API-KEY", x_bapi_api_key.to_string().try_into()?);
-        header_map
-            .append("X-BAPI-RECV-WINDOW", x_bapi_recv_window.to_string().try_into()?);
+        header_map.append(
+            "X-BAPI-RECV-WINDOW",
+            x_bapi_recv_window.to_string().try_into()?,
+        );
         header_map.append("X-BAPI-SIGN", x_bapi_sign.to_string().try_into()?);
         header_map.append("X-BAPI-TIMESTAMP", x_bapi_timestamp.to_string().try_into()?);
         #[allow(unused_mut)]
@@ -2219,11 +2226,11 @@ Sends a `POST` request to `/v5/order/cancel`
     }
     /**Amend an open order
 
-Modify quantity and/or price of an open order. Signed.
+    Modify quantity and/or price of an open order. Signed.
 
-Sends a `POST` request to `/v5/order/amend`
+    Sends a `POST` request to `/v5/order/amend`
 
-*/
+    */
     pub async fn amend_order<'a>(
         &'a self,
         x_bapi_api_key: &'a str,
@@ -2234,14 +2241,15 @@ Sends a `POST` request to `/v5/order/amend`
     ) -> Result<ResponseValue<types::OrderActionEnvelope>, Error<()>> {
         let url = format!("{}/v5/order/amend", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(5usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-BAPI-API-KEY", x_bapi_api_key.to_string().try_into()?);
-        header_map
-            .append("X-BAPI-RECV-WINDOW", x_bapi_recv_window.to_string().try_into()?);
+        header_map.append(
+            "X-BAPI-RECV-WINDOW",
+            x_bapi_recv_window.to_string().try_into()?,
+        );
         header_map.append("X-BAPI-SIGN", x_bapi_sign.to_string().try_into()?);
         header_map.append("X-BAPI-TIMESTAMP", x_bapi_timestamp.to_string().try_into()?);
         #[allow(unused_mut)]
@@ -2269,11 +2277,11 @@ Sends a `POST` request to `/v5/order/amend`
     }
     /**Set leverage for a derivatives symbol
 
-Set per-symbol leverage (separate buy and sell legs). Signed.
+    Set per-symbol leverage (separate buy and sell legs). Signed.
 
-Sends a `POST` request to `/v5/position/set-leverage`
+    Sends a `POST` request to `/v5/position/set-leverage`
 
-*/
+    */
     pub async fn set_leverage<'a>(
         &'a self,
         x_bapi_api_key: &'a str,
@@ -2284,14 +2292,15 @@ Sends a `POST` request to `/v5/position/set-leverage`
     ) -> Result<ResponseValue<types::EmptyResultEnvelope>, Error<()>> {
         let url = format!("{}/v5/position/set-leverage", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(5usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-BAPI-API-KEY", x_bapi_api_key.to_string().try_into()?);
-        header_map
-            .append("X-BAPI-RECV-WINDOW", x_bapi_recv_window.to_string().try_into()?);
+        header_map.append(
+            "X-BAPI-RECV-WINDOW",
+            x_bapi_recv_window.to_string().try_into()?,
+        );
         header_map.append("X-BAPI-SIGN", x_bapi_sign.to_string().try_into()?);
         header_map.append("X-BAPI-TIMESTAMP", x_bapi_timestamp.to_string().try_into()?);
         #[allow(unused_mut)]

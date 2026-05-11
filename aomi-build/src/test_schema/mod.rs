@@ -36,7 +36,10 @@ pub struct TestSchemaArgs {
     pub api_key_header: String,
 
     /// Comma-separated checks to run. Defaults to a fast subset; use `all` to enable everything.
-    #[arg(long, default_value = "not_a_server_error,status_code_conformance,content_type_conformance,response_schema_conformance")]
+    #[arg(
+        long,
+        default_value = "not_a_server_error,status_code_conformance,content_type_conformance,response_schema_conformance"
+    )]
     pub checks: String,
 
     /// Cap on Hypothesis examples per operation. Default 25 keeps smoke tests fast.
@@ -49,7 +52,6 @@ pub struct TestSchemaArgs {
     /// sandbox/testnet.
     #[arg(long)]
     pub write: bool,
-
 
     /// Which schemathesis runner to use. Auto-detect by default.
     #[arg(long, value_enum, default_value_t = Runner::Auto)]
@@ -72,10 +74,11 @@ pub enum Runner {
 
 pub fn run(args: TestSchemaArgs) -> Result<()> {
     let root = workspace_root()?;
-    let spec_path = args
-        .spec
-        .clone()
-        .unwrap_or_else(|| root.join("ext").join("specs").join(format!("{}.yaml", args.platform)));
+    let spec_path = args.spec.clone().unwrap_or_else(|| {
+        root.join("ext")
+            .join("specs")
+            .join(format!("{}.yaml", args.platform))
+    });
     if !spec_path.exists() {
         bail!("spec not found at {}", spec_path.display());
     }
@@ -114,7 +117,11 @@ pub fn run(args: TestSchemaArgs) -> Result<()> {
     if !status.success() {
         bail!(
             "schemathesis reported {} (exit {})",
-            if status.code() == Some(1) { "violations" } else { "an error" },
+            if status.code() == Some(1) {
+                "violations"
+            } else {
+                "an error"
+            },
             status.code().unwrap_or(-1)
         );
     }
@@ -184,13 +191,13 @@ fn build_command(
         cmd.arg("-H").arg(h);
     }
     if let Some(env) = &args.bearer_env {
-        let token = std::env::var(env)
-            .with_context(|| format!("--bearer-env: ${env} is not set"))?;
+        let token =
+            std::env::var(env).with_context(|| format!("--bearer-env: ${env} is not set"))?;
         cmd.arg("-H").arg(format!("Authorization: Bearer {token}"));
     }
     if let Some(env) = &args.api_key_env {
-        let key = std::env::var(env)
-            .with_context(|| format!("--api-key-env: ${env} is not set"))?;
+        let key =
+            std::env::var(env).with_context(|| format!("--api-key-env: ${env} is not set"))?;
         cmd.arg("-H").arg(format!("{}: {key}", args.api_key_header));
     }
 

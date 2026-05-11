@@ -4,9 +4,9 @@ use super::{Mode, Op, ParamKind, ParamLoc, ResponseSummary};
 
 pub fn cargo_toml(platform: &str, mode: Mode) -> String {
     let provider_dep_block = match mode {
-        Mode::Shared => format!(
-            "aomi-ext = {{ path = \"../../ext\", features = [\"{platform}\"] }}\n"
-        ),
+        Mode::Shared => {
+            format!("aomi-ext = {{ path = \"../../ext\", features = [\"{platform}\"] }}\n")
+        }
         Mode::AppLocal => {
             // App-local: client deps live directly here. Detect from the
             // generated client source which optional crates progenitor pulled
@@ -121,7 +121,10 @@ pub fn tool_rs(platform: &str, app_struct: &str, ops: &[Op], mode: Mode) -> Stri
     let _ = writeln!(out, "#[derive(Clone, Default)]");
     let _ = writeln!(out, "pub(crate) struct {app_struct};");
     let _ = writeln!(out);
-    let _ = writeln!(out, "fn ok<T: Serialize>(value: T) -> Result<Value, String> {{");
+    let _ = writeln!(
+        out,
+        "fn ok<T: Serialize>(value: T) -> Result<Value, String> {{"
+    );
     let _ = writeln!(
         out,
         "    let value = serde_json::to_value(value).map_err(|e| format!(\"[{platform}] serialize: {{e}}\"))?;"
@@ -167,9 +170,15 @@ fn emit_tool(out: &mut String, platform: &str, app_struct: &str, op: &Op) {
         .unwrap_or_else(|| format!("{} {}", op.method.to_uppercase(), op.path));
     let description = sanitize_one_liner(&summary);
 
-    let _ = writeln!(out, "// ============================================================");
+    let _ = writeln!(
+        out,
+        "// ============================================================"
+    );
     let _ = writeln!(out, "// {} {}", op.method.to_uppercase(), op.path);
-    let _ = writeln!(out, "// ============================================================");
+    let _ = writeln!(
+        out,
+        "// ============================================================"
+    );
     let _ = writeln!(out);
 
     let _ = writeln!(out, "pub(crate) struct {};", op.tool_marker);
@@ -207,7 +216,10 @@ fn emit_tool(out: &mut String, platform: &str, app_struct: &str, op: &Op) {
             out,
             "    // TODO: typed body — generated client expects aomi_ext::{platform}::types::*."
         );
-        let _ = writeln!(out, "    // Add `pub body: <T>` and edit `run` to pass it to req.body(...).");
+        let _ = writeln!(
+            out,
+            "    // Add `pub body: <T>` and edit `run` to pass it to req.body(...)."
+        );
     }
     let _ = writeln!(out, "}}");
     let _ = writeln!(out);
@@ -217,7 +229,10 @@ fn emit_tool(out: &mut String, platform: &str, app_struct: &str, op: &Op) {
     let _ = writeln!(out, "    type App = {app_struct};");
     let _ = writeln!(out, "    type Args = {args_struct};");
     let _ = writeln!(out, "    const NAME: &'static str = \"{tool_name}\";");
-    let _ = writeln!(out, "    const DESCRIPTION: &'static str = \"{description}\";");
+    let _ = writeln!(
+        out,
+        "    const DESCRIPTION: &'static str = \"{description}\";"
+    );
     let _ = writeln!(out);
     let _ = writeln!(
         out,
@@ -279,7 +294,10 @@ fn emit_tool(out: &mut String, platform: &str, app_struct: &str, op: &Op) {
     } else if call_args.iter().map(|s| s.len()).sum::<usize>() < 60 {
         call_args.join(", ")
     } else {
-        format!("\n                {}\n            ", call_args.join(",\n                "))
+        format!(
+            "\n                {}\n            ",
+            call_args.join(",\n                ")
+        )
     };
     // Progenitor snake_cases method names; operation_id is often camelCase.
     let method_ident = crate::spec_load::snake_case(&op.operation_id);

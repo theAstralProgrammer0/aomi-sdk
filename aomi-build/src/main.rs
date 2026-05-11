@@ -10,7 +10,10 @@ mod tighten;
 mod tool;
 
 #[derive(Parser)]
-#[command(name = "aomi-build", about = "Build pipeline for Aomi apps: spec → client → tool")]
+#[command(
+    name = "aomi-build",
+    about = "Build pipeline for Aomi apps: spec → client → tool"
+)]
 struct Cli {
     #[command(subcommand)]
     cmd: Cmd,

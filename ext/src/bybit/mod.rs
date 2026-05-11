@@ -4,9 +4,9 @@
 //! Hand-written companions (signing helpers, etc.) live next to this file
 //! in `auth.rs` or other sibling modules.
 
+pub mod auth;
 #[allow(clippy::all, dead_code, unused_imports)]
 pub mod client;
-pub mod auth;
 
-pub use auth::{build_query, current_timestamp_ms, sign_body, sign_query, RECV_WINDOW};
+pub use auth::{RECV_WINDOW, build_query, current_timestamp_ms, sign_body, sign_query};
 pub use client::*;

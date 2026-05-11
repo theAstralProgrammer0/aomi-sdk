@@ -1,7 +1,7 @@
 #[allow(unused_imports)]
 pub use progenitor_client::{ByteStream, ClientInfo, Error, ResponseValue};
 #[allow(unused_imports)]
-use progenitor_client::{encode_path, ClientHooks, OperationInfo, RequestBuilderExt};
+use progenitor_client::{ClientHooks, OperationInfo, RequestBuilderExt, encode_path};
 /// Types used as operation parameters and responses.
 #[allow(clippy::all)]
 pub mod types {
@@ -11,18 +11,12 @@ pub mod types {
         pub struct ConversionError(::std::borrow::Cow<'static, str>);
         impl ::std::error::Error for ConversionError {}
         impl ::std::fmt::Display for ConversionError {
-            fn fmt(
-                &self,
-                f: &mut ::std::fmt::Formatter<'_>,
-            ) -> Result<(), ::std::fmt::Error> {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> Result<(), ::std::fmt::Error> {
                 ::std::fmt::Display::fmt(&self.0, f)
             }
         }
         impl ::std::fmt::Debug for ConversionError {
-            fn fmt(
-                &self,
-                f: &mut ::std::fmt::Formatter<'_>,
-            ) -> Result<(), ::std::fmt::Error> {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> Result<(), ::std::fmt::Error> {
                 ::std::fmt::Debug::fmt(&self.0, f)
             }
         }
@@ -51,29 +45,24 @@ pub mod types {
     /// </details>
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     #[serde(transparent)]
-    pub struct ErrorResponseBody(
-        pub ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-    );
+    pub struct ErrorResponseBody(pub ::serde_json::Map<::std::string::String, ::serde_json::Value>);
     impl ::std::ops::Deref for ErrorResponseBody {
         type Target = ::serde_json::Map<::std::string::String, ::serde_json::Value>;
-        fn deref(
-            &self,
-        ) -> &::serde_json::Map<::std::string::String, ::serde_json::Value> {
+        fn deref(&self) -> &::serde_json::Map<::std::string::String, ::serde_json::Value> {
             &self.0
         }
     }
     impl ::std::convert::From<ErrorResponseBody>
-    for ::serde_json::Map<::std::string::String, ::serde_json::Value> {
+        for ::serde_json::Map<::std::string::String, ::serde_json::Value>
+    {
         fn from(value: ErrorResponseBody) -> Self {
             value.0
         }
     }
-    impl ::std::convert::From<
-        ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-    > for ErrorResponseBody {
-        fn from(
-            value: ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-        ) -> Self {
+    impl ::std::convert::From<::serde_json::Map<::std::string::String, ::serde_json::Value>>
+        for ErrorResponseBody
+    {
+        fn from(value: ::serde_json::Map<::std::string::String, ::serde_json::Value>) -> Self {
             Self(value)
         }
     }
@@ -120,10 +109,10 @@ pub mod types {
         pub trade: ::serde_json::Map<::std::string::String, ::serde_json::Value>,
     }
     /**Loosely typed quote response. Fields vary across price/quote/gasless
-endpoints; consumers should pick what they need from the returned JSON.
-Common fields include `buyAmount`, `sellAmount`, `transaction`, `issues`,
-`route`, `trade`, `approval`, `tradeHash`, `status`.
-*/
+    endpoints; consumers should pick what they need from the returned JSON.
+    Common fields include `buyAmount`, `sellAmount`, `transaction`, `issues`,
+    `route`, `trade`, `approval`, `tradeHash`, `status`.
+    */
     ///
     /// <details><summary>JSON schema</summary>
     ///
@@ -137,29 +126,24 @@ Common fields include `buyAmount`, `sellAmount`, `transaction`, `issues`,
     /// </details>
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     #[serde(transparent)]
-    pub struct SwapQuote(
-        pub ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-    );
+    pub struct SwapQuote(pub ::serde_json::Map<::std::string::String, ::serde_json::Value>);
     impl ::std::ops::Deref for SwapQuote {
         type Target = ::serde_json::Map<::std::string::String, ::serde_json::Value>;
-        fn deref(
-            &self,
-        ) -> &::serde_json::Map<::std::string::String, ::serde_json::Value> {
+        fn deref(&self) -> &::serde_json::Map<::std::string::String, ::serde_json::Value> {
             &self.0
         }
     }
     impl ::std::convert::From<SwapQuote>
-    for ::serde_json::Map<::std::string::String, ::serde_json::Value> {
+        for ::serde_json::Map<::std::string::String, ::serde_json::Value>
+    {
         fn from(value: SwapQuote) -> Self {
             value.0
         }
     }
-    impl ::std::convert::From<
-        ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-    > for SwapQuote {
-        fn from(
-            value: ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-        ) -> Self {
+    impl ::std::convert::From<::serde_json::Map<::std::string::String, ::serde_json::Value>>
+        for SwapQuote
+    {
+        fn from(value: ::serde_json::Map<::std::string::String, ::serde_json::Value>) -> Self {
             Self(value)
         }
     }
@@ -200,7 +184,9 @@ impl Client {
         #[cfg(not(target_arch = "wasm32"))]
         let client = {
             let dur = ::std::time::Duration::from_secs(15u64);
-            reqwest::ClientBuilder::new().connect_timeout(dur).timeout(dur)
+            reqwest::ClientBuilder::new()
+                .connect_timeout(dur)
+                .timeout(dur)
         };
         #[cfg(target_arch = "wasm32")]
         let client = reqwest::ClientBuilder::new();
@@ -238,16 +224,16 @@ impl ClientHooks<()> for &Client {}
 impl Client {
     /**Indicative AllowanceHolder price (no signing required)
 
-Sends a `GET` request to `/swap/allowance-holder/price`
+    Sends a `GET` request to `/swap/allowance-holder/price`
 
-Arguments:
-- `buy_token`: Buy token contract address (or sentinel `0xEeee...EEeE` for native).
-- `chain_id`: Numeric EVM chain id (1, 10, 56, 137, 8453, 42161, 43114, ...).
-- `sell_amount`: Sell amount in base units (decimal string).
-- `sell_token`: Sell token contract address (or sentinel `0xEeee...EEeE` for native).
-- `slippage_percentage`: Slippage tolerance as a decimal (e.g. 0.01 = 1%). Default 0.01.
-- `taker`: Optional taker wallet address (improves quote accuracy).
-*/
+    Arguments:
+    - `buy_token`: Buy token contract address (or sentinel `0xEeee...EEeE` for native).
+    - `chain_id`: Numeric EVM chain id (1, 10, 56, 137, 8453, 42161, 43114, ...).
+    - `sell_amount`: Sell amount in base units (decimal string).
+    - `sell_token`: Sell token contract address (or sentinel `0xEeee...EEeE` for native).
+    - `slippage_percentage`: Slippage tolerance as a decimal (e.g. 0.01 = 1%). Default 0.01.
+    - `taker`: Optional taker wallet address (improves quote accuracy).
+    */
     pub async fn get_allowance_holder_price<'a>(
         &'a self,
         buy_token: &'a str,
@@ -259,11 +245,10 @@ Arguments:
     ) -> Result<ResponseValue<types::SwapQuote>, Error<()>> {
         let url = format!("{}/swap/allowance-holder/price", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -274,14 +259,18 @@ Arguments:
             )
             .query(&progenitor_client::QueryParam::new("buyToken", &buy_token))
             .query(&progenitor_client::QueryParam::new("chainId", &chain_id))
-            .query(&progenitor_client::QueryParam::new("sellAmount", &sell_amount))
-            .query(&progenitor_client::QueryParam::new("sellToken", &sell_token))
-            .query(
-                &progenitor_client::QueryParam::new(
-                    "slippagePercentage",
-                    &slippage_percentage,
-                ),
-            )
+            .query(&progenitor_client::QueryParam::new(
+                "sellAmount",
+                &sell_amount,
+            ))
+            .query(&progenitor_client::QueryParam::new(
+                "sellToken",
+                &sell_token,
+            ))
+            .query(&progenitor_client::QueryParam::new(
+                "slippagePercentage",
+                &slippage_percentage,
+            ))
             .query(&progenitor_client::QueryParam::new("taker", &taker))
             .headers(header_map)
             .build()?;
@@ -299,16 +288,16 @@ Arguments:
     }
     /**Firm AllowanceHolder quote with executable transaction
 
-Sends a `GET` request to `/swap/allowance-holder/quote`
+    Sends a `GET` request to `/swap/allowance-holder/quote`
 
-Arguments:
-- `buy_token`: Buy token contract address (or sentinel `0xEeee...EEeE` for native).
-- `chain_id`: Numeric EVM chain id (1, 10, 56, 137, 8453, 42161, 43114, ...).
-- `sell_amount`: Sell amount in base units (decimal string).
-- `sell_token`: Sell token contract address (or sentinel `0xEeee...EEeE` for native).
-- `slippage_percentage`: Slippage tolerance as a decimal (e.g. 0.01 = 1%). Default 0.01.
-- `taker`: Optional taker wallet address (improves quote accuracy).
-*/
+    Arguments:
+    - `buy_token`: Buy token contract address (or sentinel `0xEeee...EEeE` for native).
+    - `chain_id`: Numeric EVM chain id (1, 10, 56, 137, 8453, 42161, 43114, ...).
+    - `sell_amount`: Sell amount in base units (decimal string).
+    - `sell_token`: Sell token contract address (or sentinel `0xEeee...EEeE` for native).
+    - `slippage_percentage`: Slippage tolerance as a decimal (e.g. 0.01 = 1%). Default 0.01.
+    - `taker`: Optional taker wallet address (improves quote accuracy).
+    */
     pub async fn get_allowance_holder_quote<'a>(
         &'a self,
         buy_token: &'a str,
@@ -320,11 +309,10 @@ Arguments:
     ) -> Result<ResponseValue<types::SwapQuote>, Error<()>> {
         let url = format!("{}/swap/allowance-holder/quote", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -335,14 +323,18 @@ Arguments:
             )
             .query(&progenitor_client::QueryParam::new("buyToken", &buy_token))
             .query(&progenitor_client::QueryParam::new("chainId", &chain_id))
-            .query(&progenitor_client::QueryParam::new("sellAmount", &sell_amount))
-            .query(&progenitor_client::QueryParam::new("sellToken", &sell_token))
-            .query(
-                &progenitor_client::QueryParam::new(
-                    "slippagePercentage",
-                    &slippage_percentage,
-                ),
-            )
+            .query(&progenitor_client::QueryParam::new(
+                "sellAmount",
+                &sell_amount,
+            ))
+            .query(&progenitor_client::QueryParam::new(
+                "sellToken",
+                &sell_token,
+            ))
+            .query(&progenitor_client::QueryParam::new(
+                "slippagePercentage",
+                &slippage_percentage,
+            ))
             .query(&progenitor_client::QueryParam::new("taker", &taker))
             .headers(header_map)
             .build()?;
@@ -360,16 +352,16 @@ Arguments:
     }
     /**Firm gasless quote (returns EIP-712 typed data to sign)
 
-Sends a `GET` request to `/gasless/quote`
+    Sends a `GET` request to `/gasless/quote`
 
-Arguments:
-- `buy_token`: Buy token contract address (or sentinel `0xEeee...EEeE` for native).
-- `chain_id`: Numeric EVM chain id (1, 10, 56, 137, 8453, 42161, 43114, ...).
-- `sell_amount`: Sell amount in base units (decimal string).
-- `sell_token`: Sell token contract address (or sentinel `0xEeee...EEeE` for native).
-- `slippage_percentage`: Slippage tolerance as a decimal (e.g. 0.01 = 1%). Default 0.01.
-- `taker`: Optional taker wallet address (improves quote accuracy).
-*/
+    Arguments:
+    - `buy_token`: Buy token contract address (or sentinel `0xEeee...EEeE` for native).
+    - `chain_id`: Numeric EVM chain id (1, 10, 56, 137, 8453, 42161, 43114, ...).
+    - `sell_amount`: Sell amount in base units (decimal string).
+    - `sell_token`: Sell token contract address (or sentinel `0xEeee...EEeE` for native).
+    - `slippage_percentage`: Slippage tolerance as a decimal (e.g. 0.01 = 1%). Default 0.01.
+    - `taker`: Optional taker wallet address (improves quote accuracy).
+    */
     pub async fn get_gasless_quote<'a>(
         &'a self,
         buy_token: &'a str,
@@ -381,11 +373,10 @@ Arguments:
     ) -> Result<ResponseValue<types::SwapQuote>, Error<()>> {
         let url = format!("{}/gasless/quote", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -396,14 +387,18 @@ Arguments:
             )
             .query(&progenitor_client::QueryParam::new("buyToken", &buy_token))
             .query(&progenitor_client::QueryParam::new("chainId", &chain_id))
-            .query(&progenitor_client::QueryParam::new("sellAmount", &sell_amount))
-            .query(&progenitor_client::QueryParam::new("sellToken", &sell_token))
-            .query(
-                &progenitor_client::QueryParam::new(
-                    "slippagePercentage",
-                    &slippage_percentage,
-                ),
-            )
+            .query(&progenitor_client::QueryParam::new(
+                "sellAmount",
+                &sell_amount,
+            ))
+            .query(&progenitor_client::QueryParam::new(
+                "sellToken",
+                &sell_token,
+            ))
+            .query(&progenitor_client::QueryParam::new(
+                "slippagePercentage",
+                &slippage_percentage,
+            ))
             .query(&progenitor_client::QueryParam::new("taker", &taker))
             .headers(header_map)
             .build()?;
@@ -421,20 +416,19 @@ Arguments:
     }
     /**Submit signed gasless trade (and approval) to the 0x relayer
 
-Sends a `POST` request to `/gasless/submit`
+    Sends a `POST` request to `/gasless/submit`
 
-*/
+    */
     pub async fn submit_gasless<'a>(
         &'a self,
         body: &'a types::GaslessSubmitRequest,
     ) -> Result<ResponseValue<types::SwapQuote>, Error<()>> {
         let url = format!("{}/gasless/submit", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -460,26 +454,27 @@ Sends a `POST` request to `/gasless/submit`
     }
     /**Poll the lifecycle of a submitted gasless trade
 
-Sends a `GET` request to `/gasless/status/{tradeHash}`
+    Sends a `GET` request to `/gasless/status/{tradeHash}`
 
-Arguments:
-- `trade_hash`: Hash returned by `submitGasless`.
-- `chain_id`
-*/
+    Arguments:
+    - `trade_hash`: Hash returned by `submitGasless`.
+    - `chain_id`
+    */
     pub async fn get_gasless_status<'a>(
         &'a self,
         trade_hash: &'a str,
         chain_id: i64,
     ) -> Result<ResponseValue<types::SwapQuote>, Error<()>> {
         let url = format!(
-            "{}/gasless/status/{}", self.baseurl, encode_path(& trade_hash.to_string()),
+            "{}/gasless/status/{}",
+            self.baseurl,
+            encode_path(&trade_hash.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client

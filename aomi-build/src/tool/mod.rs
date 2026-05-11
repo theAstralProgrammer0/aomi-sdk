@@ -58,11 +58,18 @@ pub fn run(args: GenToolArgs) -> Result<()> {
         .join("src")
         .join("client");
     let app_local = !args.shared && app_client_dir.exists();
-    let mode = if app_local { Mode::AppLocal } else { Mode::Shared };
-    println!("Mode: {}", match mode {
-        Mode::AppLocal => "app-local (client in apps/<platform>/src/client/)",
-        Mode::Shared => "shared (client in ext/src/<platform>/)",
-    });
+    let mode = if app_local {
+        Mode::AppLocal
+    } else {
+        Mode::Shared
+    };
+    println!(
+        "Mode: {}",
+        match mode {
+            Mode::AppLocal => "app-local (client in apps/<platform>/src/client/)",
+            Mode::Shared => "shared (client in ext/src/<platform>/)",
+        }
+    );
 
     let spec_path = args.spec.clone().unwrap_or_else(|| match mode {
         Mode::AppLocal => root.join("apps").join(&args.platform).join("openapi.yaml"),
@@ -106,7 +113,10 @@ pub fn run(args: GenToolArgs) -> Result<()> {
         picked
             .iter()
             .map(|p| {
-                let idx = labels.iter().position(|l| l == p).expect("picked label exists");
+                let idx = labels
+                    .iter()
+                    .position(|l| l == p)
+                    .expect("picked label exists");
                 ops[idx].clone()
             })
             .collect()
@@ -119,7 +129,10 @@ pub fn run(args: GenToolArgs) -> Result<()> {
     let (chosen, skipped): (Vec<_>, Vec<_>) = chosen.into_iter().partition(|o| {
         !o.non_json_response
             && !o.has_request_body
-            && !o.params.iter().any(|p| matches!(p.kind, ParamKind::EnumString | ParamKind::Other))
+            && !o
+                .params
+                .iter()
+                .any(|p| matches!(p.kind, ParamKind::EnumString | ParamKind::Other))
     });
     for op in &skipped {
         let reason = if op.non_json_response {
@@ -152,10 +165,7 @@ pub fn run(args: GenToolArgs) -> Result<()> {
 
     for p in [&cargo_toml_path, &lib_rs_path, &tool_rs_path] {
         if p.exists() && !args.force {
-            bail!(
-                "{} already exists. Pass --force to overwrite.",
-                p.display()
-            );
+            bail!("{} already exists. Pass --force to overwrite.", p.display());
         }
     }
 
@@ -174,7 +184,11 @@ pub fn run(args: GenToolArgs) -> Result<()> {
 
     println!("✓ wrote {}", cargo_toml_path.display());
     println!("✓ wrote {}", lib_rs_path.display());
-    println!("✓ wrote {} ({} tools)", tool_rs_path.display(), chosen.len());
+    println!(
+        "✓ wrote {} ({} tools)",
+        tool_rs_path.display(),
+        chosen.len()
+    );
 
     if ensure_workspace_excludes(&root, &args.platform)? {
         println!("✓ added `apps/{}` to workspace exclude list", args.platform);
@@ -384,7 +398,8 @@ fn map_param(p: &openapiv3::Parameter) -> Param {
 
 fn schema_kind(format: &openapiv3::ParameterSchemaOrContent) -> ParamKind {
     use openapiv3::{
-        IntegerFormat, ParameterSchemaOrContent, ReferenceOr, SchemaKind, Type, VariantOrUnknownOrEmpty,
+        IntegerFormat, ParameterSchemaOrContent, ReferenceOr, SchemaKind, Type,
+        VariantOrUnknownOrEmpty,
     };
     let ParameterSchemaOrContent::Schema(ReferenceOr::Item(schema)) = format else {
         return ParamKind::Other;

@@ -1,7 +1,7 @@
 #[allow(unused_imports)]
 pub use progenitor_client::{ByteStream, ClientInfo, Error, ResponseValue};
 #[allow(unused_imports)]
-use progenitor_client::{encode_path, ClientHooks, OperationInfo, RequestBuilderExt};
+use progenitor_client::{ClientHooks, OperationInfo, RequestBuilderExt, encode_path};
 /// Types used as operation parameters and responses.
 #[allow(clippy::all)]
 pub mod types {
@@ -11,18 +11,12 @@ pub mod types {
         pub struct ConversionError(::std::borrow::Cow<'static, str>);
         impl ::std::error::Error for ConversionError {}
         impl ::std::fmt::Display for ConversionError {
-            fn fmt(
-                &self,
-                f: &mut ::std::fmt::Formatter<'_>,
-            ) -> Result<(), ::std::fmt::Error> {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> Result<(), ::std::fmt::Error> {
                 ::std::fmt::Display::fmt(&self.0, f)
             }
         }
         impl ::std::fmt::Debug for ConversionError {
-            fn fmt(
-                &self,
-                f: &mut ::std::fmt::Formatter<'_>,
-            ) -> Result<(), ::std::fmt::Error> {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> Result<(), ::std::fmt::Error> {
                 ::std::fmt::Debug::fmt(&self.0, f)
             }
         }
@@ -219,9 +213,8 @@ pub mod types {
         pub dst_amount: ::std::option::Option<::std::string::String>,
         ///Routing details across DEX protocols.
         #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
-        pub protocols: ::std::vec::Vec<
-            ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-        >,
+        pub protocols:
+            ::std::vec::Vec<::serde_json::Map<::std::string::String, ::serde_json::Value>>,
         #[serde(
             rename = "srcAmount",
             default,
@@ -276,9 +269,8 @@ pub mod types {
         )]
         pub dst_amount: ::std::option::Option<::std::string::String>,
         #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
-        pub protocols: ::std::vec::Vec<
-            ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-        >,
+        pub protocols:
+            ::std::vec::Vec<::serde_json::Map<::std::string::String, ::serde_json::Value>>,
         #[serde(
             rename = "srcAmount",
             default,
@@ -383,7 +375,9 @@ pub mod types {
     }
     impl ::std::default::Default for TokensResponse {
         fn default() -> Self {
-            Self { tokens: Default::default() }
+            Self {
+                tokens: Default::default(),
+            }
         }
     }
     ///An EVM transaction the caller can sign and submit.
@@ -487,7 +481,9 @@ impl Client {
         #[cfg(not(target_arch = "wasm32"))]
         let client = {
             let dur = ::std::time::Duration::from_secs(15u64);
-            reqwest::ClientBuilder::new().connect_timeout(dur).timeout(dur)
+            reqwest::ClientBuilder::new()
+                .connect_timeout(dur)
+                .timeout(dur)
         };
         #[cfg(target_arch = "wasm32")]
         let client = reqwest::ClientBuilder::new();
@@ -525,19 +521,19 @@ impl ClientHooks<()> for &Client {}
 impl Client {
     /**Get a swap quote
 
-Returns the best route across DEX liquidity for selling `amount` of `src`
-for `dst` on the given chain. Does not require a wallet address.
+    Returns the best route across DEX liquidity for selling `amount` of `src`
+    for `dst` on the given chain. Does not require a wallet address.
 
 
-Sends a `GET` request to `/{chain}/quote`
+    Sends a `GET` request to `/{chain}/quote`
 
-Arguments:
-- `chain`: EVM chain id (1, 10, 56, 100, 137, 8453, 42161, 43114, ...).
-- `amount`: Sell amount in source-token base units (wei for 18-dec tokens).
-- `dst`: Destination token address.
-- `protocols`: Optional comma-separated list of liquidity protocols to restrict routing to.
-- `src`: Source token address (use sentinel for native asset).
-*/
+    Arguments:
+    - `chain`: EVM chain id (1, 10, 56, 100, 137, 8453, 42161, 43114, ...).
+    - `amount`: Sell amount in source-token base units (wei for 18-dec tokens).
+    - `dst`: Destination token address.
+    - `protocols`: Optional comma-separated list of liquidity protocols to restrict routing to.
+    - `src`: Source token address (use sentinel for native asset).
+    */
     pub async fn get_quote<'a>(
         &'a self,
         chain: i64,
@@ -546,15 +542,12 @@ Arguments:
         protocols: Option<&'a str>,
         src: &'a str,
     ) -> Result<ResponseValue<types::QuoteResponse>, Error<types::Error>> {
-        let url = format!(
-            "{}/{}/quote", self.baseurl, encode_path(& chain.to_string()),
-        );
+        let url = format!("{}/{}/quote", self.baseurl, encode_path(&chain.to_string()),);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -578,33 +571,33 @@ Arguments:
         let response = result?;
         match response.status().as_u16() {
             200u16 => ResponseValue::from_response(response).await,
-            400u16 => {
-                Err(Error::ErrorResponse(ResponseValue::from_response(response).await?))
-            }
-            401u16 => {
-                Err(Error::ErrorResponse(ResponseValue::from_response(response).await?))
-            }
+            400u16 => Err(Error::ErrorResponse(
+                ResponseValue::from_response(response).await?,
+            )),
+            401u16 => Err(Error::ErrorResponse(
+                ResponseValue::from_response(response).await?,
+            )),
             _ => Err(Error::UnexpectedResponse(response)),
         }
     }
     /**Build a swap transaction
 
-Returns an executable swap transaction (`to`, `data`, `value`, `gas`)
-the caller can submit on-chain. For ERC-20 sells the user must first
-grant allowance to the 1inch router (see `/approve/transaction`).
+    Returns an executable swap transaction (`to`, `data`, `value`, `gas`)
+    the caller can submit on-chain. For ERC-20 sells the user must first
+    grant allowance to the 1inch router (see `/approve/transaction`).
 
 
-Sends a `GET` request to `/{chain}/swap`
+    Sends a `GET` request to `/{chain}/swap`
 
-Arguments:
-- `chain`: EVM chain id (1, 10, 56, 100, 137, 8453, 42161, 43114, ...).
-- `amount`
-- `dst`
-- `from`: Sender wallet address.
-- `protocols`
-- `slippage`: Max acceptable slippage as a percent (1 = 1%).
-- `src`
-*/
+    Arguments:
+    - `chain`: EVM chain id (1, 10, 56, 100, 137, 8453, 42161, 43114, ...).
+    - `amount`
+    - `dst`
+    - `from`: Sender wallet address.
+    - `protocols`
+    - `slippage`: Max acceptable slippage as a percent (1 = 1%).
+    - `src`
+    */
     pub async fn get_swap<'a>(
         &'a self,
         chain: i64,
@@ -615,13 +608,12 @@ Arguments:
         slippage: f64,
         src: &'a str,
     ) -> Result<ResponseValue<types::SwapResponse>, Error<types::Error>> {
-        let url = format!("{}/{}/swap", self.baseurl, encode_path(& chain.to_string()),);
+        let url = format!("{}/{}/swap", self.baseurl, encode_path(&chain.to_string()),);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -647,24 +639,24 @@ Arguments:
         let response = result?;
         match response.status().as_u16() {
             200u16 => ResponseValue::from_response(response).await,
-            400u16 => {
-                Err(Error::ErrorResponse(ResponseValue::from_response(response).await?))
-            }
-            401u16 => {
-                Err(Error::ErrorResponse(ResponseValue::from_response(response).await?))
-            }
+            400u16 => Err(Error::ErrorResponse(
+                ResponseValue::from_response(response).await?,
+            )),
+            401u16 => Err(Error::ErrorResponse(
+                ResponseValue::from_response(response).await?,
+            )),
             _ => Err(Error::UnexpectedResponse(response)),
         }
     }
     /**Build an ERC-20 approval transaction for the 1inch router
 
-Sends a `GET` request to `/{chain}/approve/transaction`
+    Sends a `GET` request to `/{chain}/approve/transaction`
 
-Arguments:
-- `chain`: EVM chain id (1, 10, 56, 100, 137, 8453, 42161, 43114, ...).
-- `amount`: Approval amount in token base units. Omit for unlimited approval.
-- `token_address`
-*/
+    Arguments:
+    - `chain`: EVM chain id (1, 10, 56, 100, 137, 8453, 42161, 43114, ...).
+    - `amount`: Approval amount in token base units. Omit for unlimited approval.
+    - `token_address`
+    */
     pub async fn get_approve_transaction<'a>(
         &'a self,
         chain: i64,
@@ -672,14 +664,15 @@ Arguments:
         token_address: &'a str,
     ) -> Result<ResponseValue<types::Transaction>, Error<types::Error>> {
         let url = format!(
-            "{}/{}/approve/transaction", self.baseurl, encode_path(& chain.to_string()),
+            "{}/{}/approve/transaction",
+            self.baseurl,
+            encode_path(&chain.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -689,7 +682,10 @@ Arguments:
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
             .query(&progenitor_client::QueryParam::new("amount", &amount))
-            .query(&progenitor_client::QueryParam::new("tokenAddress", &token_address))
+            .query(&progenitor_client::QueryParam::new(
+                "tokenAddress",
+                &token_address,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -701,21 +697,21 @@ Arguments:
         let response = result?;
         match response.status().as_u16() {
             200u16 => ResponseValue::from_response(response).await,
-            401u16 => {
-                Err(Error::ErrorResponse(ResponseValue::from_response(response).await?))
-            }
+            401u16 => Err(Error::ErrorResponse(
+                ResponseValue::from_response(response).await?,
+            )),
             _ => Err(Error::UnexpectedResponse(response)),
         }
     }
     /**Check current ERC-20 allowance for the 1inch router
 
-Sends a `GET` request to `/{chain}/approve/allowance`
+    Sends a `GET` request to `/{chain}/approve/allowance`
 
-Arguments:
-- `chain`: EVM chain id (1, 10, 56, 100, 137, 8453, 42161, 43114, ...).
-- `token_address`
-- `wallet_address`
-*/
+    Arguments:
+    - `chain`: EVM chain id (1, 10, 56, 100, 137, 8453, 42161, 43114, ...).
+    - `token_address`
+    - `wallet_address`
+    */
     pub async fn get_allowance<'a>(
         &'a self,
         chain: i64,
@@ -723,14 +719,15 @@ Arguments:
         wallet_address: &'a str,
     ) -> Result<ResponseValue<types::AllowanceResponse>, Error<types::Error>> {
         let url = format!(
-            "{}/{}/approve/allowance", self.baseurl, encode_path(& chain.to_string()),
+            "{}/{}/approve/allowance",
+            self.baseurl,
+            encode_path(&chain.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -739,8 +736,14 @@ Arguments:
                 ::reqwest::header::ACCEPT,
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
-            .query(&progenitor_client::QueryParam::new("tokenAddress", &token_address))
-            .query(&progenitor_client::QueryParam::new("walletAddress", &wallet_address))
+            .query(&progenitor_client::QueryParam::new(
+                "tokenAddress",
+                &token_address,
+            ))
+            .query(&progenitor_client::QueryParam::new(
+                "walletAddress",
+                &wallet_address,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -752,32 +755,33 @@ Arguments:
         let response = result?;
         match response.status().as_u16() {
             200u16 => ResponseValue::from_response(response).await,
-            401u16 => {
-                Err(Error::ErrorResponse(ResponseValue::from_response(response).await?))
-            }
+            401u16 => Err(Error::ErrorResponse(
+                ResponseValue::from_response(response).await?,
+            )),
             _ => Err(Error::UnexpectedResponse(response)),
         }
     }
     /**List tokens supported by 1inch on a chain
 
-Sends a `GET` request to `/{chain}/tokens`
+    Sends a `GET` request to `/{chain}/tokens`
 
-Arguments:
-- `chain`: EVM chain id (1, 10, 56, 100, 137, 8453, 42161, 43114, ...).
-*/
+    Arguments:
+    - `chain`: EVM chain id (1, 10, 56, 100, 137, 8453, 42161, 43114, ...).
+    */
     pub async fn get_tokens<'a>(
         &'a self,
         chain: i64,
     ) -> Result<ResponseValue<types::TokensResponse>, Error<types::Error>> {
         let url = format!(
-            "{}/{}/tokens", self.baseurl, encode_path(& chain.to_string()),
+            "{}/{}/tokens",
+            self.baseurl,
+            encode_path(&chain.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -797,32 +801,33 @@ Arguments:
         let response = result?;
         match response.status().as_u16() {
             200u16 => ResponseValue::from_response(response).await,
-            401u16 => {
-                Err(Error::ErrorResponse(ResponseValue::from_response(response).await?))
-            }
+            401u16 => Err(Error::ErrorResponse(
+                ResponseValue::from_response(response).await?,
+            )),
             _ => Err(Error::UnexpectedResponse(response)),
         }
     }
     /**List liquidity sources (protocols) supported on a chain
 
-Sends a `GET` request to `/{chain}/liquidity-sources`
+    Sends a `GET` request to `/{chain}/liquidity-sources`
 
-Arguments:
-- `chain`: EVM chain id (1, 10, 56, 100, 137, 8453, 42161, 43114, ...).
-*/
+    Arguments:
+    - `chain`: EVM chain id (1, 10, 56, 100, 137, 8453, 42161, 43114, ...).
+    */
     pub async fn get_liquidity_sources<'a>(
         &'a self,
         chain: i64,
     ) -> Result<ResponseValue<types::LiquiditySourcesResponse>, Error<types::Error>> {
         let url = format!(
-            "{}/{}/liquidity-sources", self.baseurl, encode_path(& chain.to_string()),
+            "{}/{}/liquidity-sources",
+            self.baseurl,
+            encode_path(&chain.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -842,9 +847,9 @@ Arguments:
         let response = result?;
         match response.status().as_u16() {
             200u16 => ResponseValue::from_response(response).await,
-            401u16 => {
-                Err(Error::ErrorResponse(ResponseValue::from_response(response).await?))
-            }
+            401u16 => Err(Error::ErrorResponse(
+                ResponseValue::from_response(response).await?,
+            )),
             _ => Err(Error::UnexpectedResponse(response)),
         }
     }
