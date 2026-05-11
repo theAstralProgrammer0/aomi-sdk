@@ -1,6 +1,5 @@
 use aomi_sdk::*;
 
-mod client;
 mod tool;
 
 const PREAMBLE: &str = r#"## Role
@@ -44,19 +43,19 @@ All data comes from the Hyperliquid API (https://api.hyperliquid.xyz/info) -- fr
 - Always mention the asset ticker when presenting data"#;
 
 dyn_aomi_app!(
-    app = client::HyperliquidApp,
+    app = tool::HyperliquidApp,
     name = "hyperliquid",
     version = "0.1.0",
     preamble = PREAMBLE,
     tools = [
-        client::GetMeta,
-        client::GetAllMids,
-        client::GetL2Book,
-        client::GetClearinghouseState,
-        client::GetOpenOrders,
-        client::GetUserFills,
-        client::GetFundingHistory,
-        client::GetCandleSnapshot,
+        tool::GetMeta,
+        tool::GetAllMids,
+        tool::GetL2Book,
+        tool::GetClearinghouseState,
+        tool::GetOpenOrders,
+        tool::GetUserFills,
+        tool::GetFundingHistory,
+        tool::GetCandleSnapshot,
     ],
-    namespaces = ["common"]
+    namespaces = ["evm-core"]
 );

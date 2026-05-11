@@ -1,320 +1,355 @@
-use crate::client::*;
+//! Curated tool layer for DefiLlama. Hand-written from the progenitor-generated
+//! client at `aomi_ext::defillama::Client` — see ext/specs/defillama.yaml.
+//!
+//! DefiLlama splits its surface across four hosts (no auth on any of them):
+//!   * api.llama.fi          — protocols, TVL, fees, dex/options/perps
+//!   * coins.llama.fi        — token prices (current, historical, %)
+//!   * yields.llama.fi       — yield pools and per-pool charts
+//!   * stablecoins.llama.fi  — stablecoin mcap, chain distribution
+//!
+//! The progenitor client takes a single base URL, so each tool constructs its
+//! own `Client` against the right host. 17 mechanical tools were curated down
+//! to 6 user-centric tools focused on token prices, protocol/chain TVL, and
+//! yields.
+
+use aomi_ext::defillama::Client as DefiLlamaClient;
+use aomi_sdk::schemars::JsonSchema;
 use aomi_sdk::*;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 
+#[derive(Clone, Default)]
+pub(crate) struct DefiLlamaApp;
+
+const API_HOST: &str = "https://api.llama.fi";
+const COINS_HOST: &str = "https://coins.llama.fi";
+const YIELDS_HOST: &str = "https://yields.llama.fi";
+
+// ============================================================================
+// Helpers
+// ============================================================================
+
 fn ok<T: Serialize>(value: T) -> Result<Value, String> {
-    let value = serde_json::to_value(value)
-        .map_err(|e| format!("[defillama] failed to serialize response: {e}"))?;
+    let value = serde_json::to_value(value).map_err(|e| format!("[defillama] serialize: {e}"))?;
     Ok(match value {
-        Value::Object(mut map) => {
-            map.insert("source".to_string(), Value::String("defillama".to_string()));
-            Value::Object(map)
+        Value::Object(mut m) => {
+            m.insert("source".into(), Value::String("defillama".into()));
+            Value::Object(m)
         }
         other => json!({ "source": "defillama", "data": other }),
     })
 }
 
-impl DynAomiTool for GetLammaTokenPrice {
+fn rt() -> Result<tokio::runtime::Runtime, String> {
+    tokio::runtime::Runtime::new().map_err(|e| format!("[defillama] runtime: {e}"))
+}
+
+// ============================================================================
+// Tool 1: get_token_price — current price for one or more tokens
+// ============================================================================
+
+pub(crate) struct GetTokenPrice;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetTokenPriceArgs {
+    /// Comma-separated coin identifiers. Use `coingecko:<id>` for well-known
+    /// tokens (e.g. `coingecko:ethereum,coingecko:bitcoin`) or
+    /// `<chain>:<address>` for arbitrary on-chain tokens
+    /// (e.g. `ethereum:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48` for USDC).
+    pub coins: String,
+    /// How far (in seconds) to look back for a tracked price if the exact
+    /// timestamp has none. Optional — DefiLlama default is 4 hours.
+    #[serde(default)]
+    pub search_width: Option<String>,
+}
+
+impl DynAomiTool for GetTokenPrice {
     type App = DefiLlamaApp;
-    type Args = GetLammaTokenPriceArgs;
-    const NAME: &'static str = "get_token_price";
-    const DESCRIPTION: &'static str = "Get overall token price estimation from DefiLlama (informational, not an executable trade quote).";
+    type Args = GetTokenPriceArgs;
+    const NAME: &'static str = "defillama_get_token_price";
+    const DESCRIPTION: &'static str = "Get the current USD price of one or more tokens. Use when the user asks 'what's X worth right now'. Accepts coingecko slugs (`coingecko:bitcoin`) or on-chain identifiers (`ethereum:0x...`). Returns price, decimals, and confidence per coin.";
 
     fn run(_app: &DefiLlamaApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let response = DefiLamaClient::new()?.get_token_price(&args.token)?;
-        let coin = response
-            .get("coins")
-            .and_then(Value::as_object)
-            .and_then(|coins| coins.values().next())
-            .ok_or_else(|| format!("Token not found: {}", args.token))?;
-        ok(json!({
-            "symbol": coin.get("symbol").and_then(Value::as_str).unwrap_or("N/A"),
-            "price_usd": format!("${:.2}", coin.get("price").and_then(Value::as_f64).unwrap_or(0.0)),
-            "confidence": coin.get("confidence").cloned().unwrap_or(Value::Null),
-        }))
+        let runtime = rt()?;
+        runtime.block_on(async move {
+            let client = DefiLlamaClient::new(COINS_HOST);
+            let r = client
+                .get_current_prices(args.coins.as_str(), args.search_width.as_deref())
+                .await
+                .map_err(|e| format!("[defillama] get_token_price: {e}"))?
+                .into_inner();
+            ok(r)
+        })
     }
 }
 
-impl DynAomiTool for GetLammaYieldOpportunities {
+// ============================================================================
+// Tool 2: get_price_history — historical price + % change since
+// ============================================================================
+
+pub(crate) struct GetPriceHistory;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetPriceHistoryArgs {
+    /// Comma-separated coin identifiers (`coingecko:bitcoin` or
+    /// `ethereum:0x...`).
+    pub coins: String,
+    /// Past unix timestamp (seconds) to fetch the price at.
+    pub timestamp: i64,
+    /// Optional period for a complementary % change reading (e.g. `1d`,
+    /// `7d`, `30d`). Defaults to `24h` when omitted.
+    #[serde(default)]
+    pub period: Option<String>,
+}
+
+impl DynAomiTool for GetPriceHistory {
     type App = DefiLlamaApp;
-    type Args = GetLammaYieldOpportunitiesArgs;
-    const NAME: &'static str = "get_yield_opportunities";
-    const DESCRIPTION: &'static str = "Get overall yield estimation from DefiLlama and list pools sorted by APY (informational, not trade execution).";
+    type Args = GetPriceHistoryArgs;
+    const NAME: &'static str = "defillama_get_price_history";
+    const DESCRIPTION: &'static str = "Get a token's price at a past timestamp together with the % change over a window. Use when the user asks 'how much has X moved since N' or 'what was X worth at time T'. Combines /prices/historical and /percentage in one call.";
 
     fn run(_app: &DefiLlamaApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let response = DefiLamaClient::new()?
-            .get_yield_pools(args.chain.as_deref(), args.project.as_deref())?;
+        let runtime = rt()?;
+        let coins = args.coins.clone();
+        let timestamp = args.timestamp;
+        let period = args.period.clone();
+        runtime.block_on(async move {
+            let client = DefiLlamaClient::new(COINS_HOST);
 
-        let mut pools = response
-            .get("data")
-            .and_then(Value::as_array)
-            .cloned()
-            .unwrap_or_default();
+            let historical = client
+                .get_historical_prices(timestamp, coins.as_str(), None)
+                .await
+                .map_err(|e| format!("[defillama] historical price: {e}"))?
+                .into_inner();
 
-        if args.stablecoin_only.unwrap_or(false) {
-            pools.retain(|p| {
-                p.get("stablecoin")
-                    .and_then(Value::as_bool)
-                    .unwrap_or(false)
+            let pct = client
+                .get_price_change_percentage(
+                    coins.as_str(),
+                    None,
+                    period.as_deref(),
+                    Some(timestamp),
+                )
+                .await
+                .map_err(|e| format!("[defillama] price change %: {e}"))?
+                .into_inner();
+
+            ok(json!({
+                "at_timestamp": timestamp,
+                "period": period.unwrap_or_else(|| "24h".to_string()),
+                "historical": historical,
+                "change_percent": pct,
+            }))
+        })
+    }
+}
+
+// ============================================================================
+// Tool 3: list_protocols — top DeFi protocols by current TVL
+// ============================================================================
+
+pub(crate) struct ListProtocols;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct ListProtocolsArgs {
+    /// Optional category filter (e.g. `Lending`, `Dexes`, `Liquid Staking`,
+    /// `Yield`, `Bridge`, `Derivatives`).
+    #[serde(default)]
+    pub category: Option<String>,
+    /// Max protocols returned, sorted by current TVL descending. Default 25.
+    #[serde(default)]
+    pub limit: Option<usize>,
+}
+
+impl DynAomiTool for ListProtocols {
+    type App = DefiLlamaApp;
+    type Args = ListProtocolsArgs;
+    const NAME: &'static str = "defillama_list_protocols";
+    const DESCRIPTION: &'static str = "List DeFi protocols ranked by current TVL, optionally filtered by category. Use when the user asks 'what are the biggest lending protocols' or 'show me top DEXes by TVL'. Returns name, slug, category, chains, TVL, and 1d change.";
+
+    fn run(_app: &DefiLlamaApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
+        let runtime = rt()?;
+        let category = args.category.clone();
+        let limit = args.limit.unwrap_or(25);
+        runtime.block_on(async move {
+            let client = DefiLlamaClient::new(API_HOST);
+            let mut protocols = client
+                .get_protocols(category.as_deref())
+                .await
+                .map_err(|e| format!("[defillama] list protocols: {e}"))?
+                .into_inner();
+            protocols.sort_by(|a, b| {
+                b.tvl
+                    .partial_cmp(&a.tvl)
+                    .unwrap_or(std::cmp::Ordering::Equal)
             });
-        }
-
-        pools.sort_by(|a, b| {
-            let aa = a.get("apy").and_then(Value::as_f64).unwrap_or(0.0);
-            let bb = b.get("apy").and_then(Value::as_f64).unwrap_or(0.0);
-            bb.partial_cmp(&aa).unwrap_or(std::cmp::Ordering::Equal)
-        });
-        pools.truncate(args.limit.unwrap_or(20) as usize);
-
-        let formatted: Vec<Value> = pools
-            .into_iter()
-            .map(|p| {
-                let tvl_str = p
-                    .get("tvlUsd")
-                    .and_then(Value::as_f64)
-                    .map(|t| format!("${:.0}M", t / 1_000_000.0));
-                json!({
-                    "pool": p.get("symbol").and_then(Value::as_str).unwrap_or("N/A"),
-                    "project": p.get("project").and_then(Value::as_str).unwrap_or("N/A"),
-                    "chain": p.get("chain").and_then(Value::as_str).unwrap_or("N/A"),
-                    "apy": format!("{:.2}%", p.get("apy").and_then(Value::as_f64).unwrap_or(0.0)),
-                    "tvl": tvl_str,
-                    "stablecoin": p.get("stablecoin").cloned().unwrap_or(Value::Null),
-                    "il_risk": p.get("ilRisk").cloned().unwrap_or(Value::Null),
-                })
-            })
-            .collect();
-
-        ok(json!({ "pools_found": formatted.len(), "pools": formatted }))
+            protocols.truncate(limit);
+            ok(protocols)
+        })
     }
 }
 
-impl DynAomiTool for GetLammaProtocols {
+// ============================================================================
+// Tool 4: get_protocol_tvl — current + historical TVL for one protocol
+// ============================================================================
+
+pub(crate) struct GetProtocolTvl;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetProtocolTvlArgs {
+    /// Protocol slug as used in DefiLlama URLs (e.g. `aave-v3`, `uniswap`,
+    /// `lido`, `makerdao`).
+    pub protocol: String,
+}
+
+impl DynAomiTool for GetProtocolTvl {
     type App = DefiLlamaApp;
-    type Args = GetLammaProtocolsArgs;
-    const NAME: &'static str = "get_defi_protocols";
-    const DESCRIPTION: &'static str = "Get overall protocol TVL estimation from DefiLlama (informational, not executable trading data).";
+    type Args = GetProtocolTvlArgs;
+    const NAME: &'static str = "defillama_get_protocol_tvl";
+    const DESCRIPTION: &'static str = "Deep-dive into a single protocol: current TVL plus the historical TVL series and per-chain breakdown. Use when the user names a specific protocol and wants its size or trend. Combines /tvl/{slug} and /protocol/{slug}.";
 
     fn run(_app: &DefiLlamaApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let response = DefiLamaClient::new()?.get_protocols(args.category.as_deref())?;
+        let runtime = rt()?;
+        let protocol = args.protocol.clone();
+        runtime.block_on(async move {
+            let client = DefiLlamaClient::new(API_HOST);
 
-        let protocols = response
-            .as_array()
-            .cloned()
-            .or_else(|| response.get("data").and_then(Value::as_array).cloned())
-            .unwrap_or_default();
+            let current_tvl = client
+                .get_protocol_current_tvl(protocol.as_str())
+                .await
+                .map_err(|e| format!("[defillama] current tvl {protocol}: {e}"))?
+                .into_inner();
 
-        let formatted: Vec<Value> = protocols
-            .into_iter()
-            .take(args.limit.unwrap_or(20) as usize)
-            .map(|p| {
-                json!({
-                    "name": p.get("name").and_then(Value::as_str).unwrap_or("N/A"),
-                    "tvl": format!("${:.2}B", p.get("tvl").and_then(Value::as_f64).unwrap_or(0.0) / 1_000_000_000.0),
-                    "category": p.get("category").cloned().unwrap_or(Value::Null),
-                    "chains": p.get("chains").cloned().unwrap_or(Value::Null),
-                    "change_1d": p.get("change_1d").and_then(Value::as_f64).map(|c| format!("{c:+.1}%")),
-                })
-            })
-            .collect();
+            let detail = client
+                .get_protocol_detail(protocol.as_str())
+                .await
+                .map_err(|e| format!("[defillama] protocol detail {protocol}: {e}"))?
+                .into_inner();
 
-        ok(json!({ "protocols_count": formatted.len(), "protocols": formatted }))
+            ok(json!({
+                "protocol": protocol,
+                "current_tvl_usd": current_tvl,
+                "detail": detail,
+            }))
+        })
     }
 }
 
-impl DynAomiTool for GetLammaChainTvl {
+// ============================================================================
+// Tool 5: top_yield_pools — best yield pools, filterable
+// ============================================================================
+
+pub(crate) struct TopYieldPools;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct TopYieldPoolsArgs {
+    /// Filter by chain slug (e.g. `Ethereum`, `Arbitrum`, `Base`, `Solana`).
+    #[serde(default)]
+    pub chain: Option<String>,
+    /// Filter by project slug (e.g. `aave-v3`, `lido`, `compound-v3`).
+    #[serde(default)]
+    pub project: Option<String>,
+    /// Only return pools whose underlying asset is a stablecoin.
+    #[serde(default)]
+    pub stablecoin_only: Option<bool>,
+    /// Minimum TVL (USD) — drops dust pools. Default 1_000_000.
+    #[serde(default)]
+    pub min_tvl_usd: Option<f64>,
+    /// Max pools returned, sorted by APY descending. Default 20.
+    #[serde(default)]
+    pub limit: Option<usize>,
+}
+
+impl DynAomiTool for TopYieldPools {
     type App = DefiLlamaApp;
-    type Args = GetLammaChainTvlArgs;
-    const NAME: &'static str = "get_chain_tvl";
-    const DESCRIPTION: &'static str = "Get overall chain TVL estimation from DefiLlama (informational, not executable trading data).";
+    type Args = TopYieldPoolsArgs;
+    const NAME: &'static str = "defillama_top_yield_pools";
+    const DESCRIPTION: &'static str = "Find the highest-APY yield pools, filterable by chain, project, stablecoin-only, and minimum TVL. Use when the user asks 'where can I earn yield' or 'top stablecoin yields on Arbitrum'. Returns symbol, project, chain, APY, TVL, and IL/stable flags. Pool UUIDs in the result feed `defillama_get_yield_pool_history` for time-series APY.";
 
     fn run(_app: &DefiLlamaApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let response = DefiLamaClient::new()?.get_chains_tvl()?;
-        let chains = response
-            .as_array()
-            .cloned()
-            .or_else(|| response.get("data").and_then(Value::as_array).cloned())
-            .unwrap_or_default();
+        let runtime = rt()?;
+        let chain = args.chain.clone();
+        let project = args.project.clone();
+        let stables_only = args.stablecoin_only.unwrap_or(false);
+        let min_tvl = args.min_tvl_usd.unwrap_or(1_000_000.0);
+        let limit = args.limit.unwrap_or(20);
+        runtime.block_on(async move {
+            let client = DefiLlamaClient::new(YIELDS_HOST);
+            let mut response = client
+                .get_yield_pools(chain.as_deref(), project.as_deref())
+                .await
+                .map_err(|e| format!("[defillama] yield pools: {e}"))?
+                .into_inner();
 
-        let formatted: Vec<Value> = chains
-            .into_iter()
-            .take(args.limit.unwrap_or(15) as usize)
-            .enumerate()
-            .map(|(i, c)| {
-                json!({
-                    "rank": i + 1,
-                    "chain": c.get("name").and_then(Value::as_str).unwrap_or("N/A"),
-                    "tvl": format!("${:.2}B", c.get("tvl").and_then(Value::as_f64).unwrap_or(0.0) / 1_000_000_000.0),
-                    "native_token": c.get("tokenSymbol").cloned().unwrap_or(Value::Null),
-                })
-            })
-            .collect();
+            response.data.retain(|p| {
+                p.tvl_usd.unwrap_or(0.0) >= min_tvl
+                    && (!stables_only || p.stablecoin.unwrap_or(false))
+            });
+            response.data.sort_by(|a, b| {
+                b.apy
+                    .unwrap_or(0.0)
+                    .partial_cmp(&a.apy.unwrap_or(0.0))
+                    .unwrap_or(std::cmp::Ordering::Equal)
+            });
+            response.data.truncate(limit);
 
-        ok(json!({ "chains": formatted }))
+            ok(response)
+        })
     }
 }
 
-impl DynAomiTool for GetLammaProtocolDetail {
+// ============================================================================
+// Tool 6: get_chain_tvl — current + historical TVL for a chain
+// ============================================================================
+
+pub(crate) struct GetChainTvl;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetChainTvlArgs {
+    /// Chain slug (e.g. `Ethereum`, `Arbitrum`, `Solana`, `Base`). Omit to
+    /// get the ranked list of every chain by current TVL.
+    #[serde(default)]
+    pub chain: Option<String>,
+    /// When listing all chains, max results returned. Default 25.
+    #[serde(default)]
+    pub limit: Option<usize>,
+}
+
+impl DynAomiTool for GetChainTvl {
     type App = DefiLlamaApp;
-    type Args = GetLammaProtocolDetailArgs;
-    const NAME: &'static str = "get_protocol_detail";
-    const DESCRIPTION: &'static str =
-        "Get deep-dive data for a single protocol: historical TVL, chain breakdown, metadata.";
+    type Args = GetChainTvlArgs;
+    const NAME: &'static str = "defillama_get_chain_tvl";
+    const DESCRIPTION: &'static str = "Get TVL data for blockchains. With no chain, returns every chain ranked by current TVL. With a chain slug, returns that chain's full historical TVL series. Use when the user asks 'which chains have the most DeFi activity' or 'show TVL trend for Solana'.";
 
     fn run(_app: &DefiLlamaApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        ok(DefiLamaClient::new()?.get_protocol_detail(&args.protocol)?)
-    }
-}
-
-impl DynAomiTool for GetLammaDexVolumes {
-    type App = DefiLlamaApp;
-    type Args = GetLammaDexVolumesArgs;
-    const NAME: &'static str = "get_dex_volumes";
-    const DESCRIPTION: &'static str =
-        "Get DEX volume rankings across all chains or for a specific chain.";
-
-    fn run(_app: &DefiLlamaApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        ok(DefiLamaClient::new()?.get_dex_volumes(
-            args.chain.as_deref(),
-            args.exclude_total_data_chart,
-            args.exclude_total_data_chart_breakdown,
-        )?)
-    }
-}
-
-impl DynAomiTool for GetLammaFeesOverview {
-    type App = DefiLlamaApp;
-    type Args = GetLammaFeesOverviewArgs;
-    const NAME: &'static str = "get_fees_overview";
-    const DESCRIPTION: &'static str =
-        "Get protocol fee and revenue rankings across all chains or for a specific chain.";
-
-    fn run(_app: &DefiLlamaApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        ok(DefiLamaClient::new()?.get_fees_overview(
-            args.chain.as_deref(),
-            args.exclude_total_data_chart,
-            args.exclude_total_data_chart_breakdown,
-            args.data_type.as_deref(),
-        )?)
-    }
-}
-
-impl DynAomiTool for GetLammaProtocolFees {
-    type App = DefiLlamaApp;
-    type Args = GetLammaProtocolFeesArgs;
-    const NAME: &'static str = "get_protocol_fees";
-    const DESCRIPTION: &'static str = "Get fee and revenue detail for a single protocol.";
-
-    fn run(_app: &DefiLlamaApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        ok(DefiLamaClient::new()?.get_protocol_fees(&args.protocol, args.data_type.as_deref())?)
-    }
-}
-
-impl DynAomiTool for GetLammaStablecoins {
-    type App = DefiLlamaApp;
-    type Args = GetLammaStablecoinsArgs;
-    const NAME: &'static str = "get_stablecoins";
-    const DESCRIPTION: &'static str = "List all stablecoins with their circulating supply data.";
-
-    fn run(_app: &DefiLlamaApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        ok(DefiLamaClient::new()?.get_stablecoins(args.include_prices)?)
-    }
-}
-
-impl DynAomiTool for GetLammaStablecoinChains {
-    type App = DefiLlamaApp;
-    type Args = GetLammaStablecoinChainsArgs;
-    const NAME: &'static str = "get_stablecoin_chains";
-    const DESCRIPTION: &'static str = "Get stablecoin market cap per chain.";
-
-    fn run(_app: &DefiLlamaApp, _args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        ok(DefiLamaClient::new()?.get_stablecoin_chains()?)
-    }
-}
-
-impl DynAomiTool for GetLammaHistoricalTokenPrice {
-    type App = DefiLlamaApp;
-    type Args = GetLammaHistoricalTokenPriceArgs;
-    const NAME: &'static str = "get_historical_token_price";
-    const DESCRIPTION: &'static str = "Get historical price chart for one or more tokens.";
-
-    fn run(_app: &DefiLlamaApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        ok(DefiLamaClient::new()?.get_historical_token_price(
-            &args.coins,
-            args.start,
-            args.end,
-            args.span,
-            args.period.as_deref(),
-        )?)
-    }
-}
-
-impl DynAomiTool for GetLammaTokenPriceChange {
-    type App = DefiLlamaApp;
-    type Args = GetLammaTokenPriceChangeArgs;
-    const NAME: &'static str = "get_token_price_change";
-    const DESCRIPTION: &'static str =
-        "Get percentage price change for one or more tokens over a given period.";
-
-    fn run(_app: &DefiLlamaApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        ok(DefiLamaClient::new()?.get_token_price_change(
-            &args.coins,
-            args.timestamp,
-            args.look_forward,
-            args.period.as_deref(),
-        )?)
-    }
-}
-
-impl DynAomiTool for GetLammaHistoricalChainTvl {
-    type App = DefiLlamaApp;
-    type Args = GetLammaHistoricalChainTvlArgs;
-    const NAME: &'static str = "get_historical_chain_tvl";
-    const DESCRIPTION: &'static str = "Get daily historical TVL for a specific chain.";
-
-    fn run(_app: &DefiLlamaApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        ok(DefiLamaClient::new()?.get_historical_chain_tvl(&args.chain)?)
-    }
-}
-
-impl DynAomiTool for GetLammaDexProtocolVolume {
-    type App = DefiLlamaApp;
-    type Args = GetLammaDexProtocolVolumeArgs;
-    const NAME: &'static str = "get_dex_protocol_volume";
-    const DESCRIPTION: &'static str = "Get volume detail for a single DEX protocol.";
-
-    fn run(_app: &DefiLlamaApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        ok(DefiLamaClient::new()?.get_dex_protocol_volume(
-            &args.protocol,
-            args.exclude_total_data_chart,
-            args.exclude_total_data_chart_breakdown,
-        )?)
-    }
-}
-
-impl DynAomiTool for GetLammaStablecoinHistory {
-    type App = DefiLlamaApp;
-    type Args = GetLammaStablecoinHistoryArgs;
-    const NAME: &'static str = "get_stablecoin_history";
-    const DESCRIPTION: &'static str =
-        "Get historical stablecoin market cap data, optionally filtered by chain or stablecoin ID.";
-
-    fn run(_app: &DefiLlamaApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        ok(
-            DefiLamaClient::new()?
-                .get_stablecoin_history(args.chain.as_deref(), args.stablecoin)?,
-        )
-    }
-}
-
-impl DynAomiTool for GetLammaYieldPoolHistory {
-    type App = DefiLlamaApp;
-    type Args = GetLammaYieldPoolHistoryArgs;
-    const NAME: &'static str = "get_yield_pool_history";
-    const DESCRIPTION: &'static str = "Get historical APY and TVL data for a specific yield pool.";
-
-    fn run(_app: &DefiLlamaApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        ok(DefiLamaClient::new()?.get_yield_pool_history(&args.pool)?)
+        let runtime = rt()?;
+        let chain = args.chain.clone();
+        let limit = args.limit.unwrap_or(25);
+        runtime.block_on(async move {
+            let client = DefiLlamaClient::new(API_HOST);
+            match chain {
+                Some(name) => {
+                    let series = client
+                        .get_historical_chain_tvl(name.as_str())
+                        .await
+                        .map_err(|e| format!("[defillama] historical chain tvl {name}: {e}"))?
+                        .into_inner();
+                    ok(json!({ "chain": name, "history": series }))
+                }
+                None => {
+                    let mut chains = client
+                        .get_chains_tvl()
+                        .await
+                        .map_err(|e| format!("[defillama] chains tvl: {e}"))?
+                        .into_inner();
+                    chains.sort_by(|a, b| {
+                        b.tvl
+                            .partial_cmp(&a.tvl)
+                            .unwrap_or(std::cmp::Ordering::Equal)
+                    });
+                    chains.truncate(limit);
+                    ok(chains)
+                }
+            }
+        })
     }
 }

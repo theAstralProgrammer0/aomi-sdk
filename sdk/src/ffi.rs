@@ -312,10 +312,10 @@ macro_rules! declare_dyn {
 ///
 /// # Forms
 ///
-/// **Basic** (tools only, using the recommended explicit common namespace):
+/// **Basic** (tools only, using the recommended explicit evm-core namespace):
 /// ```rust,ignore
 /// dyn_aomi_app!(app = MyApp, name = "my", version = "0.1.0",
-///     preamble = "...", tools = [ToolA, ToolB], namespaces = ["common"]);
+///     preamble = "...", tools = [ToolA, ToolB], namespaces = ["evm-core"]);
 /// ```
 ///
 /// **With host-side namespaces** (tools can be empty for namespace-only apps):

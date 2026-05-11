@@ -1,0 +1,52 @@
+name: Publish SDK
+
+on:
+  push:
+    branches: [main]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  publish-sdk:
+    name: Publish aomi-sdk
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    environment: prod
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check SDK version bump
+        id: sdk-version
+        env:
+          SDK_BASE_SHA: ${{ github.event.before }}
+        run: |
+          python3 scripts/check_sdk_version_bump.py \
+            --base "$SDK_BASE_SHA" \
+            --head "${{ github.sha }}" \
+            --github-output "$GITHUB_OUTPUT"
+
+      - name: Install Rust
+        if: steps.sdk-version.outputs.publish_sdk == 'true'
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: "1.91"
+
+      - name: Restore cargo cache
+        if: steps.sdk-version.outputs.publish_sdk == 'true'
+        uses: Swatinem/rust-cache@v2
+
+      - name: Publish summary
+        if: steps.sdk-version.outputs.publish_sdk == 'true'
+        run: echo "Publishing aomi-sdk v${{ steps.sdk-version.outputs.sdk_version }}"
+
+      - name: Publish aomi-sdk
+        if: steps.sdk-version.outputs.publish_sdk == 'true'
+        run: cargo publish -p aomi-sdk
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+      - name: Skip publish when SDK is unchanged
+        if: steps.sdk-version.outputs.publish_sdk != 'true'
+        run: echo "SDK unchanged on this main push; skipping publish."

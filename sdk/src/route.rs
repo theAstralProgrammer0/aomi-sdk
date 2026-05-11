@@ -4,12 +4,49 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 pub use crate::builder::{
-    AfterStepBuilder, NextRoutesBuilder, NextStepBuilder, RouteBuilder, RouteTarget, host,
+    AfterStepBuilder, EnforcementBuilder, EnforcementStepBuilder, NextRoutesBuilder,
+    NextStepBuilder, RouteBuilder, RouteTarget, host,
 };
 
 pub const TOOL_RETURN_MARKER: &str = "__aomi_tool_return";
 pub const TOOL_RETURN_VALUE_KEY: &str = "__aomi_tool_value";
 pub const TOOL_RETURN_ROUTES_KEY: &str = "__aomi_tool_routes";
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum EnforcementPolicy {
+    Continue,
+    Stop,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct EnforcementStep {
+    pub tool: String,
+    pub args: Value,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub bind_as: Option<String>,
+}
+
+impl EnforcementStep {
+    pub fn bound_alias(&self) -> Option<&str> {
+        self.bind_as.as_deref()
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct Enforcement {
+    pub steps: Vec<EnforcementStep>,
+    pub on_failure: EnforcementPolicy,
+}
+
+impl Enforcement {
+    pub fn binds_alias(&self, alias: &str) -> bool {
+        self.steps
+            .iter()
+            .filter_map(EnforcementStep::bound_alias)
+            .any(|candidate| candidate == alias)
+    }
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -46,6 +83,11 @@ pub struct RouteStep {
     /// voice (e.g. "preserve args exactly" vs "call only if still desired").
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub prompt: Option<String>,
+    /// Host-only deterministic enforcement metadata. Visible in the serialized
+    /// route envelope so the host can recover it, but not intended as part of
+    /// the semantic tool args the LLM reasons about.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub enforcement: Option<Enforcement>,
 }
 
 impl RouteStep {
@@ -56,6 +98,7 @@ impl RouteStep {
             trigger: RouteTrigger::OnSyncReturn,
             bind_as: None,
             prompt: None,
+            enforcement: None,
         }
     }
 
@@ -75,6 +118,7 @@ impl RouteStep {
             },
             bind_as: None,
             prompt: None,
+            enforcement: None,
         }
     }
 
@@ -87,6 +131,11 @@ impl RouteStep {
 
     pub fn prompt(mut self, prompt: impl Into<String>) -> Self {
         self.prompt = Some(prompt.into());
+        self
+    }
+
+    pub fn enforcement(mut self, enforcement: Enforcement) -> Self {
+        self.enforcement = Some(enforcement);
         self
     }
 
