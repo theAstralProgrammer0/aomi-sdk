@@ -23,5 +23,5 @@ dyn_aomi_app!(
         tool::GetQuotePlanStatus,
         tool::WithdrawQuoteLiquidity,
     ],
-    namespaces = ["common"]
+    namespaces = ["evm-core"]
 );

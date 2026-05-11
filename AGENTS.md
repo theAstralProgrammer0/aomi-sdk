@@ -11,7 +11,7 @@ This repository contains standalone Aomi app crates under `apps/<name>`. When an
 
 ## Runtime Rules
 
-- Treat the `ToolReturn` envelope's `routes` (built via `RouteStep::on_return / on_wallet_*`) as the source of truth for multi-step execution workflows.
+- Treat the `ToolReturn` envelope's `routes` (built via `RouteStep::on_return / on_bound_event`) as the source of truth for multi-step execution workflows.
 - Preserve wallet/tool args exactly when a tool emits a route hint.
 - Do not rebuild wallet payloads manually if the tool already emitted them.
 - Preserve callback artifacts exactly: `transaction_hash`, `signature`, `quote_id`, `route_id`, `submit_type`, and similar follow-up fields. The host splices wallet callback fields into hinted args automatically — don't re-thread them by hand.

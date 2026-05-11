@@ -4,14 +4,16 @@ members = [
     "sdk/examples/hello-app",
     "sdk/examples/app-template-http",
     "xtask",
+    "ext",
+    "aomi-build",
 ]
 exclude = [
     "apps/across",
     "apps/admin",
     "apps/binance",
     "apps/bybit",
+    "apps/byreal",
     "apps/cow",
-    "apps/defi",
     "apps/defillama",
     "apps/delta",
     "apps/dune",
@@ -32,9 +34,6 @@ exclude = [
     "apps/para",
     "apps/para-consumer",
     "apps/polymarket",
-    "apps/prediction",
-    "apps/social",
-    "apps/test-dyn",
     "apps/x",
     "apps/pelagos",
     "apps/yearn",
@@ -54,7 +53,7 @@ base64 = "0.22"
 chrono = "0.4"
 eyre = "0.6.12"
 hmac = "0.12"
-reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls", "blocking"] }
+reqwest = { version = "0.13", default-features = false, features = ["blocking", "charset", "http2", "json", "query", "rustls"] }
 schemars = "1.0.4"
 serde = { version = "1.0.219", features = ["derive"] }
 serde_json = "1.0.141"

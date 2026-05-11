@@ -3,7 +3,9 @@ use std::collections::{BTreeMap, BTreeSet};
 use serde::Serialize;
 use serde_json::Value;
 
-use crate::route::{RouteStep, RouteTrigger, RoutedActionExecution, ToolReturn};
+use crate::route::{
+    Enforcement, EnforcementPolicy, EnforcementStep, RouteStep, RouteTrigger, ToolReturn,
+};
 use crate::types::DynAomiTool;
 
 /// Type-level convenience for naming a routed target tool. The blanket impl
@@ -47,6 +49,7 @@ pub mod host {
 
     host_target!(BraveSearch, "brave_search");
     host_target!(CommitTx, "commit_tx");
+    host_target!(CommitTxs, "commit_txs");
     host_target!(CommitEip712, "commit_eip712");
     host_target!(StageTx, "stage_tx");
     host_target!(SimulateBatch, "simulate_batch");
@@ -56,6 +59,26 @@ pub mod host {
     host_target!(GetContract, "get_contract");
     host_target!(GetAccountInfo, "get_account_info");
     host_target!(SyncChain, "sync_chain");
+
+    // SVM (Solana) primitives.
+    //
+    // `SignTxSolana` is the singular sign-only counterpart to `CommitEip712`:
+    // takes a fully-built unsigned Solana transaction (base64 versioned/legacy
+    // bytes) and returns the signed transaction bytes. The host wallet decodes
+    // the tx, prompts the user for approval, signs with the connected SVM
+    // wallet, and binds the signed bytes back to the route's awaited alias.
+    //
+    // Args contract:
+    //   { "unsigned_tx": "<base64 serialized solana tx>",
+    //     "description": "<human-readable summary for wallet UX>" }
+    //
+    // Bound artifact (string): the base64 signed tx bytes, ready to be POSTed
+    // to whichever venue (e.g. byreal `/dex/v2/send-swap-tx`) is expecting it.
+    //
+    // Note: there is intentionally no `SignTxsSolana` (plural) — Solana
+    // wallets sign one tx per user prompt. Apps that need multiple signed txs
+    // should issue separate `SignTxSolana` route steps.
+    host_target!(SignTxSolana, "sign_tx_solana");
 }
 
 #[derive(Debug, Clone)]
@@ -112,7 +135,7 @@ impl RouteBuilder {
                     },
                     bind_as: None,
                     prompt: None,
-                    execution: None,
+                    enforcement: None,
                 },
                 awaited_alias: None,
             });
@@ -124,20 +147,24 @@ impl RouteBuilder {
     pub fn try_build(mut self) -> Result<ToolReturn, String> {
         let mut aliases = BTreeSet::new();
         let mut tool_counts: BTreeMap<&str, usize> = BTreeMap::new();
+        let enforced_producer_count = self
+            .next_steps
+            .iter()
+            .filter(|step| step.enforcement.is_some())
+            .count();
+        if enforced_producer_count > 1 {
+            self.errors.push(
+                "RouteBuilder v1 supports at most one enforced producer in `next(...)`".to_string(),
+            );
+        }
         for step in &self.next_steps {
             *tool_counts.entry(step.tool.as_str()).or_default() += 1;
-            if let Some(alias) = step.bind_as.as_deref()
-                && !aliases.insert(alias.to_string())
-            {
-                self.errors
-                    .push(format!("duplicate bound alias `{alias}` in route plan"));
+            if let Some(alias) = step.bind_as.as_deref() {
+                record_route_alias(&mut aliases, &mut self.errors, alias);
             }
-            if let Some(execution) = step.execution.as_ref() {
-                for alias in step_execution_aliases(execution) {
-                    if !aliases.insert(alias.to_string()) {
-                        self.errors
-                            .push(format!("duplicate bound alias `{alias}` in route plan"));
-                    }
+            if let Some(enforcement) = step.enforcement.as_ref() {
+                for alias in step_enforcement_aliases(enforcement) {
+                    record_route_alias(&mut aliases, &mut self.errors, alias);
                 }
             }
         }
@@ -167,6 +194,12 @@ impl RouteBuilder {
                     ));
                 }
             }
+            if step.enforcement.is_some() && !step.args.is_object() {
+                self.errors.push(format!(
+                    "enforced producer `{}` must use object args in RouteBuilder v1",
+                    step.tool
+                ));
+            }
         }
 
         if let Some(after) = self.after_step.as_mut() {
@@ -186,9 +219,12 @@ impl RouteBuilder {
                     after.step.tool
                 ));
             }
-            if !aliases.contains(&alias) {
+            if alias.trim().is_empty() {
+                self.errors
+                    .push("deferred route awaits alias must not be empty".to_string());
+            } else if !aliases.contains(&alias) {
                 self.errors.push(format!(
-                    "deferred route awaits unknown alias `{alias}`; produce it in `next(...)` or the attached execution plan first"
+                    "deferred route awaits unknown alias `{alias}`; produce it in `next(...)` or the attached enforcement first"
                 ));
             }
             after.step.trigger = RouteTrigger::OnBoundEvent { alias };
@@ -211,18 +247,24 @@ impl RouteBuilder {
     }
 }
 
-fn step_execution_aliases(execution: &RoutedActionExecution) -> impl Iterator<Item = &str> {
-    execution_aliases(execution).into_iter()
+fn step_enforcement_aliases(enforcement: &Enforcement) -> impl Iterator<Item = &str> {
+    enforcement_aliases(enforcement).into_iter()
 }
 
-fn execution_aliases(execution: &RoutedActionExecution) -> Vec<&str> {
-    match execution {
-        RoutedActionExecution::Transaction(plan) => plan
-            .steps
-            .iter()
-            .filter_map(|step| step.bound_alias())
-            .collect(),
+fn record_route_alias(aliases: &mut BTreeSet<String>, errors: &mut Vec<String>, alias: &str) {
+    if alias.trim().is_empty() {
+        errors.push("bound alias must not be empty".to_string());
+    } else if !aliases.insert(alias.to_string()) {
+        errors.push(format!("duplicate bound alias `{alias}` in route plan"));
     }
+}
+
+fn enforcement_aliases(enforcement: &Enforcement) -> Vec<&str> {
+    enforcement
+        .steps
+        .iter()
+        .filter_map(EnforcementStep::bound_alias)
+        .collect()
 }
 
 pub struct NextRoutesBuilder<'a> {
@@ -266,6 +308,7 @@ pub struct NextStepBuilder<'a> {
 impl<'a> NextStepBuilder<'a> {
     /// Publish this step's terminal result Value under the given alias.
     /// Continuations declared via `after(...).awaits(alias)` consume it.
+    /// Bound producers must have unique tool names in RouteBuilder v1.
     pub fn bind_as(self, alias: impl Into<String>) -> Self {
         self.route.next_steps[self.index].bind_as = Some(alias.into());
         self
@@ -276,8 +319,58 @@ impl<'a> NextStepBuilder<'a> {
         self
     }
 
-    pub fn execution(self, execution: RoutedActionExecution) -> Self {
-        self.route.next_steps[self.index].execution = Some(execution);
+    pub fn enforce(
+        self,
+        on_failure: EnforcementPolicy,
+        f: impl FnOnce(&mut EnforcementBuilder<'_>),
+    ) -> Self {
+        let mut steps = Vec::new();
+        let mut builder = EnforcementBuilder { steps: &mut steps };
+        f(&mut builder);
+        self.route.next_steps[self.index].enforcement = Some(Enforcement { steps, on_failure });
+        self
+    }
+}
+
+pub struct EnforcementBuilder<'a> {
+    steps: &'a mut Vec<EnforcementStep>,
+}
+
+impl<'a> EnforcementBuilder<'a> {
+    pub fn add<T>(&mut self, args: impl Serialize) -> EnforcementStepBuilder<'_>
+    where
+        T: RouteTarget,
+    {
+        self.add_named(T::tool_name(), args)
+    }
+
+    pub fn add_named(
+        &mut self,
+        tool: impl Into<String>,
+        args: impl Serialize,
+    ) -> EnforcementStepBuilder<'_> {
+        let index = self.steps.len();
+        self.steps.push(EnforcementStep {
+            tool: tool.into(),
+            args: serde_json::to_value(args).unwrap_or(Value::Null),
+            bind_as: None,
+        });
+        EnforcementStepBuilder {
+            steps: self.steps,
+            index,
+        }
+    }
+}
+
+pub struct EnforcementStepBuilder<'a> {
+    steps: &'a mut Vec<EnforcementStep>,
+    index: usize,
+}
+
+impl<'a> EnforcementStepBuilder<'a> {
+    /// Publish this enforced step's terminal result Value under the given alias.
+    pub fn bind_as(self, alias: impl Into<String>) -> Self {
+        self.steps[self.index].bind_as = Some(alias.into());
         self
     }
 }
@@ -287,6 +380,7 @@ pub struct AfterStepBuilder {
 }
 
 impl AfterStepBuilder {
+    /// Wait for the named artifact alias produced earlier in this route plan.
     pub fn awaits(mut self, alias: impl Into<String>) -> Self {
         if let Some(after) = self.route.after_step.as_mut() {
             after.awaited_alias = Some(alias.into());
@@ -320,10 +414,7 @@ impl AfterStepBuilder {
 
 #[cfg(test)]
 mod tests {
-    use crate::route::{
-        RouteStep, ToolReturn, TransactionExecutionPlan, TransactionExecutionStep,
-        TransactionFailurePolicy,
-    };
+    use crate::route::{EnforcementPolicy, RouteStep, ToolReturn};
     use crate::{DynAomiApp, DynAomiTool, DynToolCallCtx};
     use serde_json::{Value, json};
 
@@ -498,6 +589,57 @@ mod tests {
     }
 
     #[test]
+    fn route_builder_serializes_solana_sign_plan() {
+        // Mirror of `route_builder_serializes_bound_artifact_plan` but for
+        // the SVM (Solana) sign-only flow: app builds an unsigned tx, host
+        // signs via SignTxSolana, the bound `signed_tx` artifact then feeds
+        // into the submit step which forwards the signed bytes upstream.
+        let tool_return = ToolReturn::route(json!({"status": "awaiting_wallet"}))
+            .next(|next| {
+                next.add::<host::SignTxSolana>(json!({
+                    "unsigned_tx": "AgAB...base64...",
+                    "description": "Swap 1 USDC for 0.005 SOL via byreal RFQ",
+                }))
+                .bind_as("signed_tx")
+                .note("sign this Solana swap");
+            })
+            .after::<SubmitOrder>(json!({"venue": "byreal-rfq"}))
+            .awaits("signed_tx")
+            .note("submit signed tx to venue")
+            .build();
+
+        let serialized = serde_json::to_value(&tool_return).unwrap();
+        assert_eq!(
+            serialized,
+            json!({
+                "__aomi_tool_return": true,
+                "__aomi_tool_value": {"status": "awaiting_wallet"},
+                "__aomi_tool_routes": [
+                    {
+                        "tool": "sign_tx_solana",
+                        "args": {
+                            "unsigned_tx": "AgAB...base64...",
+                            "description": "Swap 1 USDC for 0.005 SOL via byreal RFQ",
+                        },
+                        "trigger": {"type": "on_sync_return"},
+                        "bind_as": "signed_tx",
+                        "prompt": "sign this Solana swap",
+                    },
+                    {
+                        "tool": "submit_order",
+                        "args": {"venue": "byreal-rfq"},
+                        "trigger": {
+                            "type": "on_bound_event",
+                            "alias": "signed_tx",
+                        },
+                        "prompt": "submit signed tx to venue",
+                    }
+                ]
+            })
+        );
+    }
+
+    #[test]
     fn route_builder_bind_as_works_for_any_tool() {
         // The router is alias-keyed: any tool can bind_as. There's no
         // per-tool eligibility check and no artifact-kind enum.
@@ -532,33 +674,55 @@ mod tests {
     }
 
     #[test]
-    fn route_builder_execution_plan_can_satisfy_awaited_alias() {
+    fn route_builder_enforcement_can_satisfy_awaited_alias() {
         let tool_return = ToolReturn::route(json!({"status": "ok"}))
             .next(|next| {
                 next.add::<host::StageTx>(json!({"to": "0x1", "data": {"raw": "0x"}}))
-                    .execution(RoutedActionExecution::Transaction(
-                        TransactionExecutionPlan {
-                            steps: vec![
-                                TransactionExecutionStep::SimulateBatch,
-                                TransactionExecutionStep::CommitTxs {
-                                    bind_as: "transaction_hash".to_string(),
-                                    aa_preference: Some("auto".to_string()),
-                                },
-                            ],
-                            on_simulation_failure: Some(TransactionFailurePolicy::Stop),
-                        },
-                    ));
+                    .enforce(EnforcementPolicy::Stop, |enforce| {
+                        enforce.add::<host::SimulateBatch>(json!({}));
+                        enforce
+                            .add::<host::CommitTxs>(json!({"aa_preference": "auto"}))
+                            .bind_as("transaction_hash");
+                    });
             })
             .after::<SubmitOrder>(json!({"quote_id": "quote-1"}))
             .awaits("transaction_hash")
             .build();
 
         assert_eq!(tool_return.routes[0].bind_as, None);
-        assert!(tool_return.routes[0].execution.is_some());
+        assert!(tool_return.routes[0].enforcement.is_some());
         assert!(matches!(
             &tool_return.routes[1].trigger,
             RouteTrigger::OnBoundEvent { alias } if alias == "transaction_hash"
         ));
+    }
+
+    #[test]
+    fn route_builder_rejects_multiple_enforced_producers() {
+        let err = ToolReturn::route(json!({"status": "ok"}))
+            .next(|next| {
+                next.add::<host::StageTx>(json!({"to": "0x1"}))
+                    .enforce(EnforcementPolicy::Stop, |_| {});
+                next.add::<host::StageTx>(json!({"to": "0x2"}))
+                    .enforce(EnforcementPolicy::Stop, |_| {});
+            })
+            .try_build()
+            .expect_err("multiple enforced producers should fail");
+
+        assert!(err.contains("at most one enforced producer"));
+    }
+
+    #[test]
+    fn route_builder_rejects_non_object_enforced_producer_args() {
+        let err = ToolReturn::route(json!({"status": "ok"}))
+            .next(|next| {
+                next.add::<host::StageTx>(json!(["not", "an", "object"]))
+                    .enforce(EnforcementPolicy::Stop, |_| {});
+            })
+            .try_build()
+            .expect_err("non-object enforced producer args should fail");
+
+        assert!(err.contains("must use object args"));
     }
 
     #[test]
@@ -586,5 +750,31 @@ mod tests {
             .expect_err("duplicate aliases should fail");
 
         assert!(err.contains("duplicate bound alias `dup`"));
+    }
+
+    #[test]
+    fn route_builder_rejects_empty_bound_aliases() {
+        let err = ToolReturn::route(json!({"status": "ok"}))
+            .next(|next| {
+                next.add::<SyncTool>(json!({"x": 1})).bind_as("   ");
+            })
+            .try_build()
+            .expect_err("empty bound aliases should fail");
+
+        assert!(err.contains("bound alias must not be empty"));
+    }
+
+    #[test]
+    fn route_builder_rejects_empty_awaited_aliases() {
+        let err = ToolReturn::route(json!({"status": "ok"}))
+            .next(|next| {
+                next.add::<SyncTool>(json!({"x": 1})).bind_as("artifact");
+            })
+            .after::<SubmitOrder>(json!({}))
+            .awaits(" ")
+            .try_build()
+            .expect_err("empty awaited aliases should fail");
+
+        assert!(err.contains("awaits alias must not be empty"));
     }
 }

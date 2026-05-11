@@ -384,10 +384,17 @@ pub trait DynAomiApp: Clone + Default + Send + Sync + 'static {
         sink: DynAsyncSink,
     ) -> DynToolDispatch;
 
-    /// Host-side namespaces this plugin requires (e.g. `["common"]`, `["database"]`).
-    /// Override to request a different set, or return `Some(vec![])` to opt out explicitly.
+    /// Host-side namespaces this plugin requires (e.g. `["evm-core"]`, `["database"]`,
+    /// `["solana-core"]`).
+    ///
+    /// Default is `["evm-core"]`, which most apps want. Override to:
+    /// - Add other namespaces alongside (e.g. `["evm-core", "solana-core"]` for an
+    ///   app that needs both EVM and Solana wallet flows — note that `"solana-core"`
+    ///   is reserved for app-specific Solana integrations).
+    /// - Replace entirely (e.g. `["database"]` for a namespace-only admin app).
+    /// - Return `Some(vec![])` to opt out explicitly.
     fn namespaces(&self) -> Option<Vec<String>> {
-        Some(vec!["common".to_string()])
+        Some(vec!["evm-core".to_string()])
     }
 
     /// Build the full [`DynManifest`] for host consumption.
@@ -707,10 +714,10 @@ mod tests {
     }
 
     #[test]
-    fn test_manifest_defaults_to_common_namespace() {
+    fn test_manifest_defaults_to_evm_core_namespace() {
         let manifest = App.manifest();
         assert_eq!(manifest.sdk_version, crate::AOMI_SDK_VERSION);
-        assert_eq!(manifest.namespaces, Some(vec!["common".to_string()]));
+        assert_eq!(manifest.namespaces, Some(vec!["evm-core".to_string()]));
     }
 
     #[test]

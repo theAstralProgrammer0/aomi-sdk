@@ -21,5 +21,5 @@ dyn_aomi_app!(
         client::BuildPolymarketOrder,
         client::SubmitPolymarketOrder,
     ],
-    namespaces = ["common"]
+    namespaces = ["evm-core"]
 );
