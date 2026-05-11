@@ -149,7 +149,9 @@ mod tests {
             .expect("expected Ethereum vaults to be an array");
         assert!(!eth_vaults.is_empty());
 
-        let arb_vaults_resp = client.get_all_vaults(10).expect("get_all_vaults(10) failed");
+        let arb_vaults_resp = client
+            .get_all_vaults(10)
+            .expect("get_all_vaults(10) failed");
         let arb_vaults = arb_vaults_resp["data"]
             .as_array()
             .or_else(|| arb_vaults_resp.as_array())

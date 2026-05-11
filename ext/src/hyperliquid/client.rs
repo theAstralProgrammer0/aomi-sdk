@@ -147,7 +147,10 @@ mod tests {
     fn open_leveraged_long_workflow() {
         let c = client();
         let meta = c.get_meta().expect("get_meta should succeed");
-        assert_eq!(meta.get("source").and_then(Value::as_str), Some("hyperliquid"));
+        assert_eq!(
+            meta.get("source").and_then(Value::as_str),
+            Some("hyperliquid")
+        );
         let universe = meta
             .get("universe")
             .and_then(Value::as_array)
@@ -168,8 +171,13 @@ mod tests {
             .expect("parse mid");
         assert!(eth_mid > 0.0);
 
-        let book = c.get_l2_book("ETH").expect("get_l2_book(ETH) should succeed");
-        let levels = book.get("levels").and_then(Value::as_array).expect("levels");
+        let book = c
+            .get_l2_book("ETH")
+            .expect("get_l2_book(ETH) should succeed");
+        let levels = book
+            .get("levels")
+            .and_then(Value::as_array)
+            .expect("levels");
         assert!(levels.len() >= 2);
         assert!(!levels[0].as_array().unwrap().is_empty());
         assert!(!levels[1].as_array().unwrap().is_empty());

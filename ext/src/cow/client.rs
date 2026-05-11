@@ -79,11 +79,7 @@ impl CowClient {
         Ok(format!("{endpoint}/{path}/api/v1"))
     }
 
-    pub fn get_quote<B: Serialize>(
-        &self,
-        chain: &str,
-        payload: &B,
-    ) -> Result<CowQuote, String> {
+    pub fn get_quote<B: Serialize>(&self, chain: &str, payload: &B) -> Result<CowQuote, String> {
         let base = self.cow_api_base_for_chain(chain)?;
         let request = self.authed(self.http.post(format!("{base}/quote")).json(&payload));
         Self::send_json(request, "quote")
@@ -101,11 +97,7 @@ impl CowClient {
         Self::send_json(request, "get order")
     }
 
-    pub fn get_order_status(
-        &self,
-        chain: &str,
-        uid: &str,
-    ) -> Result<CowOrderStatus, String> {
+    pub fn get_order_status(&self, chain: &str, uid: &str) -> Result<CowOrderStatus, String> {
         let base = self.cow_api_base_for_chain(chain)?;
         let request = self.authed(self.http.get(format!("{base}/orders/{uid}/status")));
         Self::send_json(request, "get order status")
@@ -129,11 +121,7 @@ impl CowClient {
         Self::send_json(self.authed(request), "get user orders")
     }
 
-    pub fn cancel_orders<B: Serialize>(
-        &self,
-        chain: &str,
-        payload: &B,
-    ) -> Result<Value, String> {
+    pub fn cancel_orders<B: Serialize>(&self, chain: &str, payload: &B) -> Result<Value, String> {
         let base = self.cow_api_base_for_chain(chain)?;
         let request = self.authed(self.http.delete(format!("{base}/orders")).json(&payload));
         Self::send_json(request, "cancel orders")
@@ -182,11 +170,7 @@ impl CowClient {
         Self::send_json(request, "get native price")
     }
 
-    pub fn get_orders_by_tx(
-        &self,
-        chain: &str,
-        tx_hash: &str,
-    ) -> Result<Vec<CowOrder>, String> {
+    pub fn get_orders_by_tx(&self, chain: &str, tx_hash: &str) -> Result<Vec<CowOrder>, String> {
         let base = self.cow_api_base_for_chain(chain)?;
         let request = self.authed(
             self.http
@@ -311,11 +295,23 @@ mod tests {
     #[test]
     fn cow_api_base_for_chain_smoke() {
         let c = client();
-        assert!(c.cow_api_base_for_chain("ethereum").unwrap().contains("mainnet"));
+        assert!(
+            c.cow_api_base_for_chain("ethereum")
+                .unwrap()
+                .contains("mainnet")
+        );
         assert!(c.cow_api_base_for_chain("gnosis").unwrap().contains("xdai"));
-        assert!(c.cow_api_base_for_chain("arbitrum").unwrap().contains("arbitrum_one"));
+        assert!(
+            c.cow_api_base_for_chain("arbitrum")
+                .unwrap()
+                .contains("arbitrum_one")
+        );
         assert!(c.cow_api_base_for_chain("base").unwrap().contains("base"));
-        assert!(c.cow_api_base_for_chain("polygon").unwrap().contains("polygon"));
+        assert!(
+            c.cow_api_base_for_chain("polygon")
+                .unwrap()
+                .contains("polygon")
+        );
         assert!(c.cow_api_base_for_chain("foobar").is_err());
     }
 
@@ -352,7 +348,10 @@ mod tests {
 
     #[test]
     fn amount_to_base_units_smoke() {
-        assert_eq!(amount_to_base_units(1.0, 18).unwrap(), "1000000000000000000");
+        assert_eq!(
+            amount_to_base_units(1.0, 18).unwrap(),
+            "1000000000000000000"
+        );
         assert_eq!(amount_to_base_units(100.0, 6).unwrap(), "100000000");
         assert!(amount_to_base_units(-1.0, 18).is_err());
     }

@@ -70,8 +70,12 @@ mod tests {
         let orderbook = client
             .get("/orderbooks/perpetualMarket/BTC-USD")
             .expect("failed to fetch BTC-USD orderbook");
-        let bids = orderbook.get("bids").expect("orderbook should contain 'bids'");
-        let asks = orderbook.get("asks").expect("orderbook should contain 'asks'");
+        let bids = orderbook
+            .get("bids")
+            .expect("orderbook should contain 'bids'");
+        let asks = orderbook
+            .get("asks")
+            .expect("orderbook should contain 'asks'");
         assert!(!bids.as_array().unwrap().is_empty());
         assert!(!asks.as_array().unwrap().is_empty());
 
@@ -83,7 +87,10 @@ mod tests {
             .expect("candles response should contain 'candles' key")
             .as_array()
             .expect("candles should be an array");
-        assert!(!candles_arr.is_empty(), "should receive at least one candle");
+        assert!(
+            !candles_arr.is_empty(),
+            "should receive at least one candle"
+        );
     }
 
     /// Story: "Rebalance my dYdX subaccount — cut losers, add to winners"

@@ -495,10 +495,7 @@ pub fn build_lifi_approval_tx(
     Ok(None)
 }
 
-pub fn encode_approve_calldata(
-    spender: &str,
-    amount_decimal: &str,
-) -> Result<String, String> {
+pub fn encode_approve_calldata(spender: &str, amount_decimal: &str) -> Result<String, String> {
     let selector = "095ea7b3"; // approve(address,uint256)
     let spender_clean = spender.trim_start_matches("0x").to_lowercase();
     if spender_clean.len() != 40 || !spender_clean.chars().all(|c| c.is_ascii_hexdigit()) {
@@ -649,7 +646,9 @@ mod tests {
 
     #[test]
     fn chains_evm_filter_smoke() {
-        let _ = client().get_chains(Some("EVM")).expect("should get EVM chains");
+        let _ = client()
+            .get_chains(Some("EVM"))
+            .expect("should get EVM chains");
     }
 
     #[test]
@@ -708,7 +707,10 @@ mod tests {
 
     #[test]
     fn amount_to_base_units_eth() {
-        assert_eq!(amount_to_base_units(1.0, 18).unwrap(), "1000000000000000000");
+        assert_eq!(
+            amount_to_base_units(1.0, 18).unwrap(),
+            "1000000000000000000"
+        );
     }
 
     #[test]

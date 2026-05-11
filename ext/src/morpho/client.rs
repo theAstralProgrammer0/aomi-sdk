@@ -257,9 +257,7 @@ mod tests {
         );
         let user = &positions_response["user"];
         if !user.is_null() {
-            assert!(
-                user.get("marketPositions").is_some() || user.get("vaultPositions").is_some()
-            );
+            assert!(user.get("marketPositions").is_some() || user.get("vaultPositions").is_some());
         }
 
         let cheapest_borrow = market_items
