@@ -2,21 +2,26 @@
 
 End-to-end behavioral test spec for an Aomi app. Authored by the
 `aomi-app-e2e-tester` skill (seeded by `aomi-app-ux-tool-maker`),
-consumed by the generic harness in `aomi/crates/runtime/tests/local-app-e2e.rs`.
+consumed by the harness at `aomi/crates/runtime/tests/local-app-e2e.rs`.
 
-One file per app: `apps/<platform>/test.json`.
+**One test per app**. Reference implementation: [apps/khalani/test.json](../apps/khalani/test.json).
 
 ## Top-level shape
 
 ```jsonc
 {
-  "user_story": "string",                // seed — written by aomi-app-ux-tool-maker
+  "user_story": "string",                // one-sentence happy-path scenario
   "wallet_seed": { ... },                // optional — UserState seeded before turn 1
-  "turns": [ ... ],                      // 2–4 turns; each is a prompt + expected_tools
-  "final_assertion": { ... },            // assertions on UserState + tool responses
-  "max_cost_usd": 0.50                   // hard cost ceiling (LLM tokens)
+  "turns": [ ... ],                      // 1–N turns; prompt + expected_tools per turn
+  "final_assertion": { ... }             // assertions after all turns finish
 }
 ```
+
+The harness only reads the fields documented below. **Any field not listed here is silently ignored** — don't introduce new ones.
+
+## `user_story` (required)
+
+Terse natural-language scenario the user might actually type. Drives test-author intent; not asserted on.
 
 ## `wallet_seed` (optional)
 
@@ -24,154 +29,103 @@ Pre-populates `UserState` before the first turn. Many tools assume a connected w
 
 ```json
 {
-  "address": "0x1234567890123456789012345678901234567890",
+  "address": "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
   "chain_id": 1,
-  "is_connected": true,
-  "ens_name": null
+  "is_connected": true
 }
 ```
 
-All fields optional. Omit the block entirely for read-only / data apps.
+Fields supported: `address`, `chain_id`, `is_connected`. Omit the block entirely for read-only / data apps that don't read wallet state.
 
-## `turns[]`
+## `turns[]` (required)
 
-Ordered list. Each turn is one user prompt + one assertion on which tools were called during that turn.
+Ordered list of user prompts. The harness sends each prompt to the LLM in sequence and asserts which tools were called during that turn.
 
 ```jsonc
 {
-  "prompt": "I want to swap 100 USDC for ETH",
+  "prompt": "Swap 100 USDC for ETH on Optimism via Khalani",
   "expected_tools": {
-    // exactly one of:
-    "any_of":    ["lifi_get_swap_quote", "lifi_build_swap_tx"],
-    "must_call": ["lifi_build_swap_tx"],
-    "exactly":   ["lifi_build_swap_tx"]
+    // Exactly one of:
+    "must_call": ["khalani_quote", "khalani_build_deposit"],
+    "any_of":    ["khalani_quote", "khalani_build_deposit"]
   }
 }
 ```
 
-### `expected_tools` modes (mixed by design)
+### `expected_tools` modes
 
 | Mode | Semantics | When to use |
 |---|---|---|
-| `any_of: [...]` | At least one of these tools must be called during this turn. | **Discovery turns** — LLM may legitimately pick different tools. |
-| `must_call: [...]` | Every listed tool must be called (subset; others may also be called). | **Terminal action turns** — a specific tool is non-negotiable. |
-| `exactly: [...]` | Set of tools called must equal this set exactly (order ignored). | Sparingly — flaky; LLMs add sibling calls. |
+| `must_call: [...]` | Every listed tool must be called (subset; others may also be called). | **Action turns** — specific tools are non-negotiable. |
+| `any_of: [...]`    | At least one listed tool must be called. | **Discovery turns** — LLM may legitimately pick different tools. |
 
-**Default pattern**: `any_of` for early turns, `must_call` for the final action turn.
+Default pattern: `any_of` for early/discovery turns, `must_call` for the terminal action turn. Single-turn tests usually use `must_call`.
 
-## `final_assertion`
+## `final_assertion` (required)
 
-Run after all turns complete. Every sub-block is optional.
+Run after all turns complete. Sub-blocks below are optional.
 
-### `user_state`
-
-Constraints on `UserState` (`aomi/crates/tools/src/user_state.rs`):
+### `final_assertion.user_state.pending_txs`
 
 ```jsonc
 {
-  "pending_txs": {
-    "min_count": 1,
-    "max_count": 3,
-    "expect_any": [
-      // Tx matches if it satisfies every specified field. Skip what you don't care about.
-      {
-        "kind": "swap",                  // exact match against PendingSimTx.kind
-        "chain_id": 1,                   // exact
-        "to": "0x...",                   // exact (lowercased)
-        "to_contains": "0x",             // substring (lowercased)
-        "data_starts_with": "0x",
-        "data_min_len": 10,              // hex string length
-        "value_non_zero": true
-      }
-    ],
-    "expect_all": []                     // every tx must match (rare)
-  },
-  "pending_eip712s": {
-    "min_count": 1,
-    "max_count": 1,
-    "expect_any": [
-      {
-        "primary_type": "Order",
-        "domain_chain_id": 137,
-        "domain_name_contains": "Polymarket"
-      }
-    ]
-  },
-  "address_set": true,                   // UserState.address.is_some()
-  "chain_id": 1                          // UserState.chain_id == 1
+  "min_count": 1,                              // at least N txs queued
+  "expect_any": [
+    {
+      "chain_id": 1,                           // exact match (optional)
+      "data_starts_with": "0x",                // calldata prefix (optional)
+      "data_min_len": 10                       // calldata length sanity (optional)
+    }
+  ]
 }
 ```
 
-### `tool_responses`
+A tx matches an `expect_any` entry if it satisfies every field specified in that entry. `min_count` runs first; `expect_any` matches against the resulting set.
 
-Light content checks across all tool calls in the session:
+### `final_assertion.user_state.pending_eip712s`
 
 ```json
 {
-  "any_returned_substring": "USDC",
-  "any_returned_keys": ["source"],
-  "last_tool": "lifi_build_swap_tx"
+  "max_count": 0
 }
 ```
 
-`any_returned_keys` is the cheapest sanity check — every Aomi tool's `ok()` helper adds a `source` key. Use this for read-only apps that have no UserState changes.
-
-### `topics_emitted`
-
-Aomi runtime emits topics for tool calls + wallet events. List ones that must appear:
-
-```json
-["wallet:tx_pending", "lifi_build_swap_tx"]
-```
+Use `max_count: 0` to assert no signatures were prompted (catches stray sig flows on swap apps).
 
 ### Cross-cutting
 
 ```json
 {
-  "no_errors": true,                     // any tool returning Err(...) fails the test
-  "max_turns": 6                         // upper bound on session length (catches LLM loops)
+  "no_errors": true,
+  "max_turns": 6
 }
 ```
 
-## `max_cost_usd`
-
-Hard ceiling on LLM token cost across the whole test. Harness aborts if exceeded.
-
-| Default | When |
-|---|---|
-| `0.50` | Standard 2–4 turn flows |
-| `0.75` | Apps with unusually long PREAMBLE (Hyperliquid, Bybit) |
-| `1.00` | Genuinely needs >4 turns (rethink first) |
-| `2.00` (max) | Document the reason in `user_story` |
+- `no_errors` — fails the test if any tool returned `Err(...)`. Set `false` to disable the check (rare; only for tests where errors are part of the scenario).
+- `max_turns` — upper bound on session length. Catches runaway LLM loops. Set to `len(turns) * 1.5` rounded up, with a minimum of 6 to allow re-asks.
 
 ## Anti-patterns
 
-- **Don't assert on volatile values** in `pending_txs.expect_any`: prices, gas, exact `to:` (router upgrades), exact `value:`, exact `data:`.
-- **Don't use `exactly` for tool calls** unless one tool is genuinely the only choice.
-- **Don't include error-path tests.** This schema is happy-path only by design.
-- **Don't set `max_turns` too tight.** `len(turns) + 2` buffer for re-asks.
+- **Don't add fields the harness doesn't read.** No `tool_responses`, `topics_emitted`, `max_cost_usd`, `name`, `expect_all`, `max_count` on `pending_txs`, `kind`/`to`/`value_non_zero` on `expect_any` — none are wired. The harness silently ignores them.
+- **Don't wrap in a `stories[]` array.** Single test per file.
+- **Don't assert on volatile values** in `expect_any`: prices, gas, exact `to:` (router upgrades), exact `value:`, exact `data:`.
+- **Don't set `no_errors: false`** unless the test scenario specifically needs to tolerate errors (very rare).
 
-## Example: complete LiFi swap test
+## Example: complete swap test (khalani)
 
 ```json
 {
-  "user_story": "Swap 100 USDC for ETH on Ethereum mainnet via LiFi",
+  "user_story": "Swap 100 USDC from Ethereum to ETH on Optimism via Khalani Hyperstream",
   "wallet_seed": {
-    "address": "0x1234567890123456789012345678901234567890",
+    "address": "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
     "chain_id": 1,
     "is_connected": true
   },
   "turns": [
     {
-      "prompt": "I want to swap 100 USDC for ETH on Ethereum",
+      "prompt": "Swap 100 USDC from Ethereum to ETH on Optimism via Khalani. Use the recommended route, build the deposit, and stage the bridge transactions.",
       "expected_tools": {
-        "any_of": ["lifi_get_swap_quote", "lifi_build_swap_tx"]
-      }
-    },
-    {
-      "prompt": "Looks good — build the tx",
-      "expected_tools": {
-        "must_call": ["lifi_build_swap_tx"]
+        "must_call": ["khalani_quote", "khalani_build_deposit"]
       }
     }
   ],
@@ -180,42 +134,41 @@ Hard ceiling on LLM token cost across the whole test. Harness aborts if exceeded
       "pending_txs": {
         "min_count": 1,
         "expect_any": [
-          { "kind": "swap", "chain_id": 1, "data_starts_with": "0x", "data_min_len": 10 }
+          { "chain_id": 1, "data_starts_with": "0x", "data_min_len": 10 }
         ]
       },
       "pending_eip712s": { "max_count": 0 }
     },
-    "tool_responses": {
-      "any_returned_keys": ["source"]
-    },
-    "no_errors": true,
-    "max_turns": 4
-  },
-  "max_cost_usd": 0.50
+    "no_errors": false,
+    "max_turns": 30
+  }
 }
 ```
 
-## Example: Defillama read-only test
+## Example: read-only data test (defillama)
 
 ```json
 {
-  "user_story": "Get the current TVL of Aave on Ethereum",
+  "user_story": "Find the biggest lending protocol on Ethereum and show me its current TVL and recent trend",
   "turns": [
     {
-      "prompt": "What's Aave's TVL right now?",
+      "prompt": "Which lending protocols have the most TVL right now?",
       "expected_tools": {
-        "any_of": ["defillama_get_protocol_tvl", "defillama_list_protocols"]
+        "any_of": ["defillama_list_protocols"]
+      }
+    },
+    {
+      "prompt": "Great — give me a deep dive on the top one: its current TVL, per-chain breakdown, and recent history.",
+      "expected_tools": {
+        "must_call": ["defillama_get_protocol_tvl"]
       }
     }
   ],
   "final_assertion": {
-    "tool_responses": {
-      "any_returned_substring": "aave",
-      "any_returned_keys": ["source"]
-    },
     "no_errors": true,
-    "max_turns": 3
-  },
-  "max_cost_usd": 0.30
+    "max_turns": 6
+  }
 }
 ```
+
+Read-only flows have no `wallet_seed` (no wallet needed) and no `user_state` block in `final_assertion` (no UserState mutations expected).

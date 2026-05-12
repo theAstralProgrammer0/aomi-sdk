@@ -9,6 +9,9 @@ use aomi_sdk::*;
 use serde::Deserialize;
 use serde::Serialize;
 use serde_json::Value;
+use std::collections::HashSet;
+use std::sync::Mutex;
+use std::sync::OnceLock;
 use std::time::Duration;
 
 #[derive(Clone, Default)]
@@ -198,15 +201,80 @@ impl MolinarClient {
 // Helper: extract bot_id from context
 // ============================================================================
 
+/// Tracks session_ids we've already auto-connected, so we only POST /connect
+/// once per process per session.
+static AUTO_CONNECTED: OnceLock<Mutex<HashSet<String>>> = OnceLock::new();
+
+fn already_connected(key: &str) -> bool {
+    let set = AUTO_CONNECTED.get_or_init(|| Mutex::new(HashSet::new()));
+    let guard = set.lock().expect("AUTO_CONNECTED poisoned");
+    guard.contains(key)
+}
+
+fn mark_connected(key: &str) {
+    let set = AUTO_CONNECTED.get_or_init(|| Mutex::new(HashSet::new()));
+    let mut guard = set.lock().expect("AUTO_CONNECTED poisoned");
+    guard.insert(key.to_string());
+}
+
+/// Sanitize a session_id into something safe for the Molinar API path. The
+/// host's session_ids are arbitrary strings (often UUIDs) — strip anything
+/// that isn't alphanumeric/dash/underscore so the URL stays well-formed.
+fn sanitize(raw: &str) -> String {
+    let s: String = raw
+        .chars()
+        .filter(|c| c.is_ascii_alphanumeric() || *c == '-' || *c == '_')
+        .take(48)
+        .collect();
+    if s.is_empty() { "aomi-bot".to_string() } else { s }
+}
+
+/// Resolve a Molinar bot_id, with three fallbacks for ergonomic E2E testing:
+///
+/// 1. Explicit `state_attributes.bot_id` (production path — the integration
+///    layer wires a real bot_id from the user's account).
+/// 2. `MOLINAR_BOT_ID` env var.
+/// 3. Derive a stable bot_id from `ctx.session_id` and lazily POST `/connect`
+///    once per process so the rest of the URL routes (`{id}/state`, etc.)
+///    succeed. This makes the app self-bootstrapping for the local-app-e2e
+///    harness, which has no Molinar-specific wiring.
 pub(crate) fn get_bot_id(ctx: &DynToolCallCtx) -> Result<String, String> {
-    ctx.state_attributes
+    if let Some(id) = ctx
+        .state_attributes
         .get("bot_id")
         .and_then(|v| v.as_str())
-        .map(String::from)
-        .ok_or_else(|| {
-            "bot_id not found in context state_attributes — ensure the integration sets bot_id"
-                .to_string()
-        })
+        .filter(|s| !s.is_empty())
+    {
+        return Ok(id.to_string());
+    }
+
+    if let Ok(id) = std::env::var("MOLINAR_BOT_ID") {
+        if !id.is_empty() {
+            return Ok(id);
+        }
+    }
+
+    let session_id = sanitize(&ctx.session_id);
+    if session_id.is_empty() {
+        return Err(
+            "bot_id not found in context state_attributes and ctx.session_id is empty".to_string(),
+        );
+    }
+
+    if !already_connected(&session_id) {
+        let client = MolinarClient::new()?;
+        let url = format!("{}/connect", client.api_endpoint);
+        let body = serde_json::json!({ "session_id": session_id });
+        let _ = client
+            .http
+            .post(&url)
+            .json(&body)
+            .send()
+            .map_err(|e| format!("[molinar] auto-connect request failed: {e}"))?;
+        mark_connected(&session_id);
+    }
+
+    Ok(session_id)
 }
 
 // ============================================================================

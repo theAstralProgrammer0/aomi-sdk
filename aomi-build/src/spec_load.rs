@@ -39,6 +39,26 @@ pub fn load_and_preprocess(spec_path: &Path) -> Result<openapiv3::OpenAPI> {
             "  dropped {n} operation(s) with multipart request bodies (progenitor doesn't support multipart)"
         );
     }
+    let n = force_path_params_required(&mut spec);
+    if n > 0 {
+        println!("  forced {n} path param(s) to required: true (progenitor asserts this)");
+    }
+    let n = stub_missing_schema_refs(&mut spec);
+    if n > 0 {
+        println!("  stubbed {n} missing schema $ref(s) as additionalProperties: true");
+    }
+    let n = inject_missing_path_params(&mut spec);
+    if n > 0 {
+        println!("  injected {n} missing path param declaration(s) (spec had {{name}} in path but no parameter entry)");
+    }
+    let n = retype_path_params_as_string(&mut spec);
+    if n > 0 {
+        println!("  retyped {n} untyped path param(s) as string (default for path placeholders)");
+    }
+    let n = retype_pagination_as_integer(&mut spec);
+    if n > 0 {
+        println!("  retyped {n} pagination param(s) (limit/page/offset/...) from number to integer");
+    }
     let n = collapse_request_body_to_json(&mut spec);
     if n > 0 {
         println!(
@@ -161,6 +181,286 @@ fn collapse_request_body_to_json(spec: &mut openapiv3::OpenAPI) -> usize {
         }
     }
     collapsed
+}
+
+/// Walk the entire spec for `$ref: '#/components/schemas/<Name>'` references
+/// and create a stub `additionalProperties: true` schema for any that aren't
+/// defined. Lets progenitor's typify pass succeed even when the upstream spec
+/// has a broken cross-reference (Limitless ships a few of these).
+fn stub_missing_schema_refs(spec: &mut openapiv3::OpenAPI) -> usize {
+    // Serialize → walk JSON for refs → diff vs defined → inject stubs into
+    // components.schemas. Cheap and avoids hand-walking openapiv3's enum tree.
+    let json = match serde_json::to_string(&spec) {
+        Ok(s) => s,
+        Err(_) => return 0,
+    };
+    let prefix = "\"#/components/schemas/";
+    let mut referenced: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+    let mut idx = 0;
+    while let Some(start) = json[idx..].find(prefix) {
+        let from = idx + start + prefix.len();
+        if let Some(end_offset) = json[from..].find('"') {
+            referenced.insert(json[from..from + end_offset].to_string());
+            idx = from + end_offset;
+        } else {
+            break;
+        }
+    }
+    let components = spec.components.get_or_insert_with(Default::default);
+    let mut stubbed = 0;
+    for name in referenced {
+        if components.schemas.contains_key(&name) {
+            continue;
+        }
+        // Build a permissive stub: type=object, additionalProperties=true.
+        let stub: openapiv3::Schema = serde_json::from_value(serde_json::json!({
+            "type": "object",
+            "additionalProperties": true
+        }))
+        .expect("stub schema literal must parse");
+        components
+            .schemas
+            .insert(name, openapiv3::ReferenceOr::Item(stub));
+        stubbed += 1;
+    }
+    stubbed
+}
+
+/// For every `{name}` placeholder in a path that doesn't have a corresponding
+/// `parameters` entry on the operation (or path item), inject a default
+/// `string` path parameter. Specs occasionally omit these declarations and
+/// progenitor refuses to generate the operation otherwise.
+fn inject_missing_path_params(spec: &mut openapiv3::OpenAPI) -> usize {
+    use openapiv3::{Parameter, ParameterData, ParameterSchemaOrContent, ReferenceOr, Schema};
+    let mut injected = 0;
+    let path_keys: Vec<String> = spec.paths.paths.keys().cloned().collect();
+    for path_key in path_keys {
+        // Collect placeholder names
+        let mut placeholders: Vec<String> = Vec::new();
+        let bytes = path_key.as_bytes();
+        let mut i = 0;
+        while i < bytes.len() {
+            if bytes[i] == b'{' {
+                let start = i + 1;
+                let mut j = start;
+                while j < bytes.len() && bytes[j] != b'}' {
+                    j += 1;
+                }
+                if let Ok(name) = std::str::from_utf8(&bytes[start..j]) {
+                    placeholders.push(name.to_string());
+                }
+                i = j + 1;
+            } else {
+                i += 1;
+            }
+        }
+        if placeholders.is_empty() {
+            continue;
+        }
+        let Some(item_ref) = spec.paths.paths.get_mut(&path_key) else {
+            continue;
+        };
+        let ReferenceOr::Item(item) = item_ref else {
+            continue;
+        };
+        // Path-level params apply to all ops; collect their names.
+        let path_lvl_names: std::collections::HashSet<String> = item
+            .parameters
+            .iter()
+            .filter_map(|p| match p {
+                ReferenceOr::Item(Parameter::Path { parameter_data, .. }) => {
+                    Some(parameter_data.name.clone())
+                }
+                _ => None,
+            })
+            .collect();
+        for op_slot in [
+            &mut item.get,
+            &mut item.put,
+            &mut item.post,
+            &mut item.delete,
+            &mut item.patch,
+            &mut item.head,
+            &mut item.options,
+            &mut item.trace,
+        ] {
+            let Some(op) = op_slot else { continue };
+            let mut have: std::collections::HashSet<String> = path_lvl_names.clone();
+            for p in &op.parameters {
+                if let ReferenceOr::Item(Parameter::Path { parameter_data, .. }) = p {
+                    have.insert(parameter_data.name.clone());
+                }
+            }
+            for name in &placeholders {
+                if have.contains(name) {
+                    continue;
+                }
+                let stub_schema: Schema = serde_json::from_value(serde_json::json!({
+                    "type": "string"
+                }))
+                .expect("stub schema literal must parse");
+                let param = Parameter::Path {
+                    parameter_data: ParameterData {
+                        name: name.clone(),
+                        description: None,
+                        required: true,
+                        deprecated: None,
+                        format: ParameterSchemaOrContent::Schema(ReferenceOr::Item(stub_schema)),
+                        example: None,
+                        examples: Default::default(),
+                        explode: None,
+                        extensions: Default::default(),
+                    },
+                    style: openapiv3::PathStyle::Simple,
+                };
+                op.parameters.push(ReferenceOr::Item(param));
+                injected += 1;
+            }
+        }
+    }
+    injected
+}
+
+/// Path params with `schema: { example: "..." }` but NO `type:` make
+/// progenitor fall back to `serde_json::Value`, which then double-quotes
+/// strings on the wire. Default these to `type: string` (path params are
+/// nearly always strings).
+fn retype_path_params_as_string(spec: &mut openapiv3::OpenAPI) -> usize {
+    use openapiv3::{Parameter, ParameterSchemaOrContent, ReferenceOr, Schema};
+    let mut fixed = 0;
+    for item_ref in spec.paths.paths.values_mut() {
+        let ReferenceOr::Item(item) = item_ref else {
+            continue;
+        };
+        for op_slot in [
+            &mut item.get,
+            &mut item.put,
+            &mut item.post,
+            &mut item.delete,
+            &mut item.patch,
+            &mut item.head,
+            &mut item.options,
+            &mut item.trace,
+        ] {
+            let Some(op) = op_slot else { continue };
+            for p in &mut op.parameters {
+                let ReferenceOr::Item(Parameter::Path { parameter_data, .. }) = p else {
+                    continue;
+                };
+                let needs_retype = match &parameter_data.format {
+                    ParameterSchemaOrContent::Schema(ReferenceOr::Item(schema)) => {
+                        matches!(
+                            schema.schema_kind,
+                            openapiv3::SchemaKind::Any(_) | openapiv3::SchemaKind::Type(_)
+                        ) && match &schema.schema_kind {
+                            openapiv3::SchemaKind::Any(_) => true,
+                            _ => false,
+                        }
+                    }
+                    _ => false,
+                };
+                if needs_retype {
+                    let stub: Schema = serde_json::from_value(serde_json::json!({
+                        "type": "string"
+                    }))
+                    .expect("stub schema literal must parse");
+                    parameter_data.format = ParameterSchemaOrContent::Schema(ReferenceOr::Item(stub));
+                    fixed += 1;
+                }
+            }
+        }
+    }
+    fixed
+}
+
+/// Pagination params commonly typed as `number` (== f64) in specs but the
+/// server expects integers. Detect by name + retype to `integer`.
+fn retype_pagination_as_integer(spec: &mut openapiv3::OpenAPI) -> usize {
+    use openapiv3::{Parameter, ParameterSchemaOrContent, ReferenceOr, Schema, SchemaKind, Type};
+    let mut fixed = 0;
+    const PAGINATION_NAMES: &[&str] = &[
+        "limit", "page", "offset", "count", "size", "per_page", "perpage", "pagesize",
+    ];
+    for item_ref in spec.paths.paths.values_mut() {
+        let ReferenceOr::Item(item) = item_ref else {
+            continue;
+        };
+        for op_slot in [
+            &mut item.get,
+            &mut item.put,
+            &mut item.post,
+            &mut item.delete,
+            &mut item.patch,
+            &mut item.head,
+            &mut item.options,
+            &mut item.trace,
+        ] {
+            let Some(op) = op_slot else { continue };
+            for p in &mut op.parameters {
+                let ReferenceOr::Item(param) = p else { continue };
+                let parameter_data = match param {
+                    Parameter::Query { parameter_data, .. }
+                    | Parameter::Header { parameter_data, .. }
+                    | Parameter::Path { parameter_data, .. }
+                    | Parameter::Cookie { parameter_data, .. } => parameter_data,
+                };
+                let lname = parameter_data.name.to_ascii_lowercase();
+                if !PAGINATION_NAMES.contains(&lname.as_str()) {
+                    continue;
+                }
+                let ParameterSchemaOrContent::Schema(ReferenceOr::Item(schema)) =
+                    &mut parameter_data.format
+                else {
+                    continue;
+                };
+                if matches!(schema.schema_kind, SchemaKind::Type(Type::Number(_))) {
+                    let new_schema: Schema = serde_json::from_value(serde_json::json!({
+                        "type": "integer",
+                        "format": "int64"
+                    }))
+                    .expect("stub schema literal must parse");
+                    *schema = new_schema;
+                    fixed += 1;
+                }
+            }
+        }
+    }
+    fixed
+}
+
+/// progenitor asserts `parameter_data.required` on every path param. Specs
+/// occasionally violate this (it's an OpenAPI spec bug — path params MUST be
+/// required per the spec), so we silently coerce.
+fn force_path_params_required(spec: &mut openapiv3::OpenAPI) -> usize {
+    use openapiv3::{Parameter, ReferenceOr};
+    let mut fixed = 0;
+    for item_ref in spec.paths.paths.values_mut() {
+        let ReferenceOr::Item(item) = item_ref else {
+            continue;
+        };
+        for op_slot in [
+            &mut item.get,
+            &mut item.put,
+            &mut item.post,
+            &mut item.delete,
+            &mut item.patch,
+            &mut item.head,
+            &mut item.options,
+            &mut item.trace,
+        ] {
+            let Some(op) = op_slot else { continue };
+            for p_ref in &mut op.parameters {
+                let ReferenceOr::Item(Parameter::Path { parameter_data, .. }) = p_ref else {
+                    continue;
+                };
+                if !parameter_data.required {
+                    parameter_data.required = true;
+                    fixed += 1;
+                }
+            }
+        }
+    }
+    fixed
 }
 
 /// progenitor doesn't handle `multipart/form-data` request bodies. Drop those

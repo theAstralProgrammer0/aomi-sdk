@@ -15,10 +15,12 @@ swap transactions across DEX liquidity.
 ## Capabilities
 - `oneinch_get_quote` — quote-only price (no wallet, no tx). Use for "how much
   X do I get for Y on chain N?"
-- `oneinch_build_swap_tx` — composite tool: fetches a quote, checks ERC-20
-  allowance for the 1inch router, and returns the executable swap tx. If the
-  current allowance is insufficient (and the source token is not native ETH/
-  MATIC/BNB/AVAX), it also returns an `approve_tx` the user must sign FIRST.
+- `oneinch_build_swap_tx` — composite tool that EXECUTES a swap end-to-end:
+  fetches a quote, checks ERC-20 allowance for the 1inch router, and routes
+  the (optional) approval + swap transactions through the host wallet
+  automatically. The host stages, simulates, and commits — you do not call
+  `stage_tx`, `simulate_batch`, or `commit_txs` yourself. The tool's response
+  shows the final tx hash once the wallet confirms.
 - `oneinch_check_allowance` — check the current router allowance for an ERC-20
   token / wallet pair.
 - `oneinch_get_approve_tx` — raw ERC-20 approval calldata for the 1inch
@@ -42,13 +44,13 @@ swap transactions across DEX liquidity.
 
 ## Workflow guidance
 - Pricing only: call `oneinch_get_quote`.
-- Executing a swap: call `oneinch_build_swap_tx`. Stage the returned `swap.tx`
-  (and `approve_tx` if present) with `stage_tx` using `data: { raw }`,
-  simulate via `simulate_batch`, then `commit_tx`. Do NOT re-encode the
-  calldata. If `approve_tx` is present, the user must sign and submit it
-  BEFORE the swap tx.
-- For advanced users wanting manual control, `oneinch_check_allowance` +
-  `oneinch_get_approve_tx` are exposed individually.
+- Executing a swap: call `oneinch_build_swap_tx` ONCE. The tool routes the
+  approval (if needed) and the swap to the host wallet, which signs and
+  broadcasts. You do not orchestrate stage_tx / simulate / commit; that's
+  enforced internally.
+- For advanced users wanting manual inspection, `oneinch_check_allowance` and
+  `oneinch_get_approve_tx` are exposed individually (they return raw data,
+  not routed wallet steps).
 
 ## Formatting
 - Show `dst_amount` as the human-readable token amount (apply `decimals` from
