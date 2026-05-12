@@ -172,6 +172,79 @@ When the spec marks a response as `additionalProperties: true`, the client retur
 
 The escape hatch (one endpoint serves multiple tool intents needing different shapes) is to add a `*Summary` struct in `tool.rs` — but that's an exception that needs justification, not the default.
 
+#### Wallet handoff (on-chain sig + off-chain submit)
+
+Many platforms have this shape: **build something off-chain → user signs on-chain → confirm/submit off-chain**. Examples: Khalani (`build_deposit` → `stage_tx` → `submit_order`), Across (`get_bridge_quote` → SpokePool tx → `get_deposit_status`), 1inch (`get_quote` → `approve_tx` + `swap_tx`), CoW (build order → EIP-712 signature → submit signed order), LiFi (quote → approve + swap → status), GMX/dYdX (place position → on-chain settlement).
+
+**Wrong way (LLM orchestration):** the tool returns raw JSON like `{ approve_tx, swap_tx, status_url }` and the description says "stage these via stage_tx, then poll status." The LLM is now orchestrating a multi-step protocol it can get subtly wrong (forgets to wait for receipts, swaps order of approve+swap, copies calldata wrong, skips the post-submit step).
+
+**Right way (`ToolReturn::route(...)` chain):** the tool emits a typed routed envelope. The host runs the wallet steps automatically, binds the resulting tx hash / signature, and fires the follow-up tool. The LLM just sees the final result.
+
+The mechanics — these are SDK primitives in `aomi_sdk::*` and `host::*`:
+
+```rust
+ToolReturn::route(ok(preview)?)            // preview = JSON the LLM sees while waiting
+    .next(|next| {
+        // Sequential wallet-bound steps. For approve+swap, add both;
+        // only the last one needs `.enforce(...)` since commit_txs
+        // batches whatever's been staged.
+        for (i, args) in stage_args.iter().enumerate() {
+            let step = next.add::<host::StageTx>(args.clone());
+            if i == last_index {
+                step.note("Stage the deposit. Copy data.raw and to BYTE-FOR-BYTE.")
+                    .enforce(EnforcementPolicy::Continue, |enforce| {
+                        enforce.add::<host::SimulateBatch>(json!({}));
+                        enforce
+                            .add::<host::CommitTxs>(json!({ "aa_preference": "auto" }))
+                            .bind_as("transaction_hash");      // ← what we await
+                    });
+            } else {
+                step.note("Stage the ERC-20 approval. Copy data.raw and to byte-for-byte.");
+            }
+        }
+    })
+    .after::<SubmitOrder>(submit_template)   // tool that runs after wallet returns
+    .awaits("transaction_hash")              // alias from .bind_as above
+    .note("Deposit landed on-chain — register the order.")
+    .try_build()
+    .map_err(|e| format!("[platform] route build: {e}"))
+```
+
+**Variants by signing primitive:**
+
+| When the wallet step is | Use | What it binds | Follow-up |
+|---|---|---|---|
+| Send one or more EVM transactions | `host::StageTx` × N → `enforce(SimulateBatch + CommitTxs.bind_as("transaction_hash"))` | tx hash | `.after::<SubmitOrder>(...)` for off-chain confirm; or omit for swap-only flows |
+| Sign EIP-712 typed data (Permit2, CoW, Polymarket L2) | `host::CommitEip712` with `.bind_as("signature")` directly (no SimulateBatch/CommitTxs) | signature hex | `.after::<SubmitSignedOrder>(...)` to POST the signature |
+| Solana sign-and-broadcast | `host::SignTxSolana` with `.bind_as("signed_tx")` | base64 signed tx bytes | `.after::<SubmitTx>(...)` to POST to the venue's RPC |
+
+**`stage_tx` args shape (must be exact):**
+```json
+{
+  "to": "0x...",
+  "description": "Human-readable: 'Khalani USDC deposit'",
+  "data": { "raw": "0xdeadbeef..." },     // raw is REQUIRED if not using `encode`
+  "value": "0",                              // string, wei
+  "gas_limit": null,                         // optional hint
+  "kind": "erc20_approve"                    // optional semantic tag
+}
+```
+
+If the API gives you fully-encoded calldata, use `data: { raw }`. If it gives you (function_signature, args), use `data: { encode: { signature, args } }` and the host ABI-encodes for you.
+
+**Critical discipline:**
+
+- **`bind_as` is the contract.** The follow-up tool's args struct must have a field whose name matches the bound alias (e.g. `transaction_hash: Option<String>`), and the runtime fills it in. Tools that bind `transaction_hash` need their follow-up to accept that field.
+- **Note text matters.** The LLM sees `note(...)` strings. Tell it: "Copy `data.raw` and `to` byte-for-byte. Do not abbreviate, reformat, or truncate calldata." Without this, models hallucinate calldata fragments.
+- **Use the typed `host::*` markers**, not stringly-typed names. `host::StageTx`, `host::CommitTxs`, `host::SimulateBatch`, `host::CommitEip712`, `host::SignTxSolana` — the macro turns these into the canonical tool names; passing wrong strings silently breaks the route.
+- **`EnforcementPolicy::Continue` vs `::Stop`**: `Continue` lets the route move on to `.after::<>` after enforcement runs. `Stop` halts the chain (used when one of the enforced steps is itself the terminal outcome).
+- **Don't put the wallet handoff in a side-tool.** A separate `submit_signed_tx` that the LLM has to remember to call manually defeats the whole point. The submit is `.after::<>(...)` of the build tool.
+
+**When NOT to use this pattern:**
+- The platform has no on-chain step (pure REST API).
+- The transaction is fully off-chain (database update). `stage_tx` is for EVM signing.
+- You're returning a quote only and the user explicitly didn't ask to execute. (`get_quote` is read-only; the routed pattern belongs on the `_swap` / `_bridge` / `_place_order` composite.)
+
 #### Code patterns
 
 - Keep the `<Platform>App` marker struct (it's the type the macro references).
@@ -220,24 +293,33 @@ If it fails:
 
 ### 6.5. Seed the e2e test
 
-Write `apps/<platform>/test.json` with **just** the user_story portion:
+Write `apps/<platform>/test.json` with **just** the `user_story` portion. **One test per app** — the harness runs a single test; pick the highest-value happy path.
 
 ```json
 {
-  "user_story": "<one-sentence happy path that exercises the highest-value composite tool>"
+  "user_story": "<one-sentence happy-path scenario the user might actually type>"
 }
 ```
 
-The user_story should be a **terse, natural-language scenario the user might actually type**, exercising the most important user-facing flow you just built. Aim for one sentence:
-- Swap/bridge: "Swap 100 USDC for ETH on Ethereum mainnet"
-- Lending/yield: "Find the best USDC lending APY across morpho's blue markets"
-- Read-only data: "Get the current TVL of Aave"
-- Prediction: "Search Polymarket for an active election market and show me the YES price"
-- Perps: "Show my Hyperliquid positions for 0xdead..."
+Pick the scenario that exercises the **most important composite tool** you just built:
+- Swap/bridge: "Swap X token for Y on chain Z" (or bridge variant)
+- Lending/yield: "Find the best APY for asset X and supply"
+- Price oracle / data: "Get the current TVL of protocol X" or "Find the highest-APY pools for asset Y"
+- Perps / CEX: "Show price+depth for X-PERP" or "Place a limit order to buy 1 ETH at $X"
+- Prediction: "Search markets about topic X and place a YES bet on the top one"
+- Social: "Find user @X and show their recent posts"
 
 Don't write the full test (turns, expected_tools, final_assertion) — the `aomi-app-e2e-tester` skill expands those. Your job is just the seed.
 
-If `apps/<platform>/test.json` already exists with a `user_story`, leave it alone (the human or test author may have refined it).
+If `apps/<platform>/test.json` already exists with a `user_story`, leave it alone — preserve any human/test-author refinement.
+
+#### Example seed (DefiLlama)
+
+```json
+{
+  "user_story": "Find the biggest lending protocol on Ethereum and show me its current TVL and recent trend"
+}
+```
 
 ### 7. Report
 
@@ -262,6 +344,7 @@ Suggest the user run **`/aomi-app-e2e-tester <platform>`** to expand the test an
 - ❌ **Touching `ext/src/<platform>/`.** Generated client is regenerated by `aomi-build gen-client`; never hand-edit it.
 - ❌ **Asking the user (LLM) for values you can compute.** Timestamps, polling intervals, page sizes, default chains, retry budgets — derive these in Rust.
 - ❌ **Adding `*Summary` projection structs in `tool.rs` to drop fields the LLM doesn't need.** Trim those fields **at the spec layer** instead — delete them from `ext/specs/<platform>.yaml` and `aomi-build gen-client --force`. The typed Rust struct then IS the slim shape, and `tool.rs` stays `ok(response)`. The exception (one endpoint serving multiple tool intents needing different shapes) is rare and needs justification.
+- ❌ **Returning raw `{ approve_tx, swap_tx, status_url }` JSON for the LLM to orchestrate.** When an off-chain build returns a transaction (or signature payload) the user must sign, wrap the wallet step in a `ToolReturn::route(...)` chain with `host::StageTx` (or `host::CommitEip712` / `host::SignTxSolana`) and `.enforce(SimulateBatch + CommitTxs.bind_as("transaction_hash"))`. Use `.after::<NextTool>(args).awaits("transaction_hash")` for the off-chain confirm step. The LLM should never see "now stage these txs in this order" instructions in your tool description — that's exactly what the route handles. See "Wallet handoff" section above.
 - ❌ **Unbounded loops.** Every poll loop has a deadline AND an iteration cap. No `loop { … sleep(2).await }` without an exit condition that fires on a wall-clock deadline.
 - ❌ **PREAMBLE drift.** Don't write tool descriptions and forget to update PREAMBLE. After each tool change, re-read PREAMBLE and confirm it still describes what you shipped.
 

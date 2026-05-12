@@ -1,7 +1,12 @@
 //! Shared client and API-layer types for Aomi apps that wrap external services.
 //!
 //! Each provider lives behind a Cargo feature so apps only compile in the
-//! deps they actually need.
+//! deps they actually need. The `hmac-auth` feature enables a cross-cutting
+//! [`hmac_auth`] module of HMAC-SHA256 + URL/timestamp helpers shared by
+//! every venue that signs requests.
+
+#[cfg(feature = "hmac-auth")]
+pub mod hmac_auth;
 
 #[cfg(feature = "across")]
 pub mod across;

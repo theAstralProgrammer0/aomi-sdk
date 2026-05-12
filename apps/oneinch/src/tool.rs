@@ -178,13 +178,44 @@ fn is_native(addr: &str) -> bool {
     addr.eq_ignore_ascii_case(NATIVE_SENTINEL)
 }
 
+/// Build the `host::stage_tx` args object from a 1inch `Transaction`.
+/// 1inch returns fully-encoded calldata, so we use `data: { raw }` (the host
+/// will not re-encode). Optional fields default conservatively.
+fn stage_tx_args(
+    tx: &aomi_ext::oneinch::types::Transaction,
+    description: &str,
+    kind: &str,
+) -> Result<Value, String> {
+    let to = tx
+        .to
+        .clone()
+        .ok_or_else(|| "[1inch] tx missing `to`".to_string())?;
+    let data = tx
+        .data
+        .clone()
+        .ok_or_else(|| "[1inch] tx missing `data`".to_string())?;
+    let value = tx.value.clone().unwrap_or_else(|| "0".to_string());
+    Ok(json!({
+        "to": to,
+        "description": description,
+        "data": { "raw": data },
+        "value": value,
+        "gas_limit": tx.gas,
+        "kind": kind,
+    }))
+}
+
 impl DynAomiTool for BuildSwapTx {
     type App = OneinchApp;
     type Args = BuildSwapTxArgs;
     const NAME: &'static str = "oneinch_build_swap_tx";
-    const DESCRIPTION: &'static str = "Use when the user is ready to execute a 1inch swap. Composite tool: fetches a quote, checks ERC-20 allowance for the 1inch router (skipped for native asset sells), and returns the executable swap tx (`to`, `data`, `value`, `gas`). If allowance is insufficient, also returns an `approve_tx` the user must sign and submit BEFORE the swap. Stage transactions via `stage_tx` with `data: { raw }`, simulate, then `commit_tx` — do not re-encode.";
+    const DESCRIPTION: &'static str = "Use when the user is ready to execute a 1inch swap. Composite tool: fetches a quote, checks ERC-20 allowance for the 1inch router (skipped for native sells), routes the (optional) approval and swap transactions through the host wallet, and binds the resulting tx hash. The LLM does not need to call stage_tx, simulate, or commit — the route handles it.";
 
-    fn run(_app: &OneinchApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
+    fn run_with_routes(
+        _app: &OneinchApp,
+        args: Self::Args,
+        _ctx: DynToolCallCtx,
+    ) -> Result<ToolReturn, String> {
         let api_key = resolve_key(args.api_key.as_deref())?;
         let chain_id = args.chain_id.unwrap_or(1);
         validate_chain(chain_id)?;
@@ -198,17 +229,15 @@ impl DynAomiTool for BuildSwapTx {
         let amount = args.amount.clone();
         let from = args.from.clone();
 
-        let result = runtime.block_on(async move {
-            // 1. Quote.
+        // 1. Quote + (optional) approve + swap, all in one runtime hop.
+        let (quote, approve_tx_opt, swap) = runtime.block_on(async move {
             let quote = client
                 .get_quote(chain_id, amount.as_str(), dst.as_str(), None, src.as_str())
                 .await
                 .map_err(|e| format!("[1inch] quote step: {e}"))?
                 .into_inner();
 
-            // 2. Allowance + optional approve_tx (skip for native sells).
-            let mut approve_tx: Option<Value> = None;
-            let mut allowance_value: Option<String> = None;
+            let mut approve_tx_opt: Option<aomi_ext::oneinch::types::Transaction> = None;
             if !is_native(&src) {
                 let allow = client
                     .get_allowance(chain_id, src.as_str(), from.as_str())
@@ -216,26 +245,21 @@ impl DynAomiTool for BuildSwapTx {
                     .map_err(|e| format!("[1inch] allowance step: {e}"))?
                     .into_inner();
                 let current = allow.allowance.clone().unwrap_or_default();
-                allowance_value = Some(current.clone());
-
                 let needs_approve = match current.parse::<u128>() {
                     Ok(v) => v < amount_u,
-                    Err(_) => true, // unparseable -> assume insufficient
+                    Err(_) => true, // unparseable → assume insufficient
                 };
                 if needs_approve {
-                    let approve = client
-                        .get_approve_transaction(chain_id, Some(amount.as_str()), src.as_str())
-                        .await
-                        .map_err(|e| format!("[1inch] approve_tx step: {e}"))?
-                        .into_inner();
-                    approve_tx = Some(
-                        serde_json::to_value(approve)
-                            .map_err(|e| format!("[1inch] approve_tx serialize: {e}"))?,
+                    approve_tx_opt = Some(
+                        client
+                            .get_approve_transaction(chain_id, Some(amount.as_str()), src.as_str())
+                            .await
+                            .map_err(|e| format!("[1inch] approve_tx step: {e}"))?
+                            .into_inner(),
                     );
                 }
             }
 
-            // 3. Swap tx.
             let swap = client
                 .get_swap(
                     chain_id,
@@ -249,18 +273,72 @@ impl DynAomiTool for BuildSwapTx {
                 .await
                 .map_err(|e| format!("[1inch] swap step: {e}"))?
                 .into_inner();
-
-            Ok::<_, String>(json!({
-                "chain_id": chain_id,
-                "slippage": slippage,
-                "quote": quote,
-                "allowance": allowance_value,
-                "approve_tx": approve_tx,
-                "swap": swap,
-            }))
+            Ok::<_, String>((quote, approve_tx_opt, swap))
         })?;
 
-        ok(result)
+        // 2. Build the routed wallet steps.
+        let swap_tx = swap
+            .tx
+            .clone()
+            .ok_or_else(|| "[1inch] swap response missing `tx`".to_string())?;
+        let mut stage_args: Vec<Value> = Vec::new();
+        if let Some(ref approve_tx) = approve_tx_opt {
+            stage_args.push(stage_tx_args(
+                approve_tx,
+                &format!("1inch ERC-20 approval for {} (chain {chain_id})", args.src),
+                "erc20_approve",
+            )?);
+        }
+        stage_args.push(stage_tx_args(
+            &swap_tx,
+            &format!(
+                "1inch swap {} → {} on chain {chain_id} (slippage {slippage}%)",
+                args.src, args.dst
+            ),
+            "swap",
+        )?);
+        let last_index = stage_args.len() - 1;
+
+        // 3. Preview the LLM sees while the wallet runs.
+        let preview = json!({
+            "status": "awaiting_wallet",
+            "chain_id": chain_id,
+            "slippage": slippage,
+            "tx_count": stage_args.len(),
+            "needs_approval": approve_tx_opt.is_some(),
+            "quote": quote,
+        });
+
+        ToolReturn::route(ok(preview)?)
+            .next(|next| {
+                for (i, args) in stage_args.iter().enumerate() {
+                    let step = next.add::<host::StageTx>(args.clone());
+                    if i == last_index {
+                        step.note(
+                            "Stage the 1inch swap. CRITICAL: copy `data.raw` and `to` BYTE-FOR-BYTE \
+                             from the args below — do not abbreviate, reformat, or truncate the \
+                             calldata. After this step the host automatically simulates and commits \
+                             the staged txs and waits for the wallet.",
+                        )
+                        .enforce(EnforcementPolicy::Continue, |enforce| {
+                            enforce.add::<host::SimulateBatch>(json!({}));
+                            enforce
+                                .add::<host::CommitTxs>(json!({ "aa_preference": "auto" }))
+                                .bind_as("transaction_hash");
+                        });
+                    } else {
+                        step.note(
+                            "Stage the ERC-20 approval. CRITICAL: copy `data.raw` and `to` \
+                             byte-for-byte; do not abbreviate or modify the calldata.",
+                        );
+                    }
+                }
+            })
+            // No `.after::<>` / `.awaits` — 1inch is atomic per chain, so once
+            // commit_txs lands the swap is done. The bound `transaction_hash`
+            // ends the route.
+            .try_build()
+            .map_err(|e| format!("[1inch] route build: {e}"))
     }
 }
 
