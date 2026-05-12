@@ -181,9 +181,19 @@ fn is_native(addr: &str) -> bool {
 /// Build the `host::stage_tx` args object from a 1inch `Transaction`.
 /// 1inch returns fully-encoded calldata, so we use `data: { raw }` (the host
 /// will not re-encode). Optional fields default conservatively.
-fn stage_tx_args(tx: &aomi_ext::oneinch::types::Transaction, description: &str, kind: &str) -> Result<Value, String> {
-    let to = tx.to.clone().ok_or_else(|| "[1inch] tx missing `to`".to_string())?;
-    let data = tx.data.clone().ok_or_else(|| "[1inch] tx missing `data`".to_string())?;
+fn stage_tx_args(
+    tx: &aomi_ext::oneinch::types::Transaction,
+    description: &str,
+    kind: &str,
+) -> Result<Value, String> {
+    let to = tx
+        .to
+        .clone()
+        .ok_or_else(|| "[1inch] tx missing `to`".to_string())?;
+    let data = tx
+        .data
+        .clone()
+        .ok_or_else(|| "[1inch] tx missing `data`".to_string())?;
     let value = tx.value.clone().unwrap_or_else(|| "0".to_string());
     Ok(json!({
         "to": to,
@@ -267,7 +277,10 @@ impl DynAomiTool for BuildSwapTx {
         })?;
 
         // 2. Build the routed wallet steps.
-        let swap_tx = swap.tx.clone().ok_or_else(|| "[1inch] swap response missing `tx`".to_string())?;
+        let swap_tx = swap
+            .tx
+            .clone()
+            .ok_or_else(|| "[1inch] swap response missing `tx`".to_string())?;
         let mut stage_args: Vec<Value> = Vec::new();
         if let Some(ref approve_tx) = approve_tx_opt {
             stage_args.push(stage_tx_args(
