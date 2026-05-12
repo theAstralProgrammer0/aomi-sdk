@@ -1,7 +1,7 @@
 #[allow(unused_imports)]
 pub use progenitor_client::{ByteStream, ClientInfo, Error, ResponseValue};
 #[allow(unused_imports)]
-use progenitor_client::{encode_path, ClientHooks, OperationInfo, RequestBuilderExt};
+use progenitor_client::{ClientHooks, OperationInfo, RequestBuilderExt, encode_path};
 /// Types used as operation parameters and responses.
 #[allow(clippy::all)]
 pub mod types {
@@ -11,18 +11,12 @@ pub mod types {
         pub struct ConversionError(::std::borrow::Cow<'static, str>);
         impl ::std::error::Error for ConversionError {}
         impl ::std::fmt::Display for ConversionError {
-            fn fmt(
-                &self,
-                f: &mut ::std::fmt::Formatter<'_>,
-            ) -> Result<(), ::std::fmt::Error> {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> Result<(), ::std::fmt::Error> {
                 ::std::fmt::Display::fmt(&self.0, f)
             }
         }
         impl ::std::fmt::Debug for ConversionError {
-            fn fmt(
-                &self,
-                f: &mut ::std::fmt::Formatter<'_>,
-            ) -> Result<(), ::std::fmt::Error> {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> Result<(), ::std::fmt::Error> {
                 ::std::fmt::Debug::fmt(&self.0, f)
             }
         }
@@ -55,24 +49,21 @@ pub mod types {
     );
     impl ::std::ops::Deref for AmmMarketResponseDto {
         type Target = ::serde_json::Map<::std::string::String, ::serde_json::Value>;
-        fn deref(
-            &self,
-        ) -> &::serde_json::Map<::std::string::String, ::serde_json::Value> {
+        fn deref(&self) -> &::serde_json::Map<::std::string::String, ::serde_json::Value> {
             &self.0
         }
     }
     impl ::std::convert::From<AmmMarketResponseDto>
-    for ::serde_json::Map<::std::string::String, ::serde_json::Value> {
+        for ::serde_json::Map<::std::string::String, ::serde_json::Value>
+    {
         fn from(value: AmmMarketResponseDto) -> Self {
             value.0
         }
     }
-    impl ::std::convert::From<
-        ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-    > for AmmMarketResponseDto {
-        fn from(
-            value: ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-        ) -> Self {
+    impl ::std::convert::From<::serde_json::Map<::std::string::String, ::serde_json::Value>>
+        for AmmMarketResponseDto
+    {
+        fn from(value: ::serde_json::Map<::std::string::String, ::serde_json::Value>) -> Self {
             Self(value)
         }
     }
@@ -287,9 +278,7 @@ pub mod types {
             default,
             skip_serializing_if = "::std::option::Option::is_none"
         )]
-        pub last_used_at: ::std::option::Option<
-            ::chrono::DateTime<::chrono::offset::Utc>,
-        >,
+        pub last_used_at: ::std::option::Option<::chrono::DateTime<::chrono::offset::Utc>>,
     }
     impl ::std::default::Default for ApiKeyControllerGetActiveKeyResponse {
         fn default() -> Self {
@@ -419,9 +408,7 @@ pub mod types {
         pub label: ::std::option::Option<::std::string::String>,
         ///Last time the token was used for authentication
         #[serde(rename = "lastUsedAt")]
-        pub last_used_at: ::std::option::Option<
-            ::chrono::DateTime<::chrono::offset::Utc>,
-        >,
+        pub last_used_at: ::std::option::Option<::chrono::DateTime<::chrono::offset::Utc>>,
         ///Granted scopes
         pub scopes: ::std::vec::Vec<::std::string::String>,
         ///Unique token identifier
@@ -535,17 +522,14 @@ pub mod types {
             &self.0
         }
     }
-    impl ::std::convert::From<BatchOrderStatusItemDtoClientOrderId>
-    for ::std::string::String {
+    impl ::std::convert::From<BatchOrderStatusItemDtoClientOrderId> for ::std::string::String {
         fn from(value: BatchOrderStatusItemDtoClientOrderId) -> Self {
             value.0
         }
     }
     impl ::std::str::FromStr for BatchOrderStatusItemDtoClientOrderId {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             if value.chars().count() > 128usize {
                 return Err("longer than 128 characters".into());
             }
@@ -554,14 +538,11 @@ pub mod types {
     }
     impl ::std::convert::TryFrom<&str> for BatchOrderStatusItemDtoClientOrderId {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for BatchOrderStatusItemDtoClientOrderId {
+    impl ::std::convert::TryFrom<&::std::string::String> for BatchOrderStatusItemDtoClientOrderId {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -569,8 +550,7 @@ pub mod types {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for BatchOrderStatusItemDtoClientOrderId {
+    impl ::std::convert::TryFrom<::std::string::String> for BatchOrderStatusItemDtoClientOrderId {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -832,7 +812,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum BatchOrderStatusResultDtoStatus {
         #[serde(rename = "found")]
@@ -853,9 +833,7 @@ pub mod types {
     }
     impl ::std::str::FromStr for BatchOrderStatusResultDtoStatus {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "found" => Ok(Self::Found),
                 "not_found" => Ok(Self::NotFound),
@@ -866,14 +844,11 @@ pub mod types {
     }
     impl ::std::convert::TryFrom<&str> for BatchOrderStatusResultDtoStatus {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for BatchOrderStatusResultDtoStatus {
+    impl ::std::convert::TryFrom<&::std::string::String> for BatchOrderStatusResultDtoStatus {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -881,8 +856,7 @@ pub mod types {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for BatchOrderStatusResultDtoStatus {
+    impl ::std::convert::TryFrom<::std::string::String> for BatchOrderStatusResultDtoStatus {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -1033,9 +1007,7 @@ pub mod types {
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct BrowseActiveMarketsResponseDto {
         ///Array of active markets with complete trading data including volume, liquidity, and recent feed events
-        pub data: ::std::vec::Vec<
-            ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-        >,
+        pub data: ::std::vec::Vec<::serde_json::Map<::std::string::String, ::serde_json::Value>>,
         ///Total number of active markets available for pagination
         #[serde(rename = "totalMarketsCount")]
         pub total_markets_count: f64,
@@ -1156,9 +1128,8 @@ pub mod types {
         Variant1 {
             ///Client-provided order IDs from order creation. Provide exactly one of orderIds or clientOrderIds.
             #[serde(rename = "clientOrderIds")]
-            client_order_ids: ::std::vec::Vec<
-                CancelOrderBatchCombinedDtoVariant1ClientOrderIdsItem,
-            >,
+            client_order_ids:
+                ::std::vec::Vec<CancelOrderBatchCombinedDtoVariant1ClientOrderIdsItem>,
         },
     }
     ///`CancelOrderBatchCombinedDtoVariant1ClientOrderIdsItem`
@@ -1174,9 +1145,7 @@ pub mod types {
     /// </details>
     #[derive(::serde::Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
     #[serde(transparent)]
-    pub struct CancelOrderBatchCombinedDtoVariant1ClientOrderIdsItem(
-        ::std::string::String,
-    );
+    pub struct CancelOrderBatchCombinedDtoVariant1ClientOrderIdsItem(::std::string::String);
     impl ::std::ops::Deref for CancelOrderBatchCombinedDtoVariant1ClientOrderIdsItem {
         type Target = ::std::string::String;
         fn deref(&self) -> &::std::string::String {
@@ -1184,33 +1153,30 @@ pub mod types {
         }
     }
     impl ::std::convert::From<CancelOrderBatchCombinedDtoVariant1ClientOrderIdsItem>
-    for ::std::string::String {
+        for ::std::string::String
+    {
         fn from(value: CancelOrderBatchCombinedDtoVariant1ClientOrderIdsItem) -> Self {
             value.0
         }
     }
     impl ::std::str::FromStr for CancelOrderBatchCombinedDtoVariant1ClientOrderIdsItem {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             if value.chars().count() > 128usize {
                 return Err("longer than 128 characters".into());
             }
             Ok(Self(value.to_string()))
         }
     }
-    impl ::std::convert::TryFrom<&str>
-    for CancelOrderBatchCombinedDtoVariant1ClientOrderIdsItem {
+    impl ::std::convert::TryFrom<&str> for CancelOrderBatchCombinedDtoVariant1ClientOrderIdsItem {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
     impl ::std::convert::TryFrom<&::std::string::String>
-    for CancelOrderBatchCombinedDtoVariant1ClientOrderIdsItem {
+        for CancelOrderBatchCombinedDtoVariant1ClientOrderIdsItem
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -1219,7 +1185,8 @@ pub mod types {
         }
     }
     impl ::std::convert::TryFrom<::std::string::String>
-    for CancelOrderBatchCombinedDtoVariant1ClientOrderIdsItem {
+        for CancelOrderBatchCombinedDtoVariant1ClientOrderIdsItem
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -1227,8 +1194,7 @@ pub mod types {
             value.parse()
         }
     }
-    impl<'de> ::serde::Deserialize<'de>
-    for CancelOrderBatchCombinedDtoVariant1ClientOrderIdsItem {
+    impl<'de> ::serde::Deserialize<'de> for CancelOrderBatchCombinedDtoVariant1ClientOrderIdsItem {
         fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
         where
             D: ::serde::Deserializer<'de>,
@@ -1415,17 +1381,14 @@ pub mod types {
             &self.0
         }
     }
-    impl ::std::convert::From<CancelOrderCombinedDtoVariant1ClientOrderId>
-    for ::std::string::String {
+    impl ::std::convert::From<CancelOrderCombinedDtoVariant1ClientOrderId> for ::std::string::String {
         fn from(value: CancelOrderCombinedDtoVariant1ClientOrderId) -> Self {
             value.0
         }
     }
     impl ::std::str::FromStr for CancelOrderCombinedDtoVariant1ClientOrderId {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             if value.chars().count() > 128usize {
                 return Err("longer than 128 characters".into());
             }
@@ -1434,14 +1397,13 @@ pub mod types {
     }
     impl ::std::convert::TryFrom<&str> for CancelOrderCombinedDtoVariant1ClientOrderId {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
     impl ::std::convert::TryFrom<&::std::string::String>
-    for CancelOrderCombinedDtoVariant1ClientOrderId {
+        for CancelOrderCombinedDtoVariant1ClientOrderId
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -1450,7 +1412,8 @@ pub mod types {
         }
     }
     impl ::std::convert::TryFrom<::std::string::String>
-    for CancelOrderCombinedDtoVariant1ClientOrderId {
+        for CancelOrderCombinedDtoVariant1ClientOrderId
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -1550,7 +1513,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum CancelOrderFailureReason {
         #[serde(rename = "ORDER_NOT_FOUND")]
@@ -1568,9 +1531,7 @@ pub mod types {
     }
     impl ::std::str::FromStr for CancelOrderFailureReason {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "ORDER_NOT_FOUND" => Ok(Self::OrderNotFound),
                 "UNKNOWN_ERROR" => Ok(Self::UnknownError),
@@ -1580,9 +1541,7 @@ pub mod types {
     }
     impl ::std::convert::TryFrom<&str> for CancelOrderFailureReason {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -1795,24 +1754,21 @@ pub mod types {
     );
     impl ::std::ops::Deref for ClobMarketResponseDto {
         type Target = ::serde_json::Map<::std::string::String, ::serde_json::Value>;
-        fn deref(
-            &self,
-        ) -> &::serde_json::Map<::std::string::String, ::serde_json::Value> {
+        fn deref(&self) -> &::serde_json::Map<::std::string::String, ::serde_json::Value> {
             &self.0
         }
     }
     impl ::std::convert::From<ClobMarketResponseDto>
-    for ::serde_json::Map<::std::string::String, ::serde_json::Value> {
+        for ::serde_json::Map<::std::string::String, ::serde_json::Value>
+    {
         fn from(value: ClobMarketResponseDto) -> Self {
             value.0
         }
     }
-    impl ::std::convert::From<
-        ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-    > for ClobMarketResponseDto {
-        fn from(
-            value: ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-        ) -> Self {
+    impl ::std::convert::From<::serde_json::Map<::std::string::String, ::serde_json::Value>>
+        for ClobMarketResponseDto
+    {
+        fn from(value: ::serde_json::Map<::std::string::String, ::serde_json::Value>) -> Self {
             Self(value)
         }
     }
@@ -1886,10 +1842,7 @@ pub mod types {
         pub rewards: ::serde_json::Map<::std::string::String, ::serde_json::Value>,
         ///Token balances in token decimals
         #[serde(rename = "tokensBalance")]
-        pub tokens_balance: ::serde_json::Map<
-            ::std::string::String,
-            ::serde_json::Value,
-        >,
+        pub tokens_balance: ::serde_json::Map<::std::string::String, ::serde_json::Value>,
     }
     ///`CreateOrderDto`
     ///
@@ -2016,9 +1969,7 @@ pub mod types {
     }
     impl ::std::str::FromStr for CreateOrderDtoClientOrderId {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             if value.chars().count() > 128usize {
                 return Err("longer than 128 characters".into());
             }
@@ -2027,14 +1978,11 @@ pub mod types {
     }
     impl ::std::convert::TryFrom<&str> for CreateOrderDtoClientOrderId {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for CreateOrderDtoClientOrderId {
+    impl ::std::convert::TryFrom<&::std::string::String> for CreateOrderDtoClientOrderId {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -2090,7 +2038,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum CreateOrderDtoOrderType {
         #[serde(rename = "FOK")]
@@ -2108,9 +2056,7 @@ pub mod types {
     }
     impl ::std::str::FromStr for CreateOrderDtoOrderType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "FOK" => Ok(Self::Fok),
                 "GTC" => Ok(Self::Gtc),
@@ -2120,9 +2066,7 @@ pub mod types {
     }
     impl ::std::convert::TryFrom<&str> for CreateOrderDtoOrderType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -2212,17 +2156,14 @@ pub mod types {
             &self.0
         }
     }
-    impl ::std::convert::From<CreatePartnerAccountRequestDisplayName>
-    for ::std::string::String {
+    impl ::std::convert::From<CreatePartnerAccountRequestDisplayName> for ::std::string::String {
         fn from(value: CreatePartnerAccountRequestDisplayName) -> Self {
             value.0
         }
     }
     impl ::std::str::FromStr for CreatePartnerAccountRequestDisplayName {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             if value.chars().count() > 44usize {
                 return Err("longer than 44 characters".into());
             }
@@ -2231,14 +2172,11 @@ pub mod types {
     }
     impl ::std::convert::TryFrom<&str> for CreatePartnerAccountRequestDisplayName {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for CreatePartnerAccountRequestDisplayName {
+    impl ::std::convert::TryFrom<&::std::string::String> for CreatePartnerAccountRequestDisplayName {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -2246,8 +2184,7 @@ pub mod types {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for CreatePartnerAccountRequestDisplayName {
+    impl ::std::convert::TryFrom<::std::string::String> for CreatePartnerAccountRequestDisplayName {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -2387,7 +2324,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum CreateUserDtoClient {
         #[serde(rename = "eoa")]
@@ -2408,9 +2345,7 @@ pub mod types {
     }
     impl ::std::str::FromStr for CreateUserDtoClient {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "eoa" => Ok(Self::Eoa),
                 "etherspot" => Ok(Self::Etherspot),
@@ -2421,9 +2356,7 @@ pub mod types {
     }
     impl ::std::convert::TryFrom<&str> for CreateUserDtoClient {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -2599,9 +2532,7 @@ pub mod types {
     }
     impl ::std::str::FromStr for DeriveApiTokenRequestLabel {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             if value.chars().count() > 128usize {
                 return Err("longer than 128 characters".into());
             }
@@ -2610,9 +2541,7 @@ pub mod types {
     }
     impl ::std::convert::TryFrom<&str> for DeriveApiTokenRequestLabel {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -2669,7 +2598,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum DeriveApiTokenRequestScopesItem {
         #[serde(rename = "trading")]
@@ -2690,9 +2619,7 @@ pub mod types {
     }
     impl ::std::str::FromStr for DeriveApiTokenRequestScopesItem {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "trading" => Ok(Self::Trading),
                 "account_creation" => Ok(Self::AccountCreation),
@@ -2703,14 +2630,11 @@ pub mod types {
     }
     impl ::std::convert::TryFrom<&str> for DeriveApiTokenRequestScopesItem {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for DeriveApiTokenRequestScopesItem {
+    impl ::std::convert::TryFrom<&::std::string::String> for DeriveApiTokenRequestScopesItem {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -2718,8 +2642,7 @@ pub mod types {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for DeriveApiTokenRequestScopesItem {
+    impl ::std::convert::TryFrom<::std::string::String> for DeriveApiTokenRequestScopesItem {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -3287,7 +3210,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum HistoryEntryDtoStrategy {
         Buy,
@@ -3323,9 +3246,7 @@ pub mod types {
     }
     impl ::std::str::FromStr for HistoryEntryDtoStrategy {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "Buy" => Ok(Self::Buy),
                 "Sell" => Ok(Self::Sell),
@@ -3343,9 +3264,7 @@ pub mod types {
     }
     impl ::std::convert::TryFrom<&str> for HistoryEntryDtoStrategy {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -3952,7 +3871,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum HistoryTradeDtoStrategy {
         Buy,
@@ -3968,9 +3887,7 @@ pub mod types {
     }
     impl ::std::str::FromStr for HistoryTradeDtoStrategy {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "Buy" => Ok(Self::Buy),
                 "Sell" => Ok(Self::Sell),
@@ -3980,9 +3897,7 @@ pub mod types {
     }
     impl ::std::convert::TryFrom<&str> for HistoryTradeDtoStrategy {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -4063,29 +3978,24 @@ pub mod types {
     /// </details>
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     #[serde(transparent)]
-    pub struct MakerMatch(
-        pub ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-    );
+    pub struct MakerMatch(pub ::serde_json::Map<::std::string::String, ::serde_json::Value>);
     impl ::std::ops::Deref for MakerMatch {
         type Target = ::serde_json::Map<::std::string::String, ::serde_json::Value>;
-        fn deref(
-            &self,
-        ) -> &::serde_json::Map<::std::string::String, ::serde_json::Value> {
+        fn deref(&self) -> &::serde_json::Map<::std::string::String, ::serde_json::Value> {
             &self.0
         }
     }
     impl ::std::convert::From<MakerMatch>
-    for ::serde_json::Map<::std::string::String, ::serde_json::Value> {
+        for ::serde_json::Map<::std::string::String, ::serde_json::Value>
+    {
         fn from(value: MakerMatch) -> Self {
             value.0
         }
     }
-    impl ::std::convert::From<
-        ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-    > for MakerMatch {
-        fn from(
-            value: ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-        ) -> Self {
+    impl ::std::convert::From<::serde_json::Map<::std::string::String, ::serde_json::Value>>
+        for MakerMatch
+    {
+        fn from(value: ::serde_json::Map<::std::string::String, ::serde_json::Value>) -> Self {
             Self(value)
         }
     }
@@ -4247,9 +4157,8 @@ pub mod types {
         ///The address of the FixedProductMarketMaker contract.
         pub address: ::std::option::Option<MarketAddress>,
         ///The bytes32 conditionId of the market, representing the conditions defined on condition preparation.
-        pub condition_id: ::std::option::Option<
-            ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-        >,
+        pub condition_id:
+            ::std::option::Option<::serde_json::Map<::std::string::String, ::serde_json::Value>>,
         ///The deadline of the market.
         pub deadline: ::std::string::String,
         ///The description of the market.
@@ -4262,20 +4171,16 @@ pub mod types {
         ///The number of outcomes in the market.
         pub outcome_slot_count: f64,
         ///The oracle payout numerators that the oracle reported.
-        pub payout_numerators: ::std::option::Option<
-            ::std::vec::Vec<::std::string::String>,
-        >,
+        pub payout_numerators: ::std::option::Option<::std::vec::Vec<::std::string::String>>,
         ///Array of position IDs (max 2 elements)
-        pub position_ids: ::std::option::Option<
-            ::std::vec::Vec<::std::vec::Vec<::serde_json::Value>>,
-        >,
+        pub position_ids:
+            ::std::option::Option<::std::vec::Vec<::std::vec::Vec<::serde_json::Value>>>,
         pub priority_index: f64,
         #[serde(rename = "proxyTitle")]
         pub proxy_title: ::std::option::Option<MarketProxyTitle>,
         ///The bytes32 parsed title of the market.
-        pub question_id: ::std::option::Option<
-            ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-        >,
+        pub question_id:
+            ::std::option::Option<::serde_json::Map<::std::string::String, ::serde_json::Value>>,
         #[serde(rename = "resolutionTxHash")]
         pub resolution_tx_hash: ::std::string::String,
         ///Indicates the status of the market.
@@ -4317,9 +4222,7 @@ pub mod types {
     }
     impl ::std::str::FromStr for MarketAddress {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             if value.chars().count() > 42usize {
                 return Err("longer than 42 characters".into());
             }
@@ -4331,9 +4234,7 @@ pub mod types {
     }
     impl ::std::convert::TryFrom<&str> for MarketAddress {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -4432,7 +4333,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum MarketControllerGetActiveMarkets0AutomationType {
         #[serde(rename = "manual")]
@@ -4453,9 +4354,7 @@ pub mod types {
     }
     impl ::std::str::FromStr for MarketControllerGetActiveMarkets0AutomationType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "manual" => Ok(Self::Manual),
                 "lumy" => Ok(Self::Lumy),
@@ -4464,17 +4363,15 @@ pub mod types {
             }
         }
     }
-    impl ::std::convert::TryFrom<&str>
-    for MarketControllerGetActiveMarkets0AutomationType {
+    impl ::std::convert::TryFrom<&str> for MarketControllerGetActiveMarkets0AutomationType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
     impl ::std::convert::TryFrom<&::std::string::String>
-    for MarketControllerGetActiveMarkets0AutomationType {
+        for MarketControllerGetActiveMarkets0AutomationType
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -4483,7 +4380,8 @@ pub mod types {
         }
     }
     impl ::std::convert::TryFrom<::std::string::String>
-    for MarketControllerGetActiveMarkets0AutomationType {
+        for MarketControllerGetActiveMarkets0AutomationType
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -4516,7 +4414,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum MarketControllerGetActiveMarkets0TradeType {
         #[serde(rename = "amm")]
@@ -4537,9 +4435,7 @@ pub mod types {
     }
     impl ::std::str::FromStr for MarketControllerGetActiveMarkets0TradeType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "amm" => Ok(Self::Amm),
                 "clob" => Ok(Self::Clob),
@@ -4550,14 +4446,13 @@ pub mod types {
     }
     impl ::std::convert::TryFrom<&str> for MarketControllerGetActiveMarkets0TradeType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
     impl ::std::convert::TryFrom<&::std::string::String>
-    for MarketControllerGetActiveMarkets0TradeType {
+        for MarketControllerGetActiveMarkets0TradeType
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -4565,8 +4460,7 @@ pub mod types {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for MarketControllerGetActiveMarkets0TradeType {
+    impl ::std::convert::TryFrom<::std::string::String> for MarketControllerGetActiveMarkets0TradeType {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -4599,7 +4493,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum MarketControllerGetActiveMarkets1AutomationType {
         #[serde(rename = "manual")]
@@ -4620,9 +4514,7 @@ pub mod types {
     }
     impl ::std::str::FromStr for MarketControllerGetActiveMarkets1AutomationType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "manual" => Ok(Self::Manual),
                 "lumy" => Ok(Self::Lumy),
@@ -4631,17 +4523,15 @@ pub mod types {
             }
         }
     }
-    impl ::std::convert::TryFrom<&str>
-    for MarketControllerGetActiveMarkets1AutomationType {
+    impl ::std::convert::TryFrom<&str> for MarketControllerGetActiveMarkets1AutomationType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
     impl ::std::convert::TryFrom<&::std::string::String>
-    for MarketControllerGetActiveMarkets1AutomationType {
+        for MarketControllerGetActiveMarkets1AutomationType
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -4650,7 +4540,8 @@ pub mod types {
         }
     }
     impl ::std::convert::TryFrom<::std::string::String>
-    for MarketControllerGetActiveMarkets1AutomationType {
+        for MarketControllerGetActiveMarkets1AutomationType
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -4683,7 +4574,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum MarketControllerGetActiveMarkets1TradeType {
         #[serde(rename = "amm")]
@@ -4704,9 +4595,7 @@ pub mod types {
     }
     impl ::std::str::FromStr for MarketControllerGetActiveMarkets1TradeType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "amm" => Ok(Self::Amm),
                 "clob" => Ok(Self::Clob),
@@ -4717,14 +4606,13 @@ pub mod types {
     }
     impl ::std::convert::TryFrom<&str> for MarketControllerGetActiveMarkets1TradeType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
     impl ::std::convert::TryFrom<&::std::string::String>
-    for MarketControllerGetActiveMarkets1TradeType {
+        for MarketControllerGetActiveMarkets1TradeType
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -4732,8 +4620,7 @@ pub mod types {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for MarketControllerGetActiveMarkets1TradeType {
+    impl ::std::convert::TryFrom<::std::string::String> for MarketControllerGetActiveMarkets1TradeType {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -4852,10 +4739,11 @@ pub mod types {
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub slug: ::std::option::Option<::std::string::String>,
     }
-    impl ::std::default::Default
-    for MarketControllerGetActiveSlugsResponseItemMarketsItem {
+    impl ::std::default::Default for MarketControllerGetActiveSlugsResponseItemMarketsItem {
         fn default() -> Self {
-            Self { slug: Default::default() }
+            Self {
+                slug: Default::default(),
+            }
         }
     }
     ///`MarketControllerGetOracleCandlesInterval`
@@ -4887,7 +4775,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum MarketControllerGetOracleCandlesInterval {
         #[serde(rename = "1m")]
@@ -4917,9 +4805,7 @@ pub mod types {
     }
     impl ::std::str::FromStr for MarketControllerGetOracleCandlesInterval {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "1m" => Ok(Self::X1m),
                 "5m" => Ok(Self::X5m),
@@ -4933,14 +4819,11 @@ pub mod types {
     }
     impl ::std::convert::TryFrom<&str> for MarketControllerGetOracleCandlesInterval {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for MarketControllerGetOracleCandlesInterval {
+    impl ::std::convert::TryFrom<&::std::string::String> for MarketControllerGetOracleCandlesInterval {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -4948,8 +4831,7 @@ pub mod types {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for MarketControllerGetOracleCandlesInterval {
+    impl ::std::convert::TryFrom<::std::string::String> for MarketControllerGetOracleCandlesInterval {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -5180,7 +5062,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum MarketOrderbookControllerGetHistoricalPriceInterval {
         #[serde(rename = "1h")]
@@ -5210,9 +5092,7 @@ pub mod types {
     }
     impl ::std::str::FromStr for MarketOrderbookControllerGetHistoricalPriceInterval {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "1h" => Ok(Self::X1h),
                 "6h" => Ok(Self::X6h),
@@ -5224,17 +5104,15 @@ pub mod types {
             }
         }
     }
-    impl ::std::convert::TryFrom<&str>
-    for MarketOrderbookControllerGetHistoricalPriceInterval {
+    impl ::std::convert::TryFrom<&str> for MarketOrderbookControllerGetHistoricalPriceInterval {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
     impl ::std::convert::TryFrom<&::std::string::String>
-    for MarketOrderbookControllerGetHistoricalPriceInterval {
+        for MarketOrderbookControllerGetHistoricalPriceInterval
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -5243,7 +5121,8 @@ pub mod types {
         }
     }
     impl ::std::convert::TryFrom<::std::string::String>
-    for MarketOrderbookControllerGetHistoricalPriceInterval {
+        for MarketOrderbookControllerGetHistoricalPriceInterval
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -5292,14 +5171,12 @@ pub mod types {
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct MarketOrderbookControllerGetHistoricalPriceResponseItem {
         #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
-        pub prices: ::std::vec::Vec<
-            MarketOrderbookControllerGetHistoricalPriceResponseItemPricesItem,
-        >,
+        pub prices:
+            ::std::vec::Vec<MarketOrderbookControllerGetHistoricalPriceResponseItemPricesItem>,
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub title: ::std::option::Option<::std::string::String>,
     }
-    impl ::std::default::Default
-    for MarketOrderbookControllerGetHistoricalPriceResponseItem {
+    impl ::std::default::Default for MarketOrderbookControllerGetHistoricalPriceResponseItem {
         fn default() -> Self {
             Self {
                 prices: Default::default(),
@@ -5338,8 +5215,7 @@ pub mod types {
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub timestamp: ::std::option::Option<::std::string::String>,
     }
-    impl ::std::default::Default
-    for MarketOrderbookControllerGetHistoricalPriceResponseItemPricesItem {
+    impl ::std::default::Default for MarketOrderbookControllerGetHistoricalPriceResponseItemPricesItem {
         fn default() -> Self {
             Self {
                 price: Default::default(),
@@ -5461,13 +5337,13 @@ pub mod types {
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct MarketOrderbookControllerGetMarketEventsResponse {
         #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
-        pub events: ::std::vec::Vec<
-            MarketOrderbookControllerGetMarketEventsResponseEventsItem,
-        >,
+        pub events: ::std::vec::Vec<MarketOrderbookControllerGetMarketEventsResponseEventsItem>,
     }
     impl ::std::default::Default for MarketOrderbookControllerGetMarketEventsResponse {
         fn default() -> Self {
-            Self { events: Default::default() }
+            Self {
+                events: Default::default(),
+            }
         }
     }
     ///`MarketOrderbookControllerGetMarketEventsResponseEventsItem`
@@ -5519,8 +5395,7 @@ pub mod types {
         )]
         pub type_: ::std::option::Option<::std::string::String>,
     }
-    impl ::std::default::Default
-    for MarketOrderbookControllerGetMarketEventsResponseEventsItem {
+    impl ::std::default::Default for MarketOrderbookControllerGetMarketEventsResponseEventsItem {
         fn default() -> Self {
             Self {
                 data: Default::default(),
@@ -5693,8 +5568,7 @@ pub mod types {
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub size: ::std::option::Option<f64>,
     }
-    impl ::std::default::Default
-    for MarketOrderbookControllerGetOrderbookResponseAsksItem {
+    impl ::std::default::Default for MarketOrderbookControllerGetOrderbookResponseAsksItem {
         fn default() -> Self {
             Self {
                 price: Default::default(),
@@ -5733,8 +5607,7 @@ pub mod types {
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub size: ::std::option::Option<f64>,
     }
-    impl ::std::default::Default
-    for MarketOrderbookControllerGetOrderbookResponseBidsItem {
+    impl ::std::default::Default for MarketOrderbookControllerGetOrderbookResponseBidsItem {
         fn default() -> Self {
             Self {
                 price: Default::default(),
@@ -5795,13 +5668,13 @@ pub mod types {
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct MarketOrderbookControllerGetUserOrdersResponse {
         #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
-        pub orders: ::std::vec::Vec<
-            MarketOrderbookControllerGetUserOrdersResponseOrdersItem,
-        >,
+        pub orders: ::std::vec::Vec<MarketOrderbookControllerGetUserOrdersResponseOrdersItem>,
     }
     impl ::std::default::Default for MarketOrderbookControllerGetUserOrdersResponse {
         fn default() -> Self {
-            Self { orders: Default::default() }
+            Self {
+                orders: Default::default(),
+            }
         }
     }
     ///`MarketOrderbookControllerGetUserOrdersResponseOrdersItem`
@@ -5859,8 +5732,7 @@ pub mod types {
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub status: ::std::option::Option<::std::string::String>,
     }
-    impl ::std::default::Default
-    for MarketOrderbookControllerGetUserOrdersResponseOrdersItem {
+    impl ::std::default::Default for MarketOrderbookControllerGetUserOrdersResponseOrdersItem {
         fn default() -> Self {
             Self {
                 id: Default::default(),
@@ -5895,7 +5767,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum MarketOrderbookControllerGetUserOrdersStatusesItem {
         #[serde(rename = "LIVE")]
@@ -5913,9 +5785,7 @@ pub mod types {
     }
     impl ::std::str::FromStr for MarketOrderbookControllerGetUserOrdersStatusesItem {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "LIVE" => Ok(Self::Live),
                 "MATCHED" => Ok(Self::Matched),
@@ -5923,17 +5793,15 @@ pub mod types {
             }
         }
     }
-    impl ::std::convert::TryFrom<&str>
-    for MarketOrderbookControllerGetUserOrdersStatusesItem {
+    impl ::std::convert::TryFrom<&str> for MarketOrderbookControllerGetUserOrdersStatusesItem {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
     impl ::std::convert::TryFrom<&::std::string::String>
-    for MarketOrderbookControllerGetUserOrdersStatusesItem {
+        for MarketOrderbookControllerGetUserOrdersStatusesItem
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -5942,7 +5810,8 @@ pub mod types {
         }
     }
     impl ::std::convert::TryFrom<::std::string::String>
-    for MarketOrderbookControllerGetUserOrdersStatusesItem {
+        for MarketOrderbookControllerGetUserOrdersStatusesItem
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -6127,9 +5996,7 @@ pub mod types {
     }
     impl ::std::str::FromStr for MarketProxyTitle {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             if value.chars().count() > 70usize {
                 return Err("longer than 70 characters".into());
             }
@@ -6138,9 +6005,7 @@ pub mod types {
     }
     impl ::std::convert::TryFrom<&str> for MarketProxyTitle {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -6201,9 +6066,7 @@ pub mod types {
     }
     impl ::std::str::FromStr for MarketTitle {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             if value.chars().count() > 70usize {
                 return Err("longer than 70 characters".into());
             }
@@ -6212,9 +6075,7 @@ pub mod types {
     }
     impl ::std::convert::TryFrom<&str> for MarketTitle {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -6329,24 +6190,21 @@ pub mod types {
     );
     impl ::std::ops::Deref for NegRiskGroupResponseDto {
         type Target = ::serde_json::Map<::std::string::String, ::serde_json::Value>;
-        fn deref(
-            &self,
-        ) -> &::serde_json::Map<::std::string::String, ::serde_json::Value> {
+        fn deref(&self) -> &::serde_json::Map<::std::string::String, ::serde_json::Value> {
             &self.0
         }
     }
     impl ::std::convert::From<NegRiskGroupResponseDto>
-    for ::serde_json::Map<::std::string::String, ::serde_json::Value> {
+        for ::serde_json::Map<::std::string::String, ::serde_json::Value>
+    {
         fn from(value: NegRiskGroupResponseDto) -> Self {
             value.0
         }
     }
-    impl ::std::convert::From<
-        ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-    > for NegRiskGroupResponseDto {
-        fn from(
-            value: ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-        ) -> Self {
+    impl ::std::convert::From<::serde_json::Map<::std::string::String, ::serde_json::Value>>
+        for NegRiskGroupResponseDto
+    {
+        fn from(value: ::serde_json::Map<::std::string::String, ::serde_json::Value>) -> Self {
             Self(value)
         }
     }
@@ -6600,13 +6458,15 @@ pub mod types {
         CombinedResponseDto(CancelOrderBatchCombinedResponseDto),
     }
     impl ::std::convert::From<CancelOrderBatchResponseDto>
-    for OrderControllerBatchCancelOrdersResponse {
+        for OrderControllerBatchCancelOrdersResponse
+    {
         fn from(value: CancelOrderBatchResponseDto) -> Self {
             Self::ResponseDto(value)
         }
     }
     impl ::std::convert::From<CancelOrderBatchCombinedResponseDto>
-    for OrderControllerBatchCancelOrdersResponse {
+        for OrderControllerBatchCancelOrdersResponse
+    {
         fn from(value: CancelOrderBatchCombinedResponseDto) -> Self {
             Self::CombinedResponseDto(value)
         }
@@ -6763,7 +6623,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum OrderExecutionDtoSettlementStatus {
         #[serde(rename = "UNMATCHED")]
@@ -6793,9 +6653,7 @@ pub mod types {
     }
     impl ::std::str::FromStr for OrderExecutionDtoSettlementStatus {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "UNMATCHED" => Ok(Self::Unmatched),
                 "MATCHED" => Ok(Self::Matched),
@@ -6809,14 +6667,11 @@ pub mod types {
     }
     impl ::std::convert::TryFrom<&str> for OrderExecutionDtoSettlementStatus {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for OrderExecutionDtoSettlementStatus {
+    impl ::std::convert::TryFrom<&::std::string::String> for OrderExecutionDtoSettlementStatus {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -6824,8 +6679,7 @@ pub mod types {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for OrderExecutionDtoSettlementStatus {
+    impl ::std::convert::TryFrom<::std::string::String> for OrderExecutionDtoSettlementStatus {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -6951,9 +6805,7 @@ pub mod types {
             default,
             skip_serializing_if = "::std::option::Option::is_none"
         )]
-        pub settlement_status: ::std::option::Option<
-            OrderExecutionSummarySettlementStatus,
-        >,
+        pub settlement_status: ::std::option::Option<OrderExecutionSummarySettlementStatus>,
         #[serde(
             rename = "totalsRaw",
             default,
@@ -7017,7 +6869,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum OrderExecutionSummarySettlementStatus {
         #[serde(rename = "UNMATCHED")]
@@ -7044,9 +6896,7 @@ pub mod types {
     }
     impl ::std::str::FromStr for OrderExecutionSummarySettlementStatus {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "UNMATCHED" => Ok(Self::Unmatched),
                 "PENDING" => Ok(Self::Pending),
@@ -7059,14 +6909,11 @@ pub mod types {
     }
     impl ::std::convert::TryFrom<&str> for OrderExecutionSummarySettlementStatus {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for OrderExecutionSummarySettlementStatus {
+    impl ::std::convert::TryFrom<&::std::string::String> for OrderExecutionSummarySettlementStatus {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -7074,8 +6921,7 @@ pub mod types {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for OrderExecutionSummarySettlementStatus {
+    impl ::std::convert::TryFrom<::std::string::String> for OrderExecutionSummarySettlementStatus {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -7268,11 +7114,11 @@ pub mod types {
     }
     impl ::std::str::FromStr for OrderMaker {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
-            static PATTERN: ::std::sync::LazyLock<::regress::Regex> = ::std::sync::LazyLock::new(||
-            { ::regress::Regex::new("^0x[a-fA-F0-9]{40}$").unwrap() });
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+            static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+                ::std::sync::LazyLock::new(|| {
+                    ::regress::Regex::new("^0x[a-fA-F0-9]{40}$").unwrap()
+                });
             if PATTERN.find(value).is_none() {
                 return Err("doesn't match pattern \"^0x[a-fA-F0-9]{40}$\"".into());
             }
@@ -7281,9 +7127,7 @@ pub mod types {
     }
     impl ::std::convert::TryFrom<&str> for OrderMaker {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -7396,9 +7240,7 @@ pub mod types {
     }
     impl ::std::convert::TryFrom<f64> for OrderSide {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: f64,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: f64) -> ::std::result::Result<Self, self::error::ConversionError> {
             if ![0.0_f64, 1.0_f64].contains(&value) {
                 Err("invalid value".into())
             } else {
@@ -7412,7 +7254,7 @@ pub mod types {
             D: ::serde::Deserializer<'de>,
         {
             Self::try_from(<f64>::deserialize(deserializer)?)
-                .map_err(|e| { <D::Error as ::serde::de::Error>::custom(e.to_string()) })
+                .map_err(|e| <D::Error as ::serde::de::Error>::custom(e.to_string()))
         }
     }
     ///Signature type (0-3). Optional when using delegated signing.
@@ -7451,9 +7293,7 @@ pub mod types {
     }
     impl ::std::convert::TryFrom<f64> for OrderSignatureType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: f64,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: f64) -> ::std::result::Result<Self, self::error::ConversionError> {
             if ![0.0_f64, 1.0_f64, 2.0_f64, 3.0_f64].contains(&value) {
                 Err("invalid value".into())
             } else {
@@ -7467,7 +7307,7 @@ pub mod types {
             D: ::serde::Deserializer<'de>,
         {
             Self::try_from(<f64>::deserialize(deserializer)?)
-                .map_err(|e| { <D::Error as ::serde::de::Error>::custom(e.to_string()) })
+                .map_err(|e| <D::Error as ::serde::de::Error>::custom(e.to_string()))
         }
     }
     ///`PartnerAccountAllowanceResponse`
@@ -7846,7 +7686,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum PartnerAccountAllowanceTargetRequiredFor {
         #[serde(rename = "BUY")]
@@ -7864,9 +7704,7 @@ pub mod types {
     }
     impl ::std::str::FromStr for PartnerAccountAllowanceTargetRequiredFor {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "BUY" => Ok(Self::Buy),
                 "SELL" => Ok(Self::Sell),
@@ -7876,14 +7714,11 @@ pub mod types {
     }
     impl ::std::convert::TryFrom<&str> for PartnerAccountAllowanceTargetRequiredFor {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for PartnerAccountAllowanceTargetRequiredFor {
+    impl ::std::convert::TryFrom<&::std::string::String> for PartnerAccountAllowanceTargetRequiredFor {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -7891,8 +7726,7 @@ pub mod types {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for PartnerAccountAllowanceTargetRequiredFor {
+    impl ::std::convert::TryFrom<::std::string::String> for PartnerAccountAllowanceTargetRequiredFor {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -7930,7 +7764,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum PartnerAccountAllowanceTargetStatus {
         #[serde(rename = "confirmed")]
@@ -7954,9 +7788,7 @@ pub mod types {
     }
     impl ::std::str::FromStr for PartnerAccountAllowanceTargetStatus {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "confirmed" => Ok(Self::Confirmed),
                 "missing" => Ok(Self::Missing),
@@ -7968,14 +7800,11 @@ pub mod types {
     }
     impl ::std::convert::TryFrom<&str> for PartnerAccountAllowanceTargetStatus {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for PartnerAccountAllowanceTargetStatus {
+    impl ::std::convert::TryFrom<&::std::string::String> for PartnerAccountAllowanceTargetStatus {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -7983,8 +7812,7 @@ pub mod types {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for PartnerAccountAllowanceTargetStatus {
+    impl ::std::convert::TryFrom<::std::string::String> for PartnerAccountAllowanceTargetStatus {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -8020,7 +7848,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum PartnerAccountAllowanceTargetType {
         #[serde(rename = "USDC_ALLOWANCE")]
@@ -8038,9 +7866,7 @@ pub mod types {
     }
     impl ::std::str::FromStr for PartnerAccountAllowanceTargetType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "USDC_ALLOWANCE" => Ok(Self::UsdcAllowance),
                 "CTF_APPROVAL" => Ok(Self::CtfApproval),
@@ -8050,14 +7876,11 @@ pub mod types {
     }
     impl ::std::convert::TryFrom<&str> for PartnerAccountAllowanceTargetType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for PartnerAccountAllowanceTargetType {
+    impl ::std::convert::TryFrom<&::std::string::String> for PartnerAccountAllowanceTargetType {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -8065,8 +7888,7 @@ pub mod types {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for PartnerAccountAllowanceTargetType {
+    impl ::std::convert::TryFrom<::std::string::String> for PartnerAccountAllowanceTargetType {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -8164,9 +7986,7 @@ pub mod types {
     pub struct PartnerCapabilitiesResponse {
         ///Scopes the partner is allowed to request when deriving tokens
         #[serde(rename = "allowedScopes")]
-        pub allowed_scopes: ::std::vec::Vec<
-            PartnerCapabilitiesResponseAllowedScopesItem,
-        >,
+        pub allowed_scopes: ::std::vec::Vec<PartnerCapabilitiesResponseAllowedScopesItem>,
         ///Partner profile ID
         #[serde(rename = "partnerProfileId")]
         pub partner_profile_id: i64,
@@ -8199,7 +8019,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum PartnerCapabilitiesResponseAllowedScopesItem {
         #[serde(rename = "trading")]
@@ -8220,9 +8040,7 @@ pub mod types {
     }
     impl ::std::str::FromStr for PartnerCapabilitiesResponseAllowedScopesItem {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "trading" => Ok(Self::Trading),
                 "account_creation" => Ok(Self::AccountCreation),
@@ -8233,14 +8051,13 @@ pub mod types {
     }
     impl ::std::convert::TryFrom<&str> for PartnerCapabilitiesResponseAllowedScopesItem {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
     impl ::std::convert::TryFrom<&::std::string::String>
-    for PartnerCapabilitiesResponseAllowedScopesItem {
+        for PartnerCapabilitiesResponseAllowedScopesItem
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -8249,7 +8066,8 @@ pub mod types {
         }
     }
     impl ::std::convert::TryFrom<::std::string::String>
-    for PartnerCapabilitiesResponseAllowedScopesItem {
+        for PartnerCapabilitiesResponseAllowedScopesItem
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -8322,9 +8140,8 @@ pub mod types {
     pub struct PortfolioPnlChartDto {
         ///Current PnL snapshot (hybrid: realised + unrealized + total)
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub current: ::std::option::Option<
-            ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-        >,
+        pub current:
+            ::std::option::Option<::serde_json::Map<::std::string::String, ::serde_json::Value>>,
         ///Current realised PnL (USD)
         #[serde(rename = "currentValue")]
         pub current_value: f64,
@@ -8449,9 +8266,7 @@ pub mod types {
         pub clob: ::std::vec::Vec<ClobPositionDto>,
         ///Grouped CLOB positions (if enabled)
         #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
-        pub group: ::std::vec::Vec<
-            ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-        >,
+        pub group: ::std::vec::Vec<::serde_json::Map<::std::string::String, ::serde_json::Value>>,
         ///User points
         pub points: f64,
         ///Rewards information for the portfolio
@@ -9105,7 +8920,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum ProfileResponseMode {
         #[serde(rename = "simple")]
@@ -9123,9 +8938,7 @@ pub mod types {
     }
     impl ::std::str::FromStr for ProfileResponseMode {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "simple" => Ok(Self::Simple),
                 "advanced" => Ok(Self::Advanced),
@@ -9135,9 +8948,7 @@ pub mod types {
     }
     impl ::std::convert::TryFrom<&str> for ProfileResponseMode {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -9251,7 +9062,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum ProfileResponseRankName {
         Bronze,
@@ -9273,9 +9084,7 @@ pub mod types {
     }
     impl ::std::str::FromStr for ProfileResponseRankName {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "Bronze" => Ok(Self::Bronze),
                 "Silver" => Ok(Self::Silver),
@@ -9288,9 +9097,7 @@ pub mod types {
     }
     impl ::std::convert::TryFrom<&str> for ProfileResponseRankName {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -9415,7 +9222,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum ProfileResponseTradeWalletOption {
         #[serde(rename = "eoa")]
@@ -9433,9 +9240,7 @@ pub mod types {
     }
     impl ::std::str::FromStr for ProfileResponseTradeWalletOption {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "eoa" => Ok(Self::Eoa),
                 "smartWallet" => Ok(Self::SmartWallet),
@@ -9445,14 +9250,11 @@ pub mod types {
     }
     impl ::std::convert::TryFrom<&str> for ProfileResponseTradeWalletOption {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for ProfileResponseTradeWalletOption {
+    impl ::std::convert::TryFrom<&::std::string::String> for ProfileResponseTradeWalletOption {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -9460,8 +9262,7 @@ pub mod types {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for ProfileResponseTradeWalletOption {
+    impl ::std::convert::TryFrom<::std::string::String> for ProfileResponseTradeWalletOption {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -9587,7 +9388,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum PropertyKeyResponseDtoType {
         #[serde(rename = "select")]
@@ -9605,9 +9406,7 @@ pub mod types {
     }
     impl ::std::str::FromStr for PropertyKeyResponseDtoType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "select" => Ok(Self::Select),
                 "multi-select" => Ok(Self::MultiSelect),
@@ -9617,9 +9416,7 @@ pub mod types {
     }
     impl ::std::convert::TryFrom<&str> for PropertyKeyResponseDtoType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -9759,7 +9556,9 @@ pub mod types {
     }
     impl ::std::default::Default for PublicPortfolioControllerTradedVolumeResponse {
         fn default() -> Self {
-            Self { data: Default::default() }
+            Self {
+                data: Default::default(),
+            }
         }
     }
     ///`TradingPortfolioControllerGetAllowanceResponse`
@@ -9831,9 +9630,7 @@ pub mod types {
             default,
             skip_serializing_if = "::std::option::Option::is_none"
         )]
-        pub type_: ::std::option::Option<
-            TradingPortfolioControllerGetAllowanceResponseType,
-        >,
+        pub type_: ::std::option::Option<TradingPortfolioControllerGetAllowanceResponseType>,
     }
     impl ::std::default::Default for TradingPortfolioControllerGetAllowanceResponse {
         fn default() -> Self {
@@ -9873,7 +9670,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum TradingPortfolioControllerGetAllowanceResponseType {
         #[serde(rename = "clob")]
@@ -9891,9 +9688,7 @@ pub mod types {
     }
     impl ::std::str::FromStr for TradingPortfolioControllerGetAllowanceResponseType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "clob" => Ok(Self::Clob),
                 "negrisk" => Ok(Self::Negrisk),
@@ -9901,17 +9696,15 @@ pub mod types {
             }
         }
     }
-    impl ::std::convert::TryFrom<&str>
-    for TradingPortfolioControllerGetAllowanceResponseType {
+    impl ::std::convert::TryFrom<&str> for TradingPortfolioControllerGetAllowanceResponseType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
     impl ::std::convert::TryFrom<&::std::string::String>
-    for TradingPortfolioControllerGetAllowanceResponseType {
+        for TradingPortfolioControllerGetAllowanceResponseType
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -9920,7 +9713,8 @@ pub mod types {
         }
     }
     impl ::std::convert::TryFrom<::std::string::String>
-    for TradingPortfolioControllerGetAllowanceResponseType {
+        for TradingPortfolioControllerGetAllowanceResponseType
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -9952,7 +9746,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum TradingPortfolioControllerGetAllowanceType {
         #[serde(rename = "clob")]
@@ -9970,9 +9764,7 @@ pub mod types {
     }
     impl ::std::str::FromStr for TradingPortfolioControllerGetAllowanceType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "clob" => Ok(Self::Clob),
                 "negrisk" => Ok(Self::Negrisk),
@@ -9982,14 +9774,13 @@ pub mod types {
     }
     impl ::std::convert::TryFrom<&str> for TradingPortfolioControllerGetAllowanceType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
     impl ::std::convert::TryFrom<&::std::string::String>
-    for TradingPortfolioControllerGetAllowanceType {
+        for TradingPortfolioControllerGetAllowanceType
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -9997,8 +9788,7 @@ pub mod types {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for TradingPortfolioControllerGetAllowanceType {
+    impl ::std::convert::TryFrom<::std::string::String> for TradingPortfolioControllerGetAllowanceType {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -10027,7 +9817,9 @@ impl Client {
         #[cfg(not(target_arch = "wasm32"))]
         let client = {
             let dur = ::std::time::Duration::from_secs(15u64);
-            reqwest::ClientBuilder::new().connect_timeout(dur).timeout(dur)
+            reqwest::ClientBuilder::new()
+                .connect_timeout(dur)
+                .timeout(dur)
         };
         #[cfg(target_arch = "wasm32")]
         let client = reqwest::ClientBuilder::new();
@@ -10065,26 +9857,23 @@ impl ClientHooks<()> for &Client {}
 impl Client {
     /**Get active API key
 
-Returns the currently active API key metadata for the authenticated user. Does not return the key value itself.
+    Returns the currently active API key metadata for the authenticated user. Does not return the key value itself.
 
-Sends a `GET` request to `/auth/api-keys`
+    Sends a `GET` request to `/auth/api-keys`
 
-*/
+    */
     pub async fn api_key_controller_get_active_key<'a>(
         &'a self,
     ) -> Result<
-        ResponseValue<
-            ::std::option::Option<types::ApiKeyControllerGetActiveKeyResponse>,
-        >,
+        ResponseValue<::std::option::Option<types::ApiKeyControllerGetActiveKeyResponse>>,
         Error<()>,
     > {
         let url = format!("{}/auth/api-keys", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -10109,21 +9898,20 @@ Sends a `GET` request to `/auth/api-keys`
     }
     /**Create API key
 
-Creates a new API key for programmatic access. Only available for users authenticated via the UI (Privy). Previous active keys are automatically revoked.
+    Creates a new API key for programmatic access. Only available for users authenticated via the UI (Privy). Previous active keys are automatically revoked.
 
-Sends a `POST` request to `/auth/api-keys`
+    Sends a `POST` request to `/auth/api-keys`
 
-*/
+    */
     pub async fn api_key_controller_create_api_key<'a>(
         &'a self,
     ) -> Result<ResponseValue<types::ApiKeyControllerCreateApiKeyResponse>, Error<()>> {
         let url = format!("{}/auth/api-keys", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -10148,21 +9936,20 @@ Sends a `POST` request to `/auth/api-keys`
     }
     /**Revoke API key
 
-Revokes the currently active API key. The key will immediately stop working for authentication.
+    Revokes the currently active API key. The key will immediately stop working for authentication.
 
-Sends a `DELETE` request to `/auth/api-keys`
+    Sends a `DELETE` request to `/auth/api-keys`
 
-*/
+    */
     pub async fn api_key_controller_revoke_key<'a>(
         &'a self,
     ) -> Result<ResponseValue<types::ApiKeyControllerRevokeKeyResponse>, Error<()>> {
         let url = format!("{}/auth/api-keys", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -10187,21 +9974,20 @@ Sends a `DELETE` request to `/auth/api-keys`
     }
     /**List active tokens
 
-Lists all active (non-revoked) API tokens for the authenticated partner. Requires token management to be enabled for the partner.
+    Lists all active (non-revoked) API tokens for the authenticated partner. Requires token management to be enabled for the partner.
 
-Sends a `GET` request to `/auth/api-tokens`
+    Sends a `GET` request to `/auth/api-tokens`
 
-*/
+    */
     pub async fn api_token_controller_list_tokens<'a>(
         &'a self,
     ) -> Result<ResponseValue<::std::vec::Vec<types::ApiTokenListItem>>, Error<()>> {
         let url = format!("{}/auth/api-tokens", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -10226,21 +10012,20 @@ Sends a `GET` request to `/auth/api-tokens`
     }
     /**Get partner capabilities
 
-Returns the partner capability configuration for the authenticated user, including whether token management is enabled and which scopes are allowed for self-service token derivation. Requires Privy authentication (Bearer token).
+    Returns the partner capability configuration for the authenticated user, including whether token management is enabled and which scopes are allowed for self-service token derivation. Requires Privy authentication (Bearer token).
 
-Sends a `GET` request to `/auth/api-tokens/capabilities`
+    Sends a `GET` request to `/auth/api-tokens/capabilities`
 
-*/
+    */
     pub async fn api_token_controller_get_capabilities<'a>(
         &'a self,
     ) -> Result<ResponseValue<types::PartnerCapabilitiesResponse>, Error<()>> {
         let url = format!("{}/auth/api-tokens/capabilities", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -10265,22 +10050,21 @@ Sends a `GET` request to `/auth/api-tokens/capabilities`
     }
     /**Derive scoped API token
 
-Creates a new scoped API token for the authenticated partner. Requires Privy authentication (Bearer token). The token secret is returned once at creation — store it securely. Requested scopes must be a subset of the partner's allowed scopes.
+    Creates a new scoped API token for the authenticated partner. Requires Privy authentication (Bearer token). The token secret is returned once at creation — store it securely. Requested scopes must be a subset of the partner's allowed scopes.
 
-Sends a `POST` request to `/auth/api-tokens/derive`
+    Sends a `POST` request to `/auth/api-tokens/derive`
 
-*/
+    */
     pub async fn api_token_controller_derive_token<'a>(
         &'a self,
         body: &'a types::DeriveApiTokenRequest,
     ) -> Result<ResponseValue<types::DeriveApiTokenResponse>, Error<()>> {
         let url = format!("{}/auth/api-tokens/derive", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -10306,26 +10090,27 @@ Sends a `POST` request to `/auth/api-tokens/derive`
     }
     /**Revoke token
 
-Revokes an active API token. The token becomes immediately unusable. Requires token management to be enabled for the partner.
+    Revokes an active API token. The token becomes immediately unusable. Requires token management to be enabled for the partner.
 
-Sends a `DELETE` request to `/auth/api-tokens/{tokenId}`
+    Sends a `DELETE` request to `/auth/api-tokens/{tokenId}`
 
-Arguments:
-- `token_id`: The token ID to revoke
-*/
+    Arguments:
+    - `token_id`: The token ID to revoke
+    */
     pub async fn api_token_controller_revoke_token<'a>(
         &'a self,
         token_id: &'a str,
     ) -> Result<ResponseValue<types::ApiTokenControllerRevokeTokenResponse>, Error<()>> {
         let url = format!(
-            "{}/auth/api-tokens/{}", self.baseurl, encode_path(& token_id.to_string()),
+            "{}/auth/api-tokens/{}",
+            self.baseurl,
+            encode_path(&token_id.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -10350,21 +10135,20 @@ Arguments:
     }
     /**User login (removed)
 
-Deprecated. Cookie-based session login has been removed. Use API keys instead.
+    Deprecated. Cookie-based session login has been removed. Use API keys instead.
 
-Sends a `POST` request to `/auth/login`
+    Sends a `POST` request to `/auth/login`
 
-*/
+    */
     pub async fn auth_controller_login<'a>(
         &'a self,
     ) -> Result<ResponseValue<ByteStream>, Error<()>> {
         let url = format!("{}/auth/login", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self.client.post(url).headers(header_map).build()?;
         let info = OperationInfo {
@@ -10381,21 +10165,20 @@ Sends a `POST` request to `/auth/login`
     }
     /**User logout
 
-Logs out the user
+    Logs out the user
 
-Sends a `POST` request to `/auth/logout`
+    Sends a `POST` request to `/auth/logout`
 
-*/
+    */
     pub async fn auth_controller_logout<'a>(
         &'a self,
     ) -> Result<ResponseValue<types::AuthControllerLogoutResponse>, Error<()>> {
         let url = format!("{}/auth/logout", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -10420,21 +10203,20 @@ Sends a `POST` request to `/auth/logout`
     }
     /**Get signing message
 
-Returns a signing message with a randomly generated nonce for authentication purposes.
+    Returns a signing message with a randomly generated nonce for authentication purposes.
 
-Sends a `GET` request to `/auth/signing-message`
+    Sends a `GET` request to `/auth/signing-message`
 
-*/
+    */
     pub async fn auth_controller_get_signing_message<'a>(
         &'a self,
     ) -> Result<ResponseValue<::std::string::String>, Error<()>> {
         let url = format!("{}/auth/signing-message", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -10459,21 +10241,18 @@ Sends a `GET` request to `/auth/signing-message`
     }
     /**Verify authentication
 
-Verifies if the user is authenticated
+    Verifies if the user is authenticated
 
-Sends a `GET` request to `/auth/verify-auth`
+    Sends a `GET` request to `/auth/verify-auth`
 
-*/
-    pub async fn auth_controller_verify_auth<'a>(
-        &'a self,
-    ) -> Result<ResponseValue<()>, Error<()>> {
+    */
+    pub async fn auth_controller_verify_auth<'a>(&'a self) -> Result<ResponseValue<()>, Error<()>> {
         let url = format!("{}/auth/verify-auth", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self.client.get(url).headers(header_map).build()?;
         let info = OperationInfo {
@@ -10490,24 +10269,23 @@ Sends a `GET` request to `/auth/verify-auth`
     }
     /**Get market page by path
 
-Resolves a URL path to a market page with its configuration, filters, and breadcrumb
+    Resolves a URL path to a market page with its configuration, filters, and breadcrumb
 
-Sends a `GET` request to `/market-pages/by-path`
+    Sends a `GET` request to `/market-pages/by-path`
 
-Arguments:
-- `path`: URL path to resolve (e.g., "/sports/football")
-*/
+    Arguments:
+    - `path`: URL path to resolve (e.g., "/sports/football")
+    */
     pub async fn market_navigation_controller_by_path<'a>(
         &'a self,
         path: &'a str,
     ) -> Result<ResponseValue<types::MarketPageByPathResponseDto>, Error<()>> {
         let url = format!("{}/market-pages/by-path", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -10533,17 +10311,17 @@ Arguments:
     }
     /**List markets for a page
 
-Returns paginated list of markets for a specific market page with filtering and sorting
+    Returns paginated list of markets for a specific market page with filtering and sorting
 
-Sends a `GET` request to `/market-pages/{id}/markets`
+    Sends a `GET` request to `/market-pages/{id}/markets`
 
-Arguments:
-- `id`: Market page ID
-- `cursor`: Cursor token for cursor-based pagination (cannot be used with page)
-- `limit`: Number of items per page (max 100)
-- `page`: Page number for offset pagination (cannot be used with cursor)
-- `sort`: Sort field with optional - prefix for descending (e.g., -updatedAt, createdAt, deadline)
-*/
+    Arguments:
+    - `id`: Market page ID
+    - `cursor`: Cursor token for cursor-based pagination (cannot be used with page)
+    - `limit`: Number of items per page (max 100)
+    - `page`: Page number for offset pagination (cannot be used with cursor)
+    - `sort`: Sort field with optional - prefix for descending (e.g., -updatedAt, createdAt, deadline)
+    */
     pub async fn market_navigation_controller_list_markets<'a>(
         &'a self,
         id: &'a str,
@@ -10553,14 +10331,15 @@ Arguments:
         sort: Option<&'a ::serde_json::Value>,
     ) -> Result<ResponseValue<types::ListMarketsResponseDto>, Error<()>> {
         let url = format!(
-            "{}/market-pages/{}/markets", self.baseurl, encode_path(& id.to_string()),
+            "{}/market-pages/{}/markets",
+            self.baseurl,
+            encode_path(&id.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -10589,18 +10368,18 @@ Arguments:
     }
     /**Browse Active Markets
 
-Retrieves markets and groups that are active and not yet resolved, with optional category filtering
+    Retrieves markets and groups that are active and not yet resolved, with optional category filtering
 
-Sends a `GET` request to `/markets/active`
+    Sends a `GET` request to `/markets/active`
 
-Arguments:
-- `category_id`: Filter markets by category ID
-- `automation_type`: Filter by automation type (manual, lumy, or sports)
-- `limit`: Number of items per page
-- `page`: Page number for pagination
-- `sort_by`: Sort by query parameter
-- `trade_type`: Filter by trade type (amm, clob, or group)
-*/
+    Arguments:
+    - `category_id`: Filter markets by category ID
+    - `automation_type`: Filter by automation type (manual, lumy, or sports)
+    - `limit`: Number of items per page
+    - `page`: Page number for pagination
+    - `sort_by`: Sort by query parameter
+    - `trade_type`: Filter by trade type (amm, clob, or group)
+    */
     pub async fn market_controller_get_active_markets_1<'a>(
         &'a self,
         category_id: f64,
@@ -10612,11 +10391,10 @@ Arguments:
     ) -> Result<ResponseValue<types::BrowseActiveMarketsResponseDto>, Error<()>> {
         let url = format!("{}/markets/active", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -10625,13 +10403,17 @@ Arguments:
                 ::reqwest::header::ACCEPT,
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
-            .query(
-                &progenitor_client::QueryParam::new("automationType", &automation_type),
-            )
+            .query(&progenitor_client::QueryParam::new(
+                "automationType",
+                &automation_type,
+            ))
             .query(&progenitor_client::QueryParam::new("limit", &limit))
             .query(&progenitor_client::QueryParam::new("page", &page))
             .query(&progenitor_client::QueryParam::new("sortBy", &sort_by))
-            .query(&progenitor_client::QueryParam::new("tradeType", &trade_type))
+            .query(&progenitor_client::QueryParam::new(
+                "tradeType",
+                &trade_type,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -10648,26 +10430,23 @@ Arguments:
     }
     /**Get active market slugs with metadata
 
-Retrieves slugs, strike prices, tickers, and deadlines for all active markets and groups. Group markets are nested under their parent group.
+    Retrieves slugs, strike prices, tickers, and deadlines for all active markets and groups. Group markets are nested under their parent group.
 
-Sends a `GET` request to `/markets/active/slugs`
+    Sends a `GET` request to `/markets/active/slugs`
 
-*/
+    */
     pub async fn market_controller_get_active_slugs<'a>(
         &'a self,
     ) -> Result<
-        ResponseValue<
-            ::std::vec::Vec<types::MarketControllerGetActiveSlugsResponseItem>,
-        >,
+        ResponseValue<::std::vec::Vec<types::MarketControllerGetActiveSlugsResponseItem>>,
         Error<()>,
     > {
         let url = format!("{}/markets/active/slugs", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -10692,18 +10471,18 @@ Sends a `GET` request to `/markets/active/slugs`
     }
     /**Browse Active Markets
 
-Retrieves markets and groups that are active and not yet resolved, with optional category filtering
+    Retrieves markets and groups that are active and not yet resolved, with optional category filtering
 
-Sends a `GET` request to `/markets/active/{categoryId}`
+    Sends a `GET` request to `/markets/active/{categoryId}`
 
-Arguments:
-- `category_id`: Filter markets by category ID
-- `automation_type`: Filter by automation type (manual, lumy, or sports)
-- `limit`: Number of items per page
-- `page`: Page number for pagination
-- `sort_by`: Sort by query parameter
-- `trade_type`: Filter by trade type (amm, clob, or group)
-*/
+    Arguments:
+    - `category_id`: Filter markets by category ID
+    - `automation_type`: Filter by automation type (manual, lumy, or sports)
+    - `limit`: Number of items per page
+    - `page`: Page number for pagination
+    - `sort_by`: Sort by query parameter
+    - `trade_type`: Filter by trade type (amm, clob, or group)
+    */
     pub async fn market_controller_get_active_markets_0<'a>(
         &'a self,
         category_id: f64,
@@ -10714,14 +10493,15 @@ Arguments:
         trade_type: Option<types::MarketControllerGetActiveMarkets0TradeType>,
     ) -> Result<ResponseValue<types::BrowseActiveMarketsResponseDto>, Error<()>> {
         let url = format!(
-            "{}/markets/active/{}", self.baseurl, encode_path(& category_id.to_string()),
+            "{}/markets/active/{}",
+            self.baseurl,
+            encode_path(&category_id.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -10730,13 +10510,17 @@ Arguments:
                 ::reqwest::header::ACCEPT,
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
-            .query(
-                &progenitor_client::QueryParam::new("automationType", &automation_type),
-            )
+            .query(&progenitor_client::QueryParam::new(
+                "automationType",
+                &automation_type,
+            ))
             .query(&progenitor_client::QueryParam::new("limit", &limit))
             .query(&progenitor_client::QueryParam::new("page", &page))
             .query(&progenitor_client::QueryParam::new("sortBy", &sort_by))
-            .query(&progenitor_client::QueryParam::new("tradeType", &trade_type))
+            .query(&progenitor_client::QueryParam::new(
+                "tradeType",
+                &trade_type,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -10753,21 +10537,20 @@ Arguments:
     }
     /**Get active market count per category
 
-Returns the number of active markets for each category and the total market count
+    Returns the number of active markets for each category and the total market count
 
-Sends a `GET` request to `/markets/categories/count`
+    Sends a `GET` request to `/markets/categories/count`
 
-*/
+    */
     pub async fn market_controller_get_active_market_count_per_category<'a>(
         &'a self,
     ) -> Result<ResponseValue<types::CategoryCountResponseDto>, Error<()>> {
         let url = format!("{}/markets/categories/count", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -10792,14 +10575,14 @@ Sends a `GET` request to `/markets/categories/count`
     }
     /**Search for markets based on semantic similarity
 
-Sends a `GET` request to `/markets/search`
+    Sends a `GET` request to `/markets/search`
 
-Arguments:
-- `limit`: Maximum number of results to return
-- `page`: Number of page
-- `query`: Search query text
-- `similarity_threshold`: Minimum similarity score (0-1)
-*/
+    Arguments:
+    - `limit`: Maximum number of results to return
+    - `page`: Number of page
+    - `query`: Search query text
+    - `similarity_threshold`: Minimum similarity score (0-1)
+    */
     pub async fn market_search_controller_search<'a>(
         &'a self,
         limit: Option<i64>,
@@ -10809,11 +10592,10 @@ Arguments:
     ) -> Result<ResponseValue<()>, Error<()>> {
         let url = format!("{}/markets/search", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -10821,12 +10603,10 @@ Arguments:
             .query(&progenitor_client::QueryParam::new("limit", &limit))
             .query(&progenitor_client::QueryParam::new("page", &page))
             .query(&progenitor_client::QueryParam::new("query", &query))
-            .query(
-                &progenitor_client::QueryParam::new(
-                    "similarityThreshold",
-                    &similarity_threshold,
-                ),
-            )
+            .query(&progenitor_client::QueryParam::new(
+                "similarityThreshold",
+                &similarity_threshold,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -10843,26 +10623,27 @@ Arguments:
     }
     /**Get Market Details
 
-Retrieves market or group data using either an Ethereum address or a slug identifier
+    Retrieves market or group data using either an Ethereum address or a slug identifier
 
-Sends a `GET` request to `/markets/{addressOrSlug}`
+    Sends a `GET` request to `/markets/{addressOrSlug}`
 
-Arguments:
-- `address_or_slug`: Market/group address (0x...) or slug identifier (my-market-name)
-*/
+    Arguments:
+    - `address_or_slug`: Market/group address (0x...) or slug identifier (my-market-name)
+    */
     pub async fn market_controller_find<'a>(
         &'a self,
         address_or_slug: &'a str,
     ) -> Result<ResponseValue<types::MarketControllerFindResponse>, Error<()>> {
         let url = format!(
-            "{}/markets/{}", self.baseurl, encode_path(& address_or_slug.to_string()),
+            "{}/markets/{}",
+            self.baseurl,
+            encode_path(&address_or_slug.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -10887,36 +10668,33 @@ Arguments:
     }
     /**Get oracle candlesticks
 
-Returns Chainlink candlestick data for markets configured with Chainlink Data Streams chart metadata. Useful for charting the underlying oracle price alongside prediction market prices.
+    Returns Chainlink candlestick data for markets configured with Chainlink Data Streams chart metadata. Useful for charting the underlying oracle price alongside prediction market prices.
 
-Sends a `GET` request to `/markets/{addressOrSlug}/oracle-candles`
+    Sends a `GET` request to `/markets/{addressOrSlug}/oracle-candles`
 
-Arguments:
-- `address_or_slug`: Market address (0x...) or slug identifier
-- `from`: Start timestamp in UNIX seconds. Defaults to market creation time minus 15 minutes.
-- `interval`: Candlestick interval
-- `to`: End timestamp in UNIX seconds. Defaults to now.
-*/
+    Arguments:
+    - `address_or_slug`: Market address (0x...) or slug identifier
+    - `from`: Start timestamp in UNIX seconds. Defaults to market creation time minus 15 minutes.
+    - `interval`: Candlestick interval
+    - `to`: End timestamp in UNIX seconds. Defaults to now.
+    */
     pub async fn market_controller_get_oracle_candles<'a>(
         &'a self,
         address_or_slug: &'a str,
         from: Option<f64>,
         interval: Option<types::MarketControllerGetOracleCandlesInterval>,
         to: Option<f64>,
-    ) -> Result<
-        ResponseValue<types::MarketControllerGetOracleCandlesResponse>,
-        Error<()>,
-    > {
+    ) -> Result<ResponseValue<types::MarketControllerGetOracleCandlesResponse>, Error<()>> {
         let url = format!(
-            "{}/markets/{}/oracle-candles", self.baseurl, encode_path(& address_or_slug
-            .to_string()),
+            "{}/markets/{}/oracle-candles",
+            self.baseurl,
+            encode_path(&address_or_slug.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -10944,33 +10722,32 @@ Arguments:
     }
     /**Market Events
 
-Get recent events for a specific market including trades, orders, and liquidity changes
+    Get recent events for a specific market including trades, orders, and liquidity changes
 
-Sends a `GET` request to `/markets/{slug}/events`
+    Sends a `GET` request to `/markets/{slug}/events`
 
-Arguments:
-- `slug`: Market slug identifier
-- `limit`: Number of events per page
-- `page`: Page number for pagination
-*/
+    Arguments:
+    - `slug`: Market slug identifier
+    - `limit`: Number of events per page
+    - `page`: Page number for pagination
+    */
     pub async fn market_orderbook_controller_get_market_events<'a>(
         &'a self,
         slug: &'a str,
         limit: Option<i64>,
         page: Option<i64>,
-    ) -> Result<
-        ResponseValue<types::MarketOrderbookControllerGetMarketEventsResponse>,
-        Error<()>,
-    > {
+    ) -> Result<ResponseValue<types::MarketOrderbookControllerGetMarketEventsResponse>, Error<()>>
+    {
         let url = format!(
-            "{}/markets/{}/events", self.baseurl, encode_path(& slug.to_string()),
+            "{}/markets/{}/events",
+            self.baseurl,
+            encode_path(&slug.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -10997,15 +10774,15 @@ Arguments:
     }
     /**Get feed events for a market
 
-Retrieves the latest feed events related to a specific market with pagination support
+    Retrieves the latest feed events related to a specific market with pagination support
 
-Sends a `GET` request to `/markets/{slug}/get-feed-events`
+    Sends a `GET` request to `/markets/{slug}/get-feed-events`
 
-Arguments:
-- `slug`: Slug of the market
-- `limit`: Number of events per page
-- `page`: Page number for pagination
-*/
+    Arguments:
+    - `slug`: Slug of the market
+    - `limit`: Number of events per page
+    - `page`: Page number for pagination
+    */
     pub async fn market_controller_get_feed_event<'a>(
         &'a self,
         slug: &'a str,
@@ -11013,15 +10790,15 @@ Arguments:
         page: Option<i64>,
     ) -> Result<ResponseValue<types::FeedEventsResponseDto>, Error<()>> {
         let url = format!(
-            "{}/markets/{}/get-feed-events", self.baseurl, encode_path(& slug
-            .to_string()),
+            "{}/markets/{}/get-feed-events",
+            self.baseurl,
+            encode_path(&slug.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -11048,16 +10825,16 @@ Arguments:
     }
     /**Get Historical Prices
 
-Retrieve historical price data for a specific market with configurable time intervals
+    Retrieve historical price data for a specific market with configurable time intervals
 
-Sends a `GET` request to `/markets/{slug}/historical-price`
+    Sends a `GET` request to `/markets/{slug}/historical-price`
 
-Arguments:
-- `slug`: Market slug identifier
-- `from`: Start date for historical data
-- `interval`: Time interval for data points
-- `to`: End date for historical data
-*/
+    Arguments:
+    - `slug`: Market slug identifier
+    - `from`: Start date for historical data
+    - `interval`: Time interval for data points
+    - `to`: End date for historical data
+    */
     pub async fn market_orderbook_controller_get_historical_price<'a>(
         &'a self,
         slug: &'a str,
@@ -11066,22 +10843,20 @@ Arguments:
         to: Option<&'a ::serde_json::Value>,
     ) -> Result<
         ResponseValue<
-            ::std::vec::Vec<
-                types::MarketOrderbookControllerGetHistoricalPriceResponseItem,
-            >,
+            ::std::vec::Vec<types::MarketOrderbookControllerGetHistoricalPriceResponseItem>,
         >,
         Error<()>,
     > {
         let url = format!(
-            "{}/markets/{}/historical-price", self.baseurl, encode_path(& slug
-            .to_string()),
+            "{}/markets/{}/historical-price",
+            self.baseurl,
+            encode_path(&slug.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -11109,30 +10884,28 @@ Arguments:
     }
     /**Get Locked Balance
 
-Get the amount of funds locked in open orders for the authenticated user
+    Get the amount of funds locked in open orders for the authenticated user
 
-Sends a `GET` request to `/markets/{slug}/locked-balance`
+    Sends a `GET` request to `/markets/{slug}/locked-balance`
 
-Arguments:
-- `slug`: Market slug identifier
-*/
+    Arguments:
+    - `slug`: Market slug identifier
+    */
     pub async fn market_orderbook_controller_get_locked_balance<'a>(
         &'a self,
         slug: &'a str,
-    ) -> Result<
-        ResponseValue<types::MarketOrderbookControllerGetLockedBalanceResponse>,
-        Error<()>,
-    > {
+    ) -> Result<ResponseValue<types::MarketOrderbookControllerGetLockedBalanceResponse>, Error<()>>
+    {
         let url = format!(
-            "{}/markets/{}/locked-balance", self.baseurl, encode_path(& slug
-            .to_string()),
+            "{}/markets/{}/locked-balance",
+            self.baseurl,
+            encode_path(&slug.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -11157,29 +10930,28 @@ Arguments:
     }
     /**Get Orderbook
 
-Retrieve the current orderbook for a market showing all open buy and sell orders
+    Retrieve the current orderbook for a market showing all open buy and sell orders
 
-Sends a `GET` request to `/markets/{slug}/orderbook`
+    Sends a `GET` request to `/markets/{slug}/orderbook`
 
-Arguments:
-- `slug`: Market slug identifier
-*/
+    Arguments:
+    - `slug`: Market slug identifier
+    */
     pub async fn market_orderbook_controller_get_orderbook<'a>(
         &'a self,
         slug: &'a str,
-    ) -> Result<
-        ResponseValue<types::MarketOrderbookControllerGetOrderbookResponse>,
-        Error<()>,
-    > {
+    ) -> Result<ResponseValue<types::MarketOrderbookControllerGetOrderbookResponse>, Error<()>>
+    {
         let url = format!(
-            "{}/markets/{}/orderbook", self.baseurl, encode_path(& slug.to_string()),
+            "{}/markets/{}/orderbook",
+            self.baseurl,
+            encode_path(&slug.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -11204,37 +10976,34 @@ Arguments:
     }
     /**User Orders
 
-Get all orders placed by the authenticated user for a specific market
+    Get all orders placed by the authenticated user for a specific market
 
-Sends a `GET` request to `/markets/{slug}/user-orders`
+    Sends a `GET` request to `/markets/{slug}/user-orders`
 
-Arguments:
-- `slug`: Market slug identifier
-- `limit`: Maximum number of orders to return
-- `statuses`: Order status(es) to filter by. Defaults to [LIVE] if not provided
-*/
+    Arguments:
+    - `slug`: Market slug identifier
+    - `limit`: Maximum number of orders to return
+    - `statuses`: Order status(es) to filter by. Defaults to [LIVE] if not provided
+    */
     pub async fn market_orderbook_controller_get_user_orders<'a>(
         &'a self,
         slug: &'a str,
         limit: Option<i64>,
         statuses: Option<
-            &'a ::std::vec::Vec<
-                types::MarketOrderbookControllerGetUserOrdersStatusesItem,
-            >,
+            &'a ::std::vec::Vec<types::MarketOrderbookControllerGetUserOrdersStatusesItem>,
         >,
-    ) -> Result<
-        ResponseValue<types::MarketOrderbookControllerGetUserOrdersResponse>,
-        Error<()>,
-    > {
+    ) -> Result<ResponseValue<types::MarketOrderbookControllerGetUserOrdersResponse>, Error<()>>
+    {
         let url = format!(
-            "{}/markets/{}/user-orders", self.baseurl, encode_path(& slug.to_string()),
+            "{}/markets/{}/user-orders",
+            self.baseurl,
+            encode_path(&slug.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -11261,21 +11030,20 @@ Arguments:
     }
     /**Get navigation tree
 
-Returns the hierarchical navigation structure for market pages
+    Returns the hierarchical navigation structure for market pages
 
-Sends a `GET` request to `/navigation`
+    Sends a `GET` request to `/navigation`
 
-*/
+    */
     pub async fn market_navigation_controller_get_navigation_tree<'a>(
         &'a self,
     ) -> Result<ResponseValue<::std::vec::Vec<types::NavigationNodeDto>>, Error<()>> {
         let url = format!("{}/navigation", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -11300,24 +11068,23 @@ Sends a `GET` request to `/navigation`
     }
     /**Create Order
 
-Creates a buy/sell order for prediction market positions. Requires signed order data.
+    Creates a buy/sell order for prediction market positions. Requires signed order data.
 
-Sends a `POST` request to `/orders`
+    Sends a `POST` request to `/orders`
 
-Arguments:
-- `body`: Order creation data including signature and order parameters
-*/
+    Arguments:
+    - `body`: Order creation data including signature and order parameters
+    */
     pub async fn order_controller_create_order<'a>(
         &'a self,
         body: &'a types::CreateOrderDto,
     ) -> Result<ResponseValue<types::OrderResponseDto>, Error<()>> {
         let url = format!("{}/orders", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -11343,22 +11110,23 @@ Arguments:
     }
     /**Cancel all of a user's orders in a specific market
 
-Sends a `DELETE` request to `/orders/all/{slug}`
+    Sends a `DELETE` request to `/orders/all/{slug}`
 
-*/
+    */
     pub async fn order_controller_cancel_all_orders<'a>(
         &'a self,
         slug: &'a str,
     ) -> Result<ResponseValue<types::CancelAllOrdersResponseDto>, Error<()>> {
         let url = format!(
-            "{}/orders/all/{}", self.baseurl, encode_path(& slug.to_string()),
+            "{}/orders/all/{}",
+            self.baseurl,
+            encode_path(&slug.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -11383,25 +11151,21 @@ Sends a `DELETE` request to `/orders/all/{slug}`
     }
     /**Batch Cancel Orders (Combined)
 
-Cancel open orders by either internal orderIds or client-provided clientOrderIds.
+    Cancel open orders by either internal orderIds or client-provided clientOrderIds.
 
-Sends a `POST` request to `/orders/batch-cancel`
+    Sends a `POST` request to `/orders/batch-cancel`
 
-*/
+    */
     pub async fn order_controller_batch_cancel_orders<'a>(
         &'a self,
         body: &'a types::CancelOrderBatchCombinedDto,
-    ) -> Result<
-        ResponseValue<types::OrderControllerBatchCancelOrdersResponse>,
-        Error<()>,
-    > {
+    ) -> Result<ResponseValue<types::OrderControllerBatchCancelOrdersResponse>, Error<()>> {
         let url = format!("{}/orders/batch-cancel", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -11427,22 +11191,21 @@ Sends a `POST` request to `/orders/batch-cancel`
     }
     /**Cancel Order (Combined)
 
-Cancel one open order by either internal orderId or client-provided clientOrderId.
+    Cancel one open order by either internal orderId or client-provided clientOrderId.
 
-Sends a `POST` request to `/orders/cancel`
+    Sends a `POST` request to `/orders/cancel`
 
-*/
+    */
     pub async fn order_controller_cancel_order_combined<'a>(
         &'a self,
         body: &'a types::CancelOrderCombinedDto,
     ) -> Result<ResponseValue<types::CancelOrderResponseDto>, Error<()>> {
         let url = format!("{}/orders/cancel", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -11468,20 +11231,19 @@ Sends a `POST` request to `/orders/cancel`
     }
     /**Cancel multiple orders in batch
 
-Sends a `POST` request to `/orders/cancel-batch`
+    Sends a `POST` request to `/orders/cancel-batch`
 
-*/
+    */
     pub async fn order_controller_cancel_order_batch<'a>(
         &'a self,
         body: &'a types::DeleteOrderBatchDto,
     ) -> Result<ResponseValue<types::CancelOrderBatchResponseDto>, Error<()>> {
         let url = format!("{}/orders/cancel-batch", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -11507,22 +11269,21 @@ Sends a `POST` request to `/orders/cancel-batch`
     }
     /**Get order statuses in batch
 
-Fetches historical order statuses for multiple orders by internal order IDs and/or client-provided order IDs. Returns execution details, settlement status, and maker match data for each order.
+    Fetches historical order statuses for multiple orders by internal order IDs and/or client-provided order IDs. Returns execution details, settlement status, and maker match data for each order.
 
-Sends a `POST` request to `/orders/status/batch`
+    Sends a `POST` request to `/orders/status/batch`
 
-*/
+    */
     pub async fn order_controller_get_order_status_batch<'a>(
         &'a self,
         body: &'a types::BatchOrderStatusRequestDto,
     ) -> Result<ResponseValue<types::BatchOrderStatusResponseDto>, Error<()>> {
         let url = format!("{}/orders/status/batch", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -11548,26 +11309,27 @@ Sends a `POST` request to `/orders/status/batch`
     }
     /**Cancel Order
 
-Cancel an open order and return locked funds
+    Cancel an open order and return locked funds
 
-Sends a `DELETE` request to `/orders/{orderId}`
+    Sends a `DELETE` request to `/orders/{orderId}`
 
-Arguments:
-- `order_id`: Unique identifier of the order to be cancelled
-*/
+    Arguments:
+    - `order_id`: Unique identifier of the order to be cancelled
+    */
     pub async fn order_controller_cancel_order<'a>(
         &'a self,
         order_id: &'a str,
     ) -> Result<ResponseValue<types::CancelOrderResponseDto>, Error<()>> {
         let url = format!(
-            "{}/orders/{}", self.baseurl, encode_path(& order_id.to_string()),
+            "{}/orders/{}",
+            self.baseurl,
+            encode_path(&order_id.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -11592,14 +11354,14 @@ Arguments:
     }
     /**Get History
 
-Paginated history including AMM, CLOB trades, splits/merges, NegRisk conversions. Partner API tokens with `delegated_signing` scope may read a sub-account by sending the `x-on-behalf-of: <profileId>` header.
+    Paginated history including AMM, CLOB trades, splits/merges, NegRisk conversions. Partner API tokens with `delegated_signing` scope may read a sub-account by sending the `x-on-behalf-of: <profileId>` header.
 
-Sends a `GET` request to `/portfolio/history`
+    Sends a `GET` request to `/portfolio/history`
 
-Arguments:
-- `cursor`: Opaque cursor for cursor-based pagination. Omit for first page. For subsequent pages, pass the `nextCursor` value from the previous response.
-- `limit`: Number of items per page (1-100).
-*/
+    Arguments:
+    - `cursor`: Opaque cursor for cursor-based pagination. Omit for first page. For subsequent pages, pass the `nextCursor` value from the previous response.
+    - `limit`: Number of items per page (1-100).
+    */
     pub async fn portfolio_controller_get_history<'a>(
         &'a self,
         cursor: Option<&'a str>,
@@ -11607,11 +11369,10 @@ Arguments:
     ) -> Result<ResponseValue<types::HistoryResponseDto>, Error<()>> {
         let url = format!("{}/portfolio/history", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -11638,24 +11399,23 @@ Arguments:
     }
     /**Get portfolio PnL chart
 
-Hybrid PnL: realised series + current total snapshot
+    Hybrid PnL: realised series + current total snapshot
 
-Sends a `GET` request to `/portfolio/pnl-chart`
+    Sends a `GET` request to `/portfolio/pnl-chart`
 
-Arguments:
-- `timeframe`: Timeframe window for percent change and chart series
-*/
+    Arguments:
+    - `timeframe`: Timeframe window for percent change and chart series
+    */
     pub async fn portfolio_controller_get_pnl_chart<'a>(
         &'a self,
         timeframe: Option<&'a str>,
     ) -> Result<ResponseValue<types::PortfolioPnlChartDto>, Error<()>> {
         let url = format!("{}/portfolio/pnl-chart", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -11681,19 +11441,18 @@ Arguments:
     }
     /**Get points breakdown
 
-Sends a `GET` request to `/portfolio/points`
+    Sends a `GET` request to `/portfolio/points`
 
-*/
+    */
     pub async fn portfolio_controller_get_points_breakdown<'a>(
         &'a self,
     ) -> Result<ResponseValue<()>, Error<()>> {
         let url = format!("{}/portfolio/points", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self.client.get(url).headers(header_map).build()?;
         let info = OperationInfo {
@@ -11710,21 +11469,20 @@ Sends a `GET` request to `/portfolio/points`
     }
     /**Get Positions
 
-Retrieve all active positions with P&L calculations and market values
+    Retrieve all active positions with P&L calculations and market values
 
-Sends a `GET` request to `/portfolio/positions`
+    Sends a `GET` request to `/portfolio/positions`
 
-*/
+    */
     pub async fn portfolio_controller_get_positions<'a>(
         &'a self,
     ) -> Result<ResponseValue<types::PortfolioPositionsDto>, Error<()>> {
         let url = format!("{}/portfolio/positions", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -11749,21 +11507,20 @@ Sends a `GET` request to `/portfolio/positions`
     }
     /**Get Trades
 
-Retrieve all AMM trades executed by the authenticated user
+    Retrieve all AMM trades executed by the authenticated user
 
-Sends a `GET` request to `/portfolio/trades`
+    Sends a `GET` request to `/portfolio/trades`
 
-*/
+    */
     pub async fn portfolio_controller_get_trades<'a>(
         &'a self,
     ) -> Result<ResponseValue<::std::vec::Vec<types::HistoryTradeDto>>, Error<()>> {
         let url = format!("{}/portfolio/trades", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -11788,29 +11545,26 @@ Sends a `GET` request to `/portfolio/trades`
     }
     /**Get User Trading Allowance
 
-Check USDC allowance for CLOB or NegRisk trading contracts
+    Check USDC allowance for CLOB or NegRisk trading contracts
 
-Sends a `GET` request to `/portfolio/trading/allowance`
+    Sends a `GET` request to `/portfolio/trading/allowance`
 
-Arguments:
-- `spender`: Optional spender address override (e.g., venue exchange address)
-- `type_`: Trading type: CLOB or NegRisk
-*/
+    Arguments:
+    - `spender`: Optional spender address override (e.g., venue exchange address)
+    - `type_`: Trading type: CLOB or NegRisk
+    */
     pub async fn trading_portfolio_controller_get_allowance<'a>(
         &'a self,
         spender: Option<&'a str>,
         type_: types::TradingPortfolioControllerGetAllowanceType,
-    ) -> Result<
-        ResponseValue<types::TradingPortfolioControllerGetAllowanceResponse>,
-        Error<()>,
-    > {
+    ) -> Result<ResponseValue<types::TradingPortfolioControllerGetAllowanceResponse>, Error<()>>
+    {
         let url = format!("{}/portfolio/trading/allowance", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -11837,29 +11591,29 @@ Arguments:
     }
     /**Get portfolio PnL chart (public)
 
-Hybrid PnL: realised series + current total snapshot
+    Hybrid PnL: realised series + current total snapshot
 
-Sends a `GET` request to `/portfolio/{account}/pnl-chart`
+    Sends a `GET` request to `/portfolio/{account}/pnl-chart`
 
-Arguments:
-- `account`: User Ethereum address
-- `timeframe`: Timeframe window for percent change and chart series
-*/
+    Arguments:
+    - `account`: User Ethereum address
+    - `timeframe`: Timeframe window for percent change and chart series
+    */
     pub async fn public_portfolio_controller_get_pnl_chart<'a>(
         &'a self,
         account: &'a str,
         timeframe: Option<&'a str>,
     ) -> Result<ResponseValue<types::PortfolioPnlChartDto>, Error<()>> {
         let url = format!(
-            "{}/portfolio/{}/pnl-chart", self.baseurl, encode_path(& account
-            .to_string()),
+            "{}/portfolio/{}/pnl-chart",
+            self.baseurl,
+            encode_path(&account.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -11885,27 +11639,27 @@ Arguments:
     }
     /**Get All User Positions
 
-Retrieve all positions for a specific user address
+    Retrieve all positions for a specific user address
 
-Sends a `GET` request to `/portfolio/{account}/positions`
+    Sends a `GET` request to `/portfolio/{account}/positions`
 
-Arguments:
-- `account`: User Ethereum address
-*/
+    Arguments:
+    - `account`: User Ethereum address
+    */
     pub async fn public_portfolio_controller_get_positions<'a>(
         &'a self,
         account: &'a str,
     ) -> Result<ResponseValue<types::PortfolioPositionsDto>, Error<()>> {
         let url = format!(
-            "{}/portfolio/{}/positions", self.baseurl, encode_path(& account
-            .to_string()),
+            "{}/portfolio/{}/positions",
+            self.baseurl,
+            encode_path(&account.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -11930,30 +11684,28 @@ Arguments:
     }
     /**User Total Volume
 
-Get total traded volume for a specific user. Returns combined CLOB and AMM volume (both taker and maker sides) in whole USDC. This is the all-time cumulative trading volume, not the current portfolio value.
+    Get total traded volume for a specific user. Returns combined CLOB and AMM volume (both taker and maker sides) in whole USDC. This is the all-time cumulative trading volume, not the current portfolio value.
 
-Sends a `GET` request to `/portfolio/{account}/traded-volume`
+    Sends a `GET` request to `/portfolio/{account}/traded-volume`
 
-Arguments:
-- `account`: User Ethereum address
-*/
+    Arguments:
+    - `account`: User Ethereum address
+    */
     pub async fn public_portfolio_controller_traded_volume<'a>(
         &'a self,
         account: &'a str,
-    ) -> Result<
-        ResponseValue<types::PublicPortfolioControllerTradedVolumeResponse>,
-        Error<()>,
-    > {
+    ) -> Result<ResponseValue<types::PublicPortfolioControllerTradedVolumeResponse>, Error<()>>
+    {
         let url = format!(
-            "{}/portfolio/{}/traded-volume", self.baseurl, encode_path(& account
-            .to_string()),
+            "{}/portfolio/{}/traded-volume",
+            self.baseurl,
+            encode_path(&account.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -11978,20 +11730,20 @@ Arguments:
     }
     /**Create partner sub-account
 
-Creates a new sub-account linked to the authenticated partner. Requires HMAC authentication with the `account_creation` scope.
+    Creates a new sub-account linked to the authenticated partner. Requires HMAC authentication with the `account_creation` scope.
 
-**Server wallet mode** (`createServerWallet: true`): Creates a Privy server wallet and profile. The partner can then submit orders on behalf of this account using delegated signing.
+    **Server wallet mode** (`createServerWallet: true`): Creates a Privy server wallet and profile. The partner can then submit orders on behalf of this account using delegated signing.
 
-**EOA mode** (default): Requires wallet ownership verification via `x-account`, `x-signing-message`, and `x-signature` headers. The end user signs their own orders.
+    **EOA mode** (default): Requires wallet ownership verification via `x-account`, `x-signing-message`, and `x-signature` headers. The end user signs their own orders.
 
-Sends a `POST` request to `/profiles/partner-accounts`
+    Sends a `POST` request to `/profiles/partner-accounts`
 
-Arguments:
-- `x_account`: EOA mode only. Checksummed Ethereum address of the sub-account wallet.
-- `x_signature`: EOA mode only. Hex-encoded signature from the sub-account wallet.
-- `x_signing_message`: EOA mode only. Hex-encoded signing message.
-- `body`
-*/
+    Arguments:
+    - `x_account`: EOA mode only. Checksummed Ethereum address of the sub-account wallet.
+    - `x_signature`: EOA mode only. Hex-encoded signature from the sub-account wallet.
+    - `x_signing_message`: EOA mode only. Hex-encoded signing message.
+    - `body`
+    */
     pub async fn profile_controller_create_partner_account<'a>(
         &'a self,
         x_account: Option<&'a str>,
@@ -12001,11 +11753,10 @@ Arguments:
     ) -> Result<ResponseValue<types::CreatePartnerAccountResponse>, Error<()>> {
         let url = format!("{}/profiles/partner-accounts", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(4usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         if let Some(value) = x_account {
             header_map.append("x-account", value.to_string().try_into()?);
         }
@@ -12040,27 +11791,27 @@ Arguments:
     }
     /**Check partner account allowances
 
-Checks delegated-trading allowance readiness for a partner-created server-wallet sub-account. Requires HMAC authentication with `account_creation` and `delegated_signing` scopes. Status is based on live chain reads.
+    Checks delegated-trading allowance readiness for a partner-created server-wallet sub-account. Requires HMAC authentication with `account_creation` and `delegated_signing` scopes. Status is based on live chain reads.
 
-Sends a `GET` request to `/profiles/partner-accounts/{profileId}/allowances`
+    Sends a `GET` request to `/profiles/partner-accounts/{profileId}/allowances`
 
-Arguments:
-- `profile_id`: Partner sub-account profile ID for the server-wallet child account.
-*/
+    Arguments:
+    - `profile_id`: Partner sub-account profile ID for the server-wallet child account.
+    */
     pub async fn profile_controller_check_partner_account_allowances<'a>(
         &'a self,
         profile_id: i64,
     ) -> Result<ResponseValue<types::PartnerAccountAllowanceResponse>, Error<()>> {
         let url = format!(
-            "{}/profiles/partner-accounts/{}/allowances", self.baseurl, encode_path(&
-            profile_id.to_string()),
+            "{}/profiles/partner-accounts/{}/allowances",
+            self.baseurl,
+            encode_path(&profile_id.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -12085,29 +11836,29 @@ Arguments:
     }
     /**Retry partner account allowances
 
-Retries delegated-trading allowance recovery for a partner-created server-wallet sub-account. The retry takes a short wallet lock, re-checks live chain state, and submits only targets still missing. A `submitted` target means this retry request submitted a sponsored transaction or user operation.
+    Retries delegated-trading allowance recovery for a partner-created server-wallet sub-account. The retry takes a short wallet lock, re-checks live chain state, and submits only targets still missing. A `submitted` target means this retry request submitted a sponsored transaction or user operation.
 
-Sends a `POST` request to `/profiles/partner-accounts/{profileId}/allowances/retry`
+    Sends a `POST` request to `/profiles/partner-accounts/{profileId}/allowances/retry`
 
-Arguments:
-- `profile_id`: Partner sub-account profile ID for the server-wallet child account.
-- `body`
-*/
+    Arguments:
+    - `profile_id`: Partner sub-account profile ID for the server-wallet child account.
+    - `body`
+    */
     pub async fn profile_controller_retry_partner_account_allowances<'a>(
         &'a self,
         profile_id: i64,
         body: &'a types::ProfileControllerRetryPartnerAccountAllowancesBody,
     ) -> Result<ResponseValue<types::PartnerAccountAllowanceResponse>, Error<()>> {
         let url = format!(
-            "{}/profiles/partner-accounts/{}/allowances/retry", self.baseurl,
-            encode_path(& profile_id.to_string()),
+            "{}/profiles/partner-accounts/{}/allowances/retry",
+            self.baseurl,
+            encode_path(&profile_id.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -12133,26 +11884,27 @@ Arguments:
     }
     /**Get your profile
 
-Retrieve the authenticated user's profile, including their internal user ID and fee rate. This is useful for API users who need their `feeRateBps` (for order signing) or numeric `id` (used as `ownerId` in other flows). You can only access your own profile — requesting another user's address returns 403.
+    Retrieve the authenticated user's profile, including their internal user ID and fee rate. This is useful for API users who need their `feeRateBps` (for order signing) or numeric `id` (used as `ownerId` in other flows). You can only access your own profile — requesting another user's address returns 403.
 
-Sends a `GET` request to `/profiles/{account}`
+    Sends a `GET` request to `/profiles/{account}`
 
-Arguments:
-- `account`: Your wallet address (the address associated with your API key)
-*/
+    Arguments:
+    - `account`: Your wallet address (the address associated with your API key)
+    */
     pub async fn profile_controller_find_one<'a>(
         &'a self,
         account: &'a str,
     ) -> Result<ResponseValue<types::ProfileResponse>, Error<()>> {
         let url = format!(
-            "{}/profiles/{}", self.baseurl, encode_path(& account.to_string()),
+            "{}/profiles/{}",
+            self.baseurl,
+            encode_path(&account.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -12177,24 +11929,20 @@ Arguments:
     }
     /**List property keys
 
-Returns all property keys with their options, sorted by slug
+    Returns all property keys with their options, sorted by slug
 
-Sends a `GET` request to `/property-keys`
+    Sends a `GET` request to `/property-keys`
 
-*/
+    */
     pub async fn market_navigation_controller_list_property_keys<'a>(
         &'a self,
-    ) -> Result<
-        ResponseValue<::std::vec::Vec<types::PropertyKeyResponseDto>>,
-        Error<()>,
-    > {
+    ) -> Result<ResponseValue<::std::vec::Vec<types::PropertyKeyResponseDto>>, Error<()>> {
         let url = format!("{}/property-keys", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -12219,26 +11967,27 @@ Sends a `GET` request to `/property-keys`
     }
     /**Get property key by ID
 
-Returns a specific property key with its options
+    Returns a specific property key with its options
 
-Sends a `GET` request to `/property-keys/{id}`
+    Sends a `GET` request to `/property-keys/{id}`
 
-Arguments:
-- `id`: Property key ID
-*/
+    Arguments:
+    - `id`: Property key ID
+    */
     pub async fn market_navigation_controller_get_property_key<'a>(
         &'a self,
         id: &'a str,
     ) -> Result<ResponseValue<types::PropertyKeyResponseDto>, Error<()>> {
         let url = format!(
-            "{}/property-keys/{}", self.baseurl, encode_path(& id.to_string()),
+            "{}/property-keys/{}",
+            self.baseurl,
+            encode_path(&id.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -12263,31 +12012,29 @@ Arguments:
     }
     /**List property options
 
-Returns options for a specific property key, optionally filtered by parent option
+    Returns options for a specific property key, optionally filtered by parent option
 
-Sends a `GET` request to `/property-keys/{id}/options`
+    Sends a `GET` request to `/property-keys/{id}/options`
 
-Arguments:
-- `id`: Property key ID
-- `parent_id`: Parent option ID for hierarchical filtering
-*/
+    Arguments:
+    - `id`: Property key ID
+    - `parent_id`: Parent option ID for hierarchical filtering
+    */
     pub async fn market_navigation_controller_list_property_options<'a>(
         &'a self,
         id: &'a str,
         parent_id: Option<&'a str>,
-    ) -> Result<
-        ResponseValue<::std::vec::Vec<types::PropertyOptionResponseDto>>,
-        Error<()>,
-    > {
+    ) -> Result<ResponseValue<::std::vec::Vec<types::PropertyOptionResponseDto>>, Error<()>> {
         let url = format!(
-            "{}/property-keys/{}/options", self.baseurl, encode_path(& id.to_string()),
+            "{}/property-keys/{}/options",
+            self.baseurl,
+            encode_path(&id.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client

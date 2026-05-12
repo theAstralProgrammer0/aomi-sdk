@@ -7,8 +7,8 @@
 //! exposed — those need typed bodies + signing.
 
 use crate::client::Client as ZoraClient;
-use aomi_sdk::*;
 use aomi_sdk::schemars::JsonSchema;
+use aomi_sdk::*;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 
@@ -36,7 +36,9 @@ fn rt() -> Result<tokio::runtime::Runtime, String> {
 /// header. Many endpoints work without auth (rate-limited); supplying a key
 /// lifts the limit.
 fn make_client(api_key: Option<&str>) -> Result<ZoraClient, String> {
-    let key = api_key.map(str::to_string).or_else(|| std::env::var("ZORA_API_KEY").ok());
+    let key = api_key
+        .map(str::to_string)
+        .or_else(|| std::env::var("ZORA_API_KEY").ok());
     if let Some(k) = key {
         let mut headers = reqwest::header::HeaderMap::new();
         let v = reqwest::header::HeaderValue::from_str(&k)
@@ -74,8 +76,11 @@ impl DynAomiTool for GetCoin {
     fn run(_app: &ZoraApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         rt()?.block_on(async move {
             let client = make_client(args.api_key.as_deref())?;
-            let resp = client.get_coin(args.address.as_str(), args.chain.or(Some(8453))).await
-                .map_err(|e| format!("[zora] get_coin: {e}"))?.into_inner();
+            let resp = client
+                .get_coin(args.address.as_str(), args.chain.or(Some(8453)))
+                .await
+                .map_err(|e| format!("[zora] get_coin: {e}"))?
+                .into_inner();
             ok(resp)
         })
     }
@@ -98,14 +103,22 @@ impl DynAomiTool for GetCoinHolders {
     type App = ZoraApp;
     type Args = GetCoinHoldersArgs;
     const NAME: &'static str = "zora_get_coin_holders";
-    const DESCRIPTION: &'static str = "Get top holders of a Zora coin. Useful to gauge concentration before trading.";
+    const DESCRIPTION: &'static str =
+        "Get top holders of a Zora coin. Useful to gauge concentration before trading.";
 
     fn run(_app: &ZoraApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         rt()?.block_on(async move {
             let client = make_client(args.api_key.as_deref())?;
-            let resp = client.get_coin_holders(
-                args.address.as_str(), None, args.chain_id.unwrap_or(8453), args.count
-            ).await.map_err(|e| format!("[zora] get_coin_holders: {e}"))?.into_inner();
+            let resp = client
+                .get_coin_holders(
+                    args.address.as_str(),
+                    None,
+                    args.chain_id.unwrap_or(8453),
+                    args.count,
+                )
+                .await
+                .map_err(|e| format!("[zora] get_coin_holders: {e}"))?
+                .into_inner();
             ok(resp)
         })
     }
@@ -131,9 +144,11 @@ impl DynAomiTool for GetCoinPriceHistory {
     fn run(_app: &ZoraApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         rt()?.block_on(async move {
             let client = make_client(args.api_key.as_deref())?;
-            let resp = client.get_coin_price_history(
-                args.address.as_str(), args.chain.or(Some(8453))
-            ).await.map_err(|e| format!("[zora] get_coin_price_history: {e}"))?.into_inner();
+            let resp = client
+                .get_coin_price_history(args.address.as_str(), args.chain.or(Some(8453)))
+                .await
+                .map_err(|e| format!("[zora] get_coin_price_history: {e}"))?
+                .into_inner();
             ok(resp)
         })
     }
@@ -159,8 +174,11 @@ impl DynAomiTool for GetTrendsByName {
     fn run(_app: &ZoraApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         rt()?.block_on(async move {
             let client = make_client(args.api_key.as_deref())?;
-            let resp = client.get_trends_by_name(None, args.first, args.name.as_str()).await
-                .map_err(|e| format!("[zora] get_trends_by_name: {e}"))?.into_inner();
+            let resp = client
+                .get_trends_by_name(None, args.first, args.name.as_str())
+                .await
+                .map_err(|e| format!("[zora] get_trends_by_name: {e}"))?
+                .into_inner();
             ok(resp)
         })
     }
@@ -185,8 +203,11 @@ impl DynAomiTool for GetFeaturedCreators {
     fn run(_app: &ZoraApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         rt()?.block_on(async move {
             let client = make_client(args.api_key.as_deref())?;
-            let resp = client.get_featured_creators(None, args.first, None, None).await
-                .map_err(|e| format!("[zora] get_featured_creators: {e}"))?.into_inner();
+            let resp = client
+                .get_featured_creators(None, args.first, None, None)
+                .await
+                .map_err(|e| format!("[zora] get_featured_creators: {e}"))?
+                .into_inner();
             ok(resp)
         })
     }
@@ -206,13 +227,17 @@ impl DynAomiTool for GetProfile {
     type App = ZoraApp;
     type Args = GetProfileArgs;
     const NAME: &'static str = "zora_get_profile";
-    const DESCRIPTION: &'static str = "Get a full Zora profile by handle, address, or profile ID — bio, stats, deployed coins.";
+    const DESCRIPTION: &'static str =
+        "Get a full Zora profile by handle, address, or profile ID — bio, stats, deployed coins.";
 
     fn run(_app: &ZoraApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         rt()?.block_on(async move {
             let client = make_client(args.api_key.as_deref())?;
-            let resp = client.get_profile(args.identifier.as_str()).await
-                .map_err(|e| format!("[zora] get_profile: {e}"))?.into_inner();
+            let resp = client
+                .get_profile(args.identifier.as_str())
+                .await
+                .map_err(|e| format!("[zora] get_profile: {e}"))?
+                .into_inner();
             ok(resp)
         })
     }

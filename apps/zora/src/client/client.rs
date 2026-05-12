@@ -1,7 +1,7 @@
 #[allow(unused_imports)]
 pub use progenitor_client::{ByteStream, ClientInfo, Error, ResponseValue};
 #[allow(unused_imports)]
-use progenitor_client::{encode_path, ClientHooks, OperationInfo, RequestBuilderExt};
+use progenitor_client::{ClientHooks, OperationInfo, RequestBuilderExt, encode_path};
 /// Types used as operation parameters and responses.
 #[allow(clippy::all)]
 pub mod types {
@@ -11,18 +11,12 @@ pub mod types {
         pub struct ConversionError(::std::borrow::Cow<'static, str>);
         impl ::std::error::Error for ConversionError {}
         impl ::std::fmt::Display for ConversionError {
-            fn fmt(
-                &self,
-                f: &mut ::std::fmt::Formatter<'_>,
-            ) -> Result<(), ::std::fmt::Error> {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> Result<(), ::std::fmt::Error> {
                 ::std::fmt::Display::fmt(&self.0, f)
             }
         }
         impl ::std::fmt::Debug for ConversionError {
-            fn fmt(
-                &self,
-                f: &mut ::std::fmt::Formatter<'_>,
-            ) -> Result<(), ::std::fmt::Error> {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> Result<(), ::std::fmt::Error> {
                 ::std::fmt::Debug::fmt(&self.0, f)
             }
         }
@@ -930,9 +924,7 @@ pub mod types {
     pub struct GetCoinCommentsResponseZora20TokenZoraComments {
         ///The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1.
         pub count: i64,
-        pub edges: ::std::vec::Vec<
-            GetCoinCommentsResponseZora20TokenZoraCommentsEdgesItem,
-        >,
+        pub edges: ::std::vec::Vec<GetCoinCommentsResponseZora20TokenZoraCommentsEdgesItem>,
         #[serde(rename = "pageInfo")]
         pub page_info: GetCoinCommentsResponseZora20TokenZoraCommentsPageInfo,
     }
@@ -1911,7 +1903,8 @@ pub mod types {
     /// ```
     /// </details>
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
-    pub struct GetCoinCommentsResponseZora20TokenZoraCommentsEdgesItemNodeRepliesEdgesItemNodeUserProfileAvatarPreviewImage {
+    pub struct GetCoinCommentsResponseZora20TokenZoraCommentsEdgesItemNodeRepliesEdgesItemNodeUserProfileAvatarPreviewImage
+    {
         ///The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub blurhash: ::std::option::Option<::std::string::String>,
@@ -2066,7 +2059,8 @@ pub mod types {
     /// ```
     /// </details>
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
-    pub struct GetCoinCommentsResponseZora20TokenZoraCommentsEdgesItemNodeUserProfileAvatarPreviewImage {
+    pub struct GetCoinCommentsResponseZora20TokenZoraCommentsEdgesItemNodeUserProfileAvatarPreviewImage
+    {
         ///The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub blurhash: ::std::option::Option<::std::string::String>,
@@ -2538,9 +2532,7 @@ pub mod types {
     pub struct GetCoinHoldersResponseZora20TokenTokenBalances {
         ///The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1.
         pub count: i64,
-        pub edges: ::std::vec::Vec<
-            GetCoinHoldersResponseZora20TokenTokenBalancesEdgesItem,
-        >,
+        pub edges: ::std::vec::Vec<GetCoinHoldersResponseZora20TokenTokenBalancesEdgesItem>,
         #[serde(rename = "pageInfo")]
         pub page_info: GetCoinHoldersResponseZora20TokenTokenBalancesPageInfo,
     }
@@ -2881,7 +2873,8 @@ pub mod types {
     /// ```
     /// </details>
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
-    pub struct GetCoinHoldersResponseZora20TokenTokenBalancesEdgesItemNodeOwnerProfileAvatarPreviewImage {
+    pub struct GetCoinHoldersResponseZora20TokenTokenBalancesEdgesItemNodeOwnerProfileAvatarPreviewImage
+    {
         ///The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub blurhash: ::std::option::Option<::std::string::String>,
@@ -3199,9 +3192,7 @@ pub mod types {
         #[serde(rename = "oneHour")]
         pub one_hour: ::std::vec::Vec<GetCoinPriceHistoryResponseZora20TokenOneHourItem>,
         #[serde(rename = "oneMonth")]
-        pub one_month: ::std::vec::Vec<
-            GetCoinPriceHistoryResponseZora20TokenOneMonthItem,
-        >,
+        pub one_month: ::std::vec::Vec<GetCoinPriceHistoryResponseZora20TokenOneMonthItem>,
         #[serde(rename = "oneWeek")]
         pub one_week: ::std::vec::Vec<GetCoinPriceHistoryResponseZora20TokenOneWeekItem>,
     }
@@ -4767,17 +4758,14 @@ pub mod types {
             default,
             skip_serializing_if = "::std::option::Option::is_none"
         )]
-        pub creator_earnings: ::std::option::Option<
-            ::std::vec::Vec<GetCoinResponseZora20TokenCreatorEarningsItem>,
-        >,
+        pub creator_earnings:
+            ::std::option::Option<::std::vec::Vec<GetCoinResponseZora20TokenCreatorEarningsItem>>,
         #[serde(
             rename = "creatorProfile",
             default,
             skip_serializing_if = "::std::option::Option::is_none"
         )]
-        pub creator_profile: ::std::option::Option<
-            GetCoinResponseZora20TokenCreatorProfile,
-        >,
+        pub creator_profile: ::std::option::Option<GetCoinResponseZora20TokenCreatorProfile>,
         ///The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
         pub description: ::std::string::String,
         ///The Globally Unique ID of this object
@@ -4816,9 +4804,7 @@ pub mod types {
             default,
             skip_serializing_if = "::std::option::Option::is_none"
         )]
-        pub pool_currency_token: ::std::option::Option<
-            GetCoinResponseZora20TokenPoolCurrencyToken,
-        >,
+        pub pool_currency_token: ::std::option::Option<GetCoinResponseZora20TokenPoolCurrencyToken>,
         ///The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
         pub symbol: ::std::string::String,
         #[serde(
@@ -4877,7 +4863,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum GetCoinResponseZora20TokenCoinType {
         #[serde(rename = "CREATOR")]
@@ -4898,9 +4884,7 @@ pub mod types {
     }
     impl ::std::str::FromStr for GetCoinResponseZora20TokenCoinType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "CREATOR" => Ok(Self::Creator),
                 "CONTENT" => Ok(Self::Content),
@@ -4911,14 +4895,11 @@ pub mod types {
     }
     impl ::std::convert::TryFrom<&str> for GetCoinResponseZora20TokenCoinType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for GetCoinResponseZora20TokenCoinType {
+    impl ::std::convert::TryFrom<&::std::string::String> for GetCoinResponseZora20TokenCoinType {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -4926,8 +4907,7 @@ pub mod types {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for GetCoinResponseZora20TokenCoinType {
+    impl ::std::convert::TryFrom<::std::string::String> for GetCoinResponseZora20TokenCoinType {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -5264,17 +5244,14 @@ pub mod types {
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct GetCoinResponseZora20TokenCreatorProfile {
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub avatar: ::std::option::Option<
-            GetCoinResponseZora20TokenCreatorProfileAvatar,
-        >,
+        pub avatar: ::std::option::Option<GetCoinResponseZora20TokenCreatorProfileAvatar>,
         #[serde(
             rename = "creatorCoin",
             default,
             skip_serializing_if = "::std::option::Option::is_none"
         )]
-        pub creator_coin: ::std::option::Option<
-            GetCoinResponseZora20TokenCreatorProfileCreatorCoin,
-        >,
+        pub creator_coin:
+            ::std::option::Option<GetCoinResponseZora20TokenCreatorProfileCreatorCoin>,
         ///Manually set username, or truncated wallet address if the profile isn't a GraphQLAccountProfile. For full wallet address, use the profile_id field instead.
         pub handle: ::std::string::String,
         ///The Globally Unique ID of this object
@@ -5551,24 +5528,19 @@ pub mod types {
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct GetCoinResponseZora20TokenCreatorProfileSocialAccounts {
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub farcaster: ::std::option::Option<
-            GetCoinResponseZora20TokenCreatorProfileSocialAccountsFarcaster,
-        >,
+        pub farcaster:
+            ::std::option::Option<GetCoinResponseZora20TokenCreatorProfileSocialAccountsFarcaster>,
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub instagram: ::std::option::Option<
-            GetCoinResponseZora20TokenCreatorProfileSocialAccountsInstagram,
-        >,
+        pub instagram:
+            ::std::option::Option<GetCoinResponseZora20TokenCreatorProfileSocialAccountsInstagram>,
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub tiktok: ::std::option::Option<
-            GetCoinResponseZora20TokenCreatorProfileSocialAccountsTiktok,
-        >,
+        pub tiktok:
+            ::std::option::Option<GetCoinResponseZora20TokenCreatorProfileSocialAccountsTiktok>,
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub twitter: ::std::option::Option<
-            GetCoinResponseZora20TokenCreatorProfileSocialAccountsTwitter,
-        >,
+        pub twitter:
+            ::std::option::Option<GetCoinResponseZora20TokenCreatorProfileSocialAccountsTwitter>,
     }
-    impl ::std::default::Default
-    for GetCoinResponseZora20TokenCreatorProfileSocialAccounts {
+    impl ::std::default::Default for GetCoinResponseZora20TokenCreatorProfileSocialAccounts {
         fn default() -> Self {
             Self {
                 farcaster: Default::default(),
@@ -5641,8 +5613,7 @@ pub mod types {
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub username: ::std::option::Option<::std::string::String>,
     }
-    impl ::std::default::Default
-    for GetCoinResponseZora20TokenCreatorProfileSocialAccountsFarcaster {
+    impl ::std::default::Default for GetCoinResponseZora20TokenCreatorProfileSocialAccountsFarcaster {
         fn default() -> Self {
             Self {
                 display_name: Default::default(),
@@ -5715,8 +5686,7 @@ pub mod types {
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub username: ::std::option::Option<::std::string::String>,
     }
-    impl ::std::default::Default
-    for GetCoinResponseZora20TokenCreatorProfileSocialAccountsInstagram {
+    impl ::std::default::Default for GetCoinResponseZora20TokenCreatorProfileSocialAccountsInstagram {
         fn default() -> Self {
             Self {
                 display_name: Default::default(),
@@ -5789,8 +5759,7 @@ pub mod types {
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub username: ::std::option::Option<::std::string::String>,
     }
-    impl ::std::default::Default
-    for GetCoinResponseZora20TokenCreatorProfileSocialAccountsTiktok {
+    impl ::std::default::Default for GetCoinResponseZora20TokenCreatorProfileSocialAccountsTiktok {
         fn default() -> Self {
             Self {
                 display_name: Default::default(),
@@ -5863,8 +5832,7 @@ pub mod types {
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub username: ::std::option::Option<::std::string::String>,
     }
-    impl ::std::default::Default
-    for GetCoinResponseZora20TokenCreatorProfileSocialAccountsTwitter {
+    impl ::std::default::Default for GetCoinResponseZora20TokenCreatorProfileSocialAccountsTwitter {
         fn default() -> Self {
             Self {
                 display_name: Default::default(),
@@ -5958,9 +5926,8 @@ pub mod types {
             default,
             skip_serializing_if = "::std::option::Option::is_none"
         )]
-        pub preview_image: ::std::option::Option<
-            GetCoinResponseZora20TokenMediaContentPreviewImage,
-        >,
+        pub preview_image:
+            ::std::option::Option<GetCoinResponseZora20TokenMediaContentPreviewImage>,
         ///The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
         #[serde(
             rename = "videoHlsUrl",
@@ -6547,9 +6514,8 @@ pub mod types {
             default,
             skip_serializing_if = "::std::option::Option::is_none"
         )]
-        pub user_profile: ::std::option::Option<
-            GetCoinResponseZora20TokenZoraCommentsEdgesItemNodeUserProfile,
-        >,
+        pub user_profile:
+            ::std::option::Option<GetCoinResponseZora20TokenZoraCommentsEdgesItemNodeUserProfile>,
     }
     ///`GetCoinResponseZora20TokenZoraCommentsEdgesItemNodeUserProfile`
     ///
@@ -6663,7 +6629,8 @@ pub mod types {
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct GetCoinResponseZora20TokenZoraCommentsEdgesItemNodeUserProfileAvatar {
         #[serde(rename = "previewImage")]
-        pub preview_image: GetCoinResponseZora20TokenZoraCommentsEdgesItemNodeUserProfileAvatarPreviewImage,
+        pub preview_image:
+            GetCoinResponseZora20TokenZoraCommentsEdgesItemNodeUserProfileAvatarPreviewImage,
     }
     ///`GetCoinResponseZora20TokenZoraCommentsEdgesItemNodeUserProfileAvatarPreviewImage`
     ///
@@ -7385,9 +7352,7 @@ pub mod types {
     pub struct GetCoinSwapsResponseZora20TokenSwapActivities {
         ///The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1.
         pub count: i64,
-        pub edges: ::std::vec::Vec<
-            GetCoinSwapsResponseZora20TokenSwapActivitiesEdgesItem,
-        >,
+        pub edges: ::std::vec::Vec<GetCoinSwapsResponseZora20TokenSwapActivitiesEdgesItem>,
         #[serde(rename = "pageInfo")]
         pub page_info: GetCoinSwapsResponseZora20TokenSwapActivitiesPageInfo,
     }
@@ -7723,7 +7688,8 @@ pub mod types {
         #[serde(rename = "coinAmount")]
         pub coin_amount: ::std::string::String,
         #[serde(rename = "currencyAmountWithPrice")]
-        pub currency_amount_with_price: GetCoinSwapsResponseZora20TokenSwapActivitiesEdgesItemNodeCurrencyAmountWithPrice,
+        pub currency_amount_with_price:
+            GetCoinSwapsResponseZora20TokenSwapActivitiesEdgesItemNodeCurrencyAmountWithPrice,
         ///The Globally Unique ID of this object
         pub id: ::std::string::String,
         ///The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
@@ -7768,7 +7734,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum GetCoinSwapsResponseZora20TokenSwapActivitiesEdgesItemNodeActivityType {
         #[serde(rename = "BUY")]
@@ -7777,7 +7743,8 @@ pub mod types {
         Sell,
     }
     impl ::std::fmt::Display
-    for GetCoinSwapsResponseZora20TokenSwapActivitiesEdgesItemNodeActivityType {
+        for GetCoinSwapsResponseZora20TokenSwapActivitiesEdgesItemNodeActivityType
+    {
         fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
             match *self {
                 Self::Buy => f.write_str("BUY"),
@@ -7786,11 +7753,10 @@ pub mod types {
         }
     }
     impl ::std::str::FromStr
-    for GetCoinSwapsResponseZora20TokenSwapActivitiesEdgesItemNodeActivityType {
+        for GetCoinSwapsResponseZora20TokenSwapActivitiesEdgesItemNodeActivityType
+    {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "BUY" => Ok(Self::Buy),
                 "SELL" => Ok(Self::Sell),
@@ -7799,16 +7765,16 @@ pub mod types {
         }
     }
     impl ::std::convert::TryFrom<&str>
-    for GetCoinSwapsResponseZora20TokenSwapActivitiesEdgesItemNodeActivityType {
+        for GetCoinSwapsResponseZora20TokenSwapActivitiesEdgesItemNodeActivityType
+    {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
     impl ::std::convert::TryFrom<&::std::string::String>
-    for GetCoinSwapsResponseZora20TokenSwapActivitiesEdgesItemNodeActivityType {
+        for GetCoinSwapsResponseZora20TokenSwapActivitiesEdgesItemNodeActivityType
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -7817,7 +7783,8 @@ pub mod types {
         }
     }
     impl ::std::convert::TryFrom<::std::string::String>
-    for GetCoinSwapsResponseZora20TokenSwapActivitiesEdgesItemNodeActivityType {
+        for GetCoinSwapsResponseZora20TokenSwapActivitiesEdgesItemNodeActivityType
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -7903,7 +7870,8 @@ pub mod types {
     /// ```
     /// </details>
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
-    pub struct GetCoinSwapsResponseZora20TokenSwapActivitiesEdgesItemNodeCurrencyAmountWithPriceCurrencyAmount {
+    pub struct GetCoinSwapsResponseZora20TokenSwapActivitiesEdgesItemNodeCurrencyAmountWithPriceCurrencyAmount
+    {
         ///Amount of the currency, in float format accounting for currency decimals
         #[serde(rename = "amountDecimal")]
         pub amount_decimal: f32,
@@ -8065,7 +8033,8 @@ pub mod types {
     /// ```
     /// </details>
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
-    pub struct GetCoinSwapsResponseZora20TokenSwapActivitiesEdgesItemNodeSenderProfileAvatarPreviewImage {
+    pub struct GetCoinSwapsResponseZora20TokenSwapActivitiesEdgesItemNodeSenderProfileAvatarPreviewImage
+    {
         ///The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub blurhash: ::std::option::Option<::std::string::String>,
@@ -8608,7 +8577,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum GetCoinsListResponseCoinsBasicInfoEdgesItemNodeCoinType {
         #[serde(rename = "CREATOR")]
@@ -8618,8 +8587,7 @@ pub mod types {
         #[serde(rename = "TREND")]
         Trend,
     }
-    impl ::std::fmt::Display
-    for GetCoinsListResponseCoinsBasicInfoEdgesItemNodeCoinType {
+    impl ::std::fmt::Display for GetCoinsListResponseCoinsBasicInfoEdgesItemNodeCoinType {
         fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
             match *self {
                 Self::Creator => f.write_str("CREATOR"),
@@ -8628,12 +8596,9 @@ pub mod types {
             }
         }
     }
-    impl ::std::str::FromStr
-    for GetCoinsListResponseCoinsBasicInfoEdgesItemNodeCoinType {
+    impl ::std::str::FromStr for GetCoinsListResponseCoinsBasicInfoEdgesItemNodeCoinType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "CREATOR" => Ok(Self::Creator),
                 "CONTENT" => Ok(Self::Content),
@@ -8642,17 +8607,15 @@ pub mod types {
             }
         }
     }
-    impl ::std::convert::TryFrom<&str>
-    for GetCoinsListResponseCoinsBasicInfoEdgesItemNodeCoinType {
+    impl ::std::convert::TryFrom<&str> for GetCoinsListResponseCoinsBasicInfoEdgesItemNodeCoinType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
     impl ::std::convert::TryFrom<&::std::string::String>
-    for GetCoinsListResponseCoinsBasicInfoEdgesItemNodeCoinType {
+        for GetCoinsListResponseCoinsBasicInfoEdgesItemNodeCoinType
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -8661,7 +8624,8 @@ pub mod types {
         }
     }
     impl ::std::convert::TryFrom<::std::string::String>
-    for GetCoinsListResponseCoinsBasicInfoEdgesItemNodeCoinType {
+        for GetCoinsListResponseCoinsBasicInfoEdgesItemNodeCoinType
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -10112,9 +10076,7 @@ pub mod types {
             default,
             skip_serializing_if = "::std::option::Option::is_none"
         )]
-        pub creator_profile: ::std::option::Option<
-            GetCoinsResponseZora20TokensItemCreatorProfile,
-        >,
+        pub creator_profile: ::std::option::Option<GetCoinsResponseZora20TokensItemCreatorProfile>,
         ///The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
         pub description: ::std::string::String,
         ///The Globally Unique ID of this object
@@ -10130,9 +10092,7 @@ pub mod types {
             default,
             skip_serializing_if = "::std::option::Option::is_none"
         )]
-        pub media_content: ::std::option::Option<
-            GetCoinsResponseZora20TokensItemMediaContent,
-        >,
+        pub media_content: ::std::option::Option<GetCoinsResponseZora20TokensItemMediaContent>,
         ///The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
         pub name: ::std::string::String,
         #[serde(
@@ -10155,9 +10115,8 @@ pub mod types {
             default,
             skip_serializing_if = "::std::option::Option::is_none"
         )]
-        pub pool_currency_token: ::std::option::Option<
-            GetCoinsResponseZora20TokensItemPoolCurrencyToken,
-        >,
+        pub pool_currency_token:
+            ::std::option::Option<GetCoinsResponseZora20TokensItemPoolCurrencyToken>,
         ///The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
         pub symbol: ::std::string::String,
         #[serde(
@@ -10165,9 +10124,7 @@ pub mod types {
             default,
             skip_serializing_if = "::std::option::Option::is_none"
         )]
-        pub token_price: ::std::option::Option<
-            GetCoinsResponseZora20TokensItemTokenPrice,
-        >,
+        pub token_price: ::std::option::Option<GetCoinsResponseZora20TokensItemTokenPrice>,
         ///The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
         #[serde(
             rename = "tokenUri",
@@ -10218,7 +10175,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum GetCoinsResponseZora20TokensItemCoinType {
         #[serde(rename = "CREATOR")]
@@ -10239,9 +10196,7 @@ pub mod types {
     }
     impl ::std::str::FromStr for GetCoinsResponseZora20TokensItemCoinType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "CREATOR" => Ok(Self::Creator),
                 "CONTENT" => Ok(Self::Content),
@@ -10252,14 +10207,11 @@ pub mod types {
     }
     impl ::std::convert::TryFrom<&str> for GetCoinsResponseZora20TokensItemCoinType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for GetCoinsResponseZora20TokensItemCoinType {
+    impl ::std::convert::TryFrom<&::std::string::String> for GetCoinsResponseZora20TokensItemCoinType {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -10267,8 +10219,7 @@ pub mod types {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for GetCoinsResponseZora20TokensItemCoinType {
+    impl ::std::convert::TryFrom<::std::string::String> for GetCoinsResponseZora20TokensItemCoinType {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -10605,17 +10556,14 @@ pub mod types {
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct GetCoinsResponseZora20TokensItemCreatorProfile {
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub avatar: ::std::option::Option<
-            GetCoinsResponseZora20TokensItemCreatorProfileAvatar,
-        >,
+        pub avatar: ::std::option::Option<GetCoinsResponseZora20TokensItemCreatorProfileAvatar>,
         #[serde(
             rename = "creatorCoin",
             default,
             skip_serializing_if = "::std::option::Option::is_none"
         )]
-        pub creator_coin: ::std::option::Option<
-            GetCoinsResponseZora20TokensItemCreatorProfileCreatorCoin,
-        >,
+        pub creator_coin:
+            ::std::option::Option<GetCoinsResponseZora20TokensItemCreatorProfileCreatorCoin>,
         ///Manually set username, or truncated wallet address if the profile isn't a GraphQLAccountProfile. For full wallet address, use the profile_id field instead.
         pub handle: ::std::string::String,
         ///The Globally Unique ID of this object
@@ -10908,8 +10856,7 @@ pub mod types {
             GetCoinsResponseZora20TokensItemCreatorProfileSocialAccountsTwitter,
         >,
     }
-    impl ::std::default::Default
-    for GetCoinsResponseZora20TokensItemCreatorProfileSocialAccounts {
+    impl ::std::default::Default for GetCoinsResponseZora20TokensItemCreatorProfileSocialAccounts {
         fn default() -> Self {
             Self {
                 farcaster: Default::default(),
@@ -10983,7 +10930,8 @@ pub mod types {
         pub username: ::std::option::Option<::std::string::String>,
     }
     impl ::std::default::Default
-    for GetCoinsResponseZora20TokensItemCreatorProfileSocialAccountsFarcaster {
+        for GetCoinsResponseZora20TokensItemCreatorProfileSocialAccountsFarcaster
+    {
         fn default() -> Self {
             Self {
                 display_name: Default::default(),
@@ -11057,7 +11005,8 @@ pub mod types {
         pub username: ::std::option::Option<::std::string::String>,
     }
     impl ::std::default::Default
-    for GetCoinsResponseZora20TokensItemCreatorProfileSocialAccountsInstagram {
+        for GetCoinsResponseZora20TokensItemCreatorProfileSocialAccountsInstagram
+    {
         fn default() -> Self {
             Self {
                 display_name: Default::default(),
@@ -11131,7 +11080,8 @@ pub mod types {
         pub username: ::std::option::Option<::std::string::String>,
     }
     impl ::std::default::Default
-    for GetCoinsResponseZora20TokensItemCreatorProfileSocialAccountsTiktok {
+        for GetCoinsResponseZora20TokensItemCreatorProfileSocialAccountsTiktok
+    {
         fn default() -> Self {
             Self {
                 display_name: Default::default(),
@@ -11205,7 +11155,8 @@ pub mod types {
         pub username: ::std::option::Option<::std::string::String>,
     }
     impl ::std::default::Default
-    for GetCoinsResponseZora20TokensItemCreatorProfileSocialAccountsTwitter {
+        for GetCoinsResponseZora20TokensItemCreatorProfileSocialAccountsTwitter
+    {
         fn default() -> Self {
             Self {
                 display_name: Default::default(),
@@ -11299,9 +11250,8 @@ pub mod types {
             default,
             skip_serializing_if = "::std::option::Option::is_none"
         )]
-        pub preview_image: ::std::option::Option<
-            GetCoinsResponseZora20TokensItemMediaContentPreviewImage,
-        >,
+        pub preview_image:
+            ::std::option::Option<GetCoinsResponseZora20TokensItemMediaContentPreviewImage>,
         ///The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
         #[serde(
             rename = "videoHlsUrl",
@@ -11655,9 +11605,7 @@ pub mod types {
     pub struct GetCoinsResponseZora20TokensItemZoraComments {
         ///The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1.
         pub count: i64,
-        pub edges: ::std::vec::Vec<
-            GetCoinsResponseZora20TokensItemZoraCommentsEdgesItem,
-        >,
+        pub edges: ::std::vec::Vec<GetCoinsResponseZora20TokensItemZoraCommentsEdgesItem>,
         #[serde(rename = "pageInfo")]
         pub page_info: GetCoinsResponseZora20TokensItemZoraCommentsPageInfo,
     }
@@ -12006,7 +11954,8 @@ pub mod types {
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct GetCoinsResponseZora20TokensItemZoraCommentsEdgesItemNodeUserProfileAvatar {
         #[serde(rename = "previewImage")]
-        pub preview_image: GetCoinsResponseZora20TokensItemZoraCommentsEdgesItemNodeUserProfileAvatarPreviewImage,
+        pub preview_image:
+            GetCoinsResponseZora20TokensItemZoraCommentsEdgesItemNodeUserProfileAvatarPreviewImage,
     }
     ///`GetCoinsResponseZora20TokensItemZoraCommentsEdgesItemNodeUserProfileAvatarPreviewImage`
     ///
@@ -12115,7 +12064,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum GetContentCoinPoolConfigCurrencyType {
         #[serde(rename = "ETH")]
@@ -12142,9 +12091,7 @@ pub mod types {
     }
     impl ::std::str::FromStr for GetContentCoinPoolConfigCurrencyType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "ETH" => Ok(Self::Eth),
                 "ZORA" => Ok(Self::Zora),
@@ -12157,14 +12104,11 @@ pub mod types {
     }
     impl ::std::convert::TryFrom<&str> for GetContentCoinPoolConfigCurrencyType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for GetContentCoinPoolConfigCurrencyType {
+    impl ::std::convert::TryFrom<&::std::string::String> for GetContentCoinPoolConfigCurrencyType {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -12172,8 +12116,7 @@ pub mod types {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for GetContentCoinPoolConfigCurrencyType {
+    impl ::std::convert::TryFrom<::std::string::String> for GetContentCoinPoolConfigCurrencyType {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -12803,9 +12746,7 @@ pub mod types {
             default,
             skip_serializing_if = "::std::option::Option::is_none"
         )]
-        pub zora20_token: ::std::option::Option<
-            GetCreatorLivestreamCommentsResponseZora20Token,
-        >,
+        pub zora20_token: ::std::option::Option<GetCreatorLivestreamCommentsResponseZora20Token>,
     }
     impl ::std::default::Default for GetCreatorLivestreamCommentsResponse {
         fn default() -> Self {
@@ -13152,9 +13093,8 @@ pub mod types {
             default,
             skip_serializing_if = "::std::option::Option::is_none"
         )]
-        pub creator_profile: ::std::option::Option<
-            GetCreatorLivestreamCommentsResponseZora20TokenCreatorProfile,
-        >,
+        pub creator_profile:
+            ::std::option::Option<GetCreatorLivestreamCommentsResponseZora20TokenCreatorProfile>,
     }
     impl ::std::default::Default for GetCreatorLivestreamCommentsResponseZora20Token {
         fn default() -> Self {
@@ -13497,8 +13437,7 @@ pub mod types {
             GetCreatorLivestreamCommentsResponseZora20TokenCreatorProfileLiveStream,
         >,
     }
-    impl ::std::default::Default
-    for GetCreatorLivestreamCommentsResponseZora20TokenCreatorProfile {
+    impl ::std::default::Default for GetCreatorLivestreamCommentsResponseZora20TokenCreatorProfile {
         fn default() -> Self {
             Self {
                 live_stream: Default::default(),
@@ -13822,7 +13761,8 @@ pub mod types {
     /// </details>
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct GetCreatorLivestreamCommentsResponseZora20TokenCreatorProfileLiveStream {
-        pub comments: GetCreatorLivestreamCommentsResponseZora20TokenCreatorProfileLiveStreamComments,
+        pub comments:
+            GetCreatorLivestreamCommentsResponseZora20TokenCreatorProfileLiveStreamComments,
     }
     ///`GetCreatorLivestreamCommentsResponseZora20TokenCreatorProfileLiveStreamComments`
     ///
@@ -15021,7 +14961,8 @@ pub mod types {
     /// ```
     /// </details>
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
-    pub struct GetCreatorLivestreamCommentsResponseZora20TokenCreatorProfileLiveStreamCommentsEdgesItemNodeProfileAvatarPreviewImage {
+    pub struct GetCreatorLivestreamCommentsResponseZora20TokenCreatorProfileLiveStreamCommentsEdgesItemNodeProfileAvatarPreviewImage
+    {
         ///The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub blurhash: ::std::option::Option<::std::string::String>,
@@ -15049,7 +14990,8 @@ pub mod types {
     /// ```
     /// </details>
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
-    pub struct GetCreatorLivestreamCommentsResponseZora20TokenCreatorProfileLiveStreamCommentsEdgesItemNodeProfileCreatorCoin {
+    pub struct GetCreatorLivestreamCommentsResponseZora20TokenCreatorProfileLiveStreamCommentsEdgesItemNodeProfileCreatorCoin
+    {
         pub address: ::std::string::String,
     }
     ///`GetCreatorLivestreamCommentsResponseZora20TokenCreatorProfileLiveStreamCommentsEdgesItemNodeProfileSocialAccounts`
@@ -15279,7 +15221,8 @@ pub mod types {
     /// ```
     /// </details>
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
-    pub struct GetCreatorLivestreamCommentsResponseZora20TokenCreatorProfileLiveStreamCommentsEdgesItemNodeProfileSocialAccountsFarcaster {
+    pub struct GetCreatorLivestreamCommentsResponseZora20TokenCreatorProfileLiveStreamCommentsEdgesItemNodeProfileSocialAccountsFarcaster
+    {
         ///The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
         #[serde(
             rename = "displayName",
@@ -15353,7 +15296,8 @@ pub mod types {
     /// ```
     /// </details>
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
-    pub struct GetCreatorLivestreamCommentsResponseZora20TokenCreatorProfileLiveStreamCommentsEdgesItemNodeProfileSocialAccountsInstagram {
+    pub struct GetCreatorLivestreamCommentsResponseZora20TokenCreatorProfileLiveStreamCommentsEdgesItemNodeProfileSocialAccountsInstagram
+    {
         ///The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
         #[serde(
             rename = "displayName",
@@ -15427,7 +15371,8 @@ pub mod types {
     /// ```
     /// </details>
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
-    pub struct GetCreatorLivestreamCommentsResponseZora20TokenCreatorProfileLiveStreamCommentsEdgesItemNodeProfileSocialAccountsTiktok {
+    pub struct GetCreatorLivestreamCommentsResponseZora20TokenCreatorProfileLiveStreamCommentsEdgesItemNodeProfileSocialAccountsTiktok
+    {
         ///The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
         #[serde(
             rename = "displayName",
@@ -15501,7 +15446,8 @@ pub mod types {
     /// ```
     /// </details>
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
-    pub struct GetCreatorLivestreamCommentsResponseZora20TokenCreatorProfileLiveStreamCommentsEdgesItemNodeProfileSocialAccountsTwitter {
+    pub struct GetCreatorLivestreamCommentsResponseZora20TokenCreatorProfileLiveStreamCommentsEdgesItemNodeProfileSocialAccountsTwitter
+    {
         ///The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
         #[serde(
             rename = "displayName",
@@ -15618,7 +15564,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum GetExploreListType {
         #[serde(rename = "TOP_GAINERS")]
@@ -15699,9 +15645,7 @@ pub mod types {
     }
     impl ::std::str::FromStr for GetExploreListType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "TOP_GAINERS" => Ok(Self::TopGainers),
                 "TOP_VOLUME_24H" => Ok(Self::TopVolume24h),
@@ -15732,9 +15676,7 @@ pub mod types {
     }
     impl ::std::convert::TryFrom<&str> for GetExploreListType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -17890,9 +17832,8 @@ pub mod types {
             default,
             skip_serializing_if = "::std::option::Option::is_none"
         )]
-        pub creator_profile: ::std::option::Option<
-            GetExploreResponseExploreListEdgesItemNodeCreatorProfile,
-        >,
+        pub creator_profile:
+            ::std::option::Option<GetExploreResponseExploreListEdgesItemNodeCreatorProfile>,
         ///The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
         pub description: ::std::string::String,
         ///The Globally Unique ID of this object
@@ -17908,9 +17849,8 @@ pub mod types {
             default,
             skip_serializing_if = "::std::option::Option::is_none"
         )]
-        pub media_content: ::std::option::Option<
-            GetExploreResponseExploreListEdgesItemNodeMediaContent,
-        >,
+        pub media_content:
+            ::std::option::Option<GetExploreResponseExploreListEdgesItemNodeMediaContent>,
         ///The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
         pub name: ::std::string::String,
         #[serde(
@@ -17933,9 +17873,8 @@ pub mod types {
             default,
             skip_serializing_if = "::std::option::Option::is_none"
         )]
-        pub pool_currency_token: ::std::option::Option<
-            GetExploreResponseExploreListEdgesItemNodePoolCurrencyToken,
-        >,
+        pub pool_currency_token:
+            ::std::option::Option<GetExploreResponseExploreListEdgesItemNodePoolCurrencyToken>,
         ///The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
         pub symbol: ::std::string::String,
         #[serde(
@@ -17943,9 +17882,8 @@ pub mod types {
             default,
             skip_serializing_if = "::std::option::Option::is_none"
         )]
-        pub token_price: ::std::option::Option<
-            GetExploreResponseExploreListEdgesItemNodeTokenPrice,
-        >,
+        pub token_price:
+            ::std::option::Option<GetExploreResponseExploreListEdgesItemNodeTokenPrice>,
         ///The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
         #[serde(
             rename = "tokenUri",
@@ -17994,7 +17932,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum GetExploreResponseExploreListEdgesItemNodeCoinType {
         #[serde(rename = "CREATOR")]
@@ -18015,9 +17953,7 @@ pub mod types {
     }
     impl ::std::str::FromStr for GetExploreResponseExploreListEdgesItemNodeCoinType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "CREATOR" => Ok(Self::Creator),
                 "CONTENT" => Ok(Self::Content),
@@ -18026,17 +17962,15 @@ pub mod types {
             }
         }
     }
-    impl ::std::convert::TryFrom<&str>
-    for GetExploreResponseExploreListEdgesItemNodeCoinType {
+    impl ::std::convert::TryFrom<&str> for GetExploreResponseExploreListEdgesItemNodeCoinType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
     impl ::std::convert::TryFrom<&::std::string::String>
-    for GetExploreResponseExploreListEdgesItemNodeCoinType {
+        for GetExploreResponseExploreListEdgesItemNodeCoinType
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -18045,7 +17979,8 @@ pub mod types {
         }
     }
     impl ::std::convert::TryFrom<::std::string::String>
-    for GetExploreResponseExploreListEdgesItemNodeCoinType {
+        for GetExploreResponseExploreListEdgesItemNodeCoinType
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -18284,9 +18219,8 @@ pub mod types {
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct GetExploreResponseExploreListEdgesItemNodeCreatorProfile {
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub avatar: ::std::option::Option<
-            GetExploreResponseExploreListEdgesItemNodeCreatorProfileAvatar,
-        >,
+        pub avatar:
+            ::std::option::Option<GetExploreResponseExploreListEdgesItemNodeCreatorProfileAvatar>,
         #[serde(
             rename = "creatorCoin",
             default,
@@ -18347,7 +18281,8 @@ pub mod types {
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct GetExploreResponseExploreListEdgesItemNodeCreatorProfileAvatar {
         #[serde(rename = "previewImage")]
-        pub preview_image: GetExploreResponseExploreListEdgesItemNodeCreatorProfileAvatarPreviewImage,
+        pub preview_image:
+            GetExploreResponseExploreListEdgesItemNodeCreatorProfileAvatarPreviewImage,
     }
     ///`GetExploreResponseExploreListEdgesItemNodeCreatorProfileAvatarPreviewImage`
     ///
@@ -18588,7 +18523,8 @@ pub mod types {
         >,
     }
     impl ::std::default::Default
-    for GetExploreResponseExploreListEdgesItemNodeCreatorProfileSocialAccounts {
+        for GetExploreResponseExploreListEdgesItemNodeCreatorProfileSocialAccounts
+    {
         fn default() -> Self {
             Self {
                 farcaster: Default::default(),
@@ -18662,7 +18598,8 @@ pub mod types {
         pub username: ::std::option::Option<::std::string::String>,
     }
     impl ::std::default::Default
-    for GetExploreResponseExploreListEdgesItemNodeCreatorProfileSocialAccountsFarcaster {
+        for GetExploreResponseExploreListEdgesItemNodeCreatorProfileSocialAccountsFarcaster
+    {
         fn default() -> Self {
             Self {
                 display_name: Default::default(),
@@ -18736,7 +18673,8 @@ pub mod types {
         pub username: ::std::option::Option<::std::string::String>,
     }
     impl ::std::default::Default
-    for GetExploreResponseExploreListEdgesItemNodeCreatorProfileSocialAccountsInstagram {
+        for GetExploreResponseExploreListEdgesItemNodeCreatorProfileSocialAccountsInstagram
+    {
         fn default() -> Self {
             Self {
                 display_name: Default::default(),
@@ -18810,7 +18748,8 @@ pub mod types {
         pub username: ::std::option::Option<::std::string::String>,
     }
     impl ::std::default::Default
-    for GetExploreResponseExploreListEdgesItemNodeCreatorProfileSocialAccountsTiktok {
+        for GetExploreResponseExploreListEdgesItemNodeCreatorProfileSocialAccountsTiktok
+    {
         fn default() -> Self {
             Self {
                 display_name: Default::default(),
@@ -18884,7 +18823,8 @@ pub mod types {
         pub username: ::std::option::Option<::std::string::String>,
     }
     impl ::std::default::Default
-    for GetExploreResponseExploreListEdgesItemNodeCreatorProfileSocialAccountsTwitter {
+        for GetExploreResponseExploreListEdgesItemNodeCreatorProfileSocialAccountsTwitter
+    {
         fn default() -> Self {
             Self {
                 display_name: Default::default(),
@@ -19082,8 +19022,7 @@ pub mod types {
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub name: ::std::option::Option<::std::string::String>,
     }
-    impl ::std::default::Default
-    for GetExploreResponseExploreListEdgesItemNodePoolCurrencyToken {
+    impl ::std::default::Default for GetExploreResponseExploreListEdgesItemNodePoolCurrencyToken {
         fn default() -> Self {
             Self {
                 address: Default::default(),
@@ -19307,7 +19246,8 @@ pub mod types {
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct GetFeaturedCreatorsResponse {
         #[serde(rename = "traderLeaderboardFeaturedCreators")]
-        pub trader_leaderboard_featured_creators: GetFeaturedCreatorsResponseTraderLeaderboardFeaturedCreators,
+        pub trader_leaderboard_featured_creators:
+            GetFeaturedCreatorsResponseTraderLeaderboardFeaturedCreators,
     }
     ///`GetFeaturedCreatorsResponseTraderLeaderboardFeaturedCreators`
     ///
@@ -19381,9 +19321,8 @@ pub mod types {
     pub struct GetFeaturedCreatorsResponseTraderLeaderboardFeaturedCreators {
         ///The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1.
         pub count: i64,
-        pub edges: ::std::vec::Vec<
-            GetFeaturedCreatorsResponseTraderLeaderboardFeaturedCreatorsEdgesItem,
-        >,
+        pub edges:
+            ::std::vec::Vec<GetFeaturedCreatorsResponseTraderLeaderboardFeaturedCreatorsEdgesItem>,
         #[serde(rename = "pageInfo")]
         pub page_info: GetFeaturedCreatorsResponseTraderLeaderboardFeaturedCreatorsPageInfo,
     }
@@ -20134,9 +20073,7 @@ pub mod types {
     /// </details>
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct GetLatestLiveStreamsResponseLatestLiveStreams {
-        pub edges: ::std::vec::Vec<
-            GetLatestLiveStreamsResponseLatestLiveStreamsEdgesItem,
-        >,
+        pub edges: ::std::vec::Vec<GetLatestLiveStreamsResponseLatestLiveStreamsEdgesItem>,
         #[serde(rename = "pageInfo")]
         pub page_info: GetLatestLiveStreamsResponseLatestLiveStreamsPageInfo,
     }
@@ -20990,7 +20927,8 @@ pub mod types {
         #[serde(rename = "platformBlocked")]
         pub platform_blocked: bool,
         #[serde(rename = "socialAccounts")]
-        pub social_accounts: GetLatestLiveStreamsResponseLatestLiveStreamsEdgesItemNodeCreatorProfileSocialAccounts,
+        pub social_accounts:
+            GetLatestLiveStreamsResponseLatestLiveStreamsEdgesItemNodeCreatorProfileSocialAccounts,
     }
     ///`GetLatestLiveStreamsResponseLatestLiveStreamsEdgesItemNodeCreatorProfileAvatar`
     ///
@@ -21068,7 +21006,8 @@ pub mod types {
     /// ```
     /// </details>
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
-    pub struct GetLatestLiveStreamsResponseLatestLiveStreamsEdgesItemNodeCreatorProfileAvatarPreviewImage {
+    pub struct GetLatestLiveStreamsResponseLatestLiveStreamsEdgesItemNodeCreatorProfileAvatarPreviewImage
+    {
         ///The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub blurhash: ::std::option::Option<::std::string::String>,
@@ -21275,7 +21214,8 @@ pub mod types {
         >,
     }
     impl ::std::default::Default
-    for GetLatestLiveStreamsResponseLatestLiveStreamsEdgesItemNodeCreatorProfileSocialAccounts {
+        for GetLatestLiveStreamsResponseLatestLiveStreamsEdgesItemNodeCreatorProfileSocialAccounts
+    {
         fn default() -> Self {
             Self {
                 farcaster: Default::default(),
@@ -21326,7 +21266,8 @@ pub mod types {
     /// ```
     /// </details>
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
-    pub struct GetLatestLiveStreamsResponseLatestLiveStreamsEdgesItemNodeCreatorProfileSocialAccountsFarcaster {
+    pub struct GetLatestLiveStreamsResponseLatestLiveStreamsEdgesItemNodeCreatorProfileSocialAccountsFarcaster
+    {
         ///The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
         #[serde(
             rename = "displayName",
@@ -21400,7 +21341,8 @@ pub mod types {
     /// ```
     /// </details>
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
-    pub struct GetLatestLiveStreamsResponseLatestLiveStreamsEdgesItemNodeCreatorProfileSocialAccountsInstagram {
+    pub struct GetLatestLiveStreamsResponseLatestLiveStreamsEdgesItemNodeCreatorProfileSocialAccountsInstagram
+    {
         ///The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
         #[serde(
             rename = "displayName",
@@ -21474,7 +21416,8 @@ pub mod types {
     /// ```
     /// </details>
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
-    pub struct GetLatestLiveStreamsResponseLatestLiveStreamsEdgesItemNodeCreatorProfileSocialAccountsTiktok {
+    pub struct GetLatestLiveStreamsResponseLatestLiveStreamsEdgesItemNodeCreatorProfileSocialAccountsTiktok
+    {
         ///The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
         #[serde(
             rename = "displayName",
@@ -21548,7 +21491,8 @@ pub mod types {
     /// ```
     /// </details>
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
-    pub struct GetLatestLiveStreamsResponseLatestLiveStreamsEdgesItemNodeCreatorProfileSocialAccountsTwitter {
+    pub struct GetLatestLiveStreamsResponseLatestLiveStreamsEdgesItemNodeCreatorProfileSocialAccountsTwitter
+    {
         ///The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
         #[serde(
             rename = "displayName",
@@ -23381,9 +23325,7 @@ pub mod types {
             default,
             skip_serializing_if = "::std::option::Option::is_none"
         )]
-        pub creator_coin: ::std::option::Option<
-            GetProfileBalancesResponseProfileCreatorCoin,
-        >,
+        pub creator_coin: ::std::option::Option<GetProfileBalancesResponseProfileCreatorCoin>,
         ///Manually set username, or truncated wallet address if the profile isn't a GraphQLAccountProfile. For full wallet address, use the profile_id field instead.
         pub handle: ::std::string::String,
         ///The Globally Unique ID of this object
@@ -24126,9 +24068,7 @@ pub mod types {
     pub struct GetProfileBalancesResponseProfileCoinBalances {
         ///The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1.
         pub count: i64,
-        pub edges: ::std::vec::Vec<
-            GetProfileBalancesResponseProfileCoinBalancesEdgesItem,
-        >,
+        pub edges: ::std::vec::Vec<GetProfileBalancesResponseProfileCoinBalancesEdgesItem>,
         #[serde(rename = "pageInfo")]
         pub page_info: GetProfileBalancesResponseProfileCoinBalancesPageInfo,
     }
@@ -25347,9 +25287,8 @@ pub mod types {
         ///The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
         pub balance: ::std::string::String,
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub coin: ::std::option::Option<
-            GetProfileBalancesResponseProfileCoinBalancesEdgesItemNodeCoin,
-        >,
+        pub coin:
+            ::std::option::Option<GetProfileBalancesResponseProfileCoinBalancesEdgesItemNodeCoin>,
         ///The Globally Unique ID of this object
         pub id: ::std::string::String,
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
@@ -25957,7 +25896,8 @@ pub mod types {
         #[serde(rename = "uniswapV3PoolAddress")]
         pub uniswap_v3_pool_address: ::std::string::String,
         #[serde(rename = "uniswapV4PoolKey")]
-        pub uniswap_v4_pool_key: GetProfileBalancesResponseProfileCoinBalancesEdgesItemNodeCoinUniswapV4PoolKey,
+        pub uniswap_v4_pool_key:
+            GetProfileBalancesResponseProfileCoinBalancesEdgesItemNodeCoinUniswapV4PoolKey,
         ///The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
         pub volume24h: ::std::string::String,
     }
@@ -25986,7 +25926,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum GetProfileBalancesResponseProfileCoinBalancesEdgesItemNodeCoinCoinType {
         #[serde(rename = "CREATOR")]
@@ -25997,7 +25937,8 @@ pub mod types {
         Trend,
     }
     impl ::std::fmt::Display
-    for GetProfileBalancesResponseProfileCoinBalancesEdgesItemNodeCoinCoinType {
+        for GetProfileBalancesResponseProfileCoinBalancesEdgesItemNodeCoinCoinType
+    {
         fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
             match *self {
                 Self::Creator => f.write_str("CREATOR"),
@@ -26007,11 +25948,10 @@ pub mod types {
         }
     }
     impl ::std::str::FromStr
-    for GetProfileBalancesResponseProfileCoinBalancesEdgesItemNodeCoinCoinType {
+        for GetProfileBalancesResponseProfileCoinBalancesEdgesItemNodeCoinCoinType
+    {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "CREATOR" => Ok(Self::Creator),
                 "CONTENT" => Ok(Self::Content),
@@ -26021,16 +25961,16 @@ pub mod types {
         }
     }
     impl ::std::convert::TryFrom<&str>
-    for GetProfileBalancesResponseProfileCoinBalancesEdgesItemNodeCoinCoinType {
+        for GetProfileBalancesResponseProfileCoinBalancesEdgesItemNodeCoinCoinType
+    {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
     impl ::std::convert::TryFrom<&::std::string::String>
-    for GetProfileBalancesResponseProfileCoinBalancesEdgesItemNodeCoinCoinType {
+        for GetProfileBalancesResponseProfileCoinBalancesEdgesItemNodeCoinCoinType
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -26039,7 +25979,8 @@ pub mod types {
         }
     }
     impl ::std::convert::TryFrom<::std::string::String>
-    for GetProfileBalancesResponseProfileCoinBalancesEdgesItemNodeCoinCoinType {
+        for GetProfileBalancesResponseProfileCoinBalancesEdgesItemNodeCoinCoinType
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -26375,7 +26316,8 @@ pub mod types {
     /// ```
     /// </details>
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
-    pub struct GetProfileBalancesResponseProfileCoinBalancesEdgesItemNodeCoinCreatorProfileAvatarPreviewImage {
+    pub struct GetProfileBalancesResponseProfileCoinBalancesEdgesItemNodeCoinCreatorProfileAvatarPreviewImage
+    {
         ///The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub blurhash: ::std::option::Option<::std::string::String>,
@@ -26633,7 +26575,8 @@ pub mod types {
     /// ```
     /// </details>
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
-    pub struct GetProfileBalancesResponseProfileCoinBalancesEdgesItemNodeCoinCreatorProfileSocialAccountsFarcaster {
+    pub struct GetProfileBalancesResponseProfileCoinBalancesEdgesItemNodeCoinCreatorProfileSocialAccountsFarcaster
+    {
         ///The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
         #[serde(
             rename = "displayName",
@@ -26707,7 +26650,8 @@ pub mod types {
     /// ```
     /// </details>
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
-    pub struct GetProfileBalancesResponseProfileCoinBalancesEdgesItemNodeCoinCreatorProfileSocialAccountsInstagram {
+    pub struct GetProfileBalancesResponseProfileCoinBalancesEdgesItemNodeCoinCreatorProfileSocialAccountsInstagram
+    {
         ///The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
         #[serde(
             rename = "displayName",
@@ -26781,7 +26725,8 @@ pub mod types {
     /// ```
     /// </details>
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
-    pub struct GetProfileBalancesResponseProfileCoinBalancesEdgesItemNodeCoinCreatorProfileSocialAccountsTiktok {
+    pub struct GetProfileBalancesResponseProfileCoinBalancesEdgesItemNodeCoinCreatorProfileSocialAccountsTiktok
+    {
         ///The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
         #[serde(
             rename = "displayName",
@@ -26855,7 +26800,8 @@ pub mod types {
     /// ```
     /// </details>
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
-    pub struct GetProfileBalancesResponseProfileCoinBalancesEdgesItemNodeCoinCreatorProfileSocialAccountsTwitter {
+    pub struct GetProfileBalancesResponseProfileCoinBalancesEdgesItemNodeCoinCreatorProfileSocialAccountsTwitter
+    {
         ///The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
         #[serde(
             rename = "displayName",
@@ -27077,7 +27023,8 @@ pub mod types {
         pub name: ::std::option::Option<::std::string::String>,
     }
     impl ::std::default::Default
-    for GetProfileBalancesResponseProfileCoinBalancesEdgesItemNodeCoinPoolCurrencyToken {
+        for GetProfileBalancesResponseProfileCoinBalancesEdgesItemNodeCoinPoolCurrencyToken
+    {
         fn default() -> Self {
             Self {
                 address: Default::default(),
@@ -27275,7 +27222,8 @@ pub mod types {
         )]
         pub block_number: ::std::option::Option<i64>,
         #[serde(rename = "currencyAmount")]
-        pub currency_amount: GetProfileBalancesResponseProfileCoinBalancesEdgesItemNodeValuationCurrencyAmount,
+        pub currency_amount:
+            GetProfileBalancesResponseProfileCoinBalancesEdgesItemNodeValuationCurrencyAmount,
         ///The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub error: ::std::option::Option<::std::string::String>,
@@ -27590,21 +27538,15 @@ pub mod types {
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct GetProfileBalancesResponseProfileSocialAccounts {
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub farcaster: ::std::option::Option<
-            GetProfileBalancesResponseProfileSocialAccountsFarcaster,
-        >,
+        pub farcaster:
+            ::std::option::Option<GetProfileBalancesResponseProfileSocialAccountsFarcaster>,
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub instagram: ::std::option::Option<
-            GetProfileBalancesResponseProfileSocialAccountsInstagram,
-        >,
+        pub instagram:
+            ::std::option::Option<GetProfileBalancesResponseProfileSocialAccountsInstagram>,
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub tiktok: ::std::option::Option<
-            GetProfileBalancesResponseProfileSocialAccountsTiktok,
-        >,
+        pub tiktok: ::std::option::Option<GetProfileBalancesResponseProfileSocialAccountsTiktok>,
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub twitter: ::std::option::Option<
-            GetProfileBalancesResponseProfileSocialAccountsTwitter,
-        >,
+        pub twitter: ::std::option::Option<GetProfileBalancesResponseProfileSocialAccountsTwitter>,
     }
     impl ::std::default::Default for GetProfileBalancesResponseProfileSocialAccounts {
         fn default() -> Self {
@@ -27679,8 +27621,7 @@ pub mod types {
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub username: ::std::option::Option<::std::string::String>,
     }
-    impl ::std::default::Default
-    for GetProfileBalancesResponseProfileSocialAccountsFarcaster {
+    impl ::std::default::Default for GetProfileBalancesResponseProfileSocialAccountsFarcaster {
         fn default() -> Self {
             Self {
                 display_name: Default::default(),
@@ -27753,8 +27694,7 @@ pub mod types {
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub username: ::std::option::Option<::std::string::String>,
     }
-    impl ::std::default::Default
-    for GetProfileBalancesResponseProfileSocialAccountsInstagram {
+    impl ::std::default::Default for GetProfileBalancesResponseProfileSocialAccountsInstagram {
         fn default() -> Self {
             Self {
                 display_name: Default::default(),
@@ -27827,8 +27767,7 @@ pub mod types {
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub username: ::std::option::Option<::std::string::String>,
     }
-    impl ::std::default::Default
-    for GetProfileBalancesResponseProfileSocialAccountsTiktok {
+    impl ::std::default::Default for GetProfileBalancesResponseProfileSocialAccountsTiktok {
         fn default() -> Self {
             Self {
                 display_name: Default::default(),
@@ -27901,8 +27840,7 @@ pub mod types {
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub username: ::std::option::Option<::std::string::String>,
     }
-    impl ::std::default::Default
-    for GetProfileBalancesResponseProfileSocialAccountsTwitter {
+    impl ::std::default::Default for GetProfileBalancesResponseProfileSocialAccountsTwitter {
         fn default() -> Self {
             Self {
                 display_name: Default::default(),
@@ -27939,7 +27877,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum GetProfileBalancesSortOption {
         #[serde(rename = "BALANCE")]
@@ -27966,9 +27904,7 @@ pub mod types {
     }
     impl ::std::str::FromStr for GetProfileBalancesSortOption {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "BALANCE" => Ok(Self::Balance),
                 "MARKET_CAP" => Ok(Self::MarketCap),
@@ -27981,14 +27917,11 @@ pub mod types {
     }
     impl ::std::convert::TryFrom<&str> for GetProfileBalancesSortOption {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for GetProfileBalancesSortOption {
+    impl ::std::convert::TryFrom<&::std::string::String> for GetProfileBalancesSortOption {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -27996,8 +27929,7 @@ pub mod types {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for GetProfileBalancesSortOption {
+    impl ::std::convert::TryFrom<::std::string::String> for GetProfileBalancesSortOption {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -28031,7 +27963,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum GetProfileBySocialHandlePlatform {
         #[serde(rename = "TWITTER")]
@@ -28055,9 +27987,7 @@ pub mod types {
     }
     impl ::std::str::FromStr for GetProfileBySocialHandlePlatform {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "TWITTER" => Ok(Self::Twitter),
                 "TIKTOK" => Ok(Self::Tiktok),
@@ -28069,14 +27999,11 @@ pub mod types {
     }
     impl ::std::convert::TryFrom<&str> for GetProfileBySocialHandlePlatform {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for GetProfileBySocialHandlePlatform {
+    impl ::std::convert::TryFrom<&::std::string::String> for GetProfileBySocialHandlePlatform {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -28084,8 +28011,7 @@ pub mod types {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for GetProfileBySocialHandlePlatform {
+    impl ::std::convert::TryFrom<::std::string::String> for GetProfileBySocialHandlePlatform {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -28363,9 +28289,8 @@ pub mod types {
             default,
             skip_serializing_if = "::std::option::Option::is_none"
         )]
-        pub profile_by_social_handle: ::std::option::Option<
-            GetProfileBySocialHandleResponseProfileBySocialHandle,
-        >,
+        pub profile_by_social_handle:
+            ::std::option::Option<GetProfileBySocialHandleResponseProfileBySocialHandle>,
     }
     impl ::std::default::Default for GetProfileBySocialHandleResponse {
         fn default() -> Self {
@@ -28632,17 +28557,15 @@ pub mod types {
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct GetProfileBySocialHandleResponseProfileBySocialHandle {
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub avatar: ::std::option::Option<
-            GetProfileBySocialHandleResponseProfileBySocialHandleAvatar,
-        >,
+        pub avatar:
+            ::std::option::Option<GetProfileBySocialHandleResponseProfileBySocialHandleAvatar>,
         #[serde(
             rename = "creatorCoin",
             default,
             skip_serializing_if = "::std::option::Option::is_none"
         )]
-        pub creator_coin: ::std::option::Option<
-            GetProfileBySocialHandleResponseProfileBySocialHandleCreatorCoin,
-        >,
+        pub creator_coin:
+            ::std::option::Option<GetProfileBySocialHandleResponseProfileBySocialHandleCreatorCoin>,
         ///The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
         #[serde(
             rename = "displayName",
@@ -28969,7 +28892,8 @@ pub mod types {
         >,
     }
     impl ::std::default::Default
-    for GetProfileBySocialHandleResponseProfileBySocialHandleSocialAccounts {
+        for GetProfileBySocialHandleResponseProfileBySocialHandleSocialAccounts
+    {
         fn default() -> Self {
             Self {
                 farcaster: Default::default(),
@@ -29043,7 +28967,8 @@ pub mod types {
         pub username: ::std::option::Option<::std::string::String>,
     }
     impl ::std::default::Default
-    for GetProfileBySocialHandleResponseProfileBySocialHandleSocialAccountsFarcaster {
+        for GetProfileBySocialHandleResponseProfileBySocialHandleSocialAccountsFarcaster
+    {
         fn default() -> Self {
             Self {
                 display_name: Default::default(),
@@ -29117,7 +29042,8 @@ pub mod types {
         pub username: ::std::option::Option<::std::string::String>,
     }
     impl ::std::default::Default
-    for GetProfileBySocialHandleResponseProfileBySocialHandleSocialAccountsInstagram {
+        for GetProfileBySocialHandleResponseProfileBySocialHandleSocialAccountsInstagram
+    {
         fn default() -> Self {
             Self {
                 display_name: Default::default(),
@@ -29191,7 +29117,8 @@ pub mod types {
         pub username: ::std::option::Option<::std::string::String>,
     }
     impl ::std::default::Default
-    for GetProfileBySocialHandleResponseProfileBySocialHandleSocialAccountsTiktok {
+        for GetProfileBySocialHandleResponseProfileBySocialHandleSocialAccountsTiktok
+    {
         fn default() -> Self {
             Self {
                 display_name: Default::default(),
@@ -29265,7 +29192,8 @@ pub mod types {
         pub username: ::std::option::Option<::std::string::String>,
     }
     impl ::std::default::Default
-    for GetProfileBySocialHandleResponseProfileBySocialHandleSocialAccountsTwitter {
+        for GetProfileBySocialHandleResponseProfileBySocialHandleSocialAccountsTwitter
+    {
         fn default() -> Self {
             Self {
                 display_name: Default::default(),
@@ -31104,17 +31032,13 @@ pub mod types {
             default,
             skip_serializing_if = "::std::option::Option::is_none"
         )]
-        pub created_coins: ::std::option::Option<
-            GetProfileCoinsResponseProfileCreatedCoins,
-        >,
+        pub created_coins: ::std::option::Option<GetProfileCoinsResponseProfileCreatedCoins>,
         #[serde(
             rename = "creatorCoin",
             default,
             skip_serializing_if = "::std::option::Option::is_none"
         )]
-        pub creator_coin: ::std::option::Option<
-            GetProfileCoinsResponseProfileCreatorCoin,
-        >,
+        pub creator_coin: ::std::option::Option<GetProfileCoinsResponseProfileCreatorCoin>,
         ///Manually set username, or truncated wallet address if the profile isn't a GraphQLAccountProfile. For full wallet address, use the profile_id field instead.
         pub handle: ::std::string::String,
         ///The Globally Unique ID of this object
@@ -33271,7 +33195,8 @@ pub mod types {
         #[serde(rename = "uniswapV3PoolAddress")]
         pub uniswap_v3_pool_address: ::std::string::String,
         #[serde(rename = "uniswapV4PoolKey")]
-        pub uniswap_v4_pool_key: GetProfileCoinsResponseProfileCreatedCoinsEdgesItemNodeUniswapV4PoolKey,
+        pub uniswap_v4_pool_key:
+            GetProfileCoinsResponseProfileCreatedCoinsEdgesItemNodeUniswapV4PoolKey,
         ///The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
         pub volume24h: ::std::string::String,
         #[serde(rename = "zoraComments")]
@@ -33302,7 +33227,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum GetProfileCoinsResponseProfileCreatedCoinsEdgesItemNodeCoinType {
         #[serde(rename = "CREATOR")]
@@ -33312,8 +33237,7 @@ pub mod types {
         #[serde(rename = "TREND")]
         Trend,
     }
-    impl ::std::fmt::Display
-    for GetProfileCoinsResponseProfileCreatedCoinsEdgesItemNodeCoinType {
+    impl ::std::fmt::Display for GetProfileCoinsResponseProfileCreatedCoinsEdgesItemNodeCoinType {
         fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
             match *self {
                 Self::Creator => f.write_str("CREATOR"),
@@ -33322,12 +33246,9 @@ pub mod types {
             }
         }
     }
-    impl ::std::str::FromStr
-    for GetProfileCoinsResponseProfileCreatedCoinsEdgesItemNodeCoinType {
+    impl ::std::str::FromStr for GetProfileCoinsResponseProfileCreatedCoinsEdgesItemNodeCoinType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "CREATOR" => Ok(Self::Creator),
                 "CONTENT" => Ok(Self::Content),
@@ -33337,16 +33258,16 @@ pub mod types {
         }
     }
     impl ::std::convert::TryFrom<&str>
-    for GetProfileCoinsResponseProfileCreatedCoinsEdgesItemNodeCoinType {
+        for GetProfileCoinsResponseProfileCreatedCoinsEdgesItemNodeCoinType
+    {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
     impl ::std::convert::TryFrom<&::std::string::String>
-    for GetProfileCoinsResponseProfileCreatedCoinsEdgesItemNodeCoinType {
+        for GetProfileCoinsResponseProfileCreatedCoinsEdgesItemNodeCoinType
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -33355,7 +33276,8 @@ pub mod types {
         }
     }
     impl ::std::convert::TryFrom<::std::string::String>
-    for GetProfileCoinsResponseProfileCreatedCoinsEdgesItemNodeCoinType {
+        for GetProfileCoinsResponseProfileCreatedCoinsEdgesItemNodeCoinType
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -33613,7 +33535,8 @@ pub mod types {
         #[serde(rename = "platformBlocked")]
         pub platform_blocked: bool,
         #[serde(rename = "socialAccounts")]
-        pub social_accounts: GetProfileCoinsResponseProfileCreatedCoinsEdgesItemNodeCreatorProfileSocialAccounts,
+        pub social_accounts:
+            GetProfileCoinsResponseProfileCreatedCoinsEdgesItemNodeCreatorProfileSocialAccounts,
     }
     ///`GetProfileCoinsResponseProfileCreatedCoinsEdgesItemNodeCreatorProfileAvatar`
     ///
@@ -33657,7 +33580,8 @@ pub mod types {
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct GetProfileCoinsResponseProfileCreatedCoinsEdgesItemNodeCreatorProfileAvatar {
         #[serde(rename = "previewImage")]
-        pub preview_image: GetProfileCoinsResponseProfileCreatedCoinsEdgesItemNodeCreatorProfileAvatarPreviewImage,
+        pub preview_image:
+            GetProfileCoinsResponseProfileCreatedCoinsEdgesItemNodeCreatorProfileAvatarPreviewImage,
     }
     ///`GetProfileCoinsResponseProfileCreatedCoinsEdgesItemNodeCreatorProfileAvatarPreviewImage`
     ///
@@ -33898,7 +33822,8 @@ pub mod types {
         >,
     }
     impl ::std::default::Default
-    for GetProfileCoinsResponseProfileCreatedCoinsEdgesItemNodeCreatorProfileSocialAccounts {
+        for GetProfileCoinsResponseProfileCreatedCoinsEdgesItemNodeCreatorProfileSocialAccounts
+    {
         fn default() -> Self {
             Self {
                 farcaster: Default::default(),
@@ -33949,7 +33874,8 @@ pub mod types {
     /// ```
     /// </details>
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
-    pub struct GetProfileCoinsResponseProfileCreatedCoinsEdgesItemNodeCreatorProfileSocialAccountsFarcaster {
+    pub struct GetProfileCoinsResponseProfileCreatedCoinsEdgesItemNodeCreatorProfileSocialAccountsFarcaster
+    {
         ///The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
         #[serde(
             rename = "displayName",
@@ -34023,7 +33949,8 @@ pub mod types {
     /// ```
     /// </details>
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
-    pub struct GetProfileCoinsResponseProfileCreatedCoinsEdgesItemNodeCreatorProfileSocialAccountsInstagram {
+    pub struct GetProfileCoinsResponseProfileCreatedCoinsEdgesItemNodeCreatorProfileSocialAccountsInstagram
+    {
         ///The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
         #[serde(
             rename = "displayName",
@@ -34097,7 +34024,8 @@ pub mod types {
     /// ```
     /// </details>
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
-    pub struct GetProfileCoinsResponseProfileCreatedCoinsEdgesItemNodeCreatorProfileSocialAccountsTiktok {
+    pub struct GetProfileCoinsResponseProfileCreatedCoinsEdgesItemNodeCreatorProfileSocialAccountsTiktok
+    {
         ///The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
         #[serde(
             rename = "displayName",
@@ -34171,7 +34099,8 @@ pub mod types {
     /// ```
     /// </details>
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
-    pub struct GetProfileCoinsResponseProfileCreatedCoinsEdgesItemNodeCreatorProfileSocialAccountsTwitter {
+    pub struct GetProfileCoinsResponseProfileCreatedCoinsEdgesItemNodeCreatorProfileSocialAccountsTwitter
+    {
         ///The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
         #[serde(
             rename = "displayName",
@@ -34393,7 +34322,8 @@ pub mod types {
         pub name: ::std::option::Option<::std::string::String>,
     }
     impl ::std::default::Default
-    for GetProfileCoinsResponseProfileCreatedCoinsEdgesItemNodePoolCurrencyToken {
+        for GetProfileCoinsResponseProfileCreatedCoinsEdgesItemNodePoolCurrencyToken
+    {
         fn default() -> Self {
             Self {
                 address: Default::default(),
@@ -35030,7 +34960,8 @@ pub mod types {
     /// ```
     /// </details>
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
-    pub struct GetProfileCoinsResponseProfileCreatedCoinsEdgesItemNodeZoraCommentsEdgesItemNodeUserProfileAvatarPreviewImage {
+    pub struct GetProfileCoinsResponseProfileCreatedCoinsEdgesItemNodeZoraCommentsEdgesItemNodeUserProfileAvatarPreviewImage
+    {
         ///The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub blurhash: ::std::option::Option<::std::string::String>,
@@ -35298,21 +35229,13 @@ pub mod types {
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct GetProfileCoinsResponseProfileSocialAccounts {
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub farcaster: ::std::option::Option<
-            GetProfileCoinsResponseProfileSocialAccountsFarcaster,
-        >,
+        pub farcaster: ::std::option::Option<GetProfileCoinsResponseProfileSocialAccountsFarcaster>,
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub instagram: ::std::option::Option<
-            GetProfileCoinsResponseProfileSocialAccountsInstagram,
-        >,
+        pub instagram: ::std::option::Option<GetProfileCoinsResponseProfileSocialAccountsInstagram>,
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub tiktok: ::std::option::Option<
-            GetProfileCoinsResponseProfileSocialAccountsTiktok,
-        >,
+        pub tiktok: ::std::option::Option<GetProfileCoinsResponseProfileSocialAccountsTiktok>,
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub twitter: ::std::option::Option<
-            GetProfileCoinsResponseProfileSocialAccountsTwitter,
-        >,
+        pub twitter: ::std::option::Option<GetProfileCoinsResponseProfileSocialAccountsTwitter>,
     }
     impl ::std::default::Default for GetProfileCoinsResponseProfileSocialAccounts {
         fn default() -> Self {
@@ -35387,8 +35310,7 @@ pub mod types {
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub username: ::std::option::Option<::std::string::String>,
     }
-    impl ::std::default::Default
-    for GetProfileCoinsResponseProfileSocialAccountsFarcaster {
+    impl ::std::default::Default for GetProfileCoinsResponseProfileSocialAccountsFarcaster {
         fn default() -> Self {
             Self {
                 display_name: Default::default(),
@@ -35461,8 +35383,7 @@ pub mod types {
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub username: ::std::option::Option<::std::string::String>,
     }
-    impl ::std::default::Default
-    for GetProfileCoinsResponseProfileSocialAccountsInstagram {
+    impl ::std::default::Default for GetProfileCoinsResponseProfileSocialAccountsInstagram {
         fn default() -> Self {
             Self {
                 display_name: Default::default(),
@@ -35608,8 +35529,7 @@ pub mod types {
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub username: ::std::option::Option<::std::string::String>,
     }
-    impl ::std::default::Default
-    for GetProfileCoinsResponseProfileSocialAccountsTwitter {
+    impl ::std::default::Default for GetProfileCoinsResponseProfileSocialAccountsTwitter {
         fn default() -> Self {
             Self {
                 display_name: Default::default(),
@@ -36547,7 +36467,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum GetProfileResponseProfileLinkedWalletsEdgesItemNodeWalletType {
         #[serde(rename = "PRIVY")]
@@ -36557,8 +36477,7 @@ pub mod types {
         #[serde(rename = "SMART_WALLET")]
         SmartWallet,
     }
-    impl ::std::fmt::Display
-    for GetProfileResponseProfileLinkedWalletsEdgesItemNodeWalletType {
+    impl ::std::fmt::Display for GetProfileResponseProfileLinkedWalletsEdgesItemNodeWalletType {
         fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
             match *self {
                 Self::Privy => f.write_str("PRIVY"),
@@ -36567,12 +36486,9 @@ pub mod types {
             }
         }
     }
-    impl ::std::str::FromStr
-    for GetProfileResponseProfileLinkedWalletsEdgesItemNodeWalletType {
+    impl ::std::str::FromStr for GetProfileResponseProfileLinkedWalletsEdgesItemNodeWalletType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "PRIVY" => Ok(Self::Privy),
                 "EXTERNAL" => Ok(Self::External),
@@ -36582,16 +36498,16 @@ pub mod types {
         }
     }
     impl ::std::convert::TryFrom<&str>
-    for GetProfileResponseProfileLinkedWalletsEdgesItemNodeWalletType {
+        for GetProfileResponseProfileLinkedWalletsEdgesItemNodeWalletType
+    {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
     impl ::std::convert::TryFrom<&::std::string::String>
-    for GetProfileResponseProfileLinkedWalletsEdgesItemNodeWalletType {
+        for GetProfileResponseProfileLinkedWalletsEdgesItemNodeWalletType
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -36600,7 +36516,8 @@ pub mod types {
         }
     }
     impl ::std::convert::TryFrom<::std::string::String>
-    for GetProfileResponseProfileLinkedWalletsEdgesItemNodeWalletType {
+        for GetProfileResponseProfileLinkedWalletsEdgesItemNodeWalletType
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -36667,7 +36584,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum GetProfileResponseProfilePublicWalletWalletType {
         #[serde(rename = "PRIVY")]
@@ -36688,9 +36605,7 @@ pub mod types {
     }
     impl ::std::str::FromStr for GetProfileResponseProfilePublicWalletWalletType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "PRIVY" => Ok(Self::Privy),
                 "EXTERNAL" => Ok(Self::External),
@@ -36699,17 +36614,15 @@ pub mod types {
             }
         }
     }
-    impl ::std::convert::TryFrom<&str>
-    for GetProfileResponseProfilePublicWalletWalletType {
+    impl ::std::convert::TryFrom<&str> for GetProfileResponseProfilePublicWalletWalletType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
     impl ::std::convert::TryFrom<&::std::string::String>
-    for GetProfileResponseProfilePublicWalletWalletType {
+        for GetProfileResponseProfilePublicWalletWalletType
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -36718,7 +36631,8 @@ pub mod types {
         }
     }
     impl ::std::convert::TryFrom<::std::string::String>
-    for GetProfileResponseProfilePublicWalletWalletType {
+        for GetProfileResponseProfilePublicWalletWalletType
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -36885,19 +36799,13 @@ pub mod types {
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct GetProfileResponseProfileSocialAccounts {
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub farcaster: ::std::option::Option<
-            GetProfileResponseProfileSocialAccountsFarcaster,
-        >,
+        pub farcaster: ::std::option::Option<GetProfileResponseProfileSocialAccountsFarcaster>,
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub instagram: ::std::option::Option<
-            GetProfileResponseProfileSocialAccountsInstagram,
-        >,
+        pub instagram: ::std::option::Option<GetProfileResponseProfileSocialAccountsInstagram>,
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub tiktok: ::std::option::Option<GetProfileResponseProfileSocialAccountsTiktok>,
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub twitter: ::std::option::Option<
-            GetProfileResponseProfileSocialAccountsTwitter,
-        >,
+        pub twitter: ::std::option::Option<GetProfileResponseProfileSocialAccountsTwitter>,
     }
     impl ::std::default::Default for GetProfileResponseProfileSocialAccounts {
         fn default() -> Self {
@@ -38089,9 +37997,7 @@ pub mod types {
             default,
             skip_serializing_if = "::std::option::Option::is_none"
         )]
-        pub creator_coin: ::std::option::Option<
-            GetProfileSocialResponseProfileCreatorCoin,
-        >,
+        pub creator_coin: ::std::option::Option<GetProfileSocialResponseProfileCreatorCoin>,
         ///The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
         #[serde(
             rename = "displayName",
@@ -38104,9 +38010,7 @@ pub mod types {
             default,
             skip_serializing_if = "::std::option::Option::is_none"
         )]
-        pub external_wallet: ::std::option::Option<
-            GetProfileSocialResponseProfileExternalWallet,
-        >,
+        pub external_wallet: ::std::option::Option<GetProfileSocialResponseProfileExternalWallet>,
         pub followers: GetProfileSocialResponseProfileFollowers,
         pub following: GetProfileSocialResponseProfileFollowing,
         ///Manually set username, or truncated wallet address if the profile isn't a GraphQLAccountProfile. For full wallet address, use the profile_id field instead.
@@ -38343,9 +38247,7 @@ pub mod types {
     /// </details>
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct GetProfileSocialResponseProfileLinkedWallets {
-        pub edges: ::std::vec::Vec<
-            GetProfileSocialResponseProfileLinkedWalletsEdgesItem,
-        >,
+        pub edges: ::std::vec::Vec<GetProfileSocialResponseProfileLinkedWalletsEdgesItem>,
     }
     ///`GetProfileSocialResponseProfileLinkedWalletsEdgesItem`
     ///
@@ -38445,7 +38347,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum GetProfileSocialResponseProfileLinkedWalletsEdgesItemNodeWalletType {
         #[serde(rename = "PRIVY")]
@@ -38455,8 +38357,7 @@ pub mod types {
         #[serde(rename = "SMART_WALLET")]
         SmartWallet,
     }
-    impl ::std::fmt::Display
-    for GetProfileSocialResponseProfileLinkedWalletsEdgesItemNodeWalletType {
+    impl ::std::fmt::Display for GetProfileSocialResponseProfileLinkedWalletsEdgesItemNodeWalletType {
         fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
             match *self {
                 Self::Privy => f.write_str("PRIVY"),
@@ -38465,12 +38366,9 @@ pub mod types {
             }
         }
     }
-    impl ::std::str::FromStr
-    for GetProfileSocialResponseProfileLinkedWalletsEdgesItemNodeWalletType {
+    impl ::std::str::FromStr for GetProfileSocialResponseProfileLinkedWalletsEdgesItemNodeWalletType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "PRIVY" => Ok(Self::Privy),
                 "EXTERNAL" => Ok(Self::External),
@@ -38480,16 +38378,16 @@ pub mod types {
         }
     }
     impl ::std::convert::TryFrom<&str>
-    for GetProfileSocialResponseProfileLinkedWalletsEdgesItemNodeWalletType {
+        for GetProfileSocialResponseProfileLinkedWalletsEdgesItemNodeWalletType
+    {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
     impl ::std::convert::TryFrom<&::std::string::String>
-    for GetProfileSocialResponseProfileLinkedWalletsEdgesItemNodeWalletType {
+        for GetProfileSocialResponseProfileLinkedWalletsEdgesItemNodeWalletType
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -38498,7 +38396,8 @@ pub mod types {
         }
     }
     impl ::std::convert::TryFrom<::std::string::String>
-    for GetProfileSocialResponseProfileLinkedWalletsEdgesItemNodeWalletType {
+        for GetProfileSocialResponseProfileLinkedWalletsEdgesItemNodeWalletType
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -38565,7 +38464,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum GetProfileSocialResponseProfilePublicWalletWalletType {
         #[serde(rename = "PRIVY")]
@@ -38586,9 +38485,7 @@ pub mod types {
     }
     impl ::std::str::FromStr for GetProfileSocialResponseProfilePublicWalletWalletType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "PRIVY" => Ok(Self::Privy),
                 "EXTERNAL" => Ok(Self::External),
@@ -38597,17 +38494,15 @@ pub mod types {
             }
         }
     }
-    impl ::std::convert::TryFrom<&str>
-    for GetProfileSocialResponseProfilePublicWalletWalletType {
+    impl ::std::convert::TryFrom<&str> for GetProfileSocialResponseProfilePublicWalletWalletType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
     impl ::std::convert::TryFrom<&::std::string::String>
-    for GetProfileSocialResponseProfilePublicWalletWalletType {
+        for GetProfileSocialResponseProfilePublicWalletWalletType
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -38616,7 +38511,8 @@ pub mod types {
         }
     }
     impl ::std::convert::TryFrom<::std::string::String>
-    for GetProfileSocialResponseProfilePublicWalletWalletType {
+        for GetProfileSocialResponseProfilePublicWalletWalletType
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -38692,9 +38588,8 @@ pub mod types {
     /// </details>
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct GetProfileSocialResponseProfileSocialAccountLinkedEvents {
-        pub edges: ::std::vec::Vec<
-            GetProfileSocialResponseProfileSocialAccountLinkedEventsEdgesItem,
-        >,
+        pub edges:
+            ::std::vec::Vec<GetProfileSocialResponseProfileSocialAccountLinkedEventsEdgesItem>,
     }
     ///`GetProfileSocialResponseProfileSocialAccountLinkedEventsEdgesItem`
     ///
@@ -38805,7 +38700,8 @@ pub mod types {
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct GetProfileSocialResponseProfileSocialAccountLinkedEventsEdgesItemNode {
         #[serde(rename = "eventType")]
-        pub event_type: GetProfileSocialResponseProfileSocialAccountLinkedEventsEdgesItemNodeEventType,
+        pub event_type:
+            GetProfileSocialResponseProfileSocialAccountLinkedEventsEdgesItemNodeEventType,
         ///The Globally Unique ID of this object
         pub id: ::std::string::String,
         ///Date with time (isoformat)
@@ -38840,7 +38736,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum GetProfileSocialResponseProfileSocialAccountLinkedEventsEdgesItemNodeEventType {
         #[serde(rename = "LINK")]
@@ -38849,7 +38745,8 @@ pub mod types {
         Unlink,
     }
     impl ::std::fmt::Display
-    for GetProfileSocialResponseProfileSocialAccountLinkedEventsEdgesItemNodeEventType {
+        for GetProfileSocialResponseProfileSocialAccountLinkedEventsEdgesItemNodeEventType
+    {
         fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
             match *self {
                 Self::Link => f.write_str("LINK"),
@@ -38858,11 +38755,10 @@ pub mod types {
         }
     }
     impl ::std::str::FromStr
-    for GetProfileSocialResponseProfileSocialAccountLinkedEventsEdgesItemNodeEventType {
+        for GetProfileSocialResponseProfileSocialAccountLinkedEventsEdgesItemNodeEventType
+    {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "LINK" => Ok(Self::Link),
                 "UNLINK" => Ok(Self::Unlink),
@@ -38871,16 +38767,16 @@ pub mod types {
         }
     }
     impl ::std::convert::TryFrom<&str>
-    for GetProfileSocialResponseProfileSocialAccountLinkedEventsEdgesItemNodeEventType {
+        for GetProfileSocialResponseProfileSocialAccountLinkedEventsEdgesItemNodeEventType
+    {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
     impl ::std::convert::TryFrom<&::std::string::String>
-    for GetProfileSocialResponseProfileSocialAccountLinkedEventsEdgesItemNodeEventType {
+        for GetProfileSocialResponseProfileSocialAccountLinkedEventsEdgesItemNodeEventType
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -38889,7 +38785,8 @@ pub mod types {
         }
     }
     impl ::std::convert::TryFrom<::std::string::String>
-    for GetProfileSocialResponseProfileSocialAccountLinkedEventsEdgesItemNodeEventType {
+        for GetProfileSocialResponseProfileSocialAccountLinkedEventsEdgesItemNodeEventType
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -38923,7 +38820,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum GetProfileSocialResponseProfileSocialAccountLinkedEventsEdgesItemNodePlatform {
         #[serde(rename = "TWITTER")]
@@ -38936,7 +38833,8 @@ pub mod types {
         Instagram,
     }
     impl ::std::fmt::Display
-    for GetProfileSocialResponseProfileSocialAccountLinkedEventsEdgesItemNodePlatform {
+        for GetProfileSocialResponseProfileSocialAccountLinkedEventsEdgesItemNodePlatform
+    {
         fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
             match *self {
                 Self::Twitter => f.write_str("TWITTER"),
@@ -38947,11 +38845,10 @@ pub mod types {
         }
     }
     impl ::std::str::FromStr
-    for GetProfileSocialResponseProfileSocialAccountLinkedEventsEdgesItemNodePlatform {
+        for GetProfileSocialResponseProfileSocialAccountLinkedEventsEdgesItemNodePlatform
+    {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "TWITTER" => Ok(Self::Twitter),
                 "TIKTOK" => Ok(Self::Tiktok),
@@ -38962,16 +38859,16 @@ pub mod types {
         }
     }
     impl ::std::convert::TryFrom<&str>
-    for GetProfileSocialResponseProfileSocialAccountLinkedEventsEdgesItemNodePlatform {
+        for GetProfileSocialResponseProfileSocialAccountLinkedEventsEdgesItemNodePlatform
+    {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
     impl ::std::convert::TryFrom<&::std::string::String>
-    for GetProfileSocialResponseProfileSocialAccountLinkedEventsEdgesItemNodePlatform {
+        for GetProfileSocialResponseProfileSocialAccountLinkedEventsEdgesItemNodePlatform
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -38980,7 +38877,8 @@ pub mod types {
         }
     }
     impl ::std::convert::TryFrom<::std::string::String>
-    for GetProfileSocialResponseProfileSocialAccountLinkedEventsEdgesItemNodePlatform {
+        for GetProfileSocialResponseProfileSocialAccountLinkedEventsEdgesItemNodePlatform
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -39147,21 +39045,15 @@ pub mod types {
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct GetProfileSocialResponseProfileSocialAccounts {
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub farcaster: ::std::option::Option<
-            GetProfileSocialResponseProfileSocialAccountsFarcaster,
-        >,
+        pub farcaster:
+            ::std::option::Option<GetProfileSocialResponseProfileSocialAccountsFarcaster>,
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub instagram: ::std::option::Option<
-            GetProfileSocialResponseProfileSocialAccountsInstagram,
-        >,
+        pub instagram:
+            ::std::option::Option<GetProfileSocialResponseProfileSocialAccountsInstagram>,
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub tiktok: ::std::option::Option<
-            GetProfileSocialResponseProfileSocialAccountsTiktok,
-        >,
+        pub tiktok: ::std::option::Option<GetProfileSocialResponseProfileSocialAccountsTiktok>,
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub twitter: ::std::option::Option<
-            GetProfileSocialResponseProfileSocialAccountsTwitter,
-        >,
+        pub twitter: ::std::option::Option<GetProfileSocialResponseProfileSocialAccountsTwitter>,
     }
     impl ::std::default::Default for GetProfileSocialResponseProfileSocialAccounts {
         fn default() -> Self {
@@ -39236,8 +39128,7 @@ pub mod types {
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub username: ::std::option::Option<::std::string::String>,
     }
-    impl ::std::default::Default
-    for GetProfileSocialResponseProfileSocialAccountsFarcaster {
+    impl ::std::default::Default for GetProfileSocialResponseProfileSocialAccountsFarcaster {
         fn default() -> Self {
             Self {
                 display_name: Default::default(),
@@ -39310,8 +39201,7 @@ pub mod types {
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub username: ::std::option::Option<::std::string::String>,
     }
-    impl ::std::default::Default
-    for GetProfileSocialResponseProfileSocialAccountsInstagram {
+    impl ::std::default::Default for GetProfileSocialResponseProfileSocialAccountsInstagram {
         fn default() -> Self {
             Self {
                 display_name: Default::default(),
@@ -39384,8 +39274,7 @@ pub mod types {
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub username: ::std::option::Option<::std::string::String>,
     }
-    impl ::std::default::Default
-    for GetProfileSocialResponseProfileSocialAccountsTiktok {
+    impl ::std::default::Default for GetProfileSocialResponseProfileSocialAccountsTiktok {
         fn default() -> Self {
             Self {
                 display_name: Default::default(),
@@ -39458,8 +39347,7 @@ pub mod types {
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub username: ::std::option::Option<::std::string::String>,
     }
-    impl ::std::default::Default
-    for GetProfileSocialResponseProfileSocialAccountsTwitter {
+    impl ::std::default::Default for GetProfileSocialResponseProfileSocialAccountsTwitter {
         fn default() -> Self {
             Self {
                 display_name: Default::default(),
@@ -41190,7 +41078,8 @@ pub mod types {
         #[serde(rename = "platformBlocked")]
         pub platform_blocked: bool,
         #[serde(rename = "socialAccounts")]
-        pub social_accounts: GetTopLiveStreamsResponseTopLiveStreamsEdgesItemNodeCreatorProfileSocialAccounts,
+        pub social_accounts:
+            GetTopLiveStreamsResponseTopLiveStreamsEdgesItemNodeCreatorProfileSocialAccounts,
     }
     ///`GetTopLiveStreamsResponseTopLiveStreamsEdgesItemNodeCreatorProfileAvatar`
     ///
@@ -41234,7 +41123,8 @@ pub mod types {
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct GetTopLiveStreamsResponseTopLiveStreamsEdgesItemNodeCreatorProfileAvatar {
         #[serde(rename = "previewImage")]
-        pub preview_image: GetTopLiveStreamsResponseTopLiveStreamsEdgesItemNodeCreatorProfileAvatarPreviewImage,
+        pub preview_image:
+            GetTopLiveStreamsResponseTopLiveStreamsEdgesItemNodeCreatorProfileAvatarPreviewImage,
     }
     ///`GetTopLiveStreamsResponseTopLiveStreamsEdgesItemNodeCreatorProfileAvatarPreviewImage`
     ///
@@ -41475,7 +41365,8 @@ pub mod types {
         >,
     }
     impl ::std::default::Default
-    for GetTopLiveStreamsResponseTopLiveStreamsEdgesItemNodeCreatorProfileSocialAccounts {
+        for GetTopLiveStreamsResponseTopLiveStreamsEdgesItemNodeCreatorProfileSocialAccounts
+    {
         fn default() -> Self {
             Self {
                 farcaster: Default::default(),
@@ -41526,7 +41417,8 @@ pub mod types {
     /// ```
     /// </details>
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
-    pub struct GetTopLiveStreamsResponseTopLiveStreamsEdgesItemNodeCreatorProfileSocialAccountsFarcaster {
+    pub struct GetTopLiveStreamsResponseTopLiveStreamsEdgesItemNodeCreatorProfileSocialAccountsFarcaster
+    {
         ///The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
         #[serde(
             rename = "displayName",
@@ -41600,7 +41492,8 @@ pub mod types {
     /// ```
     /// </details>
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
-    pub struct GetTopLiveStreamsResponseTopLiveStreamsEdgesItemNodeCreatorProfileSocialAccountsInstagram {
+    pub struct GetTopLiveStreamsResponseTopLiveStreamsEdgesItemNodeCreatorProfileSocialAccountsInstagram
+    {
         ///The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
         #[serde(
             rename = "displayName",
@@ -41697,7 +41590,8 @@ pub mod types {
         pub username: ::std::option::Option<::std::string::String>,
     }
     impl ::std::default::Default
-    for GetTopLiveStreamsResponseTopLiveStreamsEdgesItemNodeCreatorProfileSocialAccountsTiktok {
+        for GetTopLiveStreamsResponseTopLiveStreamsEdgesItemNodeCreatorProfileSocialAccountsTiktok
+    {
         fn default() -> Self {
             Self {
                 display_name: Default::default(),
@@ -41771,7 +41665,8 @@ pub mod types {
         pub username: ::std::option::Option<::std::string::String>,
     }
     impl ::std::default::Default
-    for GetTopLiveStreamsResponseTopLiveStreamsEdgesItemNodeCreatorProfileSocialAccountsTwitter {
+        for GetTopLiveStreamsResponseTopLiveStreamsEdgesItemNodeCreatorProfileSocialAccountsTwitter
+    {
         fn default() -> Self {
             Self {
                 display_name: Default::default(),
@@ -42047,9 +41942,7 @@ pub mod types {
     pub struct GetTraderLeaderboardResponseExploreTraderLeaderboard {
         ///The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1.
         pub count: i64,
-        pub edges: ::std::vec::Vec<
-            GetTraderLeaderboardResponseExploreTraderLeaderboardEdgesItem,
-        >,
+        pub edges: ::std::vec::Vec<GetTraderLeaderboardResponseExploreTraderLeaderboardEdgesItem>,
         #[serde(rename = "pageInfo")]
         pub page_info: GetTraderLeaderboardResponseExploreTraderLeaderboardPageInfo,
     }
@@ -43324,9 +43217,7 @@ pub mod types {
             default,
             skip_serializing_if = "::std::option::Option::is_none"
         )]
-        pub creator_profile: ::std::option::Option<
-            GetTrendCoinResponseTrendCoinCreatorProfile,
-        >,
+        pub creator_profile: ::std::option::Option<GetTrendCoinResponseTrendCoinCreatorProfile>,
         ///The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
         pub description: ::std::string::String,
         ///The Globally Unique ID of this object
@@ -43342,9 +43233,7 @@ pub mod types {
             default,
             skip_serializing_if = "::std::option::Option::is_none"
         )]
-        pub media_content: ::std::option::Option<
-            GetTrendCoinResponseTrendCoinMediaContent,
-        >,
+        pub media_content: ::std::option::Option<GetTrendCoinResponseTrendCoinMediaContent>,
         ///The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
         pub name: ::std::string::String,
         #[serde(
@@ -43367,9 +43256,8 @@ pub mod types {
             default,
             skip_serializing_if = "::std::option::Option::is_none"
         )]
-        pub pool_currency_token: ::std::option::Option<
-            GetTrendCoinResponseTrendCoinPoolCurrencyToken,
-        >,
+        pub pool_currency_token:
+            ::std::option::Option<GetTrendCoinResponseTrendCoinPoolCurrencyToken>,
         ///The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
         pub symbol: ::std::string::String,
         #[serde(
@@ -43426,7 +43314,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum GetTrendCoinResponseTrendCoinCoinType {
         #[serde(rename = "CREATOR")]
@@ -43447,9 +43335,7 @@ pub mod types {
     }
     impl ::std::str::FromStr for GetTrendCoinResponseTrendCoinCoinType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "CREATOR" => Ok(Self::Creator),
                 "CONTENT" => Ok(Self::Content),
@@ -43460,14 +43346,11 @@ pub mod types {
     }
     impl ::std::convert::TryFrom<&str> for GetTrendCoinResponseTrendCoinCoinType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for GetTrendCoinResponseTrendCoinCoinType {
+    impl ::std::convert::TryFrom<&::std::string::String> for GetTrendCoinResponseTrendCoinCoinType {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -43475,8 +43358,7 @@ pub mod types {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for GetTrendCoinResponseTrendCoinCoinType {
+    impl ::std::convert::TryFrom<::std::string::String> for GetTrendCoinResponseTrendCoinCoinType {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -43715,17 +43597,14 @@ pub mod types {
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct GetTrendCoinResponseTrendCoinCreatorProfile {
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub avatar: ::std::option::Option<
-            GetTrendCoinResponseTrendCoinCreatorProfileAvatar,
-        >,
+        pub avatar: ::std::option::Option<GetTrendCoinResponseTrendCoinCreatorProfileAvatar>,
         #[serde(
             rename = "creatorCoin",
             default,
             skip_serializing_if = "::std::option::Option::is_none"
         )]
-        pub creator_coin: ::std::option::Option<
-            GetTrendCoinResponseTrendCoinCreatorProfileCreatorCoin,
-        >,
+        pub creator_coin:
+            ::std::option::Option<GetTrendCoinResponseTrendCoinCreatorProfileCreatorCoin>,
         ///Manually set username, or truncated wallet address if the profile isn't a GraphQLAccountProfile. For full wallet address, use the profile_id field instead.
         pub handle: ::std::string::String,
         ///The Globally Unique ID of this object
@@ -44010,16 +43889,13 @@ pub mod types {
             GetTrendCoinResponseTrendCoinCreatorProfileSocialAccountsInstagram,
         >,
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub tiktok: ::std::option::Option<
-            GetTrendCoinResponseTrendCoinCreatorProfileSocialAccountsTiktok,
-        >,
+        pub tiktok:
+            ::std::option::Option<GetTrendCoinResponseTrendCoinCreatorProfileSocialAccountsTiktok>,
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-        pub twitter: ::std::option::Option<
-            GetTrendCoinResponseTrendCoinCreatorProfileSocialAccountsTwitter,
-        >,
+        pub twitter:
+            ::std::option::Option<GetTrendCoinResponseTrendCoinCreatorProfileSocialAccountsTwitter>,
     }
-    impl ::std::default::Default
-    for GetTrendCoinResponseTrendCoinCreatorProfileSocialAccounts {
+    impl ::std::default::Default for GetTrendCoinResponseTrendCoinCreatorProfileSocialAccounts {
         fn default() -> Self {
             Self {
                 farcaster: Default::default(),
@@ -44093,7 +43969,8 @@ pub mod types {
         pub username: ::std::option::Option<::std::string::String>,
     }
     impl ::std::default::Default
-    for GetTrendCoinResponseTrendCoinCreatorProfileSocialAccountsFarcaster {
+        for GetTrendCoinResponseTrendCoinCreatorProfileSocialAccountsFarcaster
+    {
         fn default() -> Self {
             Self {
                 display_name: Default::default(),
@@ -44167,7 +44044,8 @@ pub mod types {
         pub username: ::std::option::Option<::std::string::String>,
     }
     impl ::std::default::Default
-    for GetTrendCoinResponseTrendCoinCreatorProfileSocialAccountsInstagram {
+        for GetTrendCoinResponseTrendCoinCreatorProfileSocialAccountsInstagram
+    {
         fn default() -> Self {
             Self {
                 display_name: Default::default(),
@@ -44240,8 +44118,7 @@ pub mod types {
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub username: ::std::option::Option<::std::string::String>,
     }
-    impl ::std::default::Default
-    for GetTrendCoinResponseTrendCoinCreatorProfileSocialAccountsTiktok {
+    impl ::std::default::Default for GetTrendCoinResponseTrendCoinCreatorProfileSocialAccountsTiktok {
         fn default() -> Self {
             Self {
                 display_name: Default::default(),
@@ -44314,8 +44191,7 @@ pub mod types {
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub username: ::std::option::Option<::std::string::String>,
     }
-    impl ::std::default::Default
-    for GetTrendCoinResponseTrendCoinCreatorProfileSocialAccountsTwitter {
+    impl ::std::default::Default for GetTrendCoinResponseTrendCoinCreatorProfileSocialAccountsTwitter {
         fn default() -> Self {
             Self {
                 display_name: Default::default(),
@@ -44409,9 +44285,8 @@ pub mod types {
             default,
             skip_serializing_if = "::std::option::Option::is_none"
         )]
-        pub preview_image: ::std::option::Option<
-            GetTrendCoinResponseTrendCoinMediaContentPreviewImage,
-        >,
+        pub preview_image:
+            ::std::option::Option<GetTrendCoinResponseTrendCoinMediaContentPreviewImage>,
         ///The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
         #[serde(
             rename = "videoHlsUrl",
@@ -46781,9 +46656,8 @@ pub mod types {
             default,
             skip_serializing_if = "::std::option::Option::is_none"
         )]
-        pub creator_profile: ::std::option::Option<
-            GetTrendsByNameResponseTrendsByNameEdgesItemNodeCreatorProfile,
-        >,
+        pub creator_profile:
+            ::std::option::Option<GetTrendsByNameResponseTrendsByNameEdgesItemNodeCreatorProfile>,
         ///The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
         pub description: ::std::string::String,
         ///The Globally Unique ID of this object
@@ -46799,9 +46673,8 @@ pub mod types {
             default,
             skip_serializing_if = "::std::option::Option::is_none"
         )]
-        pub media_content: ::std::option::Option<
-            GetTrendsByNameResponseTrendsByNameEdgesItemNodeMediaContent,
-        >,
+        pub media_content:
+            ::std::option::Option<GetTrendsByNameResponseTrendsByNameEdgesItemNodeMediaContent>,
         ///The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
         pub name: ::std::string::String,
         #[serde(
@@ -46834,9 +46707,8 @@ pub mod types {
             default,
             skip_serializing_if = "::std::option::Option::is_none"
         )]
-        pub token_price: ::std::option::Option<
-            GetTrendsByNameResponseTrendsByNameEdgesItemNodeTokenPrice,
-        >,
+        pub token_price:
+            ::std::option::Option<GetTrendsByNameResponseTrendsByNameEdgesItemNodeTokenPrice>,
         ///The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
         #[serde(
             rename = "tokenUri",
@@ -46885,7 +46757,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum GetTrendsByNameResponseTrendsByNameEdgesItemNodeCoinType {
         #[serde(rename = "CREATOR")]
@@ -46895,8 +46767,7 @@ pub mod types {
         #[serde(rename = "TREND")]
         Trend,
     }
-    impl ::std::fmt::Display
-    for GetTrendsByNameResponseTrendsByNameEdgesItemNodeCoinType {
+    impl ::std::fmt::Display for GetTrendsByNameResponseTrendsByNameEdgesItemNodeCoinType {
         fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
             match *self {
                 Self::Creator => f.write_str("CREATOR"),
@@ -46905,12 +46776,9 @@ pub mod types {
             }
         }
     }
-    impl ::std::str::FromStr
-    for GetTrendsByNameResponseTrendsByNameEdgesItemNodeCoinType {
+    impl ::std::str::FromStr for GetTrendsByNameResponseTrendsByNameEdgesItemNodeCoinType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "CREATOR" => Ok(Self::Creator),
                 "CONTENT" => Ok(Self::Content),
@@ -46919,17 +46787,15 @@ pub mod types {
             }
         }
     }
-    impl ::std::convert::TryFrom<&str>
-    for GetTrendsByNameResponseTrendsByNameEdgesItemNodeCoinType {
+    impl ::std::convert::TryFrom<&str> for GetTrendsByNameResponseTrendsByNameEdgesItemNodeCoinType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
     impl ::std::convert::TryFrom<&::std::string::String>
-    for GetTrendsByNameResponseTrendsByNameEdgesItemNodeCoinType {
+        for GetTrendsByNameResponseTrendsByNameEdgesItemNodeCoinType
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -46938,7 +46804,8 @@ pub mod types {
         }
     }
     impl ::std::convert::TryFrom<::std::string::String>
-    for GetTrendsByNameResponseTrendsByNameEdgesItemNodeCoinType {
+        for GetTrendsByNameResponseTrendsByNameEdgesItemNodeCoinType
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -47196,7 +47063,8 @@ pub mod types {
         #[serde(rename = "platformBlocked")]
         pub platform_blocked: bool,
         #[serde(rename = "socialAccounts")]
-        pub social_accounts: GetTrendsByNameResponseTrendsByNameEdgesItemNodeCreatorProfileSocialAccounts,
+        pub social_accounts:
+            GetTrendsByNameResponseTrendsByNameEdgesItemNodeCreatorProfileSocialAccounts,
     }
     ///`GetTrendsByNameResponseTrendsByNameEdgesItemNodeCreatorProfileAvatar`
     ///
@@ -47240,7 +47108,8 @@ pub mod types {
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct GetTrendsByNameResponseTrendsByNameEdgesItemNodeCreatorProfileAvatar {
         #[serde(rename = "previewImage")]
-        pub preview_image: GetTrendsByNameResponseTrendsByNameEdgesItemNodeCreatorProfileAvatarPreviewImage,
+        pub preview_image:
+            GetTrendsByNameResponseTrendsByNameEdgesItemNodeCreatorProfileAvatarPreviewImage,
     }
     ///`GetTrendsByNameResponseTrendsByNameEdgesItemNodeCreatorProfileAvatarPreviewImage`
     ///
@@ -47481,7 +47350,8 @@ pub mod types {
         >,
     }
     impl ::std::default::Default
-    for GetTrendsByNameResponseTrendsByNameEdgesItemNodeCreatorProfileSocialAccounts {
+        for GetTrendsByNameResponseTrendsByNameEdgesItemNodeCreatorProfileSocialAccounts
+    {
         fn default() -> Self {
             Self {
                 farcaster: Default::default(),
@@ -47555,7 +47425,8 @@ pub mod types {
         pub username: ::std::option::Option<::std::string::String>,
     }
     impl ::std::default::Default
-    for GetTrendsByNameResponseTrendsByNameEdgesItemNodeCreatorProfileSocialAccountsFarcaster {
+        for GetTrendsByNameResponseTrendsByNameEdgesItemNodeCreatorProfileSocialAccountsFarcaster
+    {
         fn default() -> Self {
             Self {
                 display_name: Default::default(),
@@ -47629,7 +47500,8 @@ pub mod types {
         pub username: ::std::option::Option<::std::string::String>,
     }
     impl ::std::default::Default
-    for GetTrendsByNameResponseTrendsByNameEdgesItemNodeCreatorProfileSocialAccountsInstagram {
+        for GetTrendsByNameResponseTrendsByNameEdgesItemNodeCreatorProfileSocialAccountsInstagram
+    {
         fn default() -> Self {
             Self {
                 display_name: Default::default(),
@@ -47703,7 +47575,8 @@ pub mod types {
         pub username: ::std::option::Option<::std::string::String>,
     }
     impl ::std::default::Default
-    for GetTrendsByNameResponseTrendsByNameEdgesItemNodeCreatorProfileSocialAccountsTiktok {
+        for GetTrendsByNameResponseTrendsByNameEdgesItemNodeCreatorProfileSocialAccountsTiktok
+    {
         fn default() -> Self {
             Self {
                 display_name: Default::default(),
@@ -47777,7 +47650,8 @@ pub mod types {
         pub username: ::std::option::Option<::std::string::String>,
     }
     impl ::std::default::Default
-    for GetTrendsByNameResponseTrendsByNameEdgesItemNodeCreatorProfileSocialAccountsTwitter {
+        for GetTrendsByNameResponseTrendsByNameEdgesItemNodeCreatorProfileSocialAccountsTwitter
+    {
         fn default() -> Self {
             Self {
                 display_name: Default::default(),
@@ -47975,8 +47849,7 @@ pub mod types {
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub name: ::std::option::Option<::std::string::String>,
     }
-    impl ::std::default::Default
-    for GetTrendsByNameResponseTrendsByNameEdgesItemNodePoolCurrencyToken {
+    impl ::std::default::Default for GetTrendsByNameResponseTrendsByNameEdgesItemNodePoolCurrencyToken {
         fn default() -> Self {
             Self {
                 address: Default::default(),
@@ -49068,9 +48941,8 @@ pub mod types {
     pub struct GetWalletTradeActivityResponseWalletAddressTradeActivity {
         ///The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1.
         pub count: i64,
-        pub edges: ::std::vec::Vec<
-            GetWalletTradeActivityResponseWalletAddressTradeActivityEdgesItem,
-        >,
+        pub edges:
+            ::std::vec::Vec<GetWalletTradeActivityResponseWalletAddressTradeActivityEdgesItem>,
         #[serde(rename = "pageInfo")]
         pub page_info: GetWalletTradeActivityResponseWalletAddressTradeActivityPageInfo,
     }
@@ -50149,7 +50021,8 @@ pub mod types {
     pub struct GetWalletTradeActivityResponseWalletAddressTradeActivityEdgesItemNodeCoin {
         pub address: ::std::string::String,
         #[serde(rename = "coinType")]
-        pub coin_type: GetWalletTradeActivityResponseWalletAddressTradeActivityEdgesItemNodeCoinCoinType,
+        pub coin_type:
+            GetWalletTradeActivityResponseWalletAddressTradeActivityEdgesItemNodeCoinCoinType,
         #[serde(
             rename = "creatorAddress",
             default,
@@ -50219,7 +50092,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum GetWalletTradeActivityResponseWalletAddressTradeActivityEdgesItemNodeCoinCoinType {
         #[serde(rename = "CREATOR")]
@@ -50230,7 +50103,8 @@ pub mod types {
         Trend,
     }
     impl ::std::fmt::Display
-    for GetWalletTradeActivityResponseWalletAddressTradeActivityEdgesItemNodeCoinCoinType {
+        for GetWalletTradeActivityResponseWalletAddressTradeActivityEdgesItemNodeCoinCoinType
+    {
         fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
             match *self {
                 Self::Creator => f.write_str("CREATOR"),
@@ -50240,11 +50114,10 @@ pub mod types {
         }
     }
     impl ::std::str::FromStr
-    for GetWalletTradeActivityResponseWalletAddressTradeActivityEdgesItemNodeCoinCoinType {
+        for GetWalletTradeActivityResponseWalletAddressTradeActivityEdgesItemNodeCoinCoinType
+    {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "CREATOR" => Ok(Self::Creator),
                 "CONTENT" => Ok(Self::Content),
@@ -50254,16 +50127,16 @@ pub mod types {
         }
     }
     impl ::std::convert::TryFrom<&str>
-    for GetWalletTradeActivityResponseWalletAddressTradeActivityEdgesItemNodeCoinCoinType {
+        for GetWalletTradeActivityResponseWalletAddressTradeActivityEdgesItemNodeCoinCoinType
+    {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
     impl ::std::convert::TryFrom<&::std::string::String>
-    for GetWalletTradeActivityResponseWalletAddressTradeActivityEdgesItemNodeCoinCoinType {
+        for GetWalletTradeActivityResponseWalletAddressTradeActivityEdgesItemNodeCoinCoinType
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -50272,7 +50145,8 @@ pub mod types {
         }
     }
     impl ::std::convert::TryFrom<::std::string::String>
-    for GetWalletTradeActivityResponseWalletAddressTradeActivityEdgesItemNodeCoinCoinType {
+        for GetWalletTradeActivityResponseWalletAddressTradeActivityEdgesItemNodeCoinCoinType
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -50434,7 +50308,8 @@ pub mod types {
     /// ```
     /// </details>
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
-    pub struct GetWalletTradeActivityResponseWalletAddressTradeActivityEdgesItemNodeCoinCreatorProfileAvatarPreviewImage {
+    pub struct GetWalletTradeActivityResponseWalletAddressTradeActivityEdgesItemNodeCoinCreatorProfileAvatarPreviewImage
+    {
         ///The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub blurhash: ::std::option::Option<::std::string::String>,
@@ -50494,7 +50369,8 @@ pub mod types {
         >,
     }
     impl ::std::default::Default
-    for GetWalletTradeActivityResponseWalletAddressTradeActivityEdgesItemNodeCoinMediaContent {
+        for GetWalletTradeActivityResponseWalletAddressTradeActivityEdgesItemNodeCoinMediaContent
+    {
         fn default() -> Self {
             Self {
                 preview_image: Default::default(),
@@ -50533,7 +50409,8 @@ pub mod types {
     /// ```
     /// </details>
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
-    pub struct GetWalletTradeActivityResponseWalletAddressTradeActivityEdgesItemNodeCoinMediaContentPreviewImage {
+    pub struct GetWalletTradeActivityResponseWalletAddressTradeActivityEdgesItemNodeCoinMediaContentPreviewImage
+    {
         ///The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub blurhash: ::std::option::Option<::std::string::String>,
@@ -50658,7 +50535,8 @@ pub mod types {
     /// ```
     /// </details>
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
-    pub struct GetWalletTradeActivityResponseWalletAddressTradeActivityEdgesItemNodeCurrencyAmountWithPriceCurrencyAmount {
+    pub struct GetWalletTradeActivityResponseWalletAddressTradeActivityEdgesItemNodeCurrencyAmountWithPriceCurrencyAmount
+    {
         ///Amount of the currency, in float format accounting for currency decimals
         #[serde(rename = "amountDecimal")]
         pub amount_decimal: f32,
@@ -50823,7 +50701,8 @@ pub mod types {
     /// ```
     /// </details>
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
-    pub struct GetWalletTradeActivityResponseWalletAddressTradeActivityEdgesItemNodeMakerProfileAvatarPreviewImage {
+    pub struct GetWalletTradeActivityResponseWalletAddressTradeActivityEdgesItemNodeMakerProfileAvatarPreviewImage
+    {
         ///The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub blurhash: ::std::option::Option<::std::string::String>,
@@ -50986,7 +50865,8 @@ pub mod types {
     /// ```
     /// </details>
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
-    pub struct GetWalletTradeActivityResponseWalletAddressTradeActivityEdgesItemNodeSenderProfileAvatarPreviewImage {
+    pub struct GetWalletTradeActivityResponseWalletAddressTradeActivityEdgesItemNodeSenderProfileAvatarPreviewImage
+    {
         ///The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub blurhash: ::std::option::Option<::std::string::String>,
@@ -51019,7 +50899,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum GetWalletTradeActivityResponseWalletAddressTradeActivityEdgesItemNodeSwapActivityType {
         #[serde(rename = "BUY")]
@@ -51028,7 +50908,8 @@ pub mod types {
         Sell,
     }
     impl ::std::fmt::Display
-    for GetWalletTradeActivityResponseWalletAddressTradeActivityEdgesItemNodeSwapActivityType {
+        for GetWalletTradeActivityResponseWalletAddressTradeActivityEdgesItemNodeSwapActivityType
+    {
         fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
             match *self {
                 Self::Buy => f.write_str("BUY"),
@@ -51037,11 +50918,10 @@ pub mod types {
         }
     }
     impl ::std::str::FromStr
-    for GetWalletTradeActivityResponseWalletAddressTradeActivityEdgesItemNodeSwapActivityType {
+        for GetWalletTradeActivityResponseWalletAddressTradeActivityEdgesItemNodeSwapActivityType
+    {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "BUY" => Ok(Self::Buy),
                 "SELL" => Ok(Self::Sell),
@@ -51050,16 +50930,16 @@ pub mod types {
         }
     }
     impl ::std::convert::TryFrom<&str>
-    for GetWalletTradeActivityResponseWalletAddressTradeActivityEdgesItemNodeSwapActivityType {
+        for GetWalletTradeActivityResponseWalletAddressTradeActivityEdgesItemNodeSwapActivityType
+    {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
     impl ::std::convert::TryFrom<&::std::string::String>
-    for GetWalletTradeActivityResponseWalletAddressTradeActivityEdgesItemNodeSwapActivityType {
+        for GetWalletTradeActivityResponseWalletAddressTradeActivityEdgesItemNodeSwapActivityType
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -51068,7 +50948,8 @@ pub mod types {
         }
     }
     impl ::std::convert::TryFrom<::std::string::String>
-    for GetWalletTradeActivityResponseWalletAddressTradeActivityEdgesItemNodeSwapActivityType {
+        for GetWalletTradeActivityResponseWalletAddressTradeActivityEdgesItemNodeSwapActivityType
+    {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -51260,9 +51141,7 @@ pub mod types {
             default,
             skip_serializing_if = "::std::option::Option::is_none"
         )]
-        pub starting_market_cap: ::std::option::Option<
-            PostCreateContentBodyStartingMarketCap,
-        >,
+        pub starting_market_cap: ::std::option::Option<PostCreateContentBodyStartingMarketCap>,
         ///Ticker symbol for the content coin (e.g. ZORA).
         pub symbol: ::std::string::String,
     }
@@ -51293,7 +51172,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum PostCreateContentBodyCurrency {
         #[serde(rename = "CREATOR_COIN")]
@@ -51317,9 +51196,7 @@ pub mod types {
     }
     impl ::std::str::FromStr for PostCreateContentBodyCurrency {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "CREATOR_COIN" => Ok(Self::CreatorCoin),
                 "ZORA" => Ok(Self::Zora),
@@ -51331,14 +51208,11 @@ pub mod types {
     }
     impl ::std::convert::TryFrom<&str> for PostCreateContentBodyCurrency {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for PostCreateContentBodyCurrency {
+    impl ::std::convert::TryFrom<&::std::string::String> for PostCreateContentBodyCurrency {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -51346,8 +51220,7 @@ pub mod types {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for PostCreateContentBodyCurrency {
+    impl ::std::convert::TryFrom<::std::string::String> for PostCreateContentBodyCurrency {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -51416,7 +51289,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum PostCreateContentBodyMetadataType {
         #[serde(rename = "RAW_URI")]
@@ -51431,9 +51304,7 @@ pub mod types {
     }
     impl ::std::str::FromStr for PostCreateContentBodyMetadataType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "RAW_URI" => Ok(Self::RawUri),
                 _ => Err("invalid value".into()),
@@ -51442,14 +51313,11 @@ pub mod types {
     }
     impl ::std::convert::TryFrom<&str> for PostCreateContentBodyMetadataType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for PostCreateContentBodyMetadataType {
+    impl ::std::convert::TryFrom<&::std::string::String> for PostCreateContentBodyMetadataType {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -51457,8 +51325,7 @@ pub mod types {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for PostCreateContentBodyMetadataType {
+    impl ::std::convert::TryFrom<::std::string::String> for PostCreateContentBodyMetadataType {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -51491,7 +51358,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum PostCreateContentBodyStartingMarketCap {
         #[serde(rename = "LOW")]
@@ -51509,9 +51376,7 @@ pub mod types {
     }
     impl ::std::str::FromStr for PostCreateContentBodyStartingMarketCap {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "LOW" => Ok(Self::Low),
                 "HIGH" => Ok(Self::High),
@@ -51521,14 +51386,11 @@ pub mod types {
     }
     impl ::std::convert::TryFrom<&str> for PostCreateContentBodyStartingMarketCap {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<&::std::string::String>
-    for PostCreateContentBodyStartingMarketCap {
+    impl ::std::convert::TryFrom<&::std::string::String> for PostCreateContentBodyStartingMarketCap {
         type Error = self::error::ConversionError;
         fn try_from(
             value: &::std::string::String,
@@ -51536,8 +51398,7 @@ pub mod types {
             value.parse()
         }
     }
-    impl ::std::convert::TryFrom<::std::string::String>
-    for PostCreateContentBodyStartingMarketCap {
+    impl ::std::convert::TryFrom<::std::string::String> for PostCreateContentBodyStartingMarketCap {
         type Error = self::error::ConversionError;
         fn try_from(
             value: ::std::string::String,
@@ -52053,7 +51914,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum PostQuoteBodyTokenInType {
         #[serde(rename = "eth")]
@@ -52071,9 +51932,7 @@ pub mod types {
     }
     impl ::std::str::FromStr for PostQuoteBodyTokenInType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "eth" => Ok(Self::Eth),
                 "erc20" => Ok(Self::Erc20),
@@ -52083,9 +51942,7 @@ pub mod types {
     }
     impl ::std::convert::TryFrom<&str> for PostQuoteBodyTokenInType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -52161,7 +52018,7 @@ pub mod types {
         Hash,
         Ord,
         PartialEq,
-        PartialOrd
+        PartialOrd,
     )]
     pub enum PostQuoteBodyTokenOutType {
         #[serde(rename = "eth")]
@@ -52179,9 +52036,7 @@ pub mod types {
     }
     impl ::std::str::FromStr for PostQuoteBodyTokenOutType {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             match value {
                 "eth" => Ok(Self::Eth),
                 "erc20" => Ok(Self::Erc20),
@@ -52191,9 +52046,7 @@ pub mod types {
     }
     impl ::std::convert::TryFrom<&str> for PostQuoteBodyTokenOutType {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -52756,7 +52609,9 @@ impl Client {
         #[cfg(not(target_arch = "wasm32"))]
         let client = {
             let dur = ::std::time::Duration::from_secs(15u64);
-            reqwest::ClientBuilder::new().connect_timeout(dur).timeout(dur)
+            reqwest::ClientBuilder::new()
+                .connect_timeout(dur)
+                .timeout(dur)
         };
         #[cfg(target_arch = "wasm32")]
         let client = reqwest::ClientBuilder::new();
@@ -52794,20 +52649,19 @@ impl ClientHooks<()> for &Client {}
 impl Client {
     /**zoraSDK_apiKey query
 
-Sends a `GET` request to `/apiKey`
+    Sends a `GET` request to `/apiKey`
 
-*/
+    */
     pub async fn get_api_key<'a>(
         &'a self,
         api_key: &'a str,
     ) -> Result<ResponseValue<types::GetApiKeyResponse>, Error<()>> {
         let url = format!("{}/apiKey", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -52833,9 +52687,9 @@ Sends a `GET` request to `/apiKey`
     }
     /**zoraSDK_coin query
 
-Sends a `GET` request to `/coin`
+    Sends a `GET` request to `/coin`
 
-*/
+    */
     pub async fn get_coin<'a>(
         &'a self,
         address: &'a str,
@@ -52843,11 +52697,10 @@ Sends a `GET` request to `/coin`
     ) -> Result<ResponseValue<types::GetCoinResponse>, Error<()>> {
         let url = format!("{}/coin", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -52874,9 +52727,9 @@ Sends a `GET` request to `/coin`
     }
     /**zoraSDK_coinComments query
 
-Sends a `GET` request to `/coinComments`
+    Sends a `GET` request to `/coinComments`
 
-*/
+    */
     pub async fn get_coin_comments<'a>(
         &'a self,
         address: &'a str,
@@ -52886,11 +52739,10 @@ Sends a `GET` request to `/coinComments`
     ) -> Result<ResponseValue<types::GetCoinCommentsResponse>, Error<()>> {
         let url = format!("{}/coinComments", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -52919,9 +52771,9 @@ Sends a `GET` request to `/coinComments`
     }
     /**zoraSDK_coinHolders query
 
-Sends a `GET` request to `/coinHolders`
+    Sends a `GET` request to `/coinHolders`
 
-*/
+    */
     pub async fn get_coin_holders<'a>(
         &'a self,
         address: &'a str,
@@ -52931,11 +52783,10 @@ Sends a `GET` request to `/coinHolders`
     ) -> Result<ResponseValue<types::GetCoinHoldersResponse>, Error<()>> {
         let url = format!("{}/coinHolders", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -52964,9 +52815,9 @@ Sends a `GET` request to `/coinHolders`
     }
     /**zoraSDK_coinPriceHistory query
 
-Sends a `GET` request to `/coinPriceHistory`
+    Sends a `GET` request to `/coinPriceHistory`
 
-*/
+    */
     pub async fn get_coin_price_history<'a>(
         &'a self,
         address: &'a str,
@@ -52974,11 +52825,10 @@ Sends a `GET` request to `/coinPriceHistory`
     ) -> Result<ResponseValue<types::GetCoinPriceHistoryResponse>, Error<()>> {
         let url = format!("{}/coinPriceHistory", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -53005,9 +52855,9 @@ Sends a `GET` request to `/coinPriceHistory`
     }
     /**zoraSDK_coinSwaps query
 
-Sends a `GET` request to `/coinSwaps`
+    Sends a `GET` request to `/coinSwaps`
 
-*/
+    */
     pub async fn get_coin_swaps<'a>(
         &'a self,
         address: &'a str,
@@ -53017,11 +52867,10 @@ Sends a `GET` request to `/coinSwaps`
     ) -> Result<ResponseValue<types::GetCoinSwapsResponse>, Error<()>> {
         let url = format!("{}/coinSwaps", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -53050,20 +52899,19 @@ Sends a `GET` request to `/coinSwaps`
     }
     /**zoraSDK_coins query
 
-Sends a `GET` request to `/coins`
+    Sends a `GET` request to `/coins`
 
-*/
+    */
     pub async fn get_coins<'a>(
         &'a self,
         coins: &'a ::std::vec::Vec<types::GetCoinsCoinsItem>,
     ) -> Result<ResponseValue<types::GetCoinsResponse>, Error<()>> {
         let url = format!("{}/coins", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -53089,9 +52937,9 @@ Sends a `GET` request to `/coins`
     }
     /**zoraSDK_coinsList query
 
-Sends a `GET` request to `/coinsList`
+    Sends a `GET` request to `/coinsList`
 
-*/
+    */
     pub async fn get_coins_list<'a>(
         &'a self,
         after: Option<&'a str>,
@@ -53100,11 +52948,10 @@ Sends a `GET` request to `/coinsList`
     ) -> Result<ResponseValue<types::GetCoinsListResponse>, Error<()>> {
         let url = format!("{}/coinsList", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -53115,12 +52962,10 @@ Sends a `GET` request to `/coinsList`
             )
             .query(&progenitor_client::QueryParam::new("after", &after))
             .query(&progenitor_client::QueryParam::new("first", &first))
-            .query(
-                &progenitor_client::QueryParam::new(
-                    "includeUSDCPrice",
-                    &include_usdc_price,
-                ),
-            )
+            .query(&progenitor_client::QueryParam::new(
+                "includeUSDCPrice",
+                &include_usdc_price,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -53137,9 +52982,9 @@ Sends a `GET` request to `/coinsList`
     }
     /**zoraSDK_contentCoinPoolConfig query
 
-Sends a `GET` request to `/contentCoinPoolConfig`
+    Sends a `GET` request to `/contentCoinPoolConfig`
 
-*/
+    */
     pub async fn get_content_coin_pool_config<'a>(
         &'a self,
         creator_identifier: Option<&'a str>,
@@ -53147,11 +52992,10 @@ Sends a `GET` request to `/contentCoinPoolConfig`
     ) -> Result<ResponseValue<types::GetContentCoinPoolConfigResponse>, Error<()>> {
         let url = format!("{}/contentCoinPoolConfig", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -53160,13 +53004,14 @@ Sends a `GET` request to `/contentCoinPoolConfig`
                 ::reqwest::header::ACCEPT,
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
-            .query(
-                &progenitor_client::QueryParam::new(
-                    "creatorIdentifier",
-                    &creator_identifier,
-                ),
-            )
-            .query(&progenitor_client::QueryParam::new("currencyType", &currency_type))
+            .query(&progenitor_client::QueryParam::new(
+                "creatorIdentifier",
+                &creator_identifier,
+            ))
+            .query(&progenitor_client::QueryParam::new(
+                "currencyType",
+                &currency_type,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -53183,18 +53028,17 @@ Sends a `GET` request to `/contentCoinPoolConfig`
     }
     /**Sends a `POST` request to `/create/content`
 
-*/
+    */
     pub async fn post_create_content<'a>(
         &'a self,
         body: &'a types::PostCreateContentBody,
     ) -> Result<ResponseValue<types::PostCreateContentResponse>, Error<()>> {
         let url = format!("{}/create/content", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -53220,20 +53064,19 @@ Sends a `GET` request to `/contentCoinPoolConfig`
     }
     /**zoraSDK_createUploadJWT mutation
 
-Sends a `POST` request to `/createUploadJWT`
+    Sends a `POST` request to `/createUploadJWT`
 
-*/
+    */
     pub async fn set_create_upload_jwt<'a>(
         &'a self,
         body: &'a types::SetCreateUploadJwtBody,
     ) -> Result<ResponseValue<types::SetCreateUploadJwtResponse>, Error<()>> {
         let url = format!("{}/createUploadJWT", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -53259,20 +53102,19 @@ Sends a `POST` request to `/createUploadJWT`
     }
     /**zoraSDK_creatorCoinPoolConfig query
 
-Sends a `GET` request to `/creatorCoinPoolConfig`
+    Sends a `GET` request to `/creatorCoinPoolConfig`
 
-*/
+    */
     pub async fn get_creator_coin_pool_config<'a>(
         &'a self,
         target_market_cap_usd: Option<i64>,
     ) -> Result<ResponseValue<types::GetCreatorCoinPoolConfigResponse>, Error<()>> {
         let url = format!("{}/creatorCoinPoolConfig", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -53281,12 +53123,10 @@ Sends a `GET` request to `/creatorCoinPoolConfig`
                 ::reqwest::header::ACCEPT,
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
-            .query(
-                &progenitor_client::QueryParam::new(
-                    "targetMarketCapUsd",
-                    &target_market_cap_usd,
-                ),
-            )
+            .query(&progenitor_client::QueryParam::new(
+                "targetMarketCapUsd",
+                &target_market_cap_usd,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -53303,9 +53143,9 @@ Sends a `GET` request to `/creatorCoinPoolConfig`
     }
     /**zoraSDK_creatorLivestreamComments query
 
-Sends a `GET` request to `/creatorLivestreamComments`
+    Sends a `GET` request to `/creatorLivestreamComments`
 
-*/
+    */
     pub async fn get_creator_livestream_comments<'a>(
         &'a self,
         address: &'a str,
@@ -53315,11 +53155,10 @@ Sends a `GET` request to `/creatorLivestreamComments`
     ) -> Result<ResponseValue<types::GetCreatorLivestreamCommentsResponse>, Error<()>> {
         let url = format!("{}/creatorLivestreamComments", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -53348,9 +53187,9 @@ Sends a `GET` request to `/creatorLivestreamComments`
     }
     /**zoraSDK_explore query
 
-Sends a `GET` request to `/explore`
+    Sends a `GET` request to `/explore`
 
-*/
+    */
     pub async fn get_explore<'a>(
         &'a self,
         after: Option<&'a str>,
@@ -53359,11 +53198,10 @@ Sends a `GET` request to `/explore`
     ) -> Result<ResponseValue<types::GetExploreResponse>, Error<()>> {
         let url = format!("{}/explore", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -53391,9 +53229,9 @@ Sends a `GET` request to `/explore`
     }
     /**zoraSDK_featuredCreators query
 
-Sends a `GET` request to `/featuredCreators`
+    Sends a `GET` request to `/featuredCreators`
 
-*/
+    */
     pub async fn get_featured_creators<'a>(
         &'a self,
         after: Option<&'a str>,
@@ -53403,11 +53241,10 @@ Sends a `GET` request to `/featuredCreators`
     ) -> Result<ResponseValue<types::GetFeaturedCreatorsResponse>, Error<()>> {
         let url = format!("{}/featuredCreators", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -53436,9 +53273,9 @@ Sends a `GET` request to `/featuredCreators`
     }
     /**zoraSDK_latestLiveStreams query
 
-Sends a `GET` request to `/latestLiveStreams`
+    Sends a `GET` request to `/latestLiveStreams`
 
-*/
+    */
     pub async fn get_latest_live_streams<'a>(
         &'a self,
         after: Option<&'a str>,
@@ -53446,11 +53283,10 @@ Sends a `GET` request to `/latestLiveStreams`
     ) -> Result<ResponseValue<types::GetLatestLiveStreamsResponse>, Error<()>> {
         let url = format!("{}/latestLiveStreams", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -53477,20 +53313,19 @@ Sends a `GET` request to `/latestLiveStreams`
     }
     /**zoraSDK_profile query
 
-Sends a `GET` request to `/profile`
+    Sends a `GET` request to `/profile`
 
-*/
+    */
     pub async fn get_profile<'a>(
         &'a self,
         identifier: &'a str,
     ) -> Result<ResponseValue<types::GetProfileResponse>, Error<()>> {
         let url = format!("{}/profile", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -53499,7 +53334,10 @@ Sends a `GET` request to `/profile`
                 ::reqwest::header::ACCEPT,
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
-            .query(&progenitor_client::QueryParam::new("identifier", &identifier))
+            .query(&progenitor_client::QueryParam::new(
+                "identifier",
+                &identifier,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -53516,9 +53354,9 @@ Sends a `GET` request to `/profile`
     }
     /**zoraSDK_profileBalances query
 
-Sends a `GET` request to `/profileBalances`
+    Sends a `GET` request to `/profileBalances`
 
-*/
+    */
     pub async fn get_profile_balances<'a>(
         &'a self,
         after: Option<&'a str>,
@@ -53530,11 +53368,10 @@ Sends a `GET` request to `/profileBalances`
     ) -> Result<ResponseValue<types::GetProfileBalancesResponse>, Error<()>> {
         let url = format!("{}/profileBalances", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -53546,9 +53383,18 @@ Sends a `GET` request to `/profileBalances`
             .query(&progenitor_client::QueryParam::new("after", &after))
             .query(&progenitor_client::QueryParam::new("chainIds", &chain_ids))
             .query(&progenitor_client::QueryParam::new("count", &count))
-            .query(&progenitor_client::QueryParam::new("excludeHidden", &exclude_hidden))
-            .query(&progenitor_client::QueryParam::new("identifier", &identifier))
-            .query(&progenitor_client::QueryParam::new("sortOption", &sort_option))
+            .query(&progenitor_client::QueryParam::new(
+                "excludeHidden",
+                &exclude_hidden,
+            ))
+            .query(&progenitor_client::QueryParam::new(
+                "identifier",
+                &identifier,
+            ))
+            .query(&progenitor_client::QueryParam::new(
+                "sortOption",
+                &sort_option,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -53565,9 +53411,9 @@ Sends a `GET` request to `/profileBalances`
     }
     /**zoraSDK_profileBySocialHandle query
 
-Sends a `GET` request to `/profileBySocialHandle`
+    Sends a `GET` request to `/profileBySocialHandle`
 
-*/
+    */
     pub async fn get_profile_by_social_handle<'a>(
         &'a self,
         handle: &'a str,
@@ -53575,11 +53421,10 @@ Sends a `GET` request to `/profileBySocialHandle`
     ) -> Result<ResponseValue<types::GetProfileBySocialHandleResponse>, Error<()>> {
         let url = format!("{}/profileBySocialHandle", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -53606,9 +53451,9 @@ Sends a `GET` request to `/profileBySocialHandle`
     }
     /**zoraSDK_profileCoins query
 
-Sends a `GET` request to `/profileCoins`
+    Sends a `GET` request to `/profileCoins`
 
-*/
+    */
     pub async fn get_profile_coins<'a>(
         &'a self,
         after: Option<&'a str>,
@@ -53619,11 +53464,10 @@ Sends a `GET` request to `/profileCoins`
     ) -> Result<ResponseValue<types::GetProfileCoinsResponse>, Error<()>> {
         let url = format!("{}/profileCoins", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -53635,13 +53479,14 @@ Sends a `GET` request to `/profileCoins`
             .query(&progenitor_client::QueryParam::new("after", &after))
             .query(&progenitor_client::QueryParam::new("chainIds", &chain_ids))
             .query(&progenitor_client::QueryParam::new("count", &count))
-            .query(&progenitor_client::QueryParam::new("identifier", &identifier))
-            .query(
-                &progenitor_client::QueryParam::new(
-                    "platformReferrerAddress",
-                    &platform_referrer_address,
-                ),
-            )
+            .query(&progenitor_client::QueryParam::new(
+                "identifier",
+                &identifier,
+            ))
+            .query(&progenitor_client::QueryParam::new(
+                "platformReferrerAddress",
+                &platform_referrer_address,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -53658,20 +53503,19 @@ Sends a `GET` request to `/profileCoins`
     }
     /**zoraSDK_profileSocial query
 
-Sends a `GET` request to `/profileSocial`
+    Sends a `GET` request to `/profileSocial`
 
-*/
+    */
     pub async fn get_profile_social<'a>(
         &'a self,
         identifier: &'a str,
     ) -> Result<ResponseValue<types::GetProfileSocialResponse>, Error<()>> {
         let url = format!("{}/profileSocial", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -53680,7 +53524,10 @@ Sends a `GET` request to `/profileSocial`
                 ::reqwest::header::ACCEPT,
                 ::reqwest::header::HeaderValue::from_static("application/json"),
             )
-            .query(&progenitor_client::QueryParam::new("identifier", &identifier))
+            .query(&progenitor_client::QueryParam::new(
+                "identifier",
+                &identifier,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {
@@ -53697,18 +53544,17 @@ Sends a `GET` request to `/profileSocial`
     }
     /**Sends a `POST` request to `/quote`
 
-*/
+    */
     pub async fn post_quote<'a>(
         &'a self,
         body: &'a types::PostQuoteBody,
     ) -> Result<ResponseValue<types::PostQuoteResponse>, Error<()>> {
         let url = format!("{}/quote", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -53734,9 +53580,9 @@ Sends a `GET` request to `/profileSocial`
     }
     /**zoraSDK_tokenInfo query
 
-Sends a `GET` request to `/tokenInfo`
+    Sends a `GET` request to `/tokenInfo`
 
-*/
+    */
     pub async fn get_token_info<'a>(
         &'a self,
         address: &'a str,
@@ -53744,11 +53590,10 @@ Sends a `GET` request to `/tokenInfo`
     ) -> Result<ResponseValue<types::GetTokenInfoResponse>, Error<()>> {
         let url = format!("{}/tokenInfo", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -53775,9 +53620,9 @@ Sends a `GET` request to `/tokenInfo`
     }
     /**zoraSDK_topLiveStreams query
 
-Sends a `GET` request to `/topLiveStreams`
+    Sends a `GET` request to `/topLiveStreams`
 
-*/
+    */
     pub async fn get_top_live_streams<'a>(
         &'a self,
         after: Option<&'a str>,
@@ -53785,11 +53630,10 @@ Sends a `GET` request to `/topLiveStreams`
     ) -> Result<ResponseValue<types::GetTopLiveStreamsResponse>, Error<()>> {
         let url = format!("{}/topLiveStreams", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -53816,9 +53660,9 @@ Sends a `GET` request to `/topLiveStreams`
     }
     /**zoraSDK_traderLeaderboard query
 
-Sends a `GET` request to `/traderLeaderboard`
+    Sends a `GET` request to `/traderLeaderboard`
 
-*/
+    */
     pub async fn get_trader_leaderboard<'a>(
         &'a self,
         after: Option<&'a str>,
@@ -53828,11 +53672,10 @@ Sends a `GET` request to `/traderLeaderboard`
     ) -> Result<ResponseValue<types::GetTraderLeaderboardResponse>, Error<()>> {
         let url = format!("{}/traderLeaderboard", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -53861,9 +53704,9 @@ Sends a `GET` request to `/traderLeaderboard`
     }
     /**zoraSDK_trendCoin query
 
-Sends a `GET` request to `/trendCoin`
+    Sends a `GET` request to `/trendCoin`
 
-*/
+    */
     pub async fn get_trend_coin<'a>(
         &'a self,
         chain_id: Option<i64>,
@@ -53871,11 +53714,10 @@ Sends a `GET` request to `/trendCoin`
     ) -> Result<ResponseValue<types::GetTrendCoinResponse>, Error<()>> {
         let url = format!("{}/trendCoin", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -53902,9 +53744,9 @@ Sends a `GET` request to `/trendCoin`
     }
     /**zoraSDK_trendsByName query
 
-Sends a `GET` request to `/trendsByName`
+    Sends a `GET` request to `/trendsByName`
 
-*/
+    */
     pub async fn get_trends_by_name<'a>(
         &'a self,
         after: Option<&'a str>,
@@ -53913,11 +53755,10 @@ Sends a `GET` request to `/trendsByName`
     ) -> Result<ResponseValue<types::GetTrendsByNameResponse>, Error<()>> {
         let url = format!("{}/trendsByName", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -53945,9 +53786,9 @@ Sends a `GET` request to `/trendsByName`
     }
     /**zoraSDK_walletTradeActivity query
 
-Sends a `GET` request to `/walletTradeActivity`
+    Sends a `GET` request to `/walletTradeActivity`
 
-*/
+    */
     pub async fn get_wallet_trade_activity<'a>(
         &'a self,
         after: Option<&'a str>,
@@ -53956,11 +53797,10 @@ Sends a `GET` request to `/walletTradeActivity`
     ) -> Result<ResponseValue<types::GetWalletTradeActivityResponse>, Error<()>> {
         let url = format!("{}/walletTradeActivity", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -53971,7 +53811,10 @@ Sends a `GET` request to `/walletTradeActivity`
             )
             .query(&progenitor_client::QueryParam::new("after", &after))
             .query(&progenitor_client::QueryParam::new("first", &first))
-            .query(&progenitor_client::QueryParam::new("identifier", &identifier))
+            .query(&progenitor_client::QueryParam::new(
+                "identifier",
+                &identifier,
+            ))
             .headers(header_map)
             .build()?;
         let info = OperationInfo {

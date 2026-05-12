@@ -28,8 +28,8 @@ use crate::auth::{iso_timestamp, sign};
 // in `public_get` / `signed_get`. We keep the generated module compiled so
 // regenerating the spec is friction-free; switch back to typed calls once
 // the spec is realigned with the live server.
-use aomi_sdk::*;
 use aomi_sdk::schemars::JsonSchema;
+use aomi_sdk::*;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 
@@ -120,8 +120,10 @@ async fn signed_get(
         ));
     }
     serde_json::from_str(&body).map_err(|e| {
-        format!("[limitless] response was not JSON ({e}); first 200 chars: {}",
-            body.chars().take(200).collect::<String>())
+        format!(
+            "[limitless] response was not JSON ({e}); first 200 chars: {}",
+            body.chars().take(200).collect::<String>()
+        )
     })
 }
 
@@ -146,8 +148,10 @@ async fn public_get(path_with_query: &str) -> Result<Value, String> {
         ));
     }
     serde_json::from_str(&body).map_err(|e| {
-        format!("[limitless] response was not JSON ({e}); first 200 chars: {}",
-            body.chars().take(200).collect::<String>())
+        format!(
+            "[limitless] response was not JSON ({e}); first 200 chars: {}",
+            body.chars().take(200).collect::<String>()
+        )
     })
 }
 
