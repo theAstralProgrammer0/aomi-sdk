@@ -10389,6 +10389,7 @@ impl Client {
         sort_by: Option<&'a str>,
         trade_type: Option<types::MarketControllerGetActiveMarkets1TradeType>,
     ) -> Result<ResponseValue<types::BrowseActiveMarketsResponseDto>, Error<()>> {
+        let _ = category_id;
         let url = format!("{}/markets/active", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
         header_map.append(

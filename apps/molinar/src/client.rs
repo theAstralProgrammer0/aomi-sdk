@@ -226,7 +226,11 @@ fn sanitize(raw: &str) -> String {
         .filter(|c| c.is_ascii_alphanumeric() || *c == '-' || *c == '_')
         .take(48)
         .collect();
-    if s.is_empty() { "aomi-bot".to_string() } else { s }
+    if s.is_empty() {
+        "aomi-bot".to_string()
+    } else {
+        s
+    }
 }
 
 /// Resolve a Molinar bot_id, with three fallbacks for ergonomic E2E testing:
@@ -248,10 +252,10 @@ pub(crate) fn get_bot_id(ctx: &DynToolCallCtx) -> Result<String, String> {
         return Ok(id.to_string());
     }
 
-    if let Ok(id) = std::env::var("MOLINAR_BOT_ID") {
-        if !id.is_empty() {
-            return Ok(id);
-        }
+    if let Ok(id) = std::env::var("MOLINAR_BOT_ID")
+        && !id.is_empty()
+    {
+        return Ok(id);
     }
 
     let session_id = sanitize(&ctx.session_id);
