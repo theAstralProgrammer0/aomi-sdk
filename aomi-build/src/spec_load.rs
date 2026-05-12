@@ -49,7 +49,9 @@ pub fn load_and_preprocess(spec_path: &Path) -> Result<openapiv3::OpenAPI> {
     }
     let n = inject_missing_path_params(&mut spec);
     if n > 0 {
-        println!("  injected {n} missing path param declaration(s) (spec had {{name}} in path but no parameter entry)");
+        println!(
+            "  injected {n} missing path param declaration(s) (spec had {{name}} in path but no parameter entry)"
+        );
     }
     let n = retype_path_params_as_string(&mut spec);
     if n > 0 {
@@ -57,7 +59,9 @@ pub fn load_and_preprocess(spec_path: &Path) -> Result<openapiv3::OpenAPI> {
     }
     let n = retype_pagination_as_integer(&mut spec);
     if n > 0 {
-        println!("  retyped {n} pagination param(s) (limit/page/offset/...) from number to integer");
+        println!(
+            "  retyped {n} pagination param(s) (limit/page/offset/...) from number to integer"
+        );
     }
     let n = collapse_request_body_to_json(&mut spec);
     if n > 0 {
@@ -364,7 +368,8 @@ fn retype_path_params_as_string(spec: &mut openapiv3::OpenAPI) -> usize {
                         "type": "string"
                     }))
                     .expect("stub schema literal must parse");
-                    parameter_data.format = ParameterSchemaOrContent::Schema(ReferenceOr::Item(stub));
+                    parameter_data.format =
+                        ParameterSchemaOrContent::Schema(ReferenceOr::Item(stub));
                     fixed += 1;
                 }
             }
@@ -397,7 +402,9 @@ fn retype_pagination_as_integer(spec: &mut openapiv3::OpenAPI) -> usize {
         ] {
             let Some(op) = op_slot else { continue };
             for p in &mut op.parameters {
-                let ReferenceOr::Item(param) = p else { continue };
+                let ReferenceOr::Item(param) = p else {
+                    continue;
+                };
                 let parameter_data = match param {
                     Parameter::Query { parameter_data, .. }
                     | Parameter::Header { parameter_data, .. }
