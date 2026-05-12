@@ -1,0 +1,27 @@
+{
+  "user_story": "Search Limitless for an active prediction market about a current event, check its orderbook, and verify the user's API key works against the authenticated portfolio endpoint.",
+  "turns": [
+    {
+      "prompt": "Find me an active prediction market on Limitless about Bitcoin price.",
+      "expected_tools": {
+        "any_of": ["limitless_search_markets", "limitless_browse_active"]
+      }
+    },
+    {
+      "prompt": "Pick the most liquid one and show me its full detail and current orderbook.",
+      "expected_tools": {
+        "must_call": ["limitless_get_orderbook"]
+      }
+    },
+    {
+      "prompt": "Now verify that my Limitless API key is wired up correctly and works.",
+      "expected_tools": {
+        "must_call": ["limitless_check_key"]
+      }
+    }
+  ],
+  "final_assertion": {
+    "no_errors": false,
+    "max_turns": 12
+  }
+}

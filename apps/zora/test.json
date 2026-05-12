@@ -1,0 +1,21 @@
+{
+  "user_story": "Discover what's trending on Zora and look at the price history of the top match.",
+  "turns": [
+    {
+      "prompt": "Search Zora for trending creator coins matching 'art'.",
+      "expected_tools": {
+        "must_call": ["zora_get_trends_by_name"]
+      }
+    },
+    {
+      "prompt": "Show me the price history of the most active one.",
+      "expected_tools": {
+        "any_of": ["zora_get_coin", "zora_get_coin_price_history"]
+      }
+    }
+  ],
+  "final_assertion": {
+    "no_errors": false,
+    "max_turns": 6
+  }
+}
