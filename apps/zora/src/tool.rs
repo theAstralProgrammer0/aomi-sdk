@@ -125,11 +125,7 @@ impl DynAomiTool for GetCoin {
         let key = resolve_key(args.api_key.as_deref());
         rt()?.block_on(async move {
             let chain = args.chain.unwrap_or(8453);
-            let path = format!(
-                "/coin?address={}&chain={}",
-                urlencode(&args.address),
-                chain
-            );
+            let path = format!("/coin?address={}&chain={}", urlencode(&args.address), chain);
             let resp = public_get(&path, key.as_deref()).await?;
             ok(resp)
         })
@@ -154,7 +150,8 @@ impl DynAomiTool for GetCoinHolders {
     type App = ZoraApp;
     type Args = GetCoinHoldersArgs;
     const NAME: &'static str = "zora_get_coin_holders";
-    const DESCRIPTION: &'static str = "Get top holders of a Zora coin. Useful to gauge concentration before trading.";
+    const DESCRIPTION: &'static str =
+        "Get top holders of a Zora coin. Useful to gauge concentration before trading.";
 
     fn run(_app: &ZoraApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let key = resolve_key(args.api_key.as_deref());
@@ -232,10 +229,7 @@ impl DynAomiTool for GetTrendsByName {
             // history/sidebar truncation chops off contract addresses past
             // turn boundaries if we forward all 100+ hits.
             let first = args.first.unwrap_or(10);
-            let path = format!(
-                "/trendsByName?name={}&first={first}",
-                urlencode(&args.name)
-            );
+            let path = format!("/trendsByName?name={}&first={first}", urlencode(&args.name));
             let resp = public_get(&path, key.as_deref()).await?;
             // Project each node down to the ~12 fields a downstream tool
             // actually needs (address, market data, creator handle). Keeps
@@ -348,7 +342,8 @@ impl DynAomiTool for GetProfile {
     type App = ZoraApp;
     type Args = GetProfileArgs;
     const NAME: &'static str = "zora_get_profile";
-    const DESCRIPTION: &'static str = "Get a full Zora profile by handle, address, or profile ID — bio, stats, deployed coins.";
+    const DESCRIPTION: &'static str =
+        "Get a full Zora profile by handle, address, or profile ID — bio, stats, deployed coins.";
 
     fn run(_app: &ZoraApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let key = resolve_key(args.api_key.as_deref());

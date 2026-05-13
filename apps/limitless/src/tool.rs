@@ -432,7 +432,12 @@ pub(crate) struct LimitlessOrderPlan {
 /// GTC SELL → makerAmount = size*1e6, takerAmount = price*size*1e6
 /// FOK BUY → makerAmount = USDC_to_spend*1e6, takerAmount = 1
 /// FOK SELL → makerAmount = shares*1e6, takerAmount = 1
-fn compute_amounts(side: u8, price: f64, size: f64, order_type: &str) -> Result<(u64, u64), String> {
+fn compute_amounts(
+    side: u8,
+    price: f64,
+    size: f64,
+    order_type: &str,
+) -> Result<(u64, u64), String> {
     if !(0.01..=0.99).contains(&price) {
         return Err(format!(
             "[limitless] price must be in [0.01, 0.99] for GTC orders, got {price}"
@@ -443,11 +448,21 @@ fn compute_amounts(side: u8, price: f64, size: f64, order_type: &str) -> Result<
     }
     let scale = 1_000_000.0;
     Ok(match (side, order_type) {
-        (0, "GTC") => ((price * size * scale).round() as u64, (size * scale).round() as u64),
-        (1, "GTC") => ((size * scale).round() as u64, (price * size * scale).round() as u64),
+        (0, "GTC") => (
+            (price * size * scale).round() as u64,
+            (size * scale).round() as u64,
+        ),
+        (1, "GTC") => (
+            (size * scale).round() as u64,
+            (price * size * scale).round() as u64,
+        ),
         (0, "FOK") => ((size * scale).round() as u64, 1),
         (1, "FOK") => ((size * scale).round() as u64, 1),
-        _ => return Err(format!("[limitless] unsupported (side={side}, order_type={order_type})")),
+        _ => {
+            return Err(format!(
+                "[limitless] unsupported (side={side}, order_type={order_type})"
+            ));
+        }
     })
 }
 
@@ -553,17 +568,18 @@ fn extract_verifying_contract(market: &Value) -> Result<String, String> {
         .get("venue")
         .and_then(|v| v.get("exchange"))
         .and_then(|v| v.as_str())
+        && s.starts_with("0x")
+        && s.len() == 42
     {
-        if s.starts_with("0x") && s.len() == 42 {
-            return Ok(s.to_string());
-        }
+        return Ok(s.to_string());
     }
     // Legacy top-level keys.
     for key in ["exchange", "exchangeAddress"] {
-        if let Some(s) = market.get(key).and_then(|v| v.as_str()) {
-            if s.starts_with("0x") && s.len() == 42 {
-                return Ok(s.to_string());
-            }
+        if let Some(s) = market.get(key).and_then(|v| v.as_str())
+            && s.starts_with("0x")
+            && s.len() == 42
+        {
+            return Ok(s.to_string());
         }
     }
     // Group-market case — surface the child slugs so the user knows what to pick.
@@ -605,15 +621,19 @@ fn extract_token_id(market: &Value, outcome: &str) -> Option<String> {
                 .and_then(|v| v.as_str())
                 .map(|s| s.to_ascii_uppercase())
                 .unwrap_or_default();
-            if o == want {
-                if let Some(id) = tok.get("tokenId").and_then(|v| v.as_str()) {
-                    return Some(id.to_string());
-                }
+            if o == want
+                && let Some(id) = tok.get("tokenId").and_then(|v| v.as_str())
+            {
+                return Some(id.to_string());
             }
         }
     }
     // Flat fallback.
-    let key = if want == "YES" { "yes_token_id" } else { "no_token_id" };
+    let key = if want == "YES" {
+        "yes_token_id"
+    } else {
+        "no_token_id"
+    };
     market.get(key).and_then(|v| v.as_str()).map(String::from)
 }
 
@@ -673,11 +693,17 @@ impl DynAomiTool for BuildOrder {
         let side: u8 = match side_label.as_str() {
             "BUY" => 0,
             "SELL" => 1,
-            _ => return Err(format!("[limitless] side must be BUY or SELL, got {side_label}")),
+            _ => {
+                return Err(format!(
+                    "[limitless] side must be BUY or SELL, got {side_label}"
+                ));
+            }
         };
         let outcome_label = args.outcome.to_uppercase();
         if !matches!(outcome_label.as_str(), "YES" | "NO") {
-            return Err(format!("[limitless] outcome must be YES or NO, got {outcome_label}"));
+            return Err(format!(
+                "[limitless] outcome must be YES or NO, got {outcome_label}"
+            ));
         }
 
         // Resolve verifying contract + tokenId from the market.
@@ -843,10 +869,7 @@ impl DynAomiTool for SubmitOrder {
         });
         if let (Some(obj), Some(coi)) = (envelope.as_object_mut(), args.client_order_id.as_deref())
         {
-            obj.insert(
-                "clientOrderId".to_string(),
-                Value::String(coi.to_string()),
-            );
+            obj.insert("clientOrderId".to_string(), Value::String(coi.to_string()));
         }
 
         let runtime = rt()?;
