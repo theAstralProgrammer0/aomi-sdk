@@ -6,13 +6,10 @@
 //! per-operation parameters — see `crate::auth` for the prehash format.
 //!
 //! Designed for the user story: research active prediction markets on Base
-//! via Limitless, look at orderbooks, view your positions/trades, and verify
-//! your API key works. Signed-order placement (POST /orders) is intentionally
-//! NOT exposed yet — it needs typed-body + EIP-712 signature material that
-//! gen-tool can't synth from the spec; add a `limitless_place_order`
-//! composite by hand when ready.
+//! via Limitless, look at orderbooks, view your positions/trades, and place
+//! limit/market orders end-to-end through the host wallet flow.
 //!
-//! 7 curated tools:
+//! 9 curated tools:
 //!   * limitless_search_markets       — semantic text search across markets (public)
 //!   * limitless_browse_active        — list active markets by category    (public)
 //!   * limitless_get_market           — full detail for one market         (public)
@@ -20,6 +17,8 @@
 //!   * limitless_check_key            — verify the API key + secret work   (signed)
 //!   * limitless_get_my_positions     — your open positions                (signed)
 //!   * limitless_get_my_trades        — your trade history                 (signed)
+//!   * limitless_build_order          — build + route order to wallet sign  (routed)
+//!   * limitless_submit_order         — POST signed order to /orders        (signed)
 
 use crate::auth::{iso_timestamp, sign};
 // The progenitor-generated client is currently unused at runtime: every
@@ -388,6 +387,471 @@ impl DynAomiTool for GetMyTrades {
         let runtime = rt()?;
         runtime.block_on(async move {
             let resp = signed_get(&key, &sec, "/portfolio/trades").await?;
+            ok(resp)
+        })
+    }
+}
+
+// ============================================================================
+// Helpers — order construction, EIP-712 typed data, signed POST
+// ============================================================================
+
+/// One Limitless CTF Exchange order — the EIP-712 message + the bits required
+/// to POST it to `/orders`. Passed verbatim from `limitless_build_order` to
+/// `limitless_submit_order` via the routed continuation; the LLM never
+/// constructs this struct by hand.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct LimitlessOrderPlan {
+    pub salt: u64,
+    pub maker: String,
+    pub signer: String,
+    pub taker: String,
+    pub token_id: String,
+    pub maker_amount: u64,
+    pub taker_amount: u64,
+    pub expiration: u64,
+    pub nonce: u64,
+    pub fee_rate_bps: u64,
+    pub side: u8,
+    pub signature_type: u8,
+    pub price: f64,
+    pub size: f64,
+    pub outcome: String,
+    pub side_label: String,
+    pub market_slug: String,
+    pub order_type: String,
+    pub verifying_contract: String,
+    pub owner_id: i64,
+    pub chain_id: u64,
+}
+
+/// Compute (makerAmount, takerAmount) per the spec at
+/// `openapi.yaml#/components/schemas/Order.makerAmount.description`:
+/// GTC BUY → makerAmount = price*size*1e6, takerAmount = size*1e6
+/// GTC SELL → makerAmount = size*1e6, takerAmount = price*size*1e6
+/// FOK BUY → makerAmount = USDC_to_spend*1e6, takerAmount = 1
+/// FOK SELL → makerAmount = shares*1e6, takerAmount = 1
+fn compute_amounts(side: u8, price: f64, size: f64, order_type: &str) -> Result<(u64, u64), String> {
+    if !(0.01..=0.99).contains(&price) {
+        return Err(format!(
+            "[limitless] price must be in [0.01, 0.99] for GTC orders, got {price}"
+        ));
+    }
+    if size <= 0.0 {
+        return Err(format!("[limitless] size must be > 0, got {size}"));
+    }
+    let scale = 1_000_000.0;
+    Ok(match (side, order_type) {
+        (0, "GTC") => ((price * size * scale).round() as u64, (size * scale).round() as u64),
+        (1, "GTC") => ((size * scale).round() as u64, (price * size * scale).round() as u64),
+        (0, "FOK") => ((size * scale).round() as u64, 1),
+        (1, "FOK") => ((size * scale).round() as u64, 1),
+        _ => return Err(format!("[limitless] unsupported (side={side}, order_type={order_type})")),
+    })
+}
+
+/// EIP-712 typed-data payload that the host wallet will sign. Mirrors the
+/// shape `host::CommitEip712` expects (typed_data + human description).
+fn build_order_typed_data(plan: &LimitlessOrderPlan) -> Value {
+    json!({
+        "types": {
+            "EIP712Domain": [
+                {"name": "name", "type": "string"},
+                {"name": "version", "type": "string"},
+                {"name": "chainId", "type": "uint256"},
+                {"name": "verifyingContract", "type": "address"}
+            ],
+            "Order": [
+                {"name": "salt", "type": "uint256"},
+                {"name": "maker", "type": "address"},
+                {"name": "signer", "type": "address"},
+                {"name": "taker", "type": "address"},
+                {"name": "tokenId", "type": "uint256"},
+                {"name": "makerAmount", "type": "uint256"},
+                {"name": "takerAmount", "type": "uint256"},
+                {"name": "expiration", "type": "uint256"},
+                {"name": "nonce", "type": "uint256"},
+                {"name": "feeRateBps", "type": "uint256"},
+                {"name": "side", "type": "uint8"},
+                {"name": "signatureType", "type": "uint8"}
+            ]
+        },
+        "primaryType": "Order",
+        "domain": {
+            "name": "Limitless CTF Exchange",
+            "version": "1",
+            "chainId": plan.chain_id,
+            "verifyingContract": plan.verifying_contract,
+        },
+        "message": {
+            "salt": plan.salt.to_string(),
+            "maker": plan.maker,
+            "signer": plan.signer,
+            "taker": plan.taker,
+            "tokenId": plan.token_id,
+            "makerAmount": plan.maker_amount.to_string(),
+            "takerAmount": plan.taker_amount.to_string(),
+            "expiration": plan.expiration.to_string(),
+            "nonce": plan.nonce.to_string(),
+            "feeRateBps": plan.fee_rate_bps.to_string(),
+            "side": plan.side,
+            "signatureType": plan.signature_type,
+        }
+    })
+}
+
+/// HMAC-signed POST against `path_with_query`. Mirrors `signed_get` but
+/// includes a JSON-stringified `body` in the prehash and as the request body.
+async fn signed_post(
+    api_key: &str,
+    api_secret: &str,
+    path_with_query: &str,
+    body_json: &Value,
+) -> Result<Value, String> {
+    let body =
+        serde_json::to_string(body_json).map_err(|e| format!("[limitless] serialize body: {e}"))?;
+    let timestamp = iso_timestamp();
+    let signature = sign(api_secret, &timestamp, "POST", path_with_query, &body)?;
+    let url = format!("{BASE_URL}{path_with_query}");
+    let resp = reqwest::Client::new()
+        .post(&url)
+        .header("lmts-api-key", api_key)
+        .header("lmts-timestamp", &timestamp)
+        .header("lmts-signature", &signature)
+        .header("content-type", "application/json")
+        .body(body)
+        .send()
+        .await
+        .map_err(|e| format!("[limitless] HTTP error on POST {path_with_query}: {e}"))?;
+    let status = resp.status();
+    let resp_body = resp
+        .text()
+        .await
+        .map_err(|e| format!("[limitless] failed to read response body: {e}"))?;
+    if !status.is_success() {
+        return Err(format!(
+            "[limitless] POST {path_with_query} returned {status}: {resp_body}"
+        ));
+    }
+    serde_json::from_str(&resp_body).map_err(|e| {
+        format!(
+            "[limitless] POST response was not JSON ({e}); first 200 chars: {}",
+            resp_body.chars().take(200).collect::<String>()
+        )
+    })
+}
+
+/// Extract the per-market exchange contract address from the `get_market`
+/// response. The live API surfaces this at `venue.exchange`; older payloads
+/// occasionally inline it at the top level. Returns `Err` with a helpful
+/// hint when the slug is a *group* market (no direct exchange — caller must
+/// pick a child slug from `markets[]`).
+fn extract_verifying_contract(market: &Value) -> Result<String, String> {
+    // Canonical location: top-level `venue.exchange`.
+    if let Some(s) = market
+        .get("venue")
+        .and_then(|v| v.get("exchange"))
+        .and_then(|v| v.as_str())
+    {
+        if s.starts_with("0x") && s.len() == 42 {
+            return Ok(s.to_string());
+        }
+    }
+    // Legacy top-level keys.
+    for key in ["exchange", "exchangeAddress"] {
+        if let Some(s) = market.get(key).and_then(|v| v.as_str()) {
+            if s.starts_with("0x") && s.len() == 42 {
+                return Ok(s.to_string());
+            }
+        }
+    }
+    // Group-market case — surface the child slugs so the user knows what to pick.
+    if let Some(children) = market.get("markets").and_then(|v| v.as_array()) {
+        let child_slugs: Vec<String> = children
+            .iter()
+            .filter_map(|m| m.get("slug").and_then(|v| v.as_str()).map(String::from))
+            .collect();
+        if !child_slugs.is_empty() {
+            return Err(format!(
+                "[limitless] this slug is a GROUP market — pass a child slug instead. Children: {}",
+                child_slugs.join(", ")
+            ));
+        }
+    }
+    Err("[limitless] could not resolve venue.exchange from market response".to_string())
+}
+
+/// Extract YES/NO tokenIds from the market response. Live API uses either
+/// `tokens: {yes, no}` (current) or `tokens: [{outcome, tokenId}]` (legacy);
+/// some flat payloads use `yes_token_id` / `no_token_id`.
+fn extract_token_id(market: &Value, outcome: &str) -> Option<String> {
+    let want = outcome.to_ascii_uppercase();
+    let tokens = market.get("tokens")?;
+
+    // Current shape: { "yes": "<numeric>", "no": "<numeric>" }
+    if tokens.is_object() {
+        let key = if want == "YES" { "yes" } else { "no" };
+        if let Some(s) = tokens.get(key).and_then(|v| v.as_str()) {
+            return Some(s.to_string());
+        }
+    }
+    // Legacy shape: [{outcome, tokenId}]
+    if let Some(arr) = tokens.as_array() {
+        for tok in arr {
+            let o = tok
+                .get("outcome")
+                .or_else(|| tok.get("label"))
+                .and_then(|v| v.as_str())
+                .map(|s| s.to_ascii_uppercase())
+                .unwrap_or_default();
+            if o == want {
+                if let Some(id) = tok.get("tokenId").and_then(|v| v.as_str()) {
+                    return Some(id.to_string());
+                }
+            }
+        }
+    }
+    // Flat fallback.
+    let key = if want == "YES" { "yes_token_id" } else { "no_token_id" };
+    market.get(key).and_then(|v| v.as_str()).map(String::from)
+}
+
+// ============================================================================
+// Tool 8: build_order — compose order + route to host wallet for EIP-712 sign
+// ============================================================================
+
+pub(crate) struct BuildOrder;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct BuildOrderArgs {
+    /// Market slug (e.g. `epl-brentford-vs-crystal-palace-may-17-2026-1777798810481`).
+    pub slug: String,
+    /// `"YES"` or `"NO"`.
+    pub outcome: String,
+    /// `"BUY"` or `"SELL"`.
+    pub side: String,
+    /// Limit price as decimal in [0.01, 0.99] (probability, not USD).
+    pub price: f64,
+    /// Share count (NOT USDC) the user wants to BUY or SELL.
+    pub size: f64,
+    /// `"GTC"` (default) or `"FOK"`.
+    #[serde(default)]
+    pub order_type: Option<String>,
+    /// User's wallet address on Base (`maker` / `signer`).
+    pub wallet_address: String,
+    /// Profile ID of the order owner (from `/auth/api-keys` response or dashboard).
+    pub owner_id: i64,
+    /// Optional explicit nonce. Defaults to current ms epoch.
+    #[serde(default)]
+    pub nonce: Option<u64>,
+    /// Optional expiration timestamp (seconds). Defaults to 0 (no expiration).
+    #[serde(default)]
+    pub expiration: Option<u64>,
+    /// Optional fee rate override (bps). Defaults to 0; the matcher will
+    /// charge the live rate regardless.
+    #[serde(default)]
+    pub fee_rate_bps: Option<u64>,
+}
+
+impl DynAomiTool for BuildOrder {
+    type App = LimitlessApp;
+    type Args = BuildOrderArgs;
+    const NAME: &'static str = "limitless_build_order";
+    const DESCRIPTION: &'static str = "Build a Limitless CTF Exchange order and route the EIP-712 signing step to the user's wallet. After the wallet signs, the runtime automatically continues to `limitless_submit_order` with the bound signature, which POSTs to /orders. Args: slug, outcome (YES/NO), side (BUY/SELL), price (0.01..0.99), size (shares), wallet_address, owner_id. Optional: order_type (GTC|FOK), nonce, expiration, fee_rate_bps.";
+
+    fn run_with_routes(
+        _app: &LimitlessApp,
+        args: Self::Args,
+        _ctx: DynToolCallCtx,
+    ) -> Result<ToolReturn, String> {
+        let order_type = args.order_type.as_deref().unwrap_or("GTC").to_uppercase();
+        if !matches!(order_type.as_str(), "GTC" | "FOK") {
+            return Err(format!("[limitless] unsupported order_type={order_type}"));
+        }
+        let side_label = args.side.to_uppercase();
+        let side: u8 = match side_label.as_str() {
+            "BUY" => 0,
+            "SELL" => 1,
+            _ => return Err(format!("[limitless] side must be BUY or SELL, got {side_label}")),
+        };
+        let outcome_label = args.outcome.to_uppercase();
+        if !matches!(outcome_label.as_str(), "YES" | "NO") {
+            return Err(format!("[limitless] outcome must be YES or NO, got {outcome_label}"));
+        }
+
+        // Resolve verifying contract + tokenId from the market.
+        let market_path = format!("/markets/{}", urlencode(&args.slug));
+        let market = rt()?.block_on(public_get(&market_path))?;
+        let verifying_contract = extract_verifying_contract(&market)?;
+        let token_id = extract_token_id(&market, &outcome_label).ok_or_else(|| {
+            format!(
+                "[limitless] could not resolve {outcome_label} tokenId from market {}",
+                args.slug
+            )
+        })?;
+
+        let (maker_amount, taker_amount) =
+            compute_amounts(side, args.price, args.size, &order_type)?;
+        let now_ms = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_millis() as u64)
+            .unwrap_or(0);
+        let plan = LimitlessOrderPlan {
+            salt: now_ms,
+            maker: args.wallet_address.clone(),
+            signer: args.wallet_address.clone(),
+            taker: "0x0000000000000000000000000000000000000000".to_string(),
+            token_id,
+            maker_amount,
+            taker_amount,
+            expiration: args.expiration.unwrap_or(0),
+            nonce: args.nonce.unwrap_or(now_ms),
+            fee_rate_bps: args.fee_rate_bps.unwrap_or(0),
+            side,
+            signature_type: 0, // EOA
+            price: args.price,
+            size: args.size,
+            outcome: outcome_label.clone(),
+            side_label: side_label.clone(),
+            market_slug: args.slug.clone(),
+            order_type: order_type.clone(),
+            verifying_contract,
+            owner_id: args.owner_id,
+            chain_id: 8453,
+        };
+
+        let typed_data = build_order_typed_data(&plan);
+        let description = format!(
+            "Limitless: {} {} {} @ {} on {}",
+            side_label, args.size, outcome_label, args.price, args.slug
+        );
+        let wallet_request = json!({
+            "typed_data": typed_data,
+            "description": description,
+        });
+
+        let mut result = json!({
+            "source": "limitless",
+            "stage": "awaiting_order_signature",
+            "order_plan": plan,
+            "preview": {
+                "market_slug": plan.market_slug,
+                "outcome": plan.outcome,
+                "side": plan.side_label,
+                "price": plan.price,
+                "size": plan.size,
+                "maker_amount_usdc_micro": plan.maker_amount,
+                "taker_amount_micro": plan.taker_amount,
+                "verifying_contract": plan.verifying_contract,
+                "order_type": plan.order_type,
+            },
+            "wallet_request": wallet_request,
+        });
+        if let Some(obj) = result.as_object_mut() {
+            obj.insert(
+                "wallet_signature_step".to_string(),
+                json!({
+                    "wallet_tool": host::CommitEip712::tool_name(),
+                    "signing_primitive": "EIP712_TYPED_DATA_V4",
+                    "callback_field": "order_signature",
+                    "requires_user_confirmation_before_call": true,
+                }),
+            );
+        }
+
+        let submit_template = json!({
+            "order_plan": plan,
+            "order_signature": null,
+        });
+
+        Ok(ToolReturn::route(result)
+            .next(|next| {
+                next.add::<host::CommitEip712>(wallet_request)
+                    .bind_as("order_signature")
+                    .note("Sign this Limitless order. User has already confirmed price/size upstream.");
+            })
+            .after::<SubmitOrder>(submit_template)
+            .awaits("order_signature")
+            .note("Wallet signed — POST the signed order to Limitless /orders.")
+            .build())
+    }
+}
+
+// ============================================================================
+// Tool 9: submit_order — POST signed order to /orders
+// ============================================================================
+
+pub(crate) struct SubmitOrder;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct SubmitOrderArgs {
+    /// Order plan produced by `limitless_build_order` — forward verbatim.
+    pub order_plan: LimitlessOrderPlan,
+    /// Wallet signature for the order typed data. Bound automatically by the
+    /// runtime when `commit_eip712` returns its `order_signature` callback;
+    /// the LLM should never have to fill this manually.
+    pub order_signature: Option<String>,
+    /// Optional client-side idempotency key (max 128 chars).
+    #[serde(default)]
+    pub client_order_id: Option<String>,
+    #[serde(default)]
+    pub api_key: Option<String>,
+    #[serde(default)]
+    pub api_secret: Option<String>,
+}
+
+impl DynAomiTool for SubmitOrder {
+    type App = LimitlessApp;
+    type Args = SubmitOrderArgs;
+    const NAME: &'static str = "limitless_submit_order";
+    const DESCRIPTION: &'static str = "POST a wallet-signed Limitless order to /orders. Continuation of `limitless_build_order` — usually invoked automatically by the runtime after the wallet sig callback binds `order_signature`. Treat `order_plan` as opaque continuation state.";
+
+    fn run(_app: &LimitlessApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
+        let signature = args
+            .order_signature
+            .as_deref()
+            .ok_or_else(|| {
+                "[limitless] submit_order needs order_signature from the wallet callback"
+                    .to_string()
+            })?
+            .to_string();
+        let (key, sec) = resolve_creds(args.api_key.as_deref(), args.api_secret.as_deref())?;
+
+        let plan = args.order_plan;
+        let order_body = json!({
+            "salt": plan.salt,
+            "maker": plan.maker,
+            "signer": plan.signer,
+            "taker": plan.taker,
+            "tokenId": plan.token_id,
+            "makerAmount": plan.maker_amount,
+            "takerAmount": plan.taker_amount,
+            "expiration": plan.expiration.to_string(),
+            "nonce": plan.nonce,
+            "price": plan.price,
+            "feeRateBps": plan.fee_rate_bps,
+            "side": plan.side,
+            "signature": signature,
+            "signatureType": plan.signature_type,
+        });
+        let mut envelope = json!({
+            "order": order_body,
+            "ownerId": plan.owner_id,
+            "orderType": plan.order_type,
+            "marketSlug": plan.market_slug,
+        });
+        if let (Some(obj), Some(coi)) = (envelope.as_object_mut(), args.client_order_id.as_deref())
+        {
+            obj.insert(
+                "clientOrderId".to_string(),
+                Value::String(coi.to_string()),
+            );
+        }
+
+        let runtime = rt()?;
+        runtime.block_on(async move {
+            let resp = signed_post(&key, &sec, "/orders", &envelope).await?;
             ok(resp)
         })
     }
