@@ -322,12 +322,11 @@ impl DynAomiTool for GetFeaturedCreators {
             //   live:  { "traderLeaderboardFeaturedCreators": { edges: [...] } }
             // Surface both names so the LLM reads a sensible structure
             // regardless of which one it remembers from the preamble.
-            if let Value::Object(map) = &mut resp {
-                if !map.contains_key("featuredCreators") {
-                    if let Some(v) = map.remove("traderLeaderboardFeaturedCreators") {
-                        map.insert("featuredCreators".into(), v);
-                    }
-                }
+            if let Value::Object(map) = &mut resp
+                && !map.contains_key("featuredCreators")
+                && let Some(v) = map.remove("traderLeaderboardFeaturedCreators")
+            {
+                map.insert("featuredCreators".into(), v);
             }
             ok(resp)
         })
