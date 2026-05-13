@@ -1,21 +1,23 @@
 {
-  "user_story": "Discover what's trending on Zora and look at the price history of the top match.",
+  "user_story": "I like a Zora creator and want to buy their creator coin with ETH from my connected Base wallet. The creator coin trades against ZORA, so the buy is a multi-hop swap (ETH → ZORA → coin). Discover the creator, fetch the pool, activate the Zora skill, then build the V4 multi-hop buy transaction.",
+  "wallet_seed": {
+    "address": "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
+    "chain_id": 8453,
+    "is_connected": true
+  },
   "turns": [
     {
-      "prompt": "Search Zora for trending creator coins matching 'art'.",
+      "prompt": "Find the Zora creator with handle 'nap' and show me their creator coin address.",
       "expected_tools": {
-        "must_call": ["zora_get_trends_by_name"]
+        "must_call": ["zora_get_profile"]
       }
     },
     {
-      "prompt": "Show me the price history of the most active one.",
-      "expected_tools": {
-        "any_of": ["zora_get_coin", "zora_get_coin_price_history"]
-      }
+      "prompt": "Buy 0.001 ETH worth of nap's creator coin on Base with 5% slippage. The coin's backing currency is ZORA, so route it as a V4 multi-hop swap (ETH → ZORA → coin). Activate the zora skill, fetch the pool details, then encode and simulate the multi-hop buy."
     }
   ],
   "final_assertion": {
-    "no_errors": false,
-    "max_turns": 6
+    "no_errors": true,
+    "max_turns": 12
   }
 }

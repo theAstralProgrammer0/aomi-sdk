@@ -1,21 +1,27 @@
 {
-  "user_story": "Walk the full Limitless lifecycle: research a market, verify the signed portfolio path, then place a limit order end-to-end. limitless_build_order constructs the EIP-712 typed data and routes the wallet signing step to host::commit_eip712. A fake wallet:eip712 callback delivers a signature; the runtime auto-continues to limitless_submit_order which POSTs the signed envelope to /orders. Final assertion verifies the typed data was built against the real Limitless CTF Exchange domain.",
+  "user_story": "Comprehensive Limitless lifecycle from a real user's perspective: discover politics/macro markets, drill into liquidity, check portfolio, surface the group-vs-child slug distinction, then place a real limit order end-to-end. Validates that limitless_build_order resolves real-time market data (via the live API), constructs canonical EIP-712 typed data against the NegRisk CTF Exchange v3 domain on Base, routes the wallet signing step to host::commit_eip712, and that limitless_submit_order POSTs the signed envelope with HMAC headers to the live /orders endpoint.",
   "wallet_seed": {
     "address": "0x000000000000000000000000000000000000dEaD",
     "chain_id": 8453
   },
   "turns": [
     {
-      "prompt": "Find me an active prediction market on Limitless about Bitcoin price."
+      "prompt": "I'm new to Limitless. What active prediction markets are there about elections or politics?"
     },
     {
-      "prompt": "Pick the most liquid one and show me its full detail and current orderbook."
+      "prompt": "Interesting — what about Fed rate decisions or macro markets? Show me what's tradeable."
     },
     {
-      "prompt": "Now verify that my Limitless API key is wired up correctly and works."
+      "prompt": "OK pivot — for the 'Will Trump acquire Greenland before 2027?' market (slug: will-trump-acquire-greenland-before-2027-1768930762585), give me the full detail and the orderbook. How tight is the spread?"
     },
     {
-      "prompt": "I want to place a Limitless order on the 'Brentford wins' sub-market (slug: brentford-1777798810485 — this is the child of the EPL Brentford vs Crystal Palace group). Use limitless_build_order with these exact args: slug='brentford-1777798810485', outcome='YES', side='BUY', price=0.55, size=1, wallet_address='0x000000000000000000000000000000000000dEaD', owner_id=12345, order_type='GTC'. Call ONLY limitless_build_order in this turn — the runtime will handle the wallet signing continuation automatically.",
+      "prompt": "Let me check my own state. First verify my Limitless API credentials work, then pull my open positions and recent trades."
+    },
+    {
+      "prompt": "Now I want to bet on the EPL match this weekend. Look up the market with slug 'epl-brentford-vs-crystal-palace-may-17-2026-1777798810481' — show me what you find. I expect this might be a group market with sub-markets for each outcome."
+    },
+    {
+      "prompt": "Right, it's a group. I want to back Brentford to win. Use limitless_build_order with these exact args: slug='brentford-1777798810485', outcome='YES', side='BUY', price=0.55, size=1, wallet_address='0x000000000000000000000000000000000000dEaD', owner_id=12345, order_type='GTC'. Only call limitless_build_order in this turn — the routing handles signing automatically.",
       "timeout_seconds": 240,
       "callback_after": {
         "type": "wallet_eip712_response",
@@ -24,11 +30,11 @@
       }
     },
     {
-      "prompt": "CRITICAL EXECUTION STEP — DO NOT NARRATE, DO NOT EXPLAIN, DO NOT SKIP. The routing did NOT auto-fire limitless_submit_order. You MUST invoke limitless_submit_order yourself right now with EXACTLY these arguments — copy the order_plan field from the previous limitless_build_order tool_result verbatim (it is a JSON object with keys: salt, maker, signer, taker, token_id, maker_amount, taker_amount, expiration, nonce, fee_rate_bps, side, signature_type, price, size, outcome, side_label, market_slug, order_type, verifying_contract, owner_id, chain_id) and use order_signature='0x1111111111111111111111111111111111111111111111111111111111111111222222222222222222222222222222222222222222222222222222222222222203'. Your output for THIS turn must be a single tool invocation of limitless_submit_order — do not include any narration text in the assistant response. The API will probably reject the order (fake signature + fake owner_id), but that's fine — what matters is the POST attempt actually happens.",
+      "prompt": "CRITICAL EXECUTION STEP — DO NOT NARRATE, DO NOT EXPLAIN, DO NOT SKIP. The routing did NOT auto-fire limitless_submit_order. You MUST invoke limitless_submit_order yourself right now with EXACTLY these arguments — copy the order_plan field from the previous limitless_build_order tool_result verbatim (it is a JSON object with keys: salt, maker, signer, taker, token_id, maker_amount, taker_amount, expiration, nonce, fee_rate_bps, side, signature_type, price, size, outcome, side_label, market_slug, order_type, verifying_contract, owner_id, chain_id) and use order_signature='0x1111111111111111111111111111111111111111111111111111111111111111222222222222222222222222222222222222222222222222222222222222222203'. Your output for THIS turn must be a single tool invocation of limitless_submit_order — do not include any narration text. The API will likely reject the order (fake signature + fake owner_id), but the POST attempt is what we're validating.",
       "timeout_seconds": 180
     },
     {
-      "prompt": "Now summarize the full lifecycle: limitless_build_order produced order_plan + typed_data, the wallet returned a signature, then limitless_submit_order POSTed it. Include the verbatim tool_result body that limitless_submit_order returned in the previous turn (it will start with [limitless] POST /orders returned... since the signature was fake)."
+      "prompt": "Wrap it up — summarize what just happened across the whole session: which markets we looked at, what my portfolio state was, and the verbatim outcome of the Brentford order submission (success or error string)."
     }
   ],
   "final_assertion": {
@@ -36,6 +42,6 @@
       "any_returned_substring": "POST /orders returned"
     },
     "no_errors": false,
-    "max_turns": 25
+    "max_turns": 30
   }
 }
