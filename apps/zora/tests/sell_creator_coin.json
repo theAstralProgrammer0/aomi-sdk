@@ -13,7 +13,7 @@
       }
     },
     {
-      "prompt": "Activate the zora skill. Check my balance of papanda's creator coin via encode_and_call balanceOf, then check existing Permit2 allowances. Sell 100% of my balance for ZORA with 5% slippage. The single-hop V4 swap goes coin → ZORA (so zero_for_one flips compared to a buy). If allowances are missing, plan the Permit2 approval sequence first. Encode and simulate the swap call."
+      "prompt": "DRY-RUN — validate the call shape, assume I hold the coin and have set up Permit2 (don't bail on zero balance). Activate the zora skill. Build a sell: 1e18 base units of papanda's creator coin → ZORA, 5% slippage. The single-hop V4 swap goes coin → ZORA so `zero_for_one` flips compared to a buy — pick the right direction from the pool key. Call `call_v4_swap` and show me the resulting calldata even if simulation reverts."
     }
   ],
   "final_assertion": {

@@ -13,7 +13,7 @@
       }
     },
     {
-      "prompt": "Good. I hold 200 ZORA in my wallet. Buy 50 ZORA worth of papanda's 'zora' trend coin with 5% slippage. The coin is ZORA-backed, so it's a single-hop V4 swap. Activate the zora skill, check Permit2 allowances on ZORA, and simulate the swap.",
+      "prompt": "Good. This is a DRY-RUN — don't worry about my actual ZORA balance or allowance state, I'm validating the call shape. Fetch papanda's 'zora' trend coin pool details with zora_get_coin, activate the zora skill, then encode and simulate a single-hop V4 swap that spends 50 ZORA (50e18 in base units) for that coin with 5% slippage. Show me the encoded calldata even if the simulation reverts on balance.",
       "expected_tools": {
         "must_call": ["zora_get_coin"]
       }

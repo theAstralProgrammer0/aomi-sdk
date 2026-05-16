@@ -13,7 +13,7 @@
       }
     },
     {
-      "prompt": "Activate the zora skill. I want to receive EXACTLY 10,000 limbo tokens, and I'm willing to spend at most 100 ZORA to get them. Use the exact-out single-hop V4 swap on the Universal Router. Encode and simulate the call."
+      "prompt": "DRY-RUN — validate the call shape without worrying about my wallet's ZORA balance or allowances. Activate the zora skill. I want to receive EXACTLY 10,000 limbo tokens (10000 * 10^18 base units), and I'm willing to spend at most 100 ZORA. Use the exact-out single-hop V4 swap on the Universal Router with `call_v4_exact_out_swap`. Encode and simulate it; show me the calldata even if simulation reverts."
     }
   ],
   "final_assertion": {
