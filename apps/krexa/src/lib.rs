@@ -24,10 +24,12 @@ credit-and-payments layer, not your execution venue.
    to see what you can borrow and at what rate. If the next step is an
    API/LLM call, `krexa_discover_api_pricing` lets you preview the cost
    before committing.
-2. **Act** — `krexa_borrow_usdc` returns a partially-signed Solana
-   transaction; the host adds your signature and submits it. To pay for a
-   data/LLM call, use `krexa_pay_api_call` — it builds an x402 payment tx
-   for the target URL and can auto-draw credit when the wallet is empty
+2. **Act** — Borrowing is two steps: `krexa_request_credit` submits an
+   Ed25519-signed request for oracle review (auto-approved when score
+   permits), then `krexa_borrow_usdc` returns a partially-signed Solana
+   transaction the host signs and submits. To pay for a data/LLM call,
+   use `krexa_pay_api_call` — it builds an x402 payment tx for the target
+   URL and can auto-draw credit when the wallet is empty
    (`use_credit: true`). Set guardrails with `krexa_set_budget`.
 3. **Monitor** — `krexa_get_balance` (combined wallet + credit view) and
    `krexa_get_credit_line` (debt, accrued interest, health factor) tell
@@ -50,13 +52,18 @@ onboard or rotate API keys from here — that happens out-of-band with the
 operator.
 
 ## Auth
-Most tools work anonymously (30 req/min). The four write tools —
-`krexa_borrow_usdc`, `krexa_pay_api_call`, `krexa_discover_api_pricing`,
-and `krexa_set_budget` — require the operator to have set the
-`KREXA_API_KEY` environment variable to a `kx_`-prefixed key (provisioned
-out-of-band via `POST /access/provision-key`). If the key is missing,
-those four tools return a clear error; the other six read tools keep
-working."##;
+Most tools work anonymously (30 req/min). The five write tools —
+`krexa_request_credit`, `krexa_borrow_usdc`, `krexa_pay_api_call`,
+`krexa_discover_api_pricing`, and `krexa_set_budget` — require the
+operator to have set `KREXA_API_KEY` to a `kx_`-prefixed key (provisioned
+out-of-band via `POST /access/provision-key`).
+
+`krexa_request_credit` additionally requires the owner wallet's Ed25519
+keypair. Set `KREXA_OWNER_SECRET_KEY` to a base58-encoded 64-byte Solana
+keypair, OR pass `owner_signature` explicitly when the host signs the
+challenge externally. The challenge format is
+`Krexa credit request for <owner_pubkey>` (best-guess pending Krexa
+team confirmation)."##;
 
 dyn_aomi_app!(
     app = tool::KrexaApp,
@@ -69,6 +76,7 @@ dyn_aomi_app!(
         tool::CheckCreditEligibility,
         tool::DiscoverApiPricing,
         // Act
+        tool::RequestCredit,
         tool::BorrowUsdc,
         tool::PayApiCall,
         tool::SetBudget,

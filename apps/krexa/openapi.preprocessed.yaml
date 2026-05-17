@@ -324,6 +324,51 @@ paths:
                 - originatedAt
                 - totalInterestPaid
                 - totalOwed
+  /solana/credit/{agent}/request:
+    post:
+      tags:
+      - credit
+      summary: Submit a credit request for oracle review
+      description: |
+        Creates a credit request that the oracle reviews before signing a
+        borrow transaction. The request body carries an Ed25519 signature
+        from the owner wallet over the challenge
+        `Krexa credit request for <ownerPubkey>` — the same shape as
+        `/access/provision-key`.
+
+        Once the oracle approves (synchronously for level-appropriate
+        scores), call `/solana/oracle/sign-credit` to draw the line.
+
+        Endpoint surface inferred from a `403 No approved credit request`
+        error on `/solana/oracle/sign-credit` and a `400` validation pass
+        on `/solana/credit/<agent>/request` listing `ownerPubkey` and
+        `ownerSignature` as required. The exact challenge format is a
+        best-guess until the Krexa team confirms — see
+        `apps/krexa/openapi.meta.json`.
+      operationId: requestCredit
+      parameters:
+      - $ref: '#/components/parameters/AgentPath'
+      - $ref: '#/components/parameters/ApiKeyHeader'
+      - in: path
+        name: agent
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequestCreditRequest'
+        required: true
+      responses:
+        '200':
+          description: Credit request created (and auto-approved when eligible)
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
   /solana/credit/{agent}/score-breakdown:
     get:
       tags:
@@ -1026,6 +1071,36 @@ components:
         healthFactor:
           description: Health factor in basis points (15000 = 150%)
           type: integer
+    RequestCreditRequest:
+      type: object
+      properties:
+        ownerPubkey:
+          description: |
+            Owner wallet pubkey (base58). For self-custodied agents this
+            equals the agent pubkey; for delegated agents it is the
+            controlling wallet.
+          type: string
+        ownerSignature:
+          description: |
+            Base58-encoded Ed25519 signature over the literal challenge
+            `Krexa credit request for <ownerPubkey>` made with the
+            owner's keypair. Same shape as `/access/provision-key`.
+          type: string
+        amount:
+          description: |
+            Requested USDC amount in 6-decimal base units, as a string of
+            digits. `"500000000"` means $500.
+          type: string
+        creditLevel:
+          description: Requested credit level (1-4). Capped by score.
+          type: integer
+          minimum: 1
+          maximum: 4
+      required:
+      - ownerPubkey
+      - ownerSignature
+      - amount
+      - creditLevel
     SignCreditRequest:
       type: object
       properties:

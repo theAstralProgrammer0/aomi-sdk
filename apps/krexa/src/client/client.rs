@@ -3113,6 +3113,64 @@ object until the Krexa team publishes a JSON Schema.
             Self { key: Default::default() }
         }
     }
+    ///`RequestCreditRequest`
+    ///
+    /// <details><summary>JSON schema</summary>
+    ///
+    /// ```json
+    ///{
+    ///  "type": "object",
+    ///  "required": [
+    ///    "amount",
+    ///    "creditLevel",
+    ///    "ownerPubkey",
+    ///    "ownerSignature"
+    ///  ],
+    ///  "properties": {
+    ///    "amount": {
+    ///      "description": "Requested USDC amount in 6-decimal base units, as a string of\ndigits. `\"500000000\"` means $500.\n",
+    ///      "type": "string"
+    ///    },
+    ///    "creditLevel": {
+    ///      "description": "Requested credit level (1-4). Capped by score.",
+    ///      "type": "integer",
+    ///      "maximum": 4.0,
+    ///      "minimum": 1.0
+    ///    },
+    ///    "ownerPubkey": {
+    ///      "description": "Owner wallet pubkey (base58). For self-custodied agents this\nequals the agent pubkey; for delegated agents it is the\ncontrolling wallet.\n",
+    ///      "type": "string"
+    ///    },
+    ///    "ownerSignature": {
+    ///      "description": "Base58-encoded Ed25519 signature over the literal challenge\n`Krexa credit request for <ownerPubkey>` made with the\nowner's keypair. Same shape as `/access/provision-key`.\n",
+    ///      "type": "string"
+    ///    }
+    ///  }
+    ///}
+    /// ```
+    /// </details>
+    #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+    pub struct RequestCreditRequest {
+        /**Requested USDC amount in 6-decimal base units, as a string of
+digits. `"500000000"` means $500.
+*/
+        pub amount: ::std::string::String,
+        ///Requested credit level (1-4). Capped by score.
+        #[serde(rename = "creditLevel")]
+        pub credit_level: ::std::num::NonZeroU64,
+        /**Owner wallet pubkey (base58). For self-custodied agents this
+equals the agent pubkey; for delegated agents it is the
+controlling wallet.
+*/
+        #[serde(rename = "ownerPubkey")]
+        pub owner_pubkey: ::std::string::String,
+        /**Base58-encoded Ed25519 signature over the literal challenge
+`Krexa credit request for <ownerPubkey>` made with the
+owner's keypair. Same shape as `/access/provision-key`.
+*/
+        #[serde(rename = "ownerSignature")]
+        pub owner_signature: ::std::string::String,
+    }
     /**Score plus the 5 weighted components used to derive it. Field
 names follow the developer landing-page JS sample; the components
 block is `{ repayment, profit, behavior, usage, age }`.
@@ -4074,6 +4132,78 @@ Sends a `GET` request to `/solana/credit/{agent}/line`
             .build()?;
         let info = OperationInfo {
             operation_id: "get_credit_line",
+        };
+        self.pre(&mut request, &info).await?;
+        let result = self.exec(request, &info).await;
+        self.post(&result, &info).await?;
+        let response = result?;
+        match response.status().as_u16() {
+            200u16 => ResponseValue::from_response(response).await,
+            _ => Err(Error::UnexpectedResponse(response)),
+        }
+    }
+    /**Submit a credit request for oracle review
+
+Creates a credit request that the oracle reviews before signing a
+borrow transaction. The request body carries an Ed25519 signature
+from the owner wallet over the challenge
+`Krexa credit request for <ownerPubkey>` — the same shape as
+`/access/provision-key`.
+
+Once the oracle approves (synchronously for level-appropriate
+scores), call `/solana/oracle/sign-credit` to draw the line.
+
+Endpoint surface inferred from a `403 No approved credit request`
+error on `/solana/oracle/sign-credit` and a `400` validation pass
+on `/solana/credit/<agent>/request` listing `ownerPubkey` and
+`ownerSignature` as required. The exact challenge format is a
+best-guess until the Krexa team confirms — see
+`apps/krexa/openapi.meta.json`.
+
+
+Sends a `POST` request to `/solana/credit/{agent}/request`
+
+Arguments:
+- `agent`
+- `x_api_key`: `kx_`-prefixed key from `POST /access/provision-key` or
+`POST /solana/paysh/onboard`. Required on Pay.sh authenticated
+endpoints.
+
+- `body`
+*/
+    pub async fn request_credit<'a>(
+        &'a self,
+        agent: &'a str,
+        x_api_key: &'a str,
+        body: &'a types::RequestCreditRequest,
+    ) -> Result<
+        ResponseValue<::serde_json::Map<::std::string::String, ::serde_json::Value>>,
+        Error<()>,
+    > {
+        let url = format!(
+            "{}/solana/credit/{}/request", self.baseurl, encode_path(& agent
+            .to_string()),
+        );
+        let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
+        header_map
+            .append(
+                ::reqwest::header::HeaderName::from_static("api-version"),
+                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+            );
+        header_map.append("X-API-Key", x_api_key.to_string().try_into()?);
+        #[allow(unused_mut)]
+        let mut request = self
+            .client
+            .post(url)
+            .header(
+                ::reqwest::header::ACCEPT,
+                ::reqwest::header::HeaderValue::from_static("application/json"),
+            )
+            .json(&body)
+            .headers(header_map)
+            .build()?;
+        let info = OperationInfo {
+            operation_id: "request_credit",
         };
         self.pre(&mut request, &info).await?;
         let result = self.exec(request, &info).await;

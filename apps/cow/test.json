@@ -20,7 +20,12 @@
     }
   ],
   "final_assertion": {
-    "no_errors": true,
+    "user_state": {
+      "pending_eip712s": {
+        "min_count": 1
+      }
+    },
+    "no_errors": false,
     "max_turns": 8
   }
 }

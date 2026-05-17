@@ -27,7 +27,8 @@
 use crate::auth;
 use crate::client::Client as GenClient;
 use crate::client::types::{
-    PayshBudgetUpdate, PayshCallRequest, PayshDiscoverRequest, SignCreditRequest,
+    PayshBudgetUpdate, PayshCallRequest, PayshDiscoverRequest, RequestCreditRequest,
+    SignCreditRequest,
 };
 use aomi_sdk::*;
 use aomi_sdk::schemars::JsonSchema;
@@ -157,6 +158,63 @@ impl DynAomiTool for DiscoverApiPricing {
 // ============================================================================
 // ACT
 // ============================================================================
+
+pub(crate) struct RequestCredit;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct RequestCreditArgs {
+    /// The agent that will hold the resulting credit line. Path param.
+    pub agent: String,
+    /// Owner wallet pubkey (base58). For self-custodied agents this is
+    /// the same as `agent`. Embedded into the signed challenge.
+    pub owner_pubkey: String,
+    /// Requested USDC amount in 6-decimal base units, as a string of
+    /// digits. `"500000000"` is $500. Must fit under the level's cap
+    /// (L1=$500, L2=$20K, L3=$50K, L4=$500K).
+    pub amount: String,
+    /// Requested credit level (1–4). Capped by the agent's Krexit Score.
+    pub credit_level: u8,
+    /// Optional override for `ownerSignature` when the caller signs
+    /// externally. If omitted, the tool signs the challenge using the
+    /// secret key in `KREXA_OWNER_SECRET_KEY` (base58-encoded 64-byte
+    /// Solana keypair).
+    pub owner_signature: Option<String>,
+}
+
+impl DynAomiTool for RequestCredit {
+    type App = KrexaApp;
+    type Args = RequestCreditArgs;
+    const NAME: &'static str = "krexa_request_credit";
+    const DESCRIPTION: &'static str =
+        "Submit a credit request for oracle review. This is the first step of borrowing — the oracle must see an approved credit request before it will co-sign a draw. The owner wallet's Ed25519 signature over `Krexa credit request for <owner_pubkey>` proves ownership; pass `owner_signature` explicitly or set `KREXA_OWNER_SECRET_KEY` for the tool to sign internally. After this returns success, call `borrow_usdc` with the same amount + level.";
+
+    fn run(_app: &KrexaApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
+        let api_key = auth::api_key()?;
+        if !(1..=4).contains(&args.credit_level) {
+            return Err("[krexa] request_credit: credit_level must be 1..=4".to_string());
+        }
+        let owner_signature = match args.owner_signature {
+            Some(sig) => sig,
+            None => auth::sign_credit_request(&args.owner_pubkey)?,
+        };
+        let body = RequestCreditRequest {
+            amount: args.amount,
+            credit_level: std::num::NonZeroU64::new(args.credit_level as u64)
+                .expect("credit_level non-zero by range check"),
+            owner_pubkey: args.owner_pubkey,
+            owner_signature,
+        };
+        let runtime = rt()?;
+        let result = runtime
+            .block_on(async move {
+                client()
+                    .request_credit(args.agent.as_str(), api_key.as_str(), &body)
+                    .await
+            })
+            .map_err(|e| format!("[krexa] request_credit: {e}"))?;
+        ok(result.into_inner())
+    }
+}
 
 pub(crate) struct BorrowUsdc;
 
