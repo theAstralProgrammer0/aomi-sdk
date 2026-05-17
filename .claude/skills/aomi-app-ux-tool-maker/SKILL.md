@@ -35,6 +35,7 @@ Before designing anything, read these to ground yourself:
 3. `apps/<platform>/src/tool.rs` (the current generated stub) — what's there now.
 4. `apps/<platform>/src/lib.rs` — current PREAMBLE and tool list.
 5. **One existing well-curated app for reference**: read `apps/binance/src/tool.rs` or `apps/hyperliquid/src/tool.rs` — both are hand-crafted with good naming, descriptions, and composition. Match this quality bar.
+6. **If the platform requires auth**: read one of [ext/src/binance/auth.rs](ext/src/binance/auth.rs), [ext/src/bybit/auth.rs](ext/src/bybit/auth.rs), [ext/src/okx/auth.rs](ext/src/okx/auth.rs), [apps/limitless/src/auth.rs](apps/limitless/src/auth.rs) (HMAC venues) or [apps/krexa/src/auth.rs](apps/krexa/src/auth.rs) (static `X-API-Key`), plus the shared [ext/src/hmac_auth.rs](ext/src/hmac_auth.rs) primitives. See "Auth: per-call shim, not middleware" below.
 
 ## Workflow
 
@@ -172,6 +173,107 @@ When the spec marks a response as `additionalProperties: true`, the client retur
 
 The escape hatch (one endpoint serves multiple tool intents needing different shapes) is to add a `*Summary` struct in `tool.rs` — but that's an exception that needs justification, not the default.
 
+#### Auth: per-call shim, not middleware
+
+> For wire-level recipes (Binance/Bybit/OKX/Limitless/Krexa), sequence diagrams, and a decision guide for new venues, see **[docs/auth-practices.md](../../../docs/auth-practices.md)**. The section below is the procedural summary; that doc is the deep-dive.
+
+When a platform requires authentication (API key, HMAC signature, session token, on-chain signature, …) the curated tool layer follows a strict pattern: **per-call resolution in `tool.rs`, primitives in a thin `apps/<platform>/src/auth.rs` shim, headers/params passed positionally into the progenitor-generated client.** No `reqwest::Client` middleware, no global state, no implicit env reads inside the generated client.
+
+##### Why per-call
+
+- **The client stays generic.** `Client::new(base_url)` works for anonymous reads; the same client instance can also serve authed writes — the difference is per-call. No need for parallel "anon" and "authed" client constructors.
+- **Different agents, same process.** A single Aomi runtime can serve multiple users with different keys. Globally configured auth makes that impossible.
+- **Errors surface at the call site.** If `KREXA_API_KEY` isn't set, the *specific tool* that needed it returns `Err("[krexa] KREXA_API_KEY not set; …")`. Anonymous tools keep working.
+- **Mirrors OpenAPI semantics.** When the spec marks an auth header as an operation parameter, progenitor types it as a required argument; the tool layer satisfies that contract per call.
+
+##### What the shim looks like
+
+`apps/<platform>/src/auth.rs` is **stateless, pure functions, no client wrapping**. Existing references (read these for tone and length — they're all 40–80 lines):
+
+| File | Auth style | Shape |
+|---|---|---|
+| [ext/src/binance/auth.rs](ext/src/binance/auth.rs) | HMAC-SHA256 over query string, hex | `sign(secret, query) -> Result<String, String>`, `current_timestamp_ms() -> i64`, `build_query(pairs) -> String` |
+| [ext/src/bybit/auth.rs](ext/src/bybit/auth.rs) | HMAC over `ts+key+recv+payload`, hex | `sign_query`, `sign_body`, `current_timestamp_ms`, alphabetical `build_query`, `RECV_WINDOW` constant |
+| [ext/src/okx/auth.rs](ext/src/okx/auth.rs) | HMAC over `ts+method+path+body`, base64 | `sign(secret, ts, method, path, body)`, `iso_timestamp()` |
+| [apps/limitless/src/auth.rs](apps/limitless/src/auth.rs) | HMAC over `ts\nmethod\npath\nbody`, base64 (secret itself base64) | `sign(secret_b64, ts, method, path, body)`, `iso_timestamp()` |
+| [apps/krexa/src/auth.rs](apps/krexa/src/auth.rs) | Static `X-API-Key` (no signing) | `api_key() -> Result<String, String>` only |
+
+All four HMAC variants delegate primitives to shared **[ext/src/hmac_auth.rs](ext/src/hmac_auth.rs)** (`hmac_sha256_hex` / `hmac_sha256_base64`, `current_timestamp_ms` / `iso_timestamp_ms`, `urlencode`, `build_query`, `base64_decode`). Pull it in for any HMAC venue:
+
+```toml
+aomi-ext = { path = "../../ext", features = ["hmac-auth"] }
+```
+
+The per-app shim then owns ONLY the venue-specific bits:
+1. **Prehash format** (where the timestamp/method/path/body get concatenated, with what separators).
+2. **Secret handling quirks** (is the dashboard secret already base64? does the recv-window go in the prehash?).
+3. **Query-ordering rules** (Bybit sorts alphabetically; Binance preserves insertion order).
+4. **Return-type names** the tool layer expects to import.
+
+If the venue's prehash recipe is identical to an existing one, reuse the shared helpers and write a five-line shim. Don't reimplement HMAC or base64 anywhere outside `ext/src/hmac_auth.rs`.
+
+##### How the tool layer calls it
+
+For HMAC venues, every authed tool computes the signature inline:
+
+```rust
+// apps/okx/src/tool.rs (place_order)
+let timestamp = iso_timestamp();
+let signature = sign(
+    &secret_key, &timestamp, "POST", "/api/v5/trade/order", &body_str,
+)?;
+runtime.block_on(async move {
+    let client = OkxClient::new(BASE_URL);
+    client.place_order(
+        api_key.as_str(),
+        passphrase.as_str(),
+        signature.as_str(),
+        timestamp.as_str(),
+        &body,
+    ).await
+})
+```
+
+For static-bearer venues (Krexa, anything with a plain `Authorization: Bearer` or `X-API-Key`), it collapses to one line:
+
+```rust
+// apps/krexa/src/tool.rs (pay_api_call)
+let api_key = auth::api_key()?;
+client().paysh_call(args.agent.as_str(), api_key.as_str(), &body).await
+```
+
+The api_key argument is positional because the spec declares `X-API-Key` as an operation parameter (see "Spec setup" below). Without that declaration, progenitor doesn't emit a slot for it and you'd have to fall back to middleware — don't.
+
+##### Spec setup (so progenitor emits positional args)
+
+The auth header has to be declared **as an operation parameter**, not just under `securitySchemes`. Progenitor ignores `securitySchemes` for codegen — it only generates positional args for entries in each operation's `parameters:`.
+
+The clean pattern: define the header once under `components.parameters` and `$ref` it from each authed operation.
+
+```yaml
+# components.parameters
+ApiKeyHeader:
+  in: header
+  name: X-API-Key
+  required: true              # progenitor: `&str`; if false: `Option<&str>`
+  schema: { type: string }
+  description: kx_-prefixed key from POST /access/provision-key
+
+# paths./solana/paysh/{agent}/call.post.parameters
+- $ref: '#/components/parameters/AgentPath'
+- $ref: '#/components/parameters/ApiKeyHeader'
+```
+
+After regenerating with `aomi-build gen-client <platform> --force`, the client method gains an `x_api_key: &'a str` slot positioned between path params and the body — exactly where the tool layer's `auth::api_key()?` plugs in.
+
+##### What NOT to do
+
+- **Don't wrap `reqwest::Client` with header-injecting middleware.** Even though `Client::new_with_client(...)` makes it possible, none of the existing venues do this and it breaks the per-call model.
+- **Don't put the env-var read inside the generated client.** That file is regenerated by `aomi-build gen-client` — any hand-edit gets wiped on the next regen.
+- **Don't expose the secret as a tool argument the LLM fills in.** Resolve it from `auth::*` or `aomi_sdk::resolve_secret_value` inside the tool body. The LLM should never see the secret.
+- **Don't reimplement HMAC/base64 in a per-app `auth.rs`.** Use the shared `ext/src/hmac_auth.rs` primitives. The per-app file owns only venue-specific composition.
+- **Don't add an `auth.rs` for a fully public API.** It's overhead without value. Krexa only got one because its Pay.sh write surface requires `X-API-Key`; the read surface does not.
+
 #### Wallet handoff (on-chain sig + off-chain submit)
 
 Many platforms have this shape: **build something off-chain → user signs on-chain → confirm/submit off-chain**. Examples: Khalani (`build_deposit` → `stage_tx` → `submit_order`), Across (`get_bridge_quote` → SpokePool tx → `get_deposit_status`), 1inch (`get_quote` → `approve_tx` + `swap_tx`), CoW (build order → EIP-712 signature → submit signed order), LiFi (quote → approve + swap → status), GMX/dYdX (place position → on-chain settlement).
@@ -249,7 +351,7 @@ If the API gives you fully-encoded calldata, use `data: { raw }`. If it gives yo
 
 - Keep the `<Platform>App` marker struct (it's the type the macro references).
 - Keep helpers: `ok()` (wraps result with `source`), `rt()` (tokio runtime), `resolve_key()` (env-var fallback). Copy from current generated tool.rs or from `apps/binance/src/tool.rs`.
-- Auth: use `aomi_sdk::resolve_secret_value` with the env var `<PLATFORM>_API_KEY`. One auth resolution per tool, even if the API has multiple credential slots.
+- Auth: resolve secrets per-call (env var `<PLATFORM>_API_KEY` via `auth::api_key()?` for static bearers, or via `aomi_sdk::resolve_secret_value` for SDK-managed secrets). Compute any signatures by calling into `apps/<platform>/src/auth.rs`. **Pass the resulting headers/signatures positionally into the generated client method** — see the "Auth: per-call shim, not middleware" section above.
 - Calls into the generated client are async — wrap with `runtime.block_on(async move { client.method(args).await }).map_err(...)?`.
 - Composite tools sequence multiple `.await` calls and combine the results in the JSON return.
 
@@ -345,6 +447,10 @@ Suggest the user run **`/aomi-app-e2e-tester <platform>`** to expand the test an
 - ❌ **Asking the user (LLM) for values you can compute.** Timestamps, polling intervals, page sizes, default chains, retry budgets — derive these in Rust.
 - ❌ **Adding `*Summary` projection structs in `tool.rs` to drop fields the LLM doesn't need.** Trim those fields **at the spec layer** instead — delete them from `ext/specs/<platform>.yaml` and `aomi-build gen-client --force`. The typed Rust struct then IS the slim shape, and `tool.rs` stays `ok(response)`. The exception (one endpoint serving multiple tool intents needing different shapes) is rare and needs justification.
 - ❌ **Returning raw `{ approve_tx, swap_tx, status_url }` JSON for the LLM to orchestrate.** When an off-chain build returns a transaction (or signature payload) the user must sign, wrap the wallet step in a `ToolReturn::route(...)` chain with `host::StageTx` (or `host::CommitEip712` / `host::SignTxSolana`) and `.enforce(SimulateBatch + CommitTxs.bind_as("transaction_hash"))`. Use `.after::<NextTool>(args).awaits("transaction_hash")` for the off-chain confirm step. The LLM should never see "now stage these txs in this order" instructions in your tool description — that's exactly what the route handles. See "Wallet handoff" section above.
+- ❌ **Wrapping `reqwest::Client` with auth middleware.** Even if `Client::new_with_client(...)` would let you, don't. Auth is per-call: resolve the secret in `tool.rs`, compute any signature via `apps/<platform>/src/auth.rs` helpers, and pass headers positionally into the generated client method. See "Auth: per-call shim, not middleware" above.
+- ❌ **Declaring auth only under `securitySchemes`.** Progenitor ignores `securitySchemes` for arg generation — the header has to appear in each authed operation's `parameters:` list (typically via `$ref: '#/components/parameters/ApiKeyHeader'`). Otherwise the generated client has nowhere to plug the key in.
+- ❌ **Reimplementing HMAC, base64, or timestamps in a per-app `auth.rs`.** Those primitives live in shared [ext/src/hmac_auth.rs](ext/src/hmac_auth.rs); the per-app shim owns only the venue-specific prehash format + quirks.
+- ❌ **Exposing API keys / secrets as LLM-callable tool args.** The LLM should never see a credential. Resolve from env or SDK secrets store inside the tool body.
 - ❌ **Unbounded loops.** Every poll loop has a deadline AND an iteration cap. No `loop { … sleep(2).await }` without an exit condition that fires on a wall-clock deadline.
 - ❌ **PREAMBLE drift.** Don't write tool descriptions and forget to update PREAMBLE. After each tool change, re-read PREAMBLE and confirm it still describes what you shipped.
 

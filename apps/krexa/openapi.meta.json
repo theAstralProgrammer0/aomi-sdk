@@ -1,0 +1,13 @@
+{
+  "platform": "krexa",
+  "source": "skill",
+  "source_url": "https://krexa.mintlify.app/docs/api/overview",
+  "fetched_at": "2026-05-17T07:32:46Z",
+  "upstream_version": null,
+  "completeness": {
+    "endpoints_specced": 23,
+    "endpoints_skipped": 0,
+    "auth_described": true,
+    "notes": "Drafted from krexa.mintlify.app/docs/api/* and www.krexa.xyz/developers. Covers KYA (4), Score (1), Credit (3 incl. score-breakdown only doc'd on the dev landing page), Oracle (1), Vault (1), Faucet (1), Access (1 — provision-key, dev page only), Pay.sh (11). KyaCredential inner shape is left as a loose object with additionalProperties:true — the 7 sections (identity, principal, permissions, score, reputation, financial, attestation) are not fully reified upstream. Enum-valued string fields (trustTier, ScoreResponse.source, PayshTier.tier, PayshPricing.network) are plain strings to avoid progenitor `*Type/*Status/*Tier` inline-enum collisions. Auth shim path: apps/krexa/src/auth.rs (Ed25519 sign of 'Krexa API key provision for <wallet>' via tweetnacl + bs58). Two servers listed: production api.krexa.xyz and the Render origin (cold-start 30-60s)."
+  }
+}

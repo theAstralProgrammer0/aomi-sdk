@@ -41,6 +41,7 @@ exclude = [
     "apps/polymarket-rewards",
     "apps/limitless",
     "apps/zora",
+    "apps/krexa",
 ]
 resolver = "2"
 
