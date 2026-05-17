@@ -359,6 +359,8 @@ paths:
         transaction. The response transaction is base64-encoded and
         partially signed; the caller must add the agent or owner
         signature before submitting to Solana.
+      parameters:
+      - $ref: '#/components/parameters/ApiKeyHeader'
       requestBody:
         required: true
         content:

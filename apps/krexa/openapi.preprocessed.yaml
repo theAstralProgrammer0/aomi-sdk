@@ -360,6 +360,8 @@ paths:
         partially signed; the caller must add the agent or owner
         signature before submitting to Solana.
       operationId: signCreditTransaction
+      parameters:
+      - $ref: '#/components/parameters/ApiKeyHeader'
       requestBody:
         content:
           application/json:

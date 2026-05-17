@@ -4140,18 +4140,26 @@ signature before submitting to Solana.
 
 Sends a `POST` request to `/solana/oracle/sign-credit`
 
+Arguments:
+- `x_api_key`: `kx_`-prefixed key from `POST /access/provision-key` or
+`POST /solana/paysh/onboard`. Required on Pay.sh authenticated
+endpoints.
+
+- `body`
 */
     pub async fn sign_credit_transaction<'a>(
         &'a self,
+        x_api_key: &'a str,
         body: &'a types::SignCreditRequest,
     ) -> Result<ResponseValue<types::SignCreditResponse>, Error<()>> {
         let url = format!("{}/solana/oracle/sign-credit", self.baseurl,);
-        let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
+        let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
         header_map
             .append(
                 ::reqwest::header::HeaderName::from_static("api-version"),
                 ::reqwest::header::HeaderValue::from_static(Self::api_version()),
             );
+        header_map.append("X-API-Key", x_api_key.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
             .client

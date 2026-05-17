@@ -50,12 +50,13 @@ onboard or rotate API keys from here — that happens out-of-band with the
 operator.
 
 ## Auth
-Most tools work anonymously (30 req/min). The Pay.sh write surface —
-`krexa_pay_api_call`, `krexa_discover_api_pricing`, and
-`krexa_set_budget` — requires the operator to have set the
+Most tools work anonymously (30 req/min). The four write tools —
+`krexa_borrow_usdc`, `krexa_pay_api_call`, `krexa_discover_api_pricing`,
+and `krexa_set_budget` — require the operator to have set the
 `KREXA_API_KEY` environment variable to a `kx_`-prefixed key (provisioned
 out-of-band via `POST /access/provision-key`). If the key is missing,
-those three tools return a clear error; the other seven keep working."##;
+those four tools return a clear error; the other six read tools keep
+working."##;
 
 dyn_aomi_app!(
     app = tool::KrexaApp,

@@ -201,6 +201,7 @@ impl DynAomiTool for BorrowUsdc {
             Some(_) => return Err("[krexa] borrow_usdc: credit_level must be 1..=4".to_string()),
             None => None,
         };
+        let api_key = auth::api_key()?;
         let body = SignCreditRequest {
             agent_pubkey: args.agent_pubkey,
             agent_or_owner_pubkey: args.agent_or_owner_pubkey,
@@ -213,7 +214,11 @@ impl DynAomiTool for BorrowUsdc {
         };
         let runtime = rt()?;
         let result = runtime
-            .block_on(async move { client().sign_credit_transaction(&body).await })
+            .block_on(async move {
+                client()
+                    .sign_credit_transaction(api_key.as_str(), &body)
+                    .await
+            })
             .map_err(|e| format!("[krexa] borrow_usdc: {e}"))?;
         ok(result.into_inner())
     }
