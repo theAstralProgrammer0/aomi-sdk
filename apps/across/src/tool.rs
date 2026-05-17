@@ -8,7 +8,7 @@ use aomi_ext::across::Client as AcrossClient;
 use aomi_sdk::schemars::JsonSchema;
 use aomi_sdk::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
+use serde_json::{Value, json};
 
 #[derive(Clone, Default)]
 pub(crate) struct AcrossApp;
@@ -178,6 +178,265 @@ impl DynAomiTool for AcrossGetBridgeQuote {
                 .into_inner();
             ok(fees)
         })
+    }
+}
+
+// ============================================================================
+// AcrossBridge — quote + (optional) approval + depositV3, routed via host wallet
+// ============================================================================
+//
+// Closes the quote→execute gap left by `across_get_bridge_quote`. Fetches the
+// raw suggested-fees JSON (so we keep relayer params + `spokePoolAddress` that
+// the typed `AcrossSuggestedFees` struct drops), then routes one or two
+// `host::StageTx`es through the wallet: an optional ERC-20 approval against the
+// origin-chain SpokePool, followed by the SpokePool `depositV3` call. The
+// destination-chain fill is observed separately via `across_get_deposit_status`.
+
+const NATIVE_SENTINEL: &str = "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee";
+const ZERO_ADDRESS: &str = "0x0000000000000000000000000000000000000000";
+const DEPOSIT_V3_SIGNATURE: &str = "depositV3(address,address,address,address,uint256,uint256,uint256,address,uint32,uint32,uint32,bytes)";
+
+fn is_native(addr: &str) -> bool {
+    addr.eq_ignore_ascii_case(NATIVE_SENTINEL)
+}
+
+pub(crate) struct AcrossBridge;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct AcrossBridgeArgs {
+    /// Origin-chain ERC-20 address (input token). Use 0xEeeE...EEeE only when bridging the chain's native asset (e.g. ETH wrapped via WETH spoke); SpokePool itself wraps when `msg.value` matches `inputAmount`.
+    pub input_token: String,
+    /// Destination-chain ERC-20 address (output token).
+    pub output_token: String,
+    /// Origin chain ID (e.g. 1, 10, 137, 8453, 42161).
+    pub origin_chain_id: i64,
+    /// Destination chain ID.
+    pub destination_chain_id: i64,
+    /// Input amount in the input token's smallest unit (1 USDC = "1000000").
+    pub amount: String,
+    /// Depositor address on the origin chain (the wallet signing the deposit tx).
+    pub depositor: String,
+    /// Recipient address on the destination chain. Defaults to `depositor` when omitted.
+    #[serde(default)]
+    pub recipient: Option<String>,
+    /// Optional cross-chain message hex (defaults to "0x"). Pass as `0x...` if the receiver needs a payload.
+    #[serde(default)]
+    pub message: Option<String>,
+}
+
+/// Hit `/suggested-fees` directly so we keep every field — the typed
+/// `AcrossSuggestedFees` struct in `aomi_ext::across` drops `spokePoolAddress`,
+/// `exclusiveRelayer`, `exclusivityDeadline`, `timestamp`, `fillDeadline`,
+/// etc. because they aren't declared as schema properties.
+fn fetch_suggested_fees_raw(args: &AcrossBridgeArgs) -> Result<Value, String> {
+    let base = std::env::var("ACROSS_API_ENDPOINT").unwrap_or_else(|_| BASE_URL.to_string());
+    let url = format!("{base}/suggested-fees");
+    let recipient = args.recipient.clone().unwrap_or_else(|| args.depositor.clone());
+
+    let mut query: Vec<(&str, String)> = vec![
+        ("amount", args.amount.clone()),
+        ("originChainId", args.origin_chain_id.to_string()),
+        ("destinationChainId", args.destination_chain_id.to_string()),
+        ("inputToken", args.input_token.clone()),
+        ("outputToken", args.output_token.clone()),
+        ("recipient", recipient),
+    ];
+    if let Some(m) = args.message.as_ref() {
+        query.push(("message", m.clone()));
+    }
+
+    let runtime = rt()?;
+    runtime.block_on(async move {
+        let resp = reqwest::Client::new()
+            .get(&url)
+            .header("api-version", "1")
+            .header(reqwest::header::ACCEPT, "application/json")
+            .query(&query)
+            .send()
+            .await
+            .map_err(|e| format!("[across] suggested-fees request: {e}"))?;
+        let status = resp.status();
+        let body: Value = resp
+            .json()
+            .await
+            .map_err(|e| format!("[across] suggested-fees decode: {e}"))?;
+        if !status.is_success() {
+            return Err(format!("[across] suggested-fees HTTP {status}: {body}"));
+        }
+        Ok(body)
+    })
+}
+
+fn require_str<'a>(obj: &'a Value, key: &str) -> Result<&'a str, String> {
+    obj.get(key)
+        .and_then(Value::as_str)
+        .ok_or_else(|| format!("[across] suggested-fees response missing string `{key}`"))
+}
+
+/// Pull a uint32 field from the response. The Across API returns these as
+/// numbers (`timestamp`, `fillDeadline`, `exclusivityDeadline`) but occasionally
+/// as strings — accept either and normalize to a decimal string for the host's
+/// `data.encode` (uint32 args).
+fn parse_uint32(obj: &Value, key: &str) -> Result<String, String> {
+    let v = obj
+        .get(key)
+        .ok_or_else(|| format!("[across] suggested-fees response missing `{key}`"))?;
+    if let Some(n) = v.as_u64() {
+        return Ok(n.to_string());
+    }
+    if let Some(s) = v.as_str() {
+        return Ok(s.to_string());
+    }
+    Err(format!(
+        "[across] suggested-fees `{key}` is neither a number nor a string: {v}"
+    ))
+}
+
+impl DynAomiTool for AcrossBridge {
+    type App = AcrossApp;
+    type Args = AcrossBridgeArgs;
+    const NAME: &'static str = "across_bridge";
+    const DESCRIPTION: &'static str = "USE THIS to execute any Across bridge. Single-call composite: fetches a fresh suggested-fees quote (carries the relayer params + origin-chain SpokePool address), then routes — through the host wallet — an optional ERC-20 approval for the SpokePool, followed by the SpokePool `depositV3` call (host ABI-encodes via `data.encode`). DO NOT call `stage_tx`, `simulate_batch`, `commit_txs`, or `across_get_bridge_quote` first; this tool re-quotes internally and the route handles simulate + commit. DO NOT web-search SpokePool addresses or depositV3 ABIs — the tool already has them. After commit, the host returns the deposit tx hash; poll the destination-chain fill with `across_get_deposit_status`.";
+
+    fn run_with_routes(
+        _app: &AcrossApp,
+        args: Self::Args,
+        _ctx: DynToolCallCtx,
+    ) -> Result<ToolReturn, String> {
+        let quote = fetch_suggested_fees_raw(&args)?;
+        let quote_obj = quote
+            .as_object()
+            .ok_or_else(|| "[across] suggested-fees response was not a JSON object".to_string())?;
+
+        let spoke_pool = require_str(&quote, "spokePoolAddress")
+            .map_err(|_| {
+                "[across] suggested-fees response missing `spokePoolAddress`. Across publishes \
+                 this per call; refusing to fall back to a hardcoded list to avoid signing into \
+                 a stale SpokePool."
+                    .to_string()
+            })?
+            .to_string();
+        let output_amount = require_str(&quote, "outputAmount")?.to_string();
+        let quote_timestamp = parse_uint32(&quote, "timestamp")?;
+        let fill_deadline = parse_uint32(&quote, "fillDeadline")?;
+        let exclusivity_deadline = parse_uint32(&quote, "exclusivityDeadline").unwrap_or_else(|_| "0".to_string());
+        let exclusive_relayer = quote_obj
+            .get("exclusiveRelayer")
+            .and_then(Value::as_str)
+            .filter(|s| !s.is_empty())
+            .unwrap_or(ZERO_ADDRESS)
+            .to_string();
+
+        let recipient = args.recipient.clone().unwrap_or_else(|| args.depositor.clone());
+        let message = args.message.clone().unwrap_or_else(|| "0x".to_string());
+        let native_input = is_native(&args.input_token);
+
+        // depositV3 args, in the order the SpokePool ABI declares them. Let the
+        // host's `data.encode` ABI-encode rather than hand-rolling calldata.
+        let deposit_args = json!([
+            args.depositor,
+            recipient,
+            args.input_token,
+            args.output_token,
+            args.amount,
+            output_amount,
+            args.destination_chain_id.to_string(),
+            exclusive_relayer,
+            quote_timestamp,
+            fill_deadline,
+            exclusivity_deadline,
+            message,
+        ]);
+
+        let deposit_value = if native_input { args.amount.clone() } else { "0".to_string() };
+
+        let mut stage_args: Vec<Value> = Vec::new();
+        if !native_input {
+            // Unconditional approval: there's no `host::EthCall` target in the
+            // SDK to read the current allowance, and the task spec explicitly
+            // allows unconditional approve when a pre-check isn't available.
+            stage_args.push(json!({
+                "to": args.input_token,
+                "description": format!(
+                    "Across ERC-20 approval for SpokePool {} on chain {} (input token {})",
+                    spoke_pool, args.origin_chain_id, args.input_token
+                ),
+                "data": {
+                    "encode": {
+                        "signature": "approve(address,uint256)",
+                        "args": [spoke_pool.clone(), args.amount.clone()],
+                    }
+                },
+                "value": "0",
+                "kind": "erc20_approve",
+            }));
+        }
+        stage_args.push(json!({
+            "to": spoke_pool,
+            "description": format!(
+                "Across depositV3: bridge {} of {} from chain {} to {} on chain {} (recipient {})",
+                args.amount,
+                args.input_token,
+                args.origin_chain_id,
+                args.output_token,
+                args.destination_chain_id,
+                recipient
+            ),
+            "data": {
+                "encode": {
+                    "signature": DEPOSIT_V3_SIGNATURE,
+                    "args": deposit_args,
+                }
+            },
+            "value": deposit_value,
+            "kind": "bridge_deposit",
+        }));
+        let last_index = stage_args.len() - 1;
+
+        let preview = json!({
+            "status": "awaiting_wallet",
+            "origin_chain_id": args.origin_chain_id,
+            "destination_chain_id": args.destination_chain_id,
+            "spoke_pool": spoke_pool,
+            "needs_approval": !native_input,
+            "tx_count": stage_args.len(),
+            "quote": quote,
+        });
+
+        ToolReturn::route(ok(preview)?)
+            .next(|next| {
+                for (i, a) in stage_args.iter().enumerate() {
+                    let step = next.add::<host::StageTx>(a.clone());
+                    if i == last_index {
+                        step.note(
+                            "Stage the Across depositV3 call. CRITICAL: copy `to` and every entry \
+                             of `data.encode.args` BYTE-FOR-BYTE from the args below — do not \
+                             abbreviate, reformat, or substitute the relayer parameters \
+                             (quote_timestamp, fill_deadline, exclusivity_deadline, \
+                             exclusive_relayer, output_amount). After this step the host \
+                             automatically simulates and commits the staged txs and waits for \
+                             the wallet.",
+                        )
+                        .enforce(EnforcementPolicy::Continue, |enforce| {
+                            enforce.add::<host::SimulateBatch>(json!({}));
+                            enforce
+                                .add::<host::CommitTxs>(json!({ "aa_preference": "auto" }))
+                                .bind_as("transaction_hash");
+                        });
+                    } else {
+                        step.note(
+                            "Stage the ERC-20 approval for the Across SpokePool. CRITICAL: copy \
+                             `to` and `data.encode.args` byte-for-byte; do not modify the spender \
+                             or amount.",
+                        );
+                    }
+                }
+            })
+            // No `.after::<>` — the destination-chain fill is async and observed
+            // via `across_get_deposit_status`, which the user polls separately.
+            // The bound `transaction_hash` ends the route.
+            .try_build()
+            .map_err(|e| format!("[across] route build: {e}"))
     }
 }
 

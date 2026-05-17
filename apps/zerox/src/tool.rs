@@ -19,6 +19,31 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use std::time::Duration;
 
+const NATIVE_TOKEN_ADDR: &str = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
+
+/// Split a 65-byte EIP-712 signature hex (`0x` + r||s||v) into the
+/// `{v, r, s}` triple 0x's gasless API expects under
+/// `trade.signature` / `approval.signature`. Also normalises `v` from
+/// 0/1 to 27/28.
+fn split_signature_vrs(hex_sig: &str) -> Result<Value, String> {
+    let trimmed = hex_sig.trim_start_matches("0x").trim_start_matches("0X");
+    if trimmed.len() != 130 {
+        return Err(format!(
+            "[0x] signature must be 65 bytes (130 hex chars); got {} chars",
+            trimmed.len()
+        ));
+    }
+    let r = format!("0x{}", &trimmed[..64]);
+    let s = format!("0x{}", &trimmed[64..128]);
+    let mut v: u8 = u8::from_str_radix(&trimmed[128..130], 16)
+        .map_err(|e| format!("[0x] signature `v` not valid hex: {e}"))?;
+    if v < 27 {
+        v += 27;
+    }
+    // signatureType=2 is EIP-712 per 0x's Settler/MetaTransaction schema.
+    Ok(json!({ "signatureType": 2, "v": v, "r": r, "s": s }))
+}
+
 #[derive(Clone, Default)]
 pub(crate) struct ZeroxApp;
 
@@ -257,9 +282,13 @@ impl DynAomiTool for ZeroxBuildSwap {
     type App = ZeroxApp;
     type Args = ZeroxBuildSwapArgs;
     const NAME: &'static str = "zerox_build_swap";
-    const DESCRIPTION: &'static str = "Use when the user is ready to execute a 0x swap. Returns a raw swap tx (`transaction.to`, `transaction.data`, `transaction.value`) plus an `issues.allowance` block. If `issues.allowance` indicates insufficient allowance, the host must first approve the returned `spender` (the 0x AllowanceHolder) for the sell token, then stage and commit the swap tx via `stage_tx` / `simulate_batch` / `commit_tx`. Do not re-encode 0x calldata.";
+    const DESCRIPTION: &'static str = "Use when the user wants to execute a 0x swap on-chain. Composite tool: fetches an AllowanceHolder firm quote, checks ERC-20 allowance for the 0x AllowanceHolder, then routes the (optional) approval + swap transactions through the host wallet and binds the resulting tx hash. The LLM does not call stage_tx, simulate, or commit — the route handles it. For gasless (relayer-paid) execution, use zerox_get_gasless_quote instead.";
 
-    fn run(_app: &ZeroxApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
+    fn run_with_routes(
+        _app: &ZeroxApp,
+        args: Self::Args,
+        _ctx: DynToolCallCtx,
+    ) -> Result<ToolReturn, String> {
         let api_key = resolve_key(args.api_key.as_deref())?;
         let (chain_name, chain_id) = get_chain_info(&args.chain)?;
         let sell_addr = get_token_address(chain_name, &args.sell_token)?;
@@ -271,21 +300,134 @@ impl DynAomiTool for ZeroxBuildSwap {
 
         let client = make_client(&api_key)?;
         let runtime = rt()?;
-        runtime.block_on(async move {
-            let resp = client
-                .get_allowance_holder_quote(
-                    &buy_addr,
-                    chain_id,
-                    &amount_wei,
-                    &sell_addr,
-                    Some(slippage),
-                    Some(&taker),
-                )
-                .await
-                .map_err(|e| format!("[0x] get_allowance_holder_quote: {e}"))?
-                .into_inner();
-            ok::<SwapQuote>(resp)
-        })
+        let (buy_addr_q, sell_addr_q, amount_q, taker_q) = (
+            buy_addr.clone(),
+            sell_addr.clone(),
+            amount_wei.clone(),
+            taker.clone(),
+        );
+        let quote = runtime
+            .block_on(async move {
+                client
+                    .get_allowance_holder_quote(
+                        &buy_addr_q,
+                        chain_id,
+                        &amount_q,
+                        &sell_addr_q,
+                        Some(slippage),
+                        Some(&taker_q),
+                    )
+                    .await
+            })
+            .map_err(|e| format!("[0x] get_allowance_holder_quote: {e}"))?
+            .into_inner();
+
+        // SwapQuote wraps an untyped Map<String, Value>; walk into it for the
+        // fields we need to stage txs.
+        let quote_map: &serde_json::Map<String, Value> = &quote.0;
+        let tx = quote_map
+            .get("transaction")
+            .and_then(Value::as_object)
+            .ok_or_else(|| "[0x] quote response missing `transaction`".to_string())?;
+        let tx_to = tx
+            .get("to")
+            .and_then(Value::as_str)
+            .ok_or_else(|| "[0x] quote response missing `transaction.to`".to_string())?
+            .to_string();
+        let tx_data = tx
+            .get("data")
+            .and_then(Value::as_str)
+            .ok_or_else(|| "[0x] quote response missing `transaction.data`".to_string())?
+            .to_string();
+        let tx_value = tx
+            .get("value")
+            .and_then(Value::as_str)
+            .unwrap_or("0")
+            .to_string();
+        let tx_gas = tx
+            .get("gas")
+            .and_then(Value::as_str)
+            .and_then(|s| s.parse::<u64>().ok());
+
+        // ERC-20 approval check. Native sells (ETH/MATIC/BNB/AVAX) never need
+        // approval. For ERC-20s, 0x returns `issues.allowance: null` when the
+        // taker already has enough; an object with `spender` + `actual` when not.
+        let sell_addr_lower = sell_addr.to_ascii_lowercase();
+        let is_native_sell = sell_addr_lower == NATIVE_TOKEN_ADDR.to_ascii_lowercase();
+        let approval_spender: Option<String> = (!is_native_sell)
+            .then(|| {
+                quote_map
+                    .get("issues")
+                    .and_then(|i| i.get("allowance"))
+                    .and_then(Value::as_object)
+                    .and_then(|a| a.get("spender"))
+                    .and_then(Value::as_str)
+                    .map(|s| s.to_string())
+            })
+            .flatten();
+
+        let mut stage_args: Vec<Value> = Vec::new();
+        if let Some(ref spender) = approval_spender {
+            stage_args.push(json!({
+                "to":          sell_addr,
+                "description": format!("0x ERC-20 approval for {} on chain {chain_id}", args.sell_token),
+                "data":        { "encode": { "signature": "approve(address,uint256)", "args": [spender, amount_wei] } },
+                "value":       "0",
+                "kind":        "erc20_approve",
+            }));
+        }
+        stage_args.push(json!({
+            "to":          tx_to,
+            "description": format!(
+                "0x swap {} → {} on chain {chain_id} (slippage {}%)",
+                args.sell_token, args.buy_token, slippage * 100.0
+            ),
+            "data":        { "raw": tx_data },
+            "value":       tx_value,
+            "gas_limit":   tx_gas,
+            "kind":        "swap",
+        }));
+        let last_index = stage_args.len() - 1;
+
+        // Preview JSON for the LLM while the host runs the wallet.
+        let preview = json!({
+            "status":         "awaiting_wallet",
+            "chain_id":       chain_id,
+            "needs_approval": approval_spender.is_some(),
+            "tx_count":       stage_args.len(),
+            "slippage":       slippage,
+            "quote":          &quote,
+        });
+
+        ToolReturn::route(ok(preview)?)
+            .next(|next| {
+                for (i, args) in stage_args.iter().enumerate() {
+                    let step = next.add::<host::StageTx>(args.clone());
+                    if i == last_index {
+                        step.note(
+                            "Stage the 0x swap. CRITICAL: copy `data.raw` and `to` BYTE-FOR-BYTE \
+                             from the args below — do not abbreviate, reformat, or truncate the \
+                             calldata. After this step the host automatically simulates and \
+                             commits the staged txs and waits for the wallet.",
+                        )
+                        .enforce(EnforcementPolicy::Continue, |enforce| {
+                            enforce.add::<host::SimulateBatch>(json!({}));
+                            enforce
+                                .add::<host::CommitTxs>(json!({ "aa_preference": "auto" }))
+                                .bind_as("transaction_hash");
+                        });
+                    } else {
+                        step.note(
+                            "Stage the ERC-20 approval for the 0x AllowanceHolder. CRITICAL: \
+                             copy `data` and `to` byte-for-byte; do not abbreviate or modify.",
+                        );
+                    }
+                }
+            })
+            // No `.after::<>` — 0x swap is atomic per chain, so once commit_txs
+            // lands the swap is done. The bound `transaction_hash` ends the route.
+            .try_build()
+            .map_err(|e| format!("[0x] route build: {e}"))
     }
 }
 
@@ -319,9 +461,13 @@ impl DynAomiTool for ZeroxGetGaslessQuote {
     type App = ZeroxApp;
     type Args = ZeroxGetGaslessQuoteArgs;
     const NAME: &'static str = "zerox_get_gasless_quote";
-    const DESCRIPTION: &'static str = "Use when the user wants a gasless 0x swap (relayer pays gas). Returns EIP-712 typed-data for `trade` and (sometimes) `approval` that the user must sign with the host wallet's `sign_typed_data`. After signing, call `zerox_submit_gasless_swap`. Sell token must be ERC-20 (not native).";
+    const DESCRIPTION: &'static str = "Use when the user wants a gasless 0x swap (relayer pays gas). Composite tool: fetches the gasless quote, routes the trade EIP-712 signature through the host wallet, and submits the signed payload to 0x — the LLM does NOT call zerox_submit_gasless_swap separately. Returns a `tradeHash` via the routed continuation. Sell token must be ERC-20 (not native). If the quote indicates an approval EIP-712 is required (token not yet pre-approved for the Permit2/Settler contract), the tool errors out and asks the caller to do a one-time on-chain approval via zerox_build_swap first.";
 
-    fn run(_app: &ZeroxApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
+    fn run_with_routes(
+        _app: &ZeroxApp,
+        args: Self::Args,
+        _ctx: DynToolCallCtx,
+    ) -> Result<ToolReturn, String> {
         let api_key = resolve_key(args.api_key.as_deref())?;
         let (chain_name, chain_id) = get_chain_info(&args.chain)?;
         let sell_addr = get_token_address(chain_name, &args.sell_token)?;
@@ -333,21 +479,93 @@ impl DynAomiTool for ZeroxGetGaslessQuote {
 
         let client = make_client(&api_key)?;
         let runtime = rt()?;
-        runtime.block_on(async move {
-            let resp = client
-                .get_gasless_quote(
-                    &buy_addr,
-                    chain_id,
-                    &amount_wei,
-                    &sell_addr,
-                    Some(slippage),
-                    Some(&taker),
-                )
-                .await
-                .map_err(|e| format!("[0x] get_gasless_quote: {e}"))?
-                .into_inner();
-            ok::<SwapQuote>(resp)
+        let quote = runtime
+            .block_on(async move {
+                client
+                    .get_gasless_quote(
+                        &buy_addr,
+                        chain_id,
+                        &amount_wei,
+                        &sell_addr,
+                        Some(slippage),
+                        Some(&taker),
+                    )
+                    .await
+            })
+            .map_err(|e| format!("[0x] get_gasless_quote: {e}"))?
+            .into_inner();
+
+        let quote_map: &serde_json::Map<String, Value> = &quote.0;
+
+        // Refuse to proceed when the quote requires BOTH an approval sig AND a
+        // trade sig. The route builder doesn't yet support two `host::CommitEip712`
+        // steps in one chain (bound producers need unique tool names in v1).
+        // Fall back to telling the caller to do a one-time on-chain approval.
+        if quote_map.get("approval").is_some_and(|v| !v.is_null()) {
+            return Err(
+                "[0x] this gasless quote requires an approval signature AND a trade signature. \
+                 Combined-sig flows aren't supported yet — please call zerox_build_swap once to \
+                 do the on-chain ERC-20 approval (one-time), then re-call zerox_get_gasless_quote."
+                    .to_string(),
+            );
+        }
+
+        // Extract the trade object the API returned. Carries `type`, `hash`,
+        // `eip712` (the typed data the wallet signs). We pass it through to
+        // submit_gasless_swap verbatim; submit attaches the signature it
+        // received from the route.
+        let trade_obj = quote_map
+            .get("trade")
+            .and_then(Value::as_object)
+            .cloned()
+            .ok_or_else(|| "[0x] gasless quote missing `trade`".to_string())?;
+        let typed_data = trade_obj
+            .get("eip712")
+            .cloned()
+            .ok_or_else(|| "[0x] gasless quote `trade.eip712` missing".to_string())?;
+
+        let description = format!(
+            "0x gasless swap: {} → {} on chain {chain_id} (slippage {}%)",
+            args.sell_token,
+            args.buy_token,
+            slippage * 100.0
+        );
+
+        // Preview surfaced to the LLM while the host signs.
+        let preview = json!({
+            "status":   "awaiting_wallet",
+            "chain_id": chain_id,
+            "quote":    &quote,
+        });
+
+        // Template for the submit step. signature field is filled by the route.
+        let submit_template = serde_json::to_value(&ZeroxSubmitGaslessSwapArgs {
+            api_key: None,
+            chain_id: chain_id as u64,
+            trade: Value::Object(trade_obj),
+            trade_signature: None,
         })
+        .map_err(|e| format!("[0x] serialize submit template: {e}"))?;
+
+        let wallet_request = json!({
+            "typed_data":  typed_data,
+            "description": description,
+        });
+
+        Ok(ToolReturn::route(ok(preview)?)
+            .next(|next| {
+                next.add::<host::CommitEip712>(wallet_request)
+                    .bind_as("trade_signature")
+                    .note(
+                        "Sign the 0x gasless trade EIP-712 payload byte-for-byte. \
+                         Do not modify any field of `message` — the signature is \
+                         over the exact typed data shown.",
+                    );
+            })
+            .after::<ZeroxSubmitGaslessSwap>(submit_template)
+            .awaits("trade_signature")
+            .note("Wallet signed — submitting the gasless trade to the 0x relayer.")
+            .build())
     }
 }
 
@@ -357,43 +575,58 @@ impl DynAomiTool for ZeroxGetGaslessQuote {
 
 pub(crate) struct ZeroxSubmitGaslessSwap;
 
-#[derive(Debug, Deserialize, JsonSchema)]
+/// Routed continuation of `zerox_get_gasless_quote`. The `trade_signature`
+/// is bound by the host wallet via `host::CommitEip712`; everything else is
+/// pre-filled from the quote so the LLM never re-types order fields between
+/// sign and submit. Calling this tool directly without a signature returns
+/// an error — it's not a standalone primitive.
+#[derive(Debug, Deserialize, Serialize, JsonSchema)]
 pub(crate) struct ZeroxSubmitGaslessSwapArgs {
-    /// Optional 0x API key. Falls back to ZEROX_API_KEY when omitted.
+    /// Optional 0x API key. Falls back to ZEROX_API_KEY when omitted. Hidden
+    /// from the LLM tool schema; operator-injected only.
     #[serde(default)]
+    #[schemars(skip)]
     pub(crate) api_key: Option<String>,
     /// Numeric chain ID (e.g. 1 for Ethereum, 137 for Polygon).
     pub(crate) chain_id: u64,
-    /// Signed `trade` object (signature attached) from `zerox_get_gasless_quote`.
+    /// Unsigned `trade` object echoed from `zerox_get_gasless_quote`. Carries
+    /// the type/hash/eip712 fields; this tool attaches the bound signature
+    /// before submitting.
     pub(crate) trade: Value,
-    /// Signed `approval` object, if the gasless quote required one.
+    /// Wallet signature hex (`0x` + 130 hex chars). Filled by the routed
+    /// `commit_eip712` step; must be set when this tool runs.
     #[serde(default)]
-    pub(crate) approval: Option<Value>,
+    pub(crate) trade_signature: Option<String>,
 }
 
 impl DynAomiTool for ZeroxSubmitGaslessSwap {
     type App = ZeroxApp;
     type Args = ZeroxSubmitGaslessSwapArgs;
     const NAME: &'static str = "zerox_submit_gasless_swap";
-    const DESCRIPTION: &'static str = "Use after the user has signed the EIP-712 trade (and approval) returned by `zerox_get_gasless_quote`. Submits the signed payloads to the 0x relayer. Returns a `tradeHash` to poll with `zerox_get_gasless_status`.";
+    const DESCRIPTION: &'static str = "Routed continuation of zerox_get_gasless_quote — the host wallet auto-invokes it after binding the EIP-712 signature. Attaches the signature to the trade object and submits to the 0x relayer; returns a tradeHash you can poll with zerox_get_gasless_status. Do not invoke directly unless you already have a fresh wallet signature for the exact trade payload.";
 
     fn run(_app: &ZeroxApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let api_key = resolve_key(args.api_key.as_deref())?;
-        let trade_map = match args.trade {
+        let sig_hex = args.trade_signature.as_deref().ok_or_else(|| {
+            "[0x] zerox_submit_gasless_swap requires a trade_signature; this tool is invoked \
+             automatically after zerox_get_gasless_quote's commit_eip712 step — don't call it \
+             manually"
+                .to_string()
+        })?;
+
+        // Attach the wallet's signature to the trade object in the form 0x
+        // expects under `trade.signature`.
+        let mut trade_map = match args.trade {
             Value::Object(m) => m,
             _ => return Err("[0x] `trade` must be a JSON object".to_string()),
         };
-        let approval_map = match args.approval {
-            Some(Value::Object(m)) => m,
-            Some(_) => {
-                return Err("[0x] `approval` must be a JSON object when provided".to_string());
-            }
-            None => serde_json::Map::new(),
-        };
+        let sig_vrs = split_signature_vrs(sig_hex)?;
+        trade_map.insert("signature".to_string(), sig_vrs);
+
         let body = GaslessSubmitRequest {
             chain_id: args.chain_id as i64,
             trade: trade_map,
-            approval: approval_map,
+            approval: serde_json::Map::new(),
         };
         let client = make_client(&api_key)?;
         let runtime = rt()?;

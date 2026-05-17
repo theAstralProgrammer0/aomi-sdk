@@ -177,7 +177,10 @@ pub(crate) struct RequestCreditArgs {
     /// Optional override for `ownerSignature` when the caller signs
     /// externally. If omitted, the tool signs the challenge using the
     /// secret key in `KREXA_OWNER_SECRET_KEY` (base58-encoded 64-byte
-    /// Solana keypair).
+    /// Solana keypair). Hidden from the LLM tool schema — the LLM never
+    /// has a valid signature to pass; this slot is for operator/test
+    /// injection only.
+    #[schemars(skip)]
     pub owner_signature: Option<String>,
 }
 

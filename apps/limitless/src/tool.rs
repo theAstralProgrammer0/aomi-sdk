@@ -303,10 +303,12 @@ pub(crate) struct CheckKey;
 pub(crate) struct CheckKeyArgs {
     /// Limitless API key id (falls back to LIMITLESS_API_KEY env var).
     #[serde(default)]
+    #[schemars(skip)]
     pub api_key: Option<String>,
     /// Limitless API secret, base64-encoded as shown in the dashboard
     /// (falls back to LIMITLESS_API_SECRET env var).
     #[serde(default)]
+    #[schemars(skip)]
     pub api_secret: Option<String>,
 }
 
@@ -338,9 +340,11 @@ pub(crate) struct GetMyPositions;
 pub(crate) struct GetMyPositionsArgs {
     /// Limitless API key id (falls back to LIMITLESS_API_KEY env var).
     #[serde(default)]
+    #[schemars(skip)]
     pub api_key: Option<String>,
     /// Limitless API secret (falls back to LIMITLESS_API_SECRET env var).
     #[serde(default)]
+    #[schemars(skip)]
     pub api_secret: Option<String>,
 }
 
@@ -370,9 +374,11 @@ pub(crate) struct GetMyTrades;
 pub(crate) struct GetMyTradesArgs {
     /// Limitless API key id (falls back to LIMITLESS_API_KEY env var).
     #[serde(default)]
+    #[schemars(skip)]
     pub api_key: Option<String>,
     /// Limitless API secret (falls back to LIMITLESS_API_SECRET env var).
     #[serde(default)]
+    #[schemars(skip)]
     pub api_secret: Option<String>,
 }
 
@@ -822,8 +828,10 @@ pub(crate) struct SubmitOrderArgs {
     #[serde(default)]
     pub client_order_id: Option<String>,
     #[serde(default)]
+    #[schemars(skip)]
     pub api_key: Option<String>,
     #[serde(default)]
+    #[schemars(skip)]
     pub api_secret: Option<String>,
 }
 
