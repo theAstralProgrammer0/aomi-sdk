@@ -58,6 +58,12 @@ swap transactions across DEX liquidity.
 - Show effective price as 1 src = X dst.
 "##;
 
+const SECRET_API_KEY: Secret = Secret::new(
+    "ONEINCH_API_KEY",
+    "1inch Swap API v6.0 key (portal.1inch.dev).",
+    true,
+);
+
 dyn_aomi_app!(
     app = tool::OneinchApp,
     name = "oneinch",
@@ -70,5 +76,5 @@ dyn_aomi_app!(
         tool::GetApproveTx,
         tool::ListTokens,
     ],
-    namespaces = ["evm-core"]
+    secrets = [SECRET_API_KEY],namespaces = ["evm-core"]
 );

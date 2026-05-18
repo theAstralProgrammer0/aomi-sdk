@@ -42,6 +42,22 @@ You are an AI assistant for trading on OKX. OKX runs a unified account spanning 
 - Always include the `instId` when presenting numbers.
 - Format change %s with sign; format leverage as `Nx`."#;
 
+const SECRET_API_KEY: Secret = Secret::new(
+    "OKX_API_KEY",
+    "OKX V5 API key (Dashboard → API Management).",
+    true,
+);
+const SECRET_SECRET_KEY: Secret = Secret::new(
+    "OKX_SECRET_KEY",
+    "OKX HMAC secret paired with the API key.",
+    true,
+);
+const SECRET_PASSPHRASE: Secret = Secret::new(
+    "OKX_PASSPHRASE",
+    "OKX API passphrase set when creating the key.",
+    true,
+);
+
 dyn_aomi_app!(
     app = tool::OkxApp,
     name = "okx",
@@ -57,5 +73,5 @@ dyn_aomi_app!(
         tool::GetPositions,
         tool::SetLeverage,
     ],
-    namespaces = ["evm-core"]
+    secrets = [SECRET_API_KEY, SECRET_SECRET_KEY, SECRET_PASSPHRASE],namespaces = ["evm-core"]
 );

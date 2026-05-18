@@ -57,9 +57,9 @@ fn rt() -> Result<tokio::runtime::Runtime, String> {
     tokio::runtime::Runtime::new().map_err(|e| format!("[kaito] runtime: {e}"))
 }
 
-fn resolve_key(arg: Option<&str>) -> Result<String, String> {
-    resolve_secret_value(
-        arg,
+fn resolve_key(ctx: &DynToolCallCtx,
+    arg: Option<&str>) -> Result<String, String> {
+    resolve_secret_value(ctx, arg,
         "KAITO_API_KEY",
         "[kaito] missing api_key argument and KAITO_API_KEY env var",
     )
@@ -121,11 +121,11 @@ impl DynAomiTool for GetYapperScore {
     const NAME: &'static str = "kaito_get_yapper_score";
     const DESCRIPTION: &'static str = "Use when the user asks 'what's <yapper>'s Kaito score' or 'how influential is <X handle>'. Returns the Yaps Open Protocol attention score for a single X/Twitter account across rolling windows (24h, 48h, 7d, 30d, 3m, 6m, 12m, all-time). Pass `user_id` (numeric X account id, preferred) or `username` (X handle without @) — at least one is required.";
 
-    fn run(_app: &KaitoApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
+    fn run(_app: &KaitoApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
         if args.user_id.is_none() && args.username.is_none() {
             return Err("[kaito] get_yapper_score: provide `user_id` or `username`".into());
         }
-        let api_key = resolve_key(args.api_key.as_deref())?;
+        let api_key = resolve_key(&ctx, args.api_key.as_deref())?;
         let client = make_client(&api_key)?;
         let runtime = rt()?;
         let resp = runtime
@@ -169,8 +169,8 @@ impl DynAomiTool for Search {
     const NAME: &'static str = "kaito_search";
     const DESCRIPTION: &'static str = "Use when the user wants to search the Web3 conversation corpus — what yappers are saying about a topic across X/Twitter, Discord, Telegram, Farcaster, governance forums, podcasts, and conference transcripts. Returns AI-structured results with attention metrics. Optionally filter by `source`. Response shape is opaque (Kaito does not publish per-field docs for /search).";
 
-    fn run(_app: &KaitoApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let api_key = resolve_key(args.api_key.as_deref())?;
+    fn run(_app: &KaitoApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
+        let api_key = resolve_key(&ctx, args.api_key.as_deref())?;
         let limit = nz_limit(args.limit.or(Some(20)));
         let client = make_client(&api_key)?;
         let runtime = rt()?;
@@ -209,8 +209,8 @@ impl DynAomiTool for TrendingNarratives {
     const NAME: &'static str = "kaito_trending_narratives";
     const DESCRIPTION: &'static str = "Use when the user asks 'what narratives are trending in crypto right now' or 'what are yappers focused on'. Returns the top trending topics/narratives across Kaito's indexed Web3 sources, ordered by current attention. Response shape is opaque.";
 
-    fn run(_app: &KaitoApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let api_key = resolve_key(args.api_key.as_deref())?;
+    fn run(_app: &KaitoApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
+        let api_key = resolve_key(&ctx, args.api_key.as_deref())?;
         let limit = nz_limit(args.limit.or(Some(20)));
         let client = make_client(&api_key)?;
         let runtime = rt()?;
@@ -243,8 +243,8 @@ impl DynAomiTool for GetTokenMindshare {
     const NAME: &'static str = "kaito_get_token_mindshare";
     const DESCRIPTION: &'static str = "Use when the user asks 'how much attention is token X getting' or wants quantitative mindshare metrics (discussion volume, share-of-voice, attention trend) for a specific token. Pass the token symbol or name. Response shape is opaque.";
 
-    fn run(_app: &KaitoApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let api_key = resolve_key(args.api_key.as_deref())?;
+    fn run(_app: &KaitoApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
+        let api_key = resolve_key(&ctx, args.api_key.as_deref())?;
         let client = make_client(&api_key)?;
         let runtime = rt()?;
         let resp = runtime

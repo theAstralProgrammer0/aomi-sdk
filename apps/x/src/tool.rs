@@ -37,9 +37,9 @@ fn rt() -> Result<tokio::runtime::Runtime, String> {
     tokio::runtime::Runtime::new().map_err(|e| format!("[x] runtime: {e}"))
 }
 
-fn make_client(api_key: Option<&str>) -> Result<GenClient, String> {
-    let api_key = resolve_secret_value(
-        api_key,
+fn make_client(ctx: &DynToolCallCtx,
+    api_key: Option<&str>) -> Result<GenClient, String> {
+    let api_key = resolve_secret_value(ctx, api_key,
         "X_API_KEY",
         "[x] missing api_key argument and X_API_KEY environment variable",
     )?;
@@ -78,8 +78,8 @@ impl DynAomiTool for GetXUser {
     const NAME: &'static str = "get_x_user";
     const DESCRIPTION: &'static str = "Use when the user asks about an X account (followers, bio, account age, post count). Pass the handle without the @ — e.g. \"elonmusk\". Returns the profile object.";
 
-    fn run(_app: &XApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let client = make_client(args.api_key.as_deref())?;
+    fn run(_app: &XApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
+        let client = make_client(&ctx, args.api_key.as_deref())?;
         let username = args.username.trim_start_matches('@').to_string();
         let runtime = rt()?;
         let response = runtime.block_on(async move {
@@ -116,8 +116,8 @@ impl DynAomiTool for GetXUserPosts {
     const NAME: &'static str = "get_x_user_posts";
     const DESCRIPTION: &'static str = "Use when the user asks \"what has @handle been posting recently\". Returns one page of recent posts (text + engagement) plus a `next_cursor` for pagination. Pass the handle without the @.";
 
-    fn run(_app: &XApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let client = make_client(args.api_key.as_deref())?;
+    fn run(_app: &XApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
+        let client = make_client(&ctx, args.api_key.as_deref())?;
         let username = args.username.trim_start_matches('@').to_string();
         let cursor = args
             .cursor
@@ -161,8 +161,8 @@ impl DynAomiTool for SearchX {
     const NAME: &'static str = "search_x";
     const DESCRIPTION: &'static str = "Use when the user wants posts about a topic, hashtag, or from a specific account combined with filters. Supports advanced operators (from:, #tag, lang:en, since:YYYY-MM-DD, min_faves:N, filter:media). `query_type=Latest` for chronological, `Top` for most-engaged. Returns posts + cursor.";
 
-    fn run(_app: &XApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let client = make_client(args.api_key.as_deref())?;
+    fn run(_app: &XApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
+        let client = make_client(&ctx, args.api_key.as_deref())?;
         let query_type = args
             .query_type
             .clone()
@@ -211,8 +211,8 @@ impl DynAomiTool for GetXTrends {
     const NAME: &'static str = "get_x_trends";
     const DESCRIPTION: &'static str = "Use when the user asks \"what's trending on X\". `woeid` is the Yahoo location id (1=worldwide, 23424977=US, 23424975=UK). Defaults to worldwide when omitted.";
 
-    fn run(_app: &XApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let client = make_client(args.api_key.as_deref())?;
+    fn run(_app: &XApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
+        let client = make_client(&ctx, args.api_key.as_deref())?;
         let count = args.count.map(|v| v as i64);
         let woeid = args.woeid.map(|v| v as i64);
         let runtime = rt()?;
@@ -248,8 +248,8 @@ impl DynAomiTool for GetXPost {
     const NAME: &'static str = "get_x_post";
     const DESCRIPTION: &'static str = "Use when the user shares an X post URL or numeric post id and wants full content + engagement. The id is the trailing number in `https://x.com/<user>/status/<id>`.";
 
-    fn run(_app: &XApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let client = make_client(args.api_key.as_deref())?;
+    fn run(_app: &XApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
+        let client = make_client(&ctx, args.api_key.as_deref())?;
         let post_id = args.post_id.clone();
         let runtime = rt()?;
         let response = runtime.block_on(async move {

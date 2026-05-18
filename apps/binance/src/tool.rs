@@ -49,15 +49,18 @@ fn rt() -> Result<tokio::runtime::Runtime, String> {
 }
 
 fn resolve_creds(
+    ctx: &DynToolCallCtx,
     api_key: Option<&str>,
     secret_key: Option<&str>,
 ) -> Result<(String, String), String> {
     let api = resolve_secret_value(
+        ctx,
         api_key,
         "BINANCE_API_KEY",
         "[binance] missing api_key argument and BINANCE_API_KEY environment variable",
     )?;
     let sec = resolve_secret_value(
+        ctx,
         secret_key,
         "BINANCE_SECRET_KEY",
         "[binance] missing secret_key argument and BINANCE_SECRET_KEY environment variable",
@@ -261,9 +264,9 @@ impl DynAomiTool for PlaceOrder {
     const NAME: &'static str = "binance_place_order";
     const DESCRIPTION: &'static str = "Use when the user wants to place a spot order. Supports LIMIT (set price + GTC/IOC/FOK), MARKET (omit price/time_in_force), STOP_LOSS_LIMIT, TAKE_PROFIT_LIMIT. Reads BINANCE_API_KEY/BINANCE_SECRET_KEY from env if api_key/secret_key args are omitted.";
 
-    fn run(_app: &BinanceApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
+    fn run(_app: &BinanceApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
         let (api_key, secret_key) =
-            resolve_creds(args.api_key.as_deref(), args.secret_key.as_deref())?;
+            resolve_creds(&ctx, args.api_key.as_deref(), args.secret_key.as_deref())?;
         // Order MUST match the order the generated client emits these on the
         // wire, EXCLUDING `signature` (computed here) and `timestamp` (appended
         // by sign_query). See client.rs::place_order for the canonical order:
@@ -330,9 +333,9 @@ impl DynAomiTool for CancelOrder {
     const NAME: &'static str = "binance_cancel_order";
     const DESCRIPTION: &'static str = "Use when the user wants to cancel an open spot order. Provide either order_id (preferred — returned by place_order) or orig_client_order_id. Reads credentials from BINANCE_API_KEY/BINANCE_SECRET_KEY if not passed.";
 
-    fn run(_app: &BinanceApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
+    fn run(_app: &BinanceApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
         let (api_key, secret_key) =
-            resolve_creds(args.api_key.as_deref(), args.secret_key.as_deref())?;
+            resolve_creds(&ctx, args.api_key.as_deref(), args.secret_key.as_deref())?;
         // wire order from cancel_order: orderId, origClientOrderId, [signature], symbol, timestamp.
         let pairs: Vec<(&str, Option<String>)> = vec![
             ("orderId", args.order_id.map(|v| v.to_string())),
@@ -385,9 +388,9 @@ impl DynAomiTool for GetAccount {
     const NAME: &'static str = "binance_get_account";
     const DESCRIPTION: &'static str = "Use when the user asks about their Binance balances or account state. Returns free/locked balances for every asset and account-level permissions. Reads BINANCE_API_KEY/BINANCE_SECRET_KEY from env if not passed.";
 
-    fn run(_app: &BinanceApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
+    fn run(_app: &BinanceApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
         let (api_key, secret_key) =
-            resolve_creds(args.api_key.as_deref(), args.secret_key.as_deref())?;
+            resolve_creds(&ctx, args.api_key.as_deref(), args.secret_key.as_deref())?;
         let pairs: Vec<(&str, Option<String>)> = vec![];
         let (timestamp, signature) = sign_query(&secret_key, &pairs)?;
         let runtime = rt()?;
@@ -437,9 +440,9 @@ impl DynAomiTool for GetTrades {
     const NAME: &'static str = "binance_get_trades";
     const DESCRIPTION: &'static str = "Use when the user asks for their personal fill history on a pair (price, qty, fee, timestamp). Pair-scoped — must specify symbol. Default 500 trades, max 1000. Reads credentials from BINANCE_API_KEY/BINANCE_SECRET_KEY if not passed.";
 
-    fn run(_app: &BinanceApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
+    fn run(_app: &BinanceApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
         let (api_key, secret_key) =
-            resolve_creds(args.api_key.as_deref(), args.secret_key.as_deref())?;
+            resolve_creds(&ctx, args.api_key.as_deref(), args.secret_key.as_deref())?;
         // wire order from get_my_trades: endTime, fromId, limit, [signature], startTime, symbol, timestamp.
         let pairs: Vec<(&str, Option<String>)> = vec![
             ("endTime", args.end_time.map(|v| v.to_string())),

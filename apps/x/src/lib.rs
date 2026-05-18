@@ -41,6 +41,12 @@ You are an AI assistant for **X** (formerly Twitter), backed by the twitterapi.i
 - Always include the post URL when available (`https://x.com/<author>/status/<id>`).
 - For trend lists, render as a numbered table with `tweet_volume` when present."#;
 
+const SECRET_API_KEY: Secret = Secret::new(
+    "X_API_KEY",
+    "twitterapi.io read-only X/Twitter API key.",
+    true,
+);
+
 dyn_aomi_app!(
     app = tool::XApp,
     name = "x",
@@ -53,5 +59,5 @@ dyn_aomi_app!(
         tool::GetXTrends,
         tool::GetXPost,
     ],
-    namespaces = ["evm-core"]
+    secrets = [SECRET_API_KEY],namespaces = ["evm-core"]
 );

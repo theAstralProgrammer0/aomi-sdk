@@ -72,17 +72,21 @@ fn urlencode(s: &str) -> String {
     out
 }
 
-/// Resolve `(api_key, api_secret)`, falling back to env vars.
+/// Resolve `(api_key, api_secret)` from the tool args first, then the per-app
+/// secret vault (via `ctx.secrets`), then env vars.
 fn resolve_creds(
+    ctx: &DynToolCallCtx,
     api_key: Option<&str>,
     api_secret: Option<&str>,
 ) -> Result<(String, String), String> {
     let key = resolve_secret_value(
+        ctx,
         api_key,
         "LIMITLESS_API_KEY",
         "[limitless] missing api_key argument and LIMITLESS_API_KEY env var",
     )?;
     let sec = resolve_secret_value(
+        ctx,
         api_secret,
         "LIMITLESS_API_SECRET",
         "[limitless] missing api_secret argument and LIMITLESS_API_SECRET env var",
@@ -318,8 +322,8 @@ impl DynAomiTool for CheckKey {
     const NAME: &'static str = "limitless_check_key";
     const DESCRIPTION: &'static str = "Verify that the configured Limitless API key + secret work. Calls GET /auth/api-keys/active and returns metadata about the active key (id, scopes, created_at). Run this first if any signed tool starts failing.";
 
-    fn run(_app: &LimitlessApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let (key, sec) = resolve_creds(args.api_key.as_deref(), args.api_secret.as_deref())?;
+    fn run(_app: &LimitlessApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
+        let (key, sec) = resolve_creds(&ctx, args.api_key.as_deref(), args.api_secret.as_deref())?;
         let runtime = rt()?;
         runtime.block_on(async move {
             // Live path is `/auth/api-keys` (no `/active` suffix). Returns
@@ -354,8 +358,8 @@ impl DynAomiTool for GetMyPositions {
     const NAME: &'static str = "limitless_get_my_positions";
     const DESCRIPTION: &'static str = "Get the authenticated user's open positions across all Limitless markets. Requires a Limitless API key + secret (HMAC-signed). Returns size, entry price, current PnL per position.";
 
-    fn run(_app: &LimitlessApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let (key, sec) = resolve_creds(args.api_key.as_deref(), args.api_secret.as_deref())?;
+    fn run(_app: &LimitlessApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
+        let (key, sec) = resolve_creds(&ctx, args.api_key.as_deref(), args.api_secret.as_deref())?;
         let runtime = rt()?;
         runtime.block_on(async move {
             let resp = signed_get(&key, &sec, "/portfolio/positions").await?;
@@ -388,8 +392,8 @@ impl DynAomiTool for GetMyTrades {
     const NAME: &'static str = "limitless_get_my_trades";
     const DESCRIPTION: &'static str = "Get the authenticated user's recent trade fills on Limitless. Requires a Limitless API key + secret (HMAC-signed). Useful for PnL review and position reconciliation.";
 
-    fn run(_app: &LimitlessApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let (key, sec) = resolve_creds(args.api_key.as_deref(), args.api_secret.as_deref())?;
+    fn run(_app: &LimitlessApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
+        let (key, sec) = resolve_creds(&ctx, args.api_key.as_deref(), args.api_secret.as_deref())?;
         let runtime = rt()?;
         runtime.block_on(async move {
             let resp = signed_get(&key, &sec, "/portfolio/trades").await?;
@@ -841,7 +845,7 @@ impl DynAomiTool for SubmitOrder {
     const NAME: &'static str = "limitless_submit_order";
     const DESCRIPTION: &'static str = "POST a wallet-signed Limitless order to /orders. Continuation of `limitless_build_order` — usually invoked automatically by the runtime after the wallet sig callback binds `order_signature`. Treat `order_plan` as opaque continuation state.";
 
-    fn run(_app: &LimitlessApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
+    fn run(_app: &LimitlessApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
         let signature = args
             .order_signature
             .as_deref()
@@ -850,7 +854,7 @@ impl DynAomiTool for SubmitOrder {
                     .to_string()
             })?
             .to_string();
-        let (key, sec) = resolve_creds(args.api_key.as_deref(), args.api_secret.as_deref())?;
+        let (key, sec) = resolve_creds(&ctx, args.api_key.as_deref(), args.api_secret.as_deref())?;
 
         let plan = args.order_plan;
         let order_body = json!({

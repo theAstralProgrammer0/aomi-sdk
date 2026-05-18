@@ -36,6 +36,12 @@ You are an AI assistant for **Farcaster** via the **Neynar API**. You help the u
 - For casts, render text + author + relative timestamp + reaction counts.
 - Always include the warpcast URL when describing a cast or channel."##;
 
+const SECRET_API_KEY: Secret = Secret::new(
+    "NEYNAR_API_KEY",
+    "Neynar API key for Farcaster data access.",
+    true,
+);
+
 dyn_aomi_app!(
     app = tool::NeynarApp,
     name = "neynar",
@@ -51,5 +57,5 @@ dyn_aomi_app!(
         tool::LookupChannel,
         tool::SearchChannels,
     ],
-    namespaces = ["evm-core"]
+    secrets = [SECRET_API_KEY],namespaces = ["evm-core"]
 );

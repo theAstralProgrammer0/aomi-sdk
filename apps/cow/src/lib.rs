@@ -45,6 +45,15 @@ The Aomi runtime injects the connected EOA at `domain.evm.address` in your sessi
 - Include `feeAmount` and effective price (buy_human / sell_human) when summarising a quote.
 - For order status, render the lifecycle state verbatim; explain `solved`/`executing` mean the auction has chosen a solver and execution is imminent."#;
 
+// FIXME: switch to ctx.secrets — currently `make_client` in tool.rs reads
+// COW_API_KEY directly from env::var. The Secret declaration below still
+// makes the manifest carry the slot info so the FE gate works.
+const SECRET_API_KEY: Secret = Secret::new(
+    "COW_API_KEY",
+    "CoW Protocol order book API key for elevated rate limits; public endpoints work unauthenticated.",
+    false,
+);
+
 dyn_aomi_app!(
     app = tool::CowApp,
     name = "cow",
@@ -60,5 +69,6 @@ dyn_aomi_app!(
         tool::GetCowTrades,
         tool::GetCowNativePrice,
     ],
+    secrets = [SECRET_API_KEY],
     namespaces = ["evm-core"]
 );

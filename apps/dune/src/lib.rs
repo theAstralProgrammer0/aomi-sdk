@@ -35,6 +35,12 @@ You are an AI assistant specialized in Dune Analytics — the on-chain SQL data 
 - Format USD values with 2 decimals; format timestamps as `YYYY-MM-DD HH:MM UTC`.
 - For long result sets, show the first 10 rows and tell the user how many more exist."##;
 
+const SECRET_API_KEY: Secret = Secret::new(
+    "DUNE_API_KEY",
+    "Dune Analytics API key for query execution and results.",
+    true,
+);
+
 dyn_aomi_app!(
     app = tool::DuneApp,
     name = "dune",
@@ -47,5 +53,5 @@ dyn_aomi_app!(
         tool::GetExecutionStatus,
         tool::ListMyQueries,
     ],
-    namespaces = ["evm-core"]
+    secrets = [SECRET_API_KEY],namespaces = ["evm-core"]
 );

@@ -5,6 +5,12 @@ mod tool;
 
 static PREAMBLE: LazyLock<String> = LazyLock::new(tool::build_preamble);
 
+const SECRET_API_KEY: Secret = Secret::new(
+    "SIMMER_API_KEY",
+    "Simmer SDK API key for Kalshi prediction market trading.",
+    true,
+);
+
 dyn_aomi_app!(
     app = tool::KalshiApp,
     name = "kalshi",
@@ -21,5 +27,5 @@ dyn_aomi_app!(
         tool::SimmerGetPortfolio,
         tool::SearchSimmerMarkets,
     ],
-    namespaces = ["evm-core"]
+    secrets = [SECRET_API_KEY],namespaces = ["evm-core"]
 );

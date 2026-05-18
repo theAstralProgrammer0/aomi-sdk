@@ -137,8 +137,8 @@ impl DynAomiTool for DiscoverApiPricing {
     const DESCRIPTION: &'static str =
         "Probe a Pay.sh-compatible URL for its x402 price WITHOUT committing to a payment. Returns `pricing.amount` (USDC base units), `payTo`, `network`, plus an `affordability` block that says whether the wallet can afford it and whether a credit draw would be needed. Call before pay_api_call to budget the next loop.";
 
-    fn run(_app: &KrexaApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let api_key = auth::api_key()?;
+    fn run(_app: &KrexaApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
+        let api_key = auth::api_key(&ctx)?;
         let body = PayshDiscoverRequest {
             method: args.method.unwrap_or_else(|| "GET".to_string()),
             target_url: args.target_url,
@@ -191,14 +191,14 @@ impl DynAomiTool for RequestCredit {
     const DESCRIPTION: &'static str =
         "Submit a credit request for oracle review. This is the first step of borrowing — the oracle must see an approved credit request before it will co-sign a draw. The owner wallet's Ed25519 signature over `Krexa credit request for <owner_pubkey>` proves ownership; pass `owner_signature` explicitly or set `KREXA_OWNER_SECRET_KEY` for the tool to sign internally. After this returns success, call `borrow_usdc` with the same amount + level.";
 
-    fn run(_app: &KrexaApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let api_key = auth::api_key()?;
+    fn run(_app: &KrexaApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
+        let api_key = auth::api_key(&ctx)?;
         if !(1..=4).contains(&args.credit_level) {
             return Err("[krexa] request_credit: credit_level must be 1..=4".to_string());
         }
         let owner_signature = match args.owner_signature {
             Some(sig) => sig,
-            None => auth::sign_credit_request(&args.owner_pubkey)?,
+            None => auth::sign_credit_request(&ctx, &args.owner_pubkey)?,
         };
         let body = RequestCreditRequest {
             amount: args.amount,
@@ -251,7 +251,7 @@ impl DynAomiTool for BorrowUsdc {
     const DESCRIPTION: &'static str =
         "Draw USDC against your Krexa credit line. The oracle verifies your score and CO-SIGNS a borrow transaction; this tool returns the resulting base64-encoded, partially-signed Solana transaction. The agent host MUST add the second signature and submit to Solana — this tool does NOT broadcast. Use check_credit_eligibility first to confirm `availableCredit ≥ amount`.";
 
-    fn run(_app: &KrexaApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
+    fn run(_app: &KrexaApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
         // The progenitor-generated `credit_level` is `Option<NonZeroU64>`
         // because the spec sets minimum:1. Convert from a friendly u8.
         let credit_level = match args.credit_level {
@@ -262,7 +262,7 @@ impl DynAomiTool for BorrowUsdc {
             Some(_) => return Err("[krexa] borrow_usdc: credit_level must be 1..=4".to_string()),
             None => None,
         };
-        let api_key = auth::api_key()?;
+        let api_key = auth::api_key(&ctx)?;
         let body = SignCreditRequest {
             agent_pubkey: args.agent_pubkey,
             agent_or_owner_pubkey: args.agent_or_owner_pubkey,
@@ -319,8 +319,8 @@ impl DynAomiTool for PayApiCall {
     const DESCRIPTION: &'static str =
         "Build a Pay.sh payment transaction for an x402-priced API call. Probes the target URL, checks the budget and funding, and returns a base64 unsigned Solana tx (`paymentRequired=true, funded=true, transaction=...`). When the wallet is underfunded and `use_credit=true`, instead returns `autoCreditDraw` instructions to call borrow_usdc first — re-invoke this tool after the credit-draw lands. The agent host signs + submits the returned tx, then calls Pay.sh's confirm endpoint out-of-band.";
 
-    fn run(_app: &KrexaApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let api_key = auth::api_key()?;
+    fn run(_app: &KrexaApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
+        let api_key = auth::api_key(&ctx)?;
         let body = PayshCallRequest {
             body: args.body.unwrap_or_default(),
             headers: args.headers.unwrap_or_default(),
@@ -369,8 +369,8 @@ impl DynAomiTool for SetBudget {
     const DESCRIPTION: &'static str =
         "Update Pay.sh spending guardrails (daily / per-call / monthly caps, alert threshold, pause switch). All fields are optional — only the ones provided are updated. Returns the new budget state with current usage. The agent should call this once at startup, then adjust if the strategy expands or after large drawdowns.";
 
-    fn run(_app: &KrexaApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let api_key = auth::api_key()?;
+    fn run(_app: &KrexaApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
+        let api_key = auth::api_key(&ctx)?;
         let body = PayshBudgetUpdate {
             alert_at_pct: args.alert_at_pct,
             daily_limit_usdc: args.daily_limit_usdc,

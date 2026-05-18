@@ -331,6 +331,83 @@ macro_rules! declare_dyn {
 /// ```
 #[macro_export]
 macro_rules! dyn_aomi_app {
+    // ── With secrets + namespaces ────────────────────────────────────────
+    (
+        app = $app_type:ty,
+        name = $name:expr,
+        version = $version:expr,
+        preamble = $preamble:expr,
+        tools = [ $( $tool_type:ty ),* $(,)? ],
+        secrets = [ $( $secret:expr ),* $(,)? ],
+        namespaces = [ $( $ns:expr ),* $(,)? ] $(,)?
+    ) => {
+        impl $crate::DynAomiApp for $app_type {
+            fn name(&self) -> &'static str { $name }
+            fn version(&self) -> &'static str { $version }
+            fn preamble(&self) -> &'static str { $preamble }
+
+            fn tools(&self) -> ::std::vec::Vec<$crate::DynToolMetadata> {
+                ::std::vec![ $( <$tool_type as $crate::DynAomiTool>::descriptor(self) ),* ]
+            }
+
+            fn namespaces(&self) -> ::std::option::Option<::std::vec::Vec<::std::string::String>> {
+                ::std::option::Option::Some(::std::vec![ $( $ns.to_string() ),* ])
+            }
+
+            fn secrets(&self) -> ::std::option::Option<::std::vec::Vec<$crate::SecretSlot>> {
+                ::std::option::Option::Some(::std::vec![ $( $crate::SecretSlot::from(&$secret) ),* ])
+            }
+
+            fn start_tool(
+                &self,
+                name: &str,
+                args_json: &str,
+                ctx_json: &str,
+                sink: $crate::DynAsyncSink,
+            ) -> $crate::DynToolDispatch {
+                $crate::__dispatch_tool!(self, name, args_json, ctx_json, sink, [ $( $tool_type ),* ])
+            }
+        }
+
+        $crate::declare_dyn!($app_type);
+    };
+
+    // ── With secrets (no namespaces) ─────────────────────────────────────
+    (
+        app = $app_type:ty,
+        name = $name:expr,
+        version = $version:expr,
+        preamble = $preamble:expr,
+        tools = [ $( $tool_type:ty ),* $(,)? ],
+        secrets = [ $( $secret:expr ),* $(,)? ] $(,)?
+    ) => {
+        impl $crate::DynAomiApp for $app_type {
+            fn name(&self) -> &'static str { $name }
+            fn version(&self) -> &'static str { $version }
+            fn preamble(&self) -> &'static str { $preamble }
+
+            fn tools(&self) -> ::std::vec::Vec<$crate::DynToolMetadata> {
+                ::std::vec![ $( <$tool_type as $crate::DynAomiTool>::descriptor(self) ),* ]
+            }
+
+            fn secrets(&self) -> ::std::option::Option<::std::vec::Vec<$crate::SecretSlot>> {
+                ::std::option::Option::Some(::std::vec![ $( $crate::SecretSlot::from(&$secret) ),* ])
+            }
+
+            fn start_tool(
+                &self,
+                name: &str,
+                args_json: &str,
+                ctx_json: &str,
+                sink: $crate::DynAsyncSink,
+            ) -> $crate::DynToolDispatch {
+                $crate::__dispatch_tool!(self, name, args_json, ctx_json, sink, [ $( $tool_type ),* ])
+            }
+        }
+
+        $crate::declare_dyn!($app_type);
+    };
+
     // ── With namespaces ──────────────────────────────────────────────────
     (
         app = $app_type:ty,
@@ -338,7 +415,7 @@ macro_rules! dyn_aomi_app {
         version = $version:expr,
         preamble = $preamble:expr,
         tools = [ $( $tool_type:ty ),* $(,)? ],
-        namespaces = [ $( $ns:expr ),* $(,)? ]
+        namespaces = [ $( $ns:expr ),* $(,)? ] $(,)?
     ) => {
         impl $crate::DynAomiApp for $app_type {
             fn name(&self) -> &'static str { $name }
@@ -373,7 +450,7 @@ macro_rules! dyn_aomi_app {
         name = $name:expr,
         version = $version:expr,
         preamble = $preamble:expr,
-        tools = [ $( $tool_type:ty ),* $(,)? ]
+        tools = [ $( $tool_type:ty ),* $(,)? ] $(,)?
     ) => {
         impl $crate::DynAomiApp for $app_type {
             fn name(&self) -> &'static str { $name }

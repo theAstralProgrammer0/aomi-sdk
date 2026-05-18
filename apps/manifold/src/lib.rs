@@ -31,6 +31,12 @@ You are an AI assistant specialized in **Manifold Markets**, a play-money predic
 - Always include the market URL when describing a market.
 - Confirm `amount` and `outcome` with the user before calling `place_bet`."#;
 
+const SECRET_API_KEY: Secret = Secret::new(
+    "MANIFOLD_API_KEY",
+    "Manifold Markets API key for betting and market creation.",
+    true,
+);
+
 dyn_aomi_app!(
     app = tool::ManifoldApp,
     name = "manifold",
@@ -44,5 +50,5 @@ dyn_aomi_app!(
         tool::PlaceBet,
         tool::CreateMarket,
     ],
-    namespaces = ["evm-core"]
+    secrets = [SECRET_API_KEY],namespaces = ["evm-core"]
 );

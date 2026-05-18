@@ -244,7 +244,7 @@ fn emit_tool(out: &mut String, platform: &str, app_struct: &str, op: &Op) {
     if let Some(a) = auth {
         let _ = writeln!(
             out,
-            "        let api_key = resolve_secret_value(args.api_key.as_deref(), \"{env_var}\", \"[{platform}] missing api_key argument and {env_var} env var\")?;"
+            "        let api_key = resolve_secret_value(&ctx, args.api_key.as_deref(), \"{env_var}\", \"[{platform}] missing api_key argument and {env_var} env var\")?;"
         );
         let _ = a; // silence unused
     }

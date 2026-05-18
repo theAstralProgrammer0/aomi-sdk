@@ -39,9 +39,9 @@ fn rt() -> Result<tokio::runtime::Runtime, String> {
     tokio::runtime::Runtime::new().map_err(|e| format!("[manifold] runtime: {e}"))
 }
 
-fn resolve_manifold_api_key(api_key: Option<&str>) -> Result<String, String> {
-    resolve_secret_value(
-        api_key,
+fn resolve_manifold_api_key(ctx: &DynToolCallCtx,
+    api_key: Option<&str>) -> Result<String, String> {
+    resolve_secret_value(ctx, api_key,
         "MANIFOLD_API_KEY",
         "[manifold] missing api_key argument and MANIFOLD_API_KEY environment variable",
     )
@@ -249,7 +249,7 @@ impl DynAomiTool for PlaceBet {
     const NAME: &'static str = "place_bet";
     const DESCRIPTION: &'static str = "Use when the user wants to bet mana on a Manifold binary (YES/NO) market. `contract_id` is the market `id` from get_market or search_markets. `amount` is in mana (M$). Requires MANIFOLD_API_KEY.";
 
-    fn run(_app: &ManifoldApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
+    fn run(_app: &ManifoldApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
         let outcome = args.outcome.to_uppercase();
         if outcome != "YES" && outcome != "NO" {
             return Err("outcome must be YES or NO".to_string());
@@ -258,7 +258,7 @@ impl DynAomiTool for PlaceBet {
             return Err("amount must be greater than 0".to_string());
         }
 
-        let api_key = resolve_manifold_api_key(args.api_key.as_deref())?;
+        let api_key = resolve_manifold_api_key(&ctx, args.api_key.as_deref())?;
         let body = PlaceBetRequest {
             contract_id: args.contract_id.clone(),
             amount: args.amount,
@@ -306,7 +306,7 @@ impl DynAomiTool for CreateMarket {
     const NAME: &'static str = "create_market";
     const DESCRIPTION: &'static str = "Use when the user wants to launch their own prediction market. Defaults to a BINARY (YES/NO) market with 50% initial probability. Requires MANIFOLD_API_KEY.";
 
-    fn run(_app: &ManifoldApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
+    fn run(_app: &ManifoldApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
         let market_type = args
             .market_type
             .clone()
@@ -319,7 +319,7 @@ impl DynAomiTool for CreateMarket {
         let initial_prob = NonZeroU32::new(initial_prob)
             .ok_or_else(|| "initial_prob must be greater than 0".to_string())?;
 
-        let api_key = resolve_manifold_api_key(args.api_key.as_deref())?;
+        let api_key = resolve_manifold_api_key(&ctx, args.api_key.as_deref())?;
         let close_time = args.close_time.map(|v| v as i64);
         let body = CreateMarketRequest {
             close_time,

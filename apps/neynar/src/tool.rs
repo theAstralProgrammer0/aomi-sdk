@@ -47,9 +47,9 @@ fn rt() -> Result<tokio::runtime::Runtime, String> {
     tokio::runtime::Runtime::new().map_err(|e| format!("[neynar] runtime: {e}"))
 }
 
-fn resolve_key(arg: Option<&str>) -> Result<String, String> {
-    resolve_secret_value(
-        arg,
+fn resolve_key(ctx: &DynToolCallCtx,
+    arg: Option<&str>) -> Result<String, String> {
+    resolve_secret_value(ctx, arg,
         "NEYNAR_API_KEY",
         "[neynar] missing api_key argument and NEYNAR_API_KEY env var",
     )
@@ -105,8 +105,8 @@ impl DynAomiTool for LookupUser {
     const NAME: &'static str = "neynar_lookup_user";
     const DESCRIPTION: &'static str = "Look up a Farcaster user by their handle (username). Use when the user mentions an @handle and you need their FID, profile, follower counts, or bio. Returns the full user object.";
 
-    fn run(_app: &NeynarApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let api_key = resolve_key(args.api_key.as_deref())?;
+    fn run(_app: &NeynarApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
+        let api_key = resolve_key(&ctx, args.api_key.as_deref())?;
         let username = args.username.trim().trim_start_matches('@').to_string();
         let runtime = rt()?;
         runtime.block_on(async move {
@@ -143,8 +143,8 @@ impl DynAomiTool for SearchUsers {
     const NAME: &'static str = "neynar_search_users";
     const DESCRIPTION: &'static str = "Search Farcaster users by name/handle/bio keyword. Use when the user describes a person but doesn't know their exact handle. Returns up to `limit` matching profiles ranked by relevance.";
 
-    fn run(_app: &NeynarApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let api_key = resolve_key(args.api_key.as_deref())?;
+    fn run(_app: &NeynarApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
+        let api_key = resolve_key(&ctx, args.api_key.as_deref())?;
         let query = args.query;
         let limit = nz32(args.limit.unwrap_or(10).clamp(1, 100));
         let runtime = rt()?;
@@ -185,8 +185,8 @@ impl DynAomiTool for GetUserCasts {
     const NAME: &'static str = "neynar_get_user_casts";
     const DESCRIPTION: &'static str = "Fetch a user's recent casts in reverse-chronological order. Use when the user asks 'what has @handle been posting' or 'show me X's recent casts'. Pass `include_replies=true` to also include their replies.";
 
-    fn run(_app: &NeynarApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let api_key = resolve_key(args.api_key.as_deref())?;
+    fn run(_app: &NeynarApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
+        let api_key = resolve_key(&ctx, args.api_key.as_deref())?;
         let fid = nz64(args.fid)?;
         let include_replies = args.include_replies;
         let limit = nz32(args.limit.unwrap_or(25).clamp(1, 150));
@@ -232,8 +232,8 @@ impl DynAomiTool for GetPopularCasts {
     const NAME: &'static str = "neynar_get_popular_casts";
     const DESCRIPTION: &'static str = "Fetch the most popular (highest-engagement) casts authored by a user. Use when the user asks 'what are X's best casts' or 'show me top posts from @handle' — distinct from `get_user_casts` which is reverse-chronological.";
 
-    fn run(_app: &NeynarApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let api_key = resolve_key(args.api_key.as_deref())?;
+    fn run(_app: &NeynarApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
+        let api_key = resolve_key(&ctx, args.api_key.as_deref())?;
         let fid = nz64(args.fid)?;
         let runtime = rt()?;
         runtime.block_on(async move {
@@ -268,8 +268,8 @@ impl DynAomiTool for LookupCast {
     const NAME: &'static str = "neynar_lookup_cast";
     const DESCRIPTION: &'static str = "Fetch a single cast by its hash (0x...) or by a warpcast.com URL. Use when the user shares a link to a cast or quotes a hash. The identifier kind (hash vs url) is detected automatically.";
 
-    fn run(_app: &NeynarApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let api_key = resolve_key(args.api_key.as_deref())?;
+    fn run(_app: &NeynarApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
+        let api_key = resolve_key(&ctx, args.api_key.as_deref())?;
         let id = args.identifier.trim().to_string();
         let kind = if id.starts_with("http://") || id.starts_with("https://") {
             LookupCastByHashOrUrlType::Url
@@ -317,8 +317,8 @@ impl DynAomiTool for SearchCasts {
     const NAME: &'static str = "neynar_search_casts";
     const DESCRIPTION: &'static str = "Keyword search across all Farcaster casts. Use when the user asks 'what's being said about X' or wants to find casts containing specific terms. Optionally scope to one channel or one author.";
 
-    fn run(_app: &NeynarApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let api_key = resolve_key(args.api_key.as_deref())?;
+    fn run(_app: &NeynarApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
+        let api_key = resolve_key(&ctx, args.api_key.as_deref())?;
         let query = args.query;
         let channel_id = args.channel_id;
         let author_fid = args.author_fid.map(nz64).transpose()?;
@@ -366,8 +366,8 @@ impl DynAomiTool for LookupChannel {
     const NAME: &'static str = "neynar_lookup_channel";
     const DESCRIPTION: &'static str = "Fetch metadata about a Farcaster channel by its slug. Use when the user references a /channel and you need its description, member count, hosts, or parent URL.";
 
-    fn run(_app: &NeynarApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let api_key = resolve_key(args.api_key.as_deref())?;
+    fn run(_app: &NeynarApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
+        let api_key = resolve_key(&ctx, args.api_key.as_deref())?;
         let id = args.channel_id;
         let runtime = rt()?;
         runtime.block_on(async move {
@@ -404,8 +404,8 @@ impl DynAomiTool for SearchChannels {
     const NAME: &'static str = "neynar_search_channels";
     const DESCRIPTION: &'static str = "Search Farcaster channels by name or topic keyword. Use when the user wants to discover a channel about a topic (e.g. 'is there a channel about base?'). Returns matching channels with their slugs.";
 
-    fn run(_app: &NeynarApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let api_key = resolve_key(args.api_key.as_deref())?;
+    fn run(_app: &NeynarApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
+        let api_key = resolve_key(&ctx, args.api_key.as_deref())?;
         let query = args.query;
         let limit = args.limit.unwrap_or(20).clamp(1, 100);
         let limit = NonZeroU64::new(limit);

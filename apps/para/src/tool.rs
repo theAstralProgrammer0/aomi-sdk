@@ -51,9 +51,9 @@ fn rt() -> Result<tokio::runtime::Runtime, String> {
     tokio::runtime::Runtime::new().map_err(|e| format!("[para] runtime: {e}"))
 }
 
-fn resolve_key(arg: Option<&str>) -> Result<String, String> {
-    resolve_secret_value(
-        arg,
+fn resolve_key(ctx: &DynToolCallCtx,
+    arg: Option<&str>) -> Result<String, String> {
+    resolve_secret_value(ctx, arg,
         "PARA_API_KEY",
         "[para] missing api_key argument and PARA_API_KEY env var",
     )
@@ -129,8 +129,8 @@ impl DynAomiTool for CreateWallet {
     const NAME: &'static str = "para_create_wallet";
     const DESCRIPTION: &'static str = "Use when the user wants to provision a new Para MPC wallet for an end-user identifier (email/phone/custom ID). Creation is asynchronous: the response usually has `status = \"creating\"` and you must poll `para_get_wallet` until `status = \"ready\"` before signing. If a wallet for that (chain, scheme, identifier) already exists, Para returns the existing record.";
 
-    fn run(_app: &ParaApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let api_key = resolve_key(args.api_key.as_deref())?;
+    fn run(_app: &ParaApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
+        let api_key = resolve_key(&ctx, args.api_key.as_deref())?;
         let chain = parse_chain(&args.chain)?;
         let id_type = parse_identifier_type(&args.identifier_type)?;
         let scheme = args.scheme.as_deref().map(parse_scheme).transpose()?;
@@ -185,8 +185,8 @@ impl DynAomiTool for GetWallet {
     const NAME: &'static str = "para_get_wallet";
     const DESCRIPTION: &'static str = "Use to look up a Para wallet by ID — returns its lifecycle `status` (creating/ready/error), on-chain `address`, `public_key`, and signing scheme. Call this after `para_create_wallet` to poll until `status = \"ready\"` before attempting `para_sign_payload`.";
 
-    fn run(_app: &ParaApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let api_key = resolve_key(args.api_key.as_deref())?;
+    fn run(_app: &ParaApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
+        let api_key = resolve_key(&ctx, args.api_key.as_deref())?;
         let client = make_client(&api_key)?;
         let runtime = rt()?;
         let wallet_id = args.wallet_id.clone();
@@ -233,8 +233,8 @@ impl DynAomiTool for SignPayload {
     const NAME: &'static str = "para_sign_payload";
     const DESCRIPTION: &'static str = "Use to MPC-sign raw 0x-prefixed hex bytes with a Para wallet. The wallet must be in `status = \"ready\"` first (verify with `para_get_wallet`). Returns a hex-encoded signature in `signature` (some schemes use `sig`). The caller is responsible for hashing/encoding the payload — Para signs whatever bytes you supply.";
 
-    fn run(_app: &ParaApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let api_key = resolve_key(args.api_key.as_deref())?;
+    fn run(_app: &ParaApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
+        let api_key = resolve_key(&ctx, args.api_key.as_deref())?;
         let data = SignRawRequestData::from_str(&args.data)
             .map_err(|e| format!("[para] data must be 0x-prefixed hex: {e}"))?;
         let body = SignRawRequest { data };

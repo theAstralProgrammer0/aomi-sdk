@@ -83,6 +83,15 @@ Trades go through Uniswap V4 directly. The Aomi runtime ships a **`zora` skill**
 - Prices in USD with 4 sig figs (Zora coins are often sub-cent).
 - For trades, after `commit_txs` returns `pending_approval`, say "waiting for wallet approval" — never "submitted" or "broadcast" until you see a tx hash."##;
 
+// FIXME: switch to ctx.secrets — currently `resolve_key` in tool.rs reads
+// ZORA_API_KEY directly from env::var. The Secret declaration below still
+// makes the manifest carry the slot info so the FE gate works.
+const SECRET_API_KEY: Secret = Secret::new(
+    "ZORA_API_KEY",
+    "Zora creator coin API key for elevated rate limits; all reads work unauthenticated.",
+    false,
+);
+
 dyn_aomi_app!(
     app = tool::ZoraApp,
     name = "zora",
@@ -96,5 +105,6 @@ dyn_aomi_app!(
         tool::GetCoinHolders,
         tool::GetCoinPriceHistory,
     ],
+    secrets = [SECRET_API_KEY],
     namespaces = ["evm-core"]
 );
