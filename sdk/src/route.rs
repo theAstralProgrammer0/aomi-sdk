@@ -64,6 +64,12 @@ pub enum RouteTrigger {
     /// arrives. There's no separate "on async callback" trigger from the
     /// router's perspective; everything resolves through aliases.
     OnBoundEvent { alias: String },
+    /// Fires only when **all** listed aliases are bound. Each bound value
+    /// is injected into the awaiting step's args under its own alias name,
+    /// so the after-step receives every signature / artifact at once. Used
+    /// for combined-signing flows like 0x gasless (Permit2 approval + Settler
+    /// metaTransaction trade) where the submit call needs both signatures.
+    OnAllBoundEvents { aliases: Vec<String> },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -115,6 +121,26 @@ impl RouteStep {
             args,
             trigger: RouteTrigger::OnBoundEvent {
                 alias: alias.into(),
+            },
+            bind_as: None,
+            prompt: None,
+            enforcement: None,
+        }
+    }
+
+    /// Constructor for the multi-alias variant: fires only when every alias
+    /// in `aliases` has been bound. The runtime injects each bound value as a
+    /// flat field on `args` keyed by the alias name.
+    pub fn on_all_bound_events<I, S>(tool: impl Into<String>, args: Value, aliases: I) -> Self
+    where
+        I: IntoIterator<Item = S>,
+        S: Into<String>,
+    {
+        Self {
+            tool: tool.into(),
+            args,
+            trigger: RouteTrigger::OnAllBoundEvents {
+                aliases: aliases.into_iter().map(Into::into).collect(),
             },
             bind_as: None,
             prompt: None,
