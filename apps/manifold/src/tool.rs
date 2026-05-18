@@ -39,9 +39,10 @@ fn rt() -> Result<tokio::runtime::Runtime, String> {
     tokio::runtime::Runtime::new().map_err(|e| format!("[manifold] runtime: {e}"))
 }
 
-fn resolve_manifold_api_key(ctx: &DynToolCallCtx,
-    api_key: Option<&str>) -> Result<String, String> {
-    resolve_secret_value(ctx, api_key,
+fn resolve_manifold_api_key(ctx: &DynToolCallCtx, api_key: Option<&str>) -> Result<String, String> {
+    resolve_secret_value(
+        ctx,
+        api_key,
         "MANIFOLD_API_KEY",
         "[manifold] missing api_key argument and MANIFOLD_API_KEY environment variable",
     )

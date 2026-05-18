@@ -53,5 +53,6 @@ dyn_aomi_app!(
         tool::GetExecutionStatus,
         tool::ListMyQueries,
     ],
-    secrets = [SECRET_API_KEY],namespaces = ["evm-core"]
+    secrets = [SECRET_API_KEY],
+    namespaces = ["evm-core"]
 );

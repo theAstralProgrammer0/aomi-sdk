@@ -50,5 +50,6 @@ dyn_aomi_app!(
         tool::PlaceBet,
         tool::CreateMarket,
     ],
-    secrets = [SECRET_API_KEY],namespaces = ["evm-core"]
+    secrets = [SECRET_API_KEY],
+    namespaces = ["evm-core"]
 );

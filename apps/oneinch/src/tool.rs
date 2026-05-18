@@ -48,9 +48,10 @@ fn rt() -> Result<tokio::runtime::Runtime, String> {
     tokio::runtime::Runtime::new().map_err(|e| format!("[1inch] runtime: {e}"))
 }
 
-fn resolve_key(ctx: &DynToolCallCtx,
-    arg: Option<&str>) -> Result<String, String> {
-    resolve_secret_value(ctx, arg,
+fn resolve_key(ctx: &DynToolCallCtx, arg: Option<&str>) -> Result<String, String> {
+    resolve_secret_value(
+        ctx,
+        arg,
         "ONEINCH_API_KEY",
         "[1inch] missing api_key argument and ONEINCH_API_KEY env var",
     )

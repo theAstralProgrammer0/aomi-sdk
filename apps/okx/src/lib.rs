@@ -73,5 +73,6 @@ dyn_aomi_app!(
         tool::GetPositions,
         tool::SetLeverage,
     ],
-    secrets = [SECRET_API_KEY, SECRET_SECRET_KEY, SECRET_PASSPHRASE],namespaces = ["evm-core"]
+    secrets = [SECRET_API_KEY, SECRET_SECRET_KEY, SECRET_PASSPHRASE],
+    namespaces = ["evm-core"]
 );

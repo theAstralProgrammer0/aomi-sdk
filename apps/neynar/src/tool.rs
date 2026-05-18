@@ -47,9 +47,10 @@ fn rt() -> Result<tokio::runtime::Runtime, String> {
     tokio::runtime::Runtime::new().map_err(|e| format!("[neynar] runtime: {e}"))
 }
 
-fn resolve_key(ctx: &DynToolCallCtx,
-    arg: Option<&str>) -> Result<String, String> {
-    resolve_secret_value(ctx, arg,
+fn resolve_key(ctx: &DynToolCallCtx, arg: Option<&str>) -> Result<String, String> {
+    resolve_secret_value(
+        ctx,
+        arg,
         "NEYNAR_API_KEY",
         "[neynar] missing api_key argument and NEYNAR_API_KEY env var",
     )

@@ -90,9 +90,10 @@ fn rt() -> Result<tokio::runtime::Runtime, String> {
     tokio::runtime::Runtime::new().map_err(|e| format!("[kalshi] runtime: {e}"))
 }
 
-fn resolve_simmer_api_key(ctx: &DynToolCallCtx,
-    api_key: Option<&str>) -> Result<String, String> {
-    resolve_secret_value(ctx, api_key,
+fn resolve_simmer_api_key(ctx: &DynToolCallCtx, api_key: Option<&str>) -> Result<String, String> {
+    resolve_secret_value(
+        ctx,
+        api_key,
         "SIMMER_API_KEY",
         "[simmer] missing api_key argument and SIMMER_API_KEY environment variable",
     )

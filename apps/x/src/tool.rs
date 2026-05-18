@@ -37,9 +37,10 @@ fn rt() -> Result<tokio::runtime::Runtime, String> {
     tokio::runtime::Runtime::new().map_err(|e| format!("[x] runtime: {e}"))
 }
 
-fn make_client(ctx: &DynToolCallCtx,
-    api_key: Option<&str>) -> Result<GenClient, String> {
-    let api_key = resolve_secret_value(ctx, api_key,
+fn make_client(ctx: &DynToolCallCtx, api_key: Option<&str>) -> Result<GenClient, String> {
+    let api_key = resolve_secret_value(
+        ctx,
+        api_key,
         "X_API_KEY",
         "[x] missing api_key argument and X_API_KEY environment variable",
     )?;

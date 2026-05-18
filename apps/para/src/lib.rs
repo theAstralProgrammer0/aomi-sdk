@@ -65,5 +65,6 @@ dyn_aomi_app!(
     version = "0.1.0",
     preamble = PREAMBLE,
     tools = [tool::CreateWallet, tool::GetWallet, tool::SignPayload,],
-    secrets = [SECRET_API_KEY],namespaces = ["evm-core"]
+    secrets = [SECRET_API_KEY],
+    namespaces = ["evm-core"]
 );

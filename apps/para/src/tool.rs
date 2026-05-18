@@ -51,9 +51,10 @@ fn rt() -> Result<tokio::runtime::Runtime, String> {
     tokio::runtime::Runtime::new().map_err(|e| format!("[para] runtime: {e}"))
 }
 
-fn resolve_key(ctx: &DynToolCallCtx,
-    arg: Option<&str>) -> Result<String, String> {
-    resolve_secret_value(ctx, arg,
+fn resolve_key(ctx: &DynToolCallCtx, arg: Option<&str>) -> Result<String, String> {
+    resolve_secret_value(
+        ctx,
+        arg,
         "PARA_API_KEY",
         "[para] missing api_key argument and PARA_API_KEY env var",
     )

@@ -76,5 +76,6 @@ dyn_aomi_app!(
         tool::GetApproveTx,
         tool::ListTokens,
     ],
-    secrets = [SECRET_API_KEY],namespaces = ["evm-core"]
+    secrets = [SECRET_API_KEY],
+    namespaces = ["evm-core"]
 );

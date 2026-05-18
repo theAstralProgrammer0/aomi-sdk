@@ -69,9 +69,10 @@ fn rt() -> Result<tokio::runtime::Runtime, String> {
     tokio::runtime::Runtime::new().map_err(|e| format!("[0x] runtime: {e}"))
 }
 
-fn resolve_key(ctx: &DynToolCallCtx,
-    arg: Option<&str>) -> Result<String, String> {
-    resolve_secret_value(ctx, arg,
+fn resolve_key(ctx: &DynToolCallCtx, arg: Option<&str>) -> Result<String, String> {
+    resolve_secret_value(
+        ctx,
+        arg,
         "ZEROX_API_KEY",
         "[0x] missing api_key argument and ZEROX_API_KEY environment variable",
     )
