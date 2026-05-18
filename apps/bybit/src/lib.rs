@@ -48,6 +48,17 @@ You are an AI assistant for trading BTC, ETH, and other pairs on Bybit perpetual
 - Format price-change percentages with sign (`+1.23%`, `-0.45%`).
 - Format leverage as `Nx` (e.g. `10x`)."##;
 
+const SECRET_API_KEY: Secret = Secret::new(
+    "BYBIT_API_KEY",
+    "Bybit unified trading account API key (Dashboard → API).",
+    true,
+);
+const SECRET_SECRET_KEY: Secret = Secret::new(
+    "BYBIT_SECRET_KEY",
+    "Bybit HMAC secret paired with the API key.",
+    true,
+);
+
 dyn_aomi_app!(
     app = tool::BybitApp,
     name = "bybit",
@@ -67,5 +78,6 @@ dyn_aomi_app!(
         tool::AmendOrder,
         tool::SetLeverage,
     ],
+    secrets = [SECRET_API_KEY, SECRET_SECRET_KEY],
     namespaces = ["evm-core"]
 );

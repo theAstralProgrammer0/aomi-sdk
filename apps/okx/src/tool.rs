@@ -50,21 +50,25 @@ fn rt() -> Result<tokio::runtime::Runtime, String> {
 }
 
 fn resolve_creds(
+    ctx: &DynToolCallCtx,
     api_key: Option<&str>,
     secret_key: Option<&str>,
     passphrase: Option<&str>,
 ) -> Result<(String, String, String), String> {
     let api = resolve_secret_value(
+        ctx,
         api_key,
         "OKX_API_KEY",
         "[okx] missing api_key argument and OKX_API_KEY environment variable",
     )?;
     let sec = resolve_secret_value(
+        ctx,
         secret_key,
         "OKX_SECRET_KEY",
         "[okx] missing secret_key argument and OKX_SECRET_KEY environment variable",
     )?;
     let pass = resolve_secret_value(
+        ctx,
         passphrase,
         "OKX_PASSPHRASE",
         "[okx] missing passphrase argument and OKX_PASSPHRASE environment variable",
@@ -247,8 +251,9 @@ impl DynAomiTool for PlaceOrder {
     const NAME: &'static str = "okx_place_order";
     const DESCRIPTION: &'static str = "Use when the user wants to place an OKX order. tdMode is 'cash' for spot, 'cross' or 'isolated' for derivatives (mismatch is the most common rejection). For limit orders pass px; for market orders omit it. Reads OKX_API_KEY/OKX_SECRET_KEY/OKX_PASSPHRASE from env if not passed.";
 
-    fn run(_app: &OkxApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
+    fn run(_app: &OkxApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
         let (api_key, secret_key, passphrase) = resolve_creds(
+            &ctx,
             args.api_key.as_deref(),
             args.secret_key.as_deref(),
             args.passphrase.as_deref(),
@@ -316,8 +321,9 @@ impl DynAomiTool for CancelOrder {
     const NAME: &'static str = "okx_cancel_order";
     const DESCRIPTION: &'static str = "Use when the user wants to cancel an open OKX order. Pass instId and the ordId returned by place_order. Reads OKX credentials from env if not passed.";
 
-    fn run(_app: &OkxApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
+    fn run(_app: &OkxApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
         let (api_key, secret_key, passphrase) = resolve_creds(
+            &ctx,
             args.api_key.as_deref(),
             args.secret_key.as_deref(),
             args.passphrase.as_deref(),
@@ -379,8 +385,9 @@ impl DynAomiTool for GetBalance {
     const NAME: &'static str = "okx_get_balance";
     const DESCRIPTION: &'static str = "Use when the user asks about their OKX balance. Returns unified-account balances; optional ccy is a comma-separated currency list (e.g. \"BTC,USDT\"). Reads OKX credentials from env if not passed.";
 
-    fn run(_app: &OkxApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
+    fn run(_app: &OkxApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
         let (api_key, secret_key, passphrase) = resolve_creds(
+            &ctx,
             args.api_key.as_deref(),
             args.secret_key.as_deref(),
             args.passphrase.as_deref(),
@@ -439,8 +446,9 @@ impl DynAomiTool for GetPositions {
     const NAME: &'static str = "okx_get_positions";
     const DESCRIPTION: &'static str = "Use when the user asks about their open derivative positions on OKX. Optionally scope by instType (SWAP/FUTURES/OPTION) and/or instId. Reads OKX credentials from env if not passed.";
 
-    fn run(_app: &OkxApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
+    fn run(_app: &OkxApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
         let (api_key, secret_key, passphrase) = resolve_creds(
+            &ctx,
             args.api_key.as_deref(),
             args.secret_key.as_deref(),
             args.passphrase.as_deref(),
@@ -505,8 +513,9 @@ impl DynAomiTool for SetLeverage {
     const NAME: &'static str = "okx_set_leverage";
     const DESCRIPTION: &'static str = "Use when the user wants to change leverage on an OKX instrument before trading derivatives. lever is a string (e.g. \"10\"). mgnMode must match the tdMode planned for the order: 'cross' or 'isolated'. Reads OKX credentials from env if not passed.";
 
-    fn run(_app: &OkxApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
+    fn run(_app: &OkxApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
         let (api_key, secret_key, passphrase) = resolve_creds(
+            &ctx,
             args.api_key.as_deref(),
             args.secret_key.as_deref(),
             args.passphrase.as_deref(),

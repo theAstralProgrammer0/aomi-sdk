@@ -53,11 +53,18 @@ distributed-key signing.
 - Treat the signature output as opaque hex — quote it verbatim, do not
   truncate or reformat."##;
 
+const SECRET_API_KEY: Secret = Secret::new(
+    "PARA_API_KEY",
+    "Para embedded wallet API key for X-API-Key header.",
+    true,
+);
+
 dyn_aomi_app!(
     app = tool::ParaApp,
     name = "para",
     version = "0.1.0",
     preamble = PREAMBLE,
     tools = [tool::CreateWallet, tool::GetWallet, tool::SignPayload,],
+    secrets = [SECRET_API_KEY],
     namespaces = ["evm-core"]
 );

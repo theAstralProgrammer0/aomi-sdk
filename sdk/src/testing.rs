@@ -25,6 +25,7 @@ pub struct TestCtxBuilder {
     tool_name: String,
     call_id: String,
     state_attributes: Map<String, Value>,
+    secrets: std::collections::HashMap<String, String>,
 }
 
 impl TestCtxBuilder {
@@ -36,6 +37,7 @@ impl TestCtxBuilder {
             tool_name: tool_name.to_string(),
             call_id: "test-call-1".to_string(),
             state_attributes: Map::new(),
+            secrets: std::collections::HashMap::new(),
         }
     }
 
@@ -57,6 +59,13 @@ impl TestCtxBuilder {
         self
     }
 
+    /// Insert a resolved secret value. The host normally populates this from
+    /// the per-app vault before each tool call; tests use this to simulate.
+    pub fn secret(mut self, name: impl Into<String>, value: impl Into<String>) -> Self {
+        self.secrets.insert(name.into(), value.into());
+        self
+    }
+
     /// Build the [`DynToolCallCtx`].
     pub fn build(self) -> DynToolCallCtx {
         DynToolCallCtx {
@@ -64,6 +73,7 @@ impl TestCtxBuilder {
             tool_name: self.tool_name,
             call_id: self.call_id,
             state_attributes: self.state_attributes,
+            secrets: self.secrets,
         }
     }
 }

@@ -142,12 +142,14 @@ mod builder;
 mod ffi;
 mod handle;
 pub mod route;
+mod secrets;
 pub mod testing;
 mod types;
 
 pub use abi::*;
 pub use handle::*;
 pub use route::*;
+pub use secrets::*;
 pub use types::*;
 
 // Re-export serde_json and schemars for convenience in plugin code.
@@ -163,19 +165,36 @@ pub const AOMI_SDK_VERSION: &str = env!("CARGO_PKG_VERSION");
 #[doc(hidden)]
 pub const __AOMI_SDK_VERSION_CSTR: &str = concat!(env!("CARGO_PKG_VERSION"), "\0");
 
-/// Resolve a secret from a tool argument first, then from an optional
-/// environment variable fallback, and return a consistent error when neither is
-/// available.
+/// Resolve a secret value at tool-call time.
+///
+/// Lookup order:
+/// 1. `arg_value` — what the LLM (or upstream caller) passed explicitly.
+/// 2. `ctx.secrets[name]` — values injected by the host from the per-app
+///    secret vault (see `DynToolCallCtx::secrets`).
+/// 3. Environment variable `name` — legacy fallback for CLI / tests where
+///    no vault is in scope.
+///
+/// Returns `missing_message` when none of the three resolves.
 pub fn resolve_secret_value(
+    ctx: &crate::DynToolCallCtx,
     arg_value: Option<&str>,
-    env_name: &str,
+    name: &str,
     missing_message: &str,
 ) -> Result<String, String> {
     if let Some(value) = arg_value.map(str::trim).filter(|value| !value.is_empty()) {
         return Ok(value.to_string());
     }
 
-    if let Some(value) = std::env::var(env_name)
+    if let Some(value) = ctx
+        .secrets
+        .get(name)
+        .map(|v| v.trim().to_string())
+        .filter(|value| !value.is_empty())
+    {
+        return Ok(value);
+    }
+
+    if let Some(value) = std::env::var(name)
         .ok()
         .map(|value| value.trim().to_string())
         .filter(|value| !value.is_empty())

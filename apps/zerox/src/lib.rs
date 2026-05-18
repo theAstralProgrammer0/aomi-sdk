@@ -44,6 +44,12 @@ Do NOT approve the Exchange Proxy (`0xDef1...EfF`) or Permit2 (`0x0000...8BA3`) 
 ## Formatting
 - Show the user `sellAmount` -> `buyAmount` in human units, plus the slippage and the route's primary fill source(s)."#;
 
+const SECRET_API_KEY: Secret = Secret::new(
+    "ZEROX_API_KEY",
+    "0x Swap API v2 key for AllowanceHolder and gasless quotes.",
+    true,
+);
+
 dyn_aomi_app!(
     app = tool::ZeroxApp,
     name = "zerox",
@@ -56,5 +62,6 @@ dyn_aomi_app!(
         tool::ZeroxSubmitGaslessSwap,
         tool::ZeroxGetGaslessStatus,
     ],
+    secrets = [SECRET_API_KEY],
     namespaces = ["evm-core"]
 );

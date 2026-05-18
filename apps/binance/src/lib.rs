@@ -37,6 +37,17 @@ You are an AI assistant for trading on Binance spot — the largest centralized 
 - 24h change: format as a percentage with sign.
 - Always state the trading pair when presenting numbers."#;
 
+const SECRET_API_KEY: Secret = Secret::new(
+    "BINANCE_API_KEY",
+    "Binance dashboard API key for spot trading (Account → API Management).",
+    true,
+);
+const SECRET_SECRET_KEY: Secret = Secret::new(
+    "BINANCE_SECRET_KEY",
+    "Binance HMAC secret paired with the API key.",
+    true,
+);
+
 dyn_aomi_app!(
     app = tool::BinanceApp,
     name = "binance",
@@ -52,5 +63,6 @@ dyn_aomi_app!(
         tool::GetAccount,
         tool::GetTrades,
     ],
+    secrets = [SECRET_API_KEY, SECRET_SECRET_KEY],
     namespaces = ["evm-core"]
 );

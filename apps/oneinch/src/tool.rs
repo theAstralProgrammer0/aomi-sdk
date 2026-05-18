@@ -48,8 +48,9 @@ fn rt() -> Result<tokio::runtime::Runtime, String> {
     tokio::runtime::Runtime::new().map_err(|e| format!("[1inch] runtime: {e}"))
 }
 
-fn resolve_key(arg: Option<&str>) -> Result<String, String> {
+fn resolve_key(ctx: &DynToolCallCtx, arg: Option<&str>) -> Result<String, String> {
     resolve_secret_value(
+        ctx,
         arg,
         "ONEINCH_API_KEY",
         "[1inch] missing api_key argument and ONEINCH_API_KEY env var",
@@ -120,8 +121,8 @@ impl DynAomiTool for GetQuote {
     const NAME: &'static str = "oneinch_get_quote";
     const DESCRIPTION: &'static str = "Use when the user asks for a 1inch swap price (no transaction). Returns the optimal route across DEXs and the expected `dstAmount` for selling `amount` of `src` for `dst` on the given chain. No wallet address required.";
 
-    fn run(_app: &OneinchApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let api_key = resolve_key(args.api_key.as_deref())?;
+    fn run(_app: &OneinchApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
+        let api_key = resolve_key(&ctx, args.api_key.as_deref())?;
         let chain_id = args.chain_id.unwrap_or(1);
         validate_chain(chain_id)?;
         parse_amount(&args.amount)?;
@@ -214,9 +215,9 @@ impl DynAomiTool for BuildSwapTx {
     fn run_with_routes(
         _app: &OneinchApp,
         args: Self::Args,
-        _ctx: DynToolCallCtx,
+        ctx: DynToolCallCtx,
     ) -> Result<ToolReturn, String> {
-        let api_key = resolve_key(args.api_key.as_deref())?;
+        let api_key = resolve_key(&ctx, args.api_key.as_deref())?;
         let chain_id = args.chain_id.unwrap_or(1);
         validate_chain(chain_id)?;
         let amount_u = parse_amount(&args.amount)?;
@@ -368,8 +369,8 @@ impl DynAomiTool for CheckAllowance {
     const NAME: &'static str = "oneinch_check_allowance";
     const DESCRIPTION: &'static str = "Use before any ERC-20 swap to confirm the wallet has granted the 1inch router enough allowance. Returns the current allowance in token base units. If less than the swap amount, build an approval with `oneinch_get_approve_tx` (or use `oneinch_build_swap_tx` which handles this for you).";
 
-    fn run(_app: &OneinchApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let api_key = resolve_key(args.api_key.as_deref())?;
+    fn run(_app: &OneinchApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
+        let api_key = resolve_key(&ctx, args.api_key.as_deref())?;
         let chain_id = args.chain_id.unwrap_or(1);
         validate_chain(chain_id)?;
 
@@ -417,8 +418,8 @@ impl DynAomiTool for GetApproveTx {
     const NAME: &'static str = "oneinch_get_approve_tx";
     const DESCRIPTION: &'static str = "Use when `oneinch_check_allowance` shows insufficient allowance. Returns a raw ERC-20 approval tx (to=token, data=approve calldata, value=0) targeting the 1inch router. Stage via `stage_tx` with `data: { raw }`; do not re-encode. Omit `amount` for unlimited approval.";
 
-    fn run(_app: &OneinchApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let api_key = resolve_key(args.api_key.as_deref())?;
+    fn run(_app: &OneinchApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
+        let api_key = resolve_key(&ctx, args.api_key.as_deref())?;
         let chain_id = args.chain_id.unwrap_or(1);
         validate_chain(chain_id)?;
 
@@ -461,8 +462,8 @@ impl DynAomiTool for ListTokens {
     const NAME: &'static str = "oneinch_list_tokens";
     const DESCRIPTION: &'static str = "Use when the user asks 'what's the address of <symbol> on <chain>?' or wants to discover swappable tokens. Returns the full token map (address -> symbol/name/decimals/logo) supported by 1inch on the chain.";
 
-    fn run(_app: &OneinchApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let api_key = resolve_key(args.api_key.as_deref())?;
+    fn run(_app: &OneinchApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
+        let api_key = resolve_key(&ctx, args.api_key.as_deref())?;
         let chain_id = args.chain_id.unwrap_or(1);
         validate_chain(chain_id)?;
 
