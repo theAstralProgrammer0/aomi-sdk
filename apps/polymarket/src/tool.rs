@@ -578,7 +578,10 @@ pub(crate) struct SubmitPolymarketOrderArgs {
     confirmation: Option<String>,
     /// Canonical order plan returned by build_polymarket_order.
     order_plan: PolymarketOrderPlan,
-    /// Optional override private key for direct SDK execution.
+    /// Optional override private key for direct SDK execution. Hidden from
+    /// the LLM tool schema — operator-only injection via SDK secrets store
+    /// or `POLYMARKET_PRIVATE_KEY` env var.
+    #[schemars(skip)]
     private_key: Option<String>,
     /// Wallet-mode CLOB auth context returned by build_polymarket_order.
     clob_auth: Option<ClobAuthContext>,

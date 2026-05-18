@@ -233,9 +233,13 @@ pub(crate) struct PlaceOrder;
 
 #[derive(Debug, Deserialize, JsonSchema)]
 pub(crate) struct PlaceOrderArgs {
-    /// Binance API key
+    /// Operator-injected Binance API key. Hidden from the LLM tool schema —
+    /// resolved from the SDK secrets store or `BINANCE_API_KEY` env var.
+    #[schemars(skip)]
     pub(crate) api_key: Option<String>,
-    /// Binance secret key for request signing
+    /// Operator-injected Binance secret key for HMAC signing. Hidden from
+    /// the LLM tool schema — resolved from `BINANCE_SECRET_KEY` env var.
+    #[schemars(skip)]
     pub(crate) secret_key: Option<String>,
     /// Trading pair symbol (e.g., "BTCUSDT")
     pub(crate) symbol: String,
@@ -304,9 +308,13 @@ pub(crate) struct CancelOrder;
 
 #[derive(Debug, Deserialize, JsonSchema)]
 pub(crate) struct CancelOrderArgs {
-    /// Binance API key
+    /// Operator-injected Binance API key. Hidden from the LLM tool schema —
+    /// resolved from the SDK secrets store or `BINANCE_API_KEY` env var.
+    #[schemars(skip)]
     pub(crate) api_key: Option<String>,
-    /// Binance secret key for request signing
+    /// Operator-injected Binance secret key for HMAC signing. Hidden from
+    /// the LLM tool schema — resolved from `BINANCE_SECRET_KEY` env var.
+    #[schemars(skip)]
     pub(crate) secret_key: Option<String>,
     /// Trading pair symbol (e.g., "BTCUSDT")
     pub(crate) symbol: String,
@@ -361,9 +369,13 @@ pub(crate) struct GetAccount;
 
 #[derive(Debug, Deserialize, JsonSchema)]
 pub(crate) struct GetAccountArgs {
-    /// Binance API key
+    /// Operator-injected Binance API key. Hidden from the LLM tool schema —
+    /// resolved from the SDK secrets store or `BINANCE_API_KEY` env var.
+    #[schemars(skip)]
     pub(crate) api_key: Option<String>,
-    /// Binance secret key for request signing
+    /// Operator-injected Binance secret key for HMAC signing. Hidden from
+    /// the LLM tool schema — resolved from `BINANCE_SECRET_KEY` env var.
+    #[schemars(skip)]
     pub(crate) secret_key: Option<String>,
 }
 
@@ -399,9 +411,13 @@ pub(crate) struct GetTrades;
 
 #[derive(Debug, Deserialize, JsonSchema)]
 pub(crate) struct GetTradesArgs {
-    /// Binance API key
+    /// Operator-injected Binance API key. Hidden from the LLM tool schema —
+    /// resolved from the SDK secrets store or `BINANCE_API_KEY` env var.
+    #[schemars(skip)]
     pub(crate) api_key: Option<String>,
-    /// Binance secret key for request signing
+    /// Operator-injected Binance secret key for HMAC signing. Hidden from
+    /// the LLM tool schema — resolved from `BINANCE_SECRET_KEY` env var.
+    #[schemars(skip)]
     pub(crate) secret_key: Option<String>,
     /// Trading pair symbol (e.g., "BTCUSDT")
     pub(crate) symbol: String,

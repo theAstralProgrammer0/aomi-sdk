@@ -11,13 +11,14 @@
 //! body for POST requests. The HMAC key is the API secret.
 //!
 //! Progenitor doesn't know how to compute that, so the curated tool layer calls
-//! [`sign_query`] / [`sign_body`] / [`current_timestamp_ms`] from `auth.rs` and
-//! passes the resulting headers into the generated client method.
+//! [`sign_query`] / [`sign_body`] / [`current_timestamp_ms`] from this module
+//! and passes the resulting headers into the generated client method.
+//!
+//! Primitives delegated to [`crate::hmac_auth`]; this module only owns Bybit's
+//! recv-window constant + alphabetical-key build_query (specific to Bybit's
+//! signing convention) + the recv-window-aware prehash recipe.
 
-use hmac::{Hmac, Mac};
-use sha2::Sha256;
-
-type HmacSha256 = Hmac<Sha256>;
+use crate::hmac_auth;
 
 /// The recv-window value we send on every signed request. 5_000ms is the
 /// Bybit-recommended default.
@@ -26,11 +27,7 @@ pub const RECV_WINDOW: &str = "5000";
 /// Current millis since UNIX epoch as a string. Bybit expects this as the
 /// `X-BAPI-TIMESTAMP` header.
 pub fn current_timestamp_ms() -> String {
-    std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .expect("system clock before UNIX epoch")
-        .as_millis()
-        .to_string()
+    hmac_auth::current_timestamp_ms().to_string()
 }
 
 /// HMAC-SHA256 hex signature for a Bybit V5 GET request.
@@ -52,10 +49,7 @@ pub fn sign_body(timestamp: &str, api_key: &str, secret: &str, body: &str) -> St
 
 fn sign_payload(timestamp: &str, api_key: &str, secret: &str, payload: &str) -> String {
     let sign_str = format!("{timestamp}{api_key}{RECV_WINDOW}{payload}");
-    let mut mac =
-        HmacSha256::new_from_slice(secret.as_bytes()).expect("HMAC can take key of any size");
-    mac.update(sign_str.as_bytes());
-    hex_encode(mac.finalize().into_bytes())
+    hmac_auth::hmac_sha256_hex(secret.as_bytes(), sign_str.as_bytes())
 }
 
 /// Build a Bybit-canonical query string from `(key, value)` pairs and return
@@ -67,6 +61,10 @@ fn sign_payload(timestamp: &str, api_key: &str, secret: &str, payload: &str) -> 
 /// for the curated tool layer is to compute the signature against the same
 /// ordering. Use this helper to build the string passed to [`sign_query`] AND
 /// be sure to pass the SAME values into the generated client call.
+///
+/// Note: this is *not* the shared [`hmac_auth::build_query`] because that one
+/// preserves insertion order. Bybit specifically needs alphabetical sort, so
+/// we keep the sort here and reuse the shared `urlencode` for the values.
 pub fn build_query(pairs: &[(&str, Option<&str>)]) -> String {
     let mut kept: Vec<(&str, &str)> = pairs
         .iter()
@@ -74,29 +72,7 @@ pub fn build_query(pairs: &[(&str, Option<&str>)]) -> String {
         .collect();
     kept.sort_by_key(|(k, _)| *k);
     kept.iter()
-        .map(|(k, v)| format!("{}={}", k, urlencode(v)))
+        .map(|(k, v)| format!("{}={}", k, hmac_auth::urlencode(v)))
         .collect::<Vec<_>>()
         .join("&")
-}
-
-fn urlencode(s: &str) -> String {
-    let mut out = String::with_capacity(s.len());
-    for b in s.as_bytes() {
-        let c = *b as char;
-        if c.is_ascii_alphanumeric() || matches!(c, '-' | '_' | '.' | '~') {
-            out.push(c);
-        } else {
-            use std::fmt::Write;
-            let _ = write!(out, "%{:02X}", b);
-        }
-    }
-    out
-}
-
-fn hex_encode(bytes: impl AsRef<[u8]>) -> String {
-    bytes.as_ref().iter().fold(String::new(), |mut acc, b| {
-        use std::fmt::Write;
-        let _ = write!(acc, "{b:02x}");
-        acc
-    })
 }

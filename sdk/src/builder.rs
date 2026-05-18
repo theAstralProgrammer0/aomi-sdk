@@ -1,4 +1,4 @@
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeSet;
 
 use serde::Serialize;
 use serde_json::Value;
@@ -84,7 +84,9 @@ pub mod host {
 #[derive(Debug, Clone)]
 struct DeferredRouteStep {
     step: RouteStep,
-    awaited_alias: Option<String>,
+    /// Aliases the after-step waits on. `.awaits(a)` pushes one; `.awaits_all([..])`
+    /// extends. At `try_build` time: 1 alias → `OnBoundEvent`, 2+ → `OnAllBoundEvents`.
+    awaited_aliases: Vec<String>,
 }
 
 pub struct RouteBuilder {
@@ -137,7 +139,7 @@ impl RouteBuilder {
                     prompt: None,
                     enforcement: None,
                 },
-                awaited_alias: None,
+                awaited_aliases: Vec::new(),
             });
         }
 
@@ -146,7 +148,6 @@ impl RouteBuilder {
 
     pub fn try_build(mut self) -> Result<ToolReturn, String> {
         let mut aliases = BTreeSet::new();
-        let mut tool_counts: BTreeMap<&str, usize> = BTreeMap::new();
         let enforced_producer_count = self
             .next_steps
             .iter()
@@ -158,7 +159,6 @@ impl RouteBuilder {
             );
         }
         for step in &self.next_steps {
-            *tool_counts.entry(step.tool.as_str()).or_default() += 1;
             if let Some(alias) = step.bind_as.as_deref() {
                 record_route_alias(&mut aliases, &mut self.errors, alias);
             }
@@ -182,17 +182,6 @@ impl RouteBuilder {
                         step.tool
                     ));
                 }
-                if tool_counts
-                    .get(step.tool.as_str())
-                    .copied()
-                    .unwrap_or_default()
-                    > 1
-                {
-                    self.errors.push(format!(
-                        "tool `{}` appears more than once in `next(...)`; bound producers must have unique tool names in RouteBuilder v1",
-                        step.tool
-                    ));
-                }
             }
             if step.enforcement.is_some() && !step.args.is_object() {
                 self.errors.push(format!(
@@ -203,7 +192,7 @@ impl RouteBuilder {
         }
 
         if let Some(after) = self.after_step.as_mut() {
-            let Some(alias) = after.awaited_alias.clone() else {
+            if after.awaited_aliases.is_empty() {
                 self.errors
                     .push("deferred `after(...)` step is missing `.awaits(\"alias\")`".to_string());
                 return if self.errors.is_empty() {
@@ -211,7 +200,7 @@ impl RouteBuilder {
                 } else {
                     Err(self.errors.join("\n"))
                 };
-            };
+            }
 
             if !after.step.args.is_object() {
                 self.errors.push(format!(
@@ -219,15 +208,30 @@ impl RouteBuilder {
                     after.step.tool
                 ));
             }
-            if alias.trim().is_empty() {
-                self.errors
-                    .push("deferred route awaits alias must not be empty".to_string());
-            } else if !aliases.contains(&alias) {
-                self.errors.push(format!(
-                    "deferred route awaits unknown alias `{alias}`; produce it in `next(...)` or the attached enforcement first"
-                ));
+            let mut seen = BTreeSet::new();
+            for awaited in &after.awaited_aliases {
+                if awaited.trim().is_empty() {
+                    self.errors
+                        .push("deferred route awaits alias must not be empty".to_string());
+                } else if !aliases.contains(awaited) {
+                    self.errors.push(format!(
+                        "deferred route awaits unknown alias `{awaited}`; produce it in `next(...)` or the attached enforcement first"
+                    ));
+                } else if !seen.insert(awaited.clone()) {
+                    self.errors.push(format!(
+                        "deferred route awaits alias `{awaited}` more than once"
+                    ));
+                }
             }
-            after.step.trigger = RouteTrigger::OnBoundEvent { alias };
+            after.step.trigger = if after.awaited_aliases.len() == 1 {
+                RouteTrigger::OnBoundEvent {
+                    alias: after.awaited_aliases.remove(0),
+                }
+            } else {
+                RouteTrigger::OnAllBoundEvents {
+                    aliases: std::mem::take(&mut after.awaited_aliases),
+                }
+            };
         }
 
         if !self.errors.is_empty() {
@@ -307,8 +311,15 @@ pub struct NextStepBuilder<'a> {
 
 impl<'a> NextStepBuilder<'a> {
     /// Publish this step's terminal result Value under the given alias.
-    /// Continuations declared via `after(...).awaits(alias)` consume it.
-    /// Bound producers must have unique tool names in RouteBuilder v1.
+    /// Continuations declared via `after(...).awaits(alias)` or
+    /// `after(...).awaits_all([..])` consume it.
+    ///
+    /// Aliases must be unique within a route plan, but the *tool name* does not
+    /// have to be — a single plan may have multiple `commit_eip712` / `stage_tx`
+    /// / `sign_tx_solana` steps each binding to a distinct alias. The runtime
+    /// consumes aliases in FIFO order per tool name, so list the steps in the
+    /// order you expect the LLM/user to drive them (use `.note(...)` to
+    /// reinforce the order in the suggested-action prompt).
     pub fn bind_as(self, alias: impl Into<String>) -> Self {
         self.route.next_steps[self.index].bind_as = Some(alias.into());
         self
@@ -381,9 +392,33 @@ pub struct AfterStepBuilder {
 
 impl AfterStepBuilder {
     /// Wait for the named artifact alias produced earlier in this route plan.
+    /// Calling this more than once accumulates aliases — the after-step then
+    /// fires only when **all** awaited aliases are bound, with each bound
+    /// value injected into its args under the alias's name. Equivalent to
+    /// `.awaits_all([..])`.
     pub fn awaits(mut self, alias: impl Into<String>) -> Self {
         if let Some(after) = self.route.after_step.as_mut() {
-            after.awaited_alias = Some(alias.into());
+            after.awaited_aliases.push(alias.into());
+        }
+        self
+    }
+
+    /// Wait for **all** of the named aliases. The after-step fires only when
+    /// every alias in `aliases` has been bound; each bound value is injected
+    /// into the after-step args under its alias name.
+    ///
+    /// Use this for combined-signing flows (e.g. 0x gasless: Permit2
+    /// approval + Settler metaTransaction trade) where the submit tool needs
+    /// every signature in one call.
+    pub fn awaits_all<I, S>(mut self, aliases: I) -> Self
+    where
+        I: IntoIterator<Item = S>,
+        S: Into<String>,
+    {
+        if let Some(after) = self.route.after_step.as_mut() {
+            after
+                .awaited_aliases
+                .extend(aliases.into_iter().map(Into::into));
         }
         self
     }
@@ -776,5 +811,112 @@ mod tests {
             .expect_err("empty awaited aliases should fail");
 
         assert!(err.contains("awaits alias must not be empty"));
+    }
+
+    #[test]
+    fn route_builder_allows_repeated_tool_with_distinct_binds() {
+        // Lifts the prior "bound producers must have unique tool names"
+        // constraint. Two `commit_eip712` steps in one plan, each binding to a
+        // distinct alias, is the combined approve+trade shape used by 0x
+        // gasless (Permit2 + Settler) and by Permit2-style flows for other
+        // DEX integrations.
+        let tool_return = ToolReturn::route(json!({"status": "awaiting_wallet"}))
+            .next(|next| {
+                next.add::<host::CommitEip712>(json!({"typed_data": {"approval": true}}))
+                    .bind_as("approval")
+                    .note("Sign the Permit2 approval first.");
+                next.add::<host::CommitEip712>(json!({"typed_data": {"trade": true}}))
+                    .bind_as("trade")
+                    .note("Then sign the gasless trade.");
+            })
+            .after::<SubmitOrder>(json!({"chain_id": 1}))
+            .awaits_all(["approval", "trade"])
+            .build();
+
+        assert_eq!(tool_return.routes.len(), 3);
+        assert_eq!(tool_return.routes[0].tool, "commit_eip712");
+        assert_eq!(tool_return.routes[0].bind_as.as_deref(), Some("approval"));
+        assert_eq!(tool_return.routes[1].tool, "commit_eip712");
+        assert_eq!(tool_return.routes[1].bind_as.as_deref(), Some("trade"));
+        match &tool_return.routes[2].trigger {
+            RouteTrigger::OnAllBoundEvents { aliases } => {
+                assert_eq!(aliases, &vec!["approval".to_string(), "trade".to_string()]);
+            }
+            other => panic!("expected OnAllBoundEvents, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn route_builder_awaits_called_twice_upgrades_to_multi_alias() {
+        // Sugar: `.awaits(a).awaits(b)` is the same as `.awaits_all([a, b])`.
+        let tool_return = ToolReturn::route(json!({"status": "awaiting_wallet"}))
+            .next(|next| {
+                next.add::<host::CommitEip712>(json!({"typed_data": {"a": true}}))
+                    .bind_as("approval");
+                next.add::<host::CommitEip712>(json!({"typed_data": {"t": true}}))
+                    .bind_as("trade");
+            })
+            .after::<SubmitOrder>(json!({"chain_id": 1}))
+            .awaits("approval")
+            .awaits("trade")
+            .build();
+
+        match &tool_return.routes[2].trigger {
+            RouteTrigger::OnAllBoundEvents { aliases } => {
+                assert_eq!(aliases, &vec!["approval".to_string(), "trade".to_string()]);
+            }
+            other => panic!("expected OnAllBoundEvents, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn route_builder_single_awaits_still_uses_on_bound_event() {
+        // Existing single-alias semantics are unchanged: one `.awaits(..)`
+        // call produces `OnBoundEvent`, not `OnAllBoundEvents`. This keeps the
+        // wire shape stable for every flow that worked before the multi-alias
+        // extension landed.
+        let tool_return = ToolReturn::route(json!({"status": "ok"}))
+            .next(|next| {
+                next.add::<host::CommitEip712>(json!({"typed_data": {}}))
+                    .bind_as("signature");
+            })
+            .after::<SubmitOrder>(json!({}))
+            .awaits("signature")
+            .build();
+
+        match &tool_return.routes[1].trigger {
+            RouteTrigger::OnBoundEvent { alias } => assert_eq!(alias, "signature"),
+            other => panic!("expected OnBoundEvent, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn route_builder_rejects_unknown_alias_in_awaits_all() {
+        let err = ToolReturn::route(json!({"status": "ok"}))
+            .next(|next| {
+                next.add::<host::CommitEip712>(json!({"typed_data": {}}))
+                    .bind_as("approval");
+            })
+            .after::<SubmitOrder>(json!({}))
+            .awaits_all(["approval", "missing"])
+            .try_build()
+            .expect_err("unknown alias in awaits_all should fail");
+
+        assert!(err.contains("awaits unknown alias `missing`"));
+    }
+
+    #[test]
+    fn route_builder_rejects_duplicate_awaited_aliases() {
+        let err = ToolReturn::route(json!({"status": "ok"}))
+            .next(|next| {
+                next.add::<host::CommitEip712>(json!({"typed_data": {}}))
+                    .bind_as("approval");
+            })
+            .after::<SubmitOrder>(json!({}))
+            .awaits_all(["approval", "approval"])
+            .try_build()
+            .expect_err("duplicate awaited aliases should fail");
+
+        assert!(err.contains("more than once"));
     }
 }

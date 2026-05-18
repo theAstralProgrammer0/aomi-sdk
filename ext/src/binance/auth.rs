@@ -10,57 +10,37 @@
 //! appended. Progenitor doesn't know how to compute that, so the curated tool
 //! layer calls [`sign`] / [`current_timestamp_ms`] from this module and passes
 //! the resulting signature/timestamp into the generated method as query params.
+//!
+//! Primitives delegated to [`crate::hmac_auth`]; this module only owns the
+//! Binance-specific surface (return types, error wrapping) callers expect.
 
-use hmac::{Hmac, Mac};
-use sha2::Sha256;
-
-type HmacSha256 = Hmac<Sha256>;
+use crate::hmac_auth;
 
 /// Compute HMAC-SHA256 over `query_string` using `secret_key`, return as hex.
 pub fn sign(secret_key: &str, query_string: &str) -> Result<String, String> {
-    let mut mac = HmacSha256::new_from_slice(secret_key.as_bytes())
-        .map_err(|e| format!("[binance] failed to create HMAC key: {e}"))?;
-    mac.update(query_string.as_bytes());
-    let result = mac.finalize();
-    Ok(hex_encode(&result.into_bytes()))
-}
-
-fn hex_encode(bytes: &[u8]) -> String {
-    bytes.iter().map(|b| format!("{b:02x}")).collect()
+    Ok(hmac_auth::hmac_sha256_hex(
+        secret_key.as_bytes(),
+        query_string.as_bytes(),
+    ))
 }
 
 /// Current millis since UNIX epoch.
 pub fn current_timestamp_ms() -> Result<i64, String> {
-    use std::time::{SystemTime, UNIX_EPOCH};
-    SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map(|d| d.as_millis() as i64)
-        .map_err(|e| format!("[binance] failed to get timestamp: {e}"))
+    Ok(hmac_auth::current_timestamp_ms() as i64)
 }
 
 /// URL-encode a single value the same way reqwest's `.query(...)` chain does
 /// (RFC 3986 unreserved characters left as-is, everything else percent-encoded).
 pub fn urlencode(s: &str) -> String {
-    let mut out = String::with_capacity(s.len());
-    for b in s.as_bytes() {
-        let c = *b as char;
-        if c.is_ascii_alphanumeric() || matches!(c, '-' | '_' | '.' | '~') {
-            out.push(c);
-        } else {
-            use std::fmt::Write;
-            let _ = write!(out, "%{:02X}", b);
-        }
-    }
-    out
+    hmac_auth::urlencode(s)
 }
 
 /// Build a Binance-canonical query string from `(key, value)` pairs.
 /// Pairs whose value is `None` are skipped. Order is preserved (Binance signs
 /// the literal payload, but reqwest emits params in insertion order).
 pub fn build_query(pairs: &[(&str, Option<String>)]) -> String {
-    pairs
-        .iter()
-        .filter_map(|(k, v)| v.as_ref().map(|val| format!("{}={}", k, urlencode(val))))
-        .collect::<Vec<_>>()
-        .join("&")
+    // Adapt owned-string pairs to the borrowed-slice API the shared helper takes.
+    let borrowed: Vec<(&str, Option<&str>)> =
+        pairs.iter().map(|(k, v)| (*k, v.as_deref())).collect();
+    hmac_auth::build_query(&borrowed)
 }
