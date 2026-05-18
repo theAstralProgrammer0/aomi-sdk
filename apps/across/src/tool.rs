@@ -231,7 +231,10 @@ pub(crate) struct AcrossBridgeArgs {
 fn fetch_suggested_fees_raw(args: &AcrossBridgeArgs) -> Result<Value, String> {
     let base = std::env::var("ACROSS_API_ENDPOINT").unwrap_or_else(|_| BASE_URL.to_string());
     let url = format!("{base}/suggested-fees");
-    let recipient = args.recipient.clone().unwrap_or_else(|| args.depositor.clone());
+    let recipient = args
+        .recipient
+        .clone()
+        .unwrap_or_else(|| args.depositor.clone());
 
     let mut query: Vec<(&str, String)> = vec![
         ("amount", args.amount.clone()),
@@ -319,7 +322,8 @@ impl DynAomiTool for AcrossBridge {
         let output_amount = require_str(&quote, "outputAmount")?.to_string();
         let quote_timestamp = parse_uint32(&quote, "timestamp")?;
         let fill_deadline = parse_uint32(&quote, "fillDeadline")?;
-        let exclusivity_deadline = parse_uint32(&quote, "exclusivityDeadline").unwrap_or_else(|_| "0".to_string());
+        let exclusivity_deadline =
+            parse_uint32(&quote, "exclusivityDeadline").unwrap_or_else(|_| "0".to_string());
         let exclusive_relayer = quote_obj
             .get("exclusiveRelayer")
             .and_then(Value::as_str)
@@ -327,7 +331,10 @@ impl DynAomiTool for AcrossBridge {
             .unwrap_or(ZERO_ADDRESS)
             .to_string();
 
-        let recipient = args.recipient.clone().unwrap_or_else(|| args.depositor.clone());
+        let recipient = args
+            .recipient
+            .clone()
+            .unwrap_or_else(|| args.depositor.clone());
         let message = args.message.clone().unwrap_or_else(|| "0x".to_string());
         let native_input = is_native(&args.input_token);
 
@@ -348,7 +355,11 @@ impl DynAomiTool for AcrossBridge {
             message,
         ]);
 
-        let deposit_value = if native_input { args.amount.clone() } else { "0".to_string() };
+        let deposit_value = if native_input {
+            args.amount.clone()
+        } else {
+            "0".to_string()
+        };
 
         let mut stage_args: Vec<Value> = Vec::new();
         if !native_input {
