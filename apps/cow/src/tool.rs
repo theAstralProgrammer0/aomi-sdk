@@ -15,7 +15,9 @@
 //!   * `get_cow_native_price`   — token native price (GET /token/{token}/native_price)
 
 use aomi_ext::cow::Client as CowClient;
-use aomi_ext::cow::types::{Address, OrderCancellations, OrderCreation, OrderQuoteRequest, Uid};
+use aomi_ext::cow::types::{
+    Address, OrderCancellations, OrderCreation, OrderParameters, OrderQuoteRequest, Uid,
+};
 use aomi_sdk::schemars::JsonSchema;
 use aomi_sdk::*;
 use serde::{Deserialize, Serialize};
@@ -87,6 +89,185 @@ fn make_client(chain: &str) -> Result<CowClient, String> {
 
 fn from_value<T: serde::de::DeserializeOwned>(name: &str, value: Value) -> Result<T, String> {
     serde_json::from_value::<T>(value).map_err(|e| format!("[cow] failed to decode {name}: {e}"))
+}
+
+// ============================================================================
+// EIP-712 helpers — wallet handoff for the swap flow
+// ============================================================================
+
+/// GPv2Settlement contract is deployed at the same address on every chain
+/// where CoW operates. The order's EIP-712 `verifyingContract` is this value.
+const GPV2_SETTLEMENT: &str = "0x9008D19f58AAbD9eD0D60971565AA8510560ab41";
+
+/// Well-known stub `appData`: the empty JSON object `{}` and its keccak256
+/// hash. CoW orders carry an `appData` bytes32 field that the orderbook
+/// validates against `keccak256(appData_json_submitted)`. Computing keccak
+/// in this crate would require a new dep; we sidestep it by always signing
+/// and submitting the empty stub. Tradeoff: orders won't carry CoW Swap UI
+/// metadata (`appCode`, slippage hint, …), which only affects analytics —
+/// pricing and execution are unaffected.
+const STUB_APPDATA_JSON: &str = "{}";
+const STUB_APPDATA_HASH: &str =
+    "0xb48d38f93eaa084033fc5970bf96e559c33c4cdc07d889ab00b4d63f9590739d";
+
+/// Chain identifier used in the EIP-712 domain. CoW supports the same set as
+/// the orderbook routing in `base_url_for_chain`.
+fn chain_id_for_cow(chain: &str) -> Result<u64, String> {
+    Ok(match chain.to_lowercase().as_str() {
+        "ethereum" | "eth" | "mainnet" => 1,
+        "gnosis" | "xdai" => 100,
+        "arbitrum" | "arb" | "arbitrum_one" => 42161,
+        "base" => 8453,
+        "polygon" | "matic" => 137,
+        "avalanche" | "avax" => 43114,
+        "bnb" | "bsc" => 56,
+        "sepolia" => 11155111,
+        other => return Err(format!("[cow] unsupported chain for EIP-712: {other}")),
+    })
+}
+
+/// Choose the bytes32 `appDataHash` for the EIP-712 message.
+///
+/// We deliberately ignore whatever appData CoW echoed back in the quote
+/// response and always sign the stub. The orderbook only checks
+/// `keccak256(appData_json_submitted) == bytes32_signed`; pricing is
+/// already locked in by the quote's sell/buy/fee numbers and is unaffected
+/// by appData. See `STUB_APPDATA_*` above for the tradeoff.
+fn appdata_hash_for_signing(_quote: &OrderParameters) -> String {
+    STUB_APPDATA_HASH.to_string()
+}
+
+/// What the host wallet's `commit_eip712` step needs to render and sign.
+/// Matches CoW's GPv2Order EIP-712 schema exactly.
+fn build_cow_order_typed_data(chain: &str, prepared: &PreparedCowOrder) -> Result<Value, String> {
+    let chain_id = chain_id_for_cow(chain)?;
+    Ok(json!({
+        "types": {
+            "EIP712Domain": [
+                { "name": "name",              "type": "string" },
+                { "name": "version",           "type": "string" },
+                { "name": "chainId",           "type": "uint256" },
+                { "name": "verifyingContract", "type": "address" },
+            ],
+            "Order": [
+                { "name": "sellToken",         "type": "address" },
+                { "name": "buyToken",          "type": "address" },
+                { "name": "receiver",          "type": "address" },
+                { "name": "sellAmount",        "type": "uint256" },
+                { "name": "buyAmount",         "type": "uint256" },
+                { "name": "validTo",           "type": "uint32"  },
+                { "name": "appData",           "type": "bytes32" },
+                { "name": "feeAmount",         "type": "uint256" },
+                { "name": "kind",              "type": "string"  },
+                { "name": "partiallyFillable", "type": "bool"    },
+                { "name": "sellTokenBalance",  "type": "string"  },
+                { "name": "buyTokenBalance",   "type": "string"  },
+            ],
+        },
+        "primaryType": "Order",
+        "domain": {
+            "name": "Gnosis Protocol",
+            "version": "v2",
+            "chainId": chain_id,
+            "verifyingContract": GPV2_SETTLEMENT,
+        },
+        "message": {
+            "sellToken":         prepared.sell_token,
+            "buyToken":          prepared.buy_token,
+            // The on-chain contract requires `receiver` as `address(0)` when
+            // unset; the API mirrors that — pass zero-address rather than omit.
+            "receiver":          prepared.receiver.clone().unwrap_or_else(|| "0x0000000000000000000000000000000000000000".to_string()),
+            "sellAmount":        prepared.sell_amount,
+            "buyAmount":         prepared.buy_amount,
+            "validTo":           prepared.valid_to,
+            "appData":           prepared.app_data_hash,
+            "feeAmount":         prepared.fee_amount,
+            "kind":              prepared.kind,
+            "partiallyFillable": prepared.partially_fillable,
+            "sellTokenBalance":  prepared.sell_token_balance,
+            "buyTokenBalance":   prepared.buy_token_balance,
+        },
+    }))
+}
+
+fn build_cow_order_description(prepared: &PreparedCowOrder) -> String {
+    let dir = if prepared.kind == "sell" {
+        "Sell"
+    } else {
+        "Buy"
+    };
+    format!(
+        "CoW {dir} order — {} of {} for {} of {}",
+        prepared.sell_amount, prepared.sell_token, prepared.buy_amount, prepared.buy_token
+    )
+}
+
+/// Distilled order fields the wallet step signs and `place_cow_order`
+/// submits. Mirrors the on-chain `GPv2Order` struct; nothing here is mutable
+/// between sign and submit — that's the whole point.
+#[derive(Debug, Clone, Deserialize, Serialize, JsonSchema)]
+pub(crate) struct PreparedCowOrder {
+    pub(crate) sell_token: String,
+    pub(crate) buy_token: String,
+    pub(crate) receiver: Option<String>,
+    pub(crate) sell_amount: String,
+    pub(crate) buy_amount: String,
+    pub(crate) valid_to: i64,
+    /// keccak256 hash of the appData JSON, hex-encoded as `0x…32 bytes`.
+    pub(crate) app_data_hash: String,
+    /// Full appData JSON string when the user wants CoW to record it; can be
+    /// `"{}"` and the contract still verifies against `app_data_hash`. Carried
+    /// here so `place_cow_order` can echo it back to the API.
+    pub(crate) app_data_full: Option<String>,
+    pub(crate) fee_amount: String,
+    /// `"sell"` or `"buy"`.
+    pub(crate) kind: String,
+    pub(crate) partially_fillable: bool,
+    /// `"erc20"` (default), `"external"`, or `"internal"`.
+    pub(crate) sell_token_balance: String,
+    /// `"erc20"` (default) or `"internal"`.
+    pub(crate) buy_token_balance: String,
+    /// Signer of the order; required by CoW so the API can pre-validate.
+    pub(crate) from: Option<String>,
+    /// Quote ID returned by `/quote`; lets CoW link order ↔ quote for slippage analytics.
+    pub(crate) quote_id: Option<i64>,
+}
+
+/// Build a `PreparedCowOrder` from a fresh `/quote` response.
+///
+/// Two non-obvious pinnings:
+///
+///   * `app_data_hash` / `app_data_full` are always the stub (`"{}"` and
+///     its keccak). See `STUB_APPDATA_*` above for the tradeoff.
+///
+///   * `fee_amount` is always `"0"`, not the quote's `feeAmount`. CoW's
+///     `OrderCreation` docs say: *"When creating an order, this should be
+///     set to zero as fees are now computed dynamically by solvers."*
+///     The quote's `feeAmount` is for human-readable display only; signing
+///     it produces an order the solver will reject. The quoted fee still
+///     shows up in the preview JSON the LLM presents to the user.
+fn prepared_order_from_quote(
+    quote: &OrderParameters,
+    quote_id: Option<i64>,
+    from: Option<String>,
+) -> PreparedCowOrder {
+    PreparedCowOrder {
+        sell_token: quote.sell_token.to_string(),
+        buy_token: quote.buy_token.to_string(),
+        receiver: quote.receiver.as_ref().map(|a| a.to_string()),
+        sell_amount: quote.sell_amount.to_string(),
+        buy_amount: quote.buy_amount.to_string(),
+        valid_to: quote.valid_to,
+        app_data_hash: appdata_hash_for_signing(quote),
+        app_data_full: Some(STUB_APPDATA_JSON.to_string()),
+        fee_amount: "0".to_string(),
+        kind: quote.kind.to_string(),
+        partially_fillable: quote.partially_fillable,
+        sell_token_balance: quote.sell_token_balance.to_string(),
+        buy_token_balance: quote.buy_token_balance.to_string(),
+        from,
+        quote_id,
+    }
 }
 
 // ============================================================================
@@ -186,7 +367,9 @@ pub(crate) struct GetCowSwapQuoteArgs {
     pub(crate) buy_token: String,
     /// Amount in human units. Treated as sell amount when order_side="sell" (default), buy amount when "buy".
     pub(crate) amount: f64,
-    /// Wallet address signing the order (and default receiver).
+    /// User-facing wallet address that owns the funds. Often the AA smart-account
+    /// address shown in the UI. Used for the quote's `from` parameter and as the
+    /// default receiver. Distinct from `signer_address` — see below.
     pub(crate) sender_address: String,
     /// Optional alternate receiver. Defaults to sender_address.
     pub(crate) receiver_address: Option<String>,
@@ -194,30 +377,42 @@ pub(crate) struct GetCowSwapQuoteArgs {
     pub(crate) order_side: Option<String>,
     /// Slippage tolerance as decimal (0.005 = 0.5%). Defaults to CoW's recommendation when omitted.
     pub(crate) slippage: Option<f64>,
+    /// EOA that will actually produce the EIP-712 signature, and therefore the
+    /// address CoW recovers from the signature and matches against the order's
+    /// `from` field. For AA flows this is the smart-account's signing EOA,
+    /// NOT the smart-account address itself. Leave unset to fall back to the
+    /// session's connected EVM address (`domain.evm.address` context attribute),
+    /// and as a last resort to `sender_address`.
+    pub(crate) signer_address: Option<String>,
 }
 
 impl DynAomiTool for GetCowSwapQuote {
     type App = CowApp;
     type Args = GetCowSwapQuoteArgs;
     const NAME: &'static str = "get_cow_swap_quote";
-    const DESCRIPTION: &'static str = "Use when the user wants to price a swap on CoW Protocol (\"swap 100 USDC for WETH on base\"). Returns the quote with sellAmount, buyAmount, fees, and the order parameters that must be signed before placing. Always run this BEFORE place_cow_order.";
+    const DESCRIPTION: &'static str = "Use when the user wants to swap on CoW Protocol (\"swap 100 USDC for WETH on base\"). Prices the swap, then automatically routes through the host wallet's EIP-712 signature step and submits the signed order — the LLM does NOT call place_cow_order separately. Returns the quote (sellAmount, buyAmount, fees) for the user to confirm; once they do, the wallet signature and final orderUid land via the routed continuation. For account-abstraction setups, set `signer_address` to the AA wallet's signing EOA (the value the runtime injects under `domain.evm.address`); CoW recovers that EOA from the EIP-712 signature.";
 
-    fn run(_app: &CowApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let token_chain = chain_for_token(&args.chain);
+    fn run_with_routes(
+        _app: &CowApp,
+        args: Self::Args,
+        ctx: DynToolCallCtx,
+    ) -> Result<ToolReturn, String> {
+        let chain = args.chain.clone();
+        let token_chain = chain_for_token(&chain);
         let sell_addr = get_token_address(&token_chain, &args.sell_token)?;
         let buy_addr = get_token_address(&token_chain, &args.buy_token)?;
         let decimals = get_token_decimals(&token_chain, &args.sell_token);
         let amount_base = amount_to_base_units(args.amount, decimals)?;
-        let kind = args.order_side.as_deref().unwrap_or("sell");
+        let kind = args.order_side.as_deref().unwrap_or("sell").to_string();
 
         // Build a JSON payload matching OrderQuoteRequestVariant0::Variant0
         // (sell-side ECDSA flow) or Variant1 / Variant2 (buy-side). We let
         // serde decide which oneOf variant matches.
         let mut body = json!({
             "sellToken": sell_addr,
-            "buyToken": buy_addr,
-            "from": args.sender_address,
-            "kind": kind,
+            "buyToken":  buy_addr,
+            "from":      args.sender_address,
+            "kind":      kind,
         });
         if kind == "sell" {
             body["sellAmountBeforeFee"] = json!(amount_base);
@@ -227,24 +422,79 @@ impl DynAomiTool for GetCowSwapQuote {
         if let Some(r) = &args.receiver_address {
             body["receiver"] = json!(r);
         }
-        if let Some(slip) = args.slippage {
+        if args.slippage.is_some() {
             body["priceQuality"] = json!("optimal");
-            // CoW takes slippage on the order side, not the quote — record it
-            // for the caller so they can pass it to the signing step.
-            let _ = slip;
         }
 
         let typed: OrderQuoteRequest = from_value("quote request", body)?;
-        let client = make_client(&args.chain)?;
+        let client = make_client(&chain)?;
         let runtime = rt()?;
-        runtime.block_on(async move {
-            let resp = client
-                .quote(&typed)
-                .await
-                .map_err(|e| format!("[cow] quote: {e}"))?
-                .into_inner();
-            ok(resp)
+        let quote = runtime
+            .block_on(async move { client.quote(&typed).await })
+            .map_err(|e| format!("[cow] quote: {e}"))?
+            .into_inner();
+
+        // Resolve the signer address (CoW's `from` field). For AA flows the
+        // smart-account address (`sender_address`) and the EOA that produces
+        // the signature are different — CoW recovers the EOA from the
+        // signature and compares it against `from`. Prefer the explicit
+        // arg, then the session-injected connected wallet, then fall back
+        // to `sender_address` for non-AA setups.
+        let signer = args
+            .signer_address
+            .clone()
+            .or_else(|| ctx.attribute_string(&["domain", "evm", "address"]))
+            .unwrap_or_else(|| args.sender_address.clone());
+
+        // Distil the quote into the exact set of fields the wallet will sign
+        // and `place_cow_order` will resubmit. Once the signer commits to
+        // these, nothing in this struct can change without invalidating the
+        // signature.
+        let prepared = prepared_order_from_quote(&quote.quote, quote.id, Some(signer));
+        let typed_data = build_cow_order_typed_data(&chain, &prepared)?;
+        let description = build_cow_order_description(&prepared);
+
+        // Surface the quote + the prepared order to the LLM so the user has
+        // something to confirm.
+        let mut preview = ok(&quote)?;
+        if let Value::Object(map) = &mut preview {
+            map.insert(
+                "prepared_order".to_string(),
+                serde_json::to_value(&prepared)
+                    .map_err(|e| format!("[cow] serialize prepared_order: {e}"))?,
+            );
+        }
+
+        // Template `place_cow_order` will receive after the wallet binds the
+        // signature. Everything except `signature` is filled in here; the
+        // route fills in `signature` from the host wallet's commit step.
+        let submit_template = serde_json::to_value(&PlaceCowOrderArgs {
+            chain,
+            order: prepared,
+            signature: None,
+            signing_scheme: Some("eip712".to_string()),
         })
+        .map_err(|e| format!("[cow] serialize submit template: {e}"))?;
+
+        let wallet_request = json!({
+            "typed_data":  typed_data,
+            "description": description,
+        });
+
+        Ok(ToolReturn::route(preview)
+            .next(|next| {
+                next.add::<host::CommitEip712>(wallet_request)
+                    .bind_as("signature")
+                    .note(
+                        "Sign the CoW order EIP-712 payload byte-for-byte. \
+                         Do not modify any field — the signature is over the \
+                         exact `message` shown.",
+                    );
+            })
+            .after::<PlaceCowOrder>(submit_template)
+            .awaits("signature")
+            .note("Wallet signed — submitting the CoW order to the orderbook.")
+            .build())
     }
 }
 
@@ -254,22 +504,71 @@ impl DynAomiTool for GetCowSwapQuote {
 
 pub(crate) struct PlaceCowOrder;
 
-#[derive(Debug, Deserialize, JsonSchema)]
+/// Continuation step invoked by `get_cow_swap_quote`'s routed flow. The
+/// `signature` field is bound by the host wallet via `host::CommitEip712`;
+/// the rest is pre-filled from the quote so the LLM never re-types order
+/// fields between sign and submit. Calling this tool directly without a
+/// `signature` returns an error — it's not a standalone primitive.
+#[derive(Debug, Deserialize, Serialize, JsonSchema)]
 pub(crate) struct PlaceCowOrderArgs {
     /// CoW chain: ethereum, gnosis, arbitrum, base, polygon, avalanche, bsc, sepolia
     pub(crate) chain: String,
-    /// Signed order payload to submit to CoW /orders endpoint
-    pub(crate) signed_order: Value,
+    /// Canonical order fields the wallet signed. Echoed back unchanged from
+    /// the quote — mutating any field here invalidates the signature.
+    pub(crate) order: PreparedCowOrder,
+    /// Wallet signature hex (`0x…`). Filled by the routed `commit_eip712`
+    /// step; must be set when this tool runs.
+    pub(crate) signature: Option<String>,
+    /// `"eip712"` (default), `"ethsign"`, `"presign"`, or `"eip1271"`.
+    pub(crate) signing_scheme: Option<String>,
 }
 
 impl DynAomiTool for PlaceCowOrder {
     type App = CowApp;
     type Args = PlaceCowOrderArgs;
     const NAME: &'static str = "place_cow_order";
-    const DESCRIPTION: &'static str = "Use AFTER get_cow_swap_quote and the user has signed the order. Submits the complete signed order JSON to CoW's orderbook. The `signed_order` payload must contain the quote fields plus `signature` and `signingScheme` from the host wallet. Returns the orderUid you can poll with get_cow_order_status.";
+    const DESCRIPTION: &'static str = "Routed continuation of get_cow_swap_quote — the host wallet auto-invokes it after binding the EIP-712 signature. Submits the signed order to CoW's orderbook and returns the orderUid you can poll with get_cow_order_status. Do not invoke directly unless you already have a fresh wallet signature for the exact prepared order.";
 
     fn run(_app: &CowApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let body: OrderCreation = from_value("signed_order", args.signed_order)?;
+        let signature = args.signature.ok_or_else(|| {
+            "[cow] place_cow_order requires a signature; this tool is invoked automatically \
+             after get_cow_swap_quote's commit_eip712 step — don't call it manually"
+                .to_string()
+        })?;
+        let signing_scheme = args
+            .signing_scheme
+            .as_deref()
+            .unwrap_or("eip712")
+            .to_string();
+
+        // Reconstruct OrderCreation from the prepared order + bound signature.
+        // Field-for-field with no transformation other than re-typing strings
+        // into the generated client's newtypes (Address, TokenAmount, …).
+        let app_data_value = args
+            .order
+            .app_data_full
+            .as_deref()
+            .unwrap_or(args.order.app_data_hash.as_str());
+        let body_json = json!({
+            "sellToken":         args.order.sell_token,
+            "buyToken":          args.order.buy_token,
+            "receiver":          args.order.receiver,
+            "sellAmount":        args.order.sell_amount,
+            "buyAmount":         args.order.buy_amount,
+            "validTo":           args.order.valid_to,
+            "appData":           app_data_value,
+            "appDataHash":       args.order.app_data_hash,
+            "feeAmount":         args.order.fee_amount,
+            "kind":              args.order.kind,
+            "partiallyFillable": args.order.partially_fillable,
+            "sellTokenBalance":  args.order.sell_token_balance,
+            "buyTokenBalance":   args.order.buy_token_balance,
+            "from":              args.order.from,
+            "quoteId":           args.order.quote_id,
+            "signature":         signature,
+            "signingScheme":     signing_scheme,
+        });
+        let body: OrderCreation = from_value("order creation", body_json)?;
         let client = make_client(&args.chain)?;
         let runtime = rt()?;
         runtime.block_on(async move {

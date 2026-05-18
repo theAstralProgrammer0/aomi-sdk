@@ -6,6 +6,7 @@ use hl_ranger::{
 use serde_json::{Value, json};
 use std::collections::HashMap;
 use std::sync::OnceLock;
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 pub(crate) const DEFAULT_API_URL: &str = "https://api.hyperliquid.xyz";
@@ -190,6 +191,31 @@ pub(crate) fn now_ms() -> u64 {
         .unwrap_or(0)
 }
 
+/// Process-wide monotonic nonce source for L1 actions.
+///
+/// Hyperliquid rejects two L1 actions from the same signer with the same
+/// nonce. The natural choice — millisecond wall-clock — collides when two
+/// orders fire from the same agent within one millisecond (rare but real
+/// under LLM-driven batching like "cancel and replace"). This helper
+/// returns `max(now_ms, last_issued + 1)` atomically, guaranteeing strict
+/// monotonicity within the process.
+///
+/// State is in-process only. If multiple Aomi runtimes serve the same
+/// signer concurrently they can still race; Hyperliquid will reject the
+/// loser and the tool's caller can retry. Persisting the high-water mark
+/// across restarts hasn't been worth it yet — the kernel-side restart
+/// already advances `now_ms` past anything we'd have issued before.
+static LAST_NONCE_MS: AtomicU64 = AtomicU64::new(0);
+
+pub(crate) fn next_nonce_ms() -> u64 {
+    let now = now_ms();
+    LAST_NONCE_MS
+        .fetch_update(Ordering::SeqCst, Ordering::SeqCst, |prev| {
+            Some(std::cmp::max(now, prev.saturating_add(1)))
+        })
+        .expect("fetch_update with always-Some closure is infallible")
+}
+
 // ---------------------------------------------------------------------------
 // Action constructors
 //
@@ -265,7 +291,7 @@ pub(crate) fn prepare_l1_action(
     action: Actions,
     vault_address: Option<H160>,
 ) -> Result<(Value, u64, Value), String> {
-    let nonce = now_ms();
+    let nonce = next_nonce_ms();
     let connection_id = action
         .hash(nonce, vault_address)
         .map_err(|e| format!("[byreal] action hash failed: {e}"))?;

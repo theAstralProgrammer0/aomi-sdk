@@ -53,6 +53,9 @@ OpenAPI's `securitySchemes` only describes *what header to send*, not *how to co
 
 If the platform requires HMAC signing or any other computed credential (Binance, OKX, Polymarket-style), describe what header(s) to send in `securitySchemes` and add a top-level comment under `info.description` like:
 
+> **For codegen to work**, the same header must also appear as an explicit `parameters:` entry on each authed operation (typically `$ref: '#/components/parameters/ApiKeyHeader'` etc.) — progenitor ignores `securitySchemes` when generating positional args. See **[docs/auth-practices.md](../../../docs/auth-practices.md)** for the wire-level recipes Aomi already supports (Binance / Bybit / OKX / Limitless / Krexa static-bearer) and how the spec needs to be shaped for each.
+
+
 ```
 ## Auth
 This API uses HMAC-SHA256 over the query string with appended `&timestamp=...&signature=...`.

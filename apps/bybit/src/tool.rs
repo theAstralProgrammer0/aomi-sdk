@@ -225,9 +225,11 @@ pub(crate) struct GetWalletBalance;
 pub(crate) struct GetWalletBalanceArgs {
     /// Bybit API key (falls back to env var `BYBIT_API_KEY`).
     #[serde(default)]
+    #[schemars(skip)]
     pub api_key: Option<String>,
     /// Bybit API secret (falls back to env var `BYBIT_SECRET_KEY`).
     #[serde(default)]
+    #[schemars(skip)]
     pub secret_key: Option<String>,
     /// `UNIFIED` (default — unified trading account) or `CONTRACT` (legacy derivatives).
     #[serde(default)]
@@ -284,8 +286,10 @@ pub(crate) struct GetPositions;
 #[derive(Debug, Deserialize, JsonSchema)]
 pub(crate) struct GetPositionsArgs {
     #[serde(default)]
+    #[schemars(skip)]
     pub api_key: Option<String>,
     #[serde(default)]
+    #[schemars(skip)]
     pub secret_key: Option<String>,
     /// `linear` (USDT/USDC perps) or `inverse` (coin-margined perps).
     pub category: String,
@@ -347,8 +351,10 @@ pub(crate) struct GetOpenOrders;
 #[derive(Debug, Deserialize, JsonSchema)]
 pub(crate) struct GetOpenOrdersArgs {
     #[serde(default)]
+    #[schemars(skip)]
     pub api_key: Option<String>,
     #[serde(default)]
+    #[schemars(skip)]
     pub secret_key: Option<String>,
     pub category: String,
     #[serde(default)]
@@ -414,8 +420,10 @@ pub(crate) struct GetOrderHistory;
 #[derive(Debug, Deserialize, JsonSchema)]
 pub(crate) struct GetOrderHistoryArgs {
     #[serde(default)]
+    #[schemars(skip)]
     pub api_key: Option<String>,
     #[serde(default)]
+    #[schemars(skip)]
     pub secret_key: Option<String>,
     pub category: String,
     #[serde(default)]
@@ -480,8 +488,10 @@ pub(crate) struct PlaceLimitOrder;
 #[derive(Debug, Deserialize, JsonSchema)]
 pub(crate) struct PlaceLimitOrderArgs {
     #[serde(default)]
+    #[schemars(skip)]
     pub api_key: Option<String>,
     #[serde(default)]
+    #[schemars(skip)]
     pub secret_key: Option<String>,
     /// `spot`, `linear`, `inverse`, or `option`.
     pub category: String,
@@ -549,8 +559,10 @@ pub(crate) struct PlaceMarketOrder;
 #[derive(Debug, Deserialize, JsonSchema)]
 pub(crate) struct PlaceMarketOrderArgs {
     #[serde(default)]
+    #[schemars(skip)]
     pub api_key: Option<String>,
     #[serde(default)]
+    #[schemars(skip)]
     pub secret_key: Option<String>,
     /// `spot`, `linear`, `inverse`, or `option`.
     pub category: String,
@@ -612,8 +624,10 @@ pub(crate) struct CancelOrder;
 #[derive(Debug, Deserialize, JsonSchema)]
 pub(crate) struct CancelOrderArgs {
     #[serde(default)]
+    #[schemars(skip)]
     pub api_key: Option<String>,
     #[serde(default)]
+    #[schemars(skip)]
     pub secret_key: Option<String>,
     pub category: String,
     pub symbol: String,
@@ -664,8 +678,10 @@ pub(crate) struct AmendOrder;
 #[derive(Debug, Deserialize, JsonSchema)]
 pub(crate) struct AmendOrderArgs {
     #[serde(default)]
+    #[schemars(skip)]
     pub api_key: Option<String>,
     #[serde(default)]
+    #[schemars(skip)]
     pub secret_key: Option<String>,
     pub category: String,
     pub symbol: String,
@@ -725,8 +741,10 @@ pub(crate) struct SetLeverage;
 #[derive(Debug, Deserialize, JsonSchema)]
 pub(crate) struct SetLeverageArgs {
     #[serde(default)]
+    #[schemars(skip)]
     pub api_key: Option<String>,
     #[serde(default)]
+    #[schemars(skip)]
     pub secret_key: Option<String>,
     /// `linear` or `inverse` — perps only.
     pub category: String,
