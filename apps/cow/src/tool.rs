@@ -139,10 +139,7 @@ fn appdata_hash_for_signing(_quote: &OrderParameters) -> String {
 
 /// What the host wallet's `commit_eip712` step needs to render and sign.
 /// Matches CoW's GPv2Order EIP-712 schema exactly.
-fn build_cow_order_typed_data(
-    chain: &str,
-    prepared: &PreparedCowOrder,
-) -> Result<Value, String> {
+fn build_cow_order_typed_data(chain: &str, prepared: &PreparedCowOrder) -> Result<Value, String> {
     let chain_id = chain_id_for_cow(chain)?;
     Ok(json!({
         "types": {
@@ -194,7 +191,11 @@ fn build_cow_order_typed_data(
 }
 
 fn build_cow_order_description(prepared: &PreparedCowOrder) -> String {
-    let dir = if prepared.kind == "sell" { "Sell" } else { "Buy" };
+    let dir = if prepared.kind == "sell" {
+        "Sell"
+    } else {
+        "Buy"
+    };
     format!(
         "CoW {dir} order — {} of {} for {} of {}",
         prepared.sell_amount, prepared.sell_token, prepared.buy_amount, prepared.buy_token

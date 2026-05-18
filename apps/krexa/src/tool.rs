@@ -30,8 +30,8 @@ use crate::client::types::{
     PayshBudgetUpdate, PayshCallRequest, PayshDiscoverRequest, RequestCreditRequest,
     SignCreditRequest,
 };
-use aomi_sdk::*;
 use aomi_sdk::schemars::JsonSchema;
+use aomi_sdk::*;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -81,8 +81,7 @@ impl DynAomiTool for GetScore {
     type App = KrexaApp;
     type Args = GetScoreArgs;
     const NAME: &'static str = "krexa_get_score";
-    const DESCRIPTION: &'static str =
-        "Read your own Krexit Score (200–850) and its 5 components (repayment, profit, behavior, usage, age). Use to gauge whether you've earned a higher credit level before requesting a larger draw. Unregistered wallets receive a preview score derived from wallet age, tx count, and SOL balance.";
+    const DESCRIPTION: &'static str = "Read your own Krexit Score (200–850) and its 5 components (repayment, profit, behavior, usage, age). Use to gauge whether you've earned a higher credit level before requesting a larger draw. Unregistered wallets receive a preview score derived from wallet age, tx count, and SOL balance.";
 
     fn run(_app: &KrexaApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let runtime = rt()?;
@@ -105,8 +104,7 @@ impl DynAomiTool for CheckCreditEligibility {
     type App = KrexaApp;
     type Args = CheckCreditEligibilityArgs;
     const NAME: &'static str = "krexa_check_credit_eligibility";
-    const DESCRIPTION: &'static str =
-        "Check borrowing capacity right now. Returns `eligible`, `creditLevel` (1–4), `maxCredit`, `currentDebt`, `availableCredit`, and `rateBps`. Call this BEFORE borrow_usdc to size your draw — `availableCredit` is the hard ceiling for the next borrow.";
+    const DESCRIPTION: &'static str = "Check borrowing capacity right now. Returns `eligible`, `creditLevel` (1–4), `maxCredit`, `currentDebt`, `availableCredit`, and `rateBps`. Call this BEFORE borrow_usdc to size your draw — `availableCredit` is the hard ceiling for the next borrow.";
 
     fn run(_app: &KrexaApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let runtime = rt()?;
@@ -134,8 +132,7 @@ impl DynAomiTool for DiscoverApiPricing {
     type App = KrexaApp;
     type Args = DiscoverApiPricingArgs;
     const NAME: &'static str = "krexa_discover_api_pricing";
-    const DESCRIPTION: &'static str =
-        "Probe a Pay.sh-compatible URL for its x402 price WITHOUT committing to a payment. Returns `pricing.amount` (USDC base units), `payTo`, `network`, plus an `affordability` block that says whether the wallet can afford it and whether a credit draw would be needed. Call before pay_api_call to budget the next loop.";
+    const DESCRIPTION: &'static str = "Probe a Pay.sh-compatible URL for its x402 price WITHOUT committing to a payment. Returns `pricing.amount` (USDC base units), `payTo`, `network`, plus an `affordability` block that says whether the wallet can afford it and whether a credit draw would be needed. Call before pay_api_call to budget the next loop.";
 
     fn run(_app: &KrexaApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let api_key = auth::api_key()?;
@@ -188,8 +185,7 @@ impl DynAomiTool for RequestCredit {
     type App = KrexaApp;
     type Args = RequestCreditArgs;
     const NAME: &'static str = "krexa_request_credit";
-    const DESCRIPTION: &'static str =
-        "Submit a credit request for oracle review. This is the first step of borrowing — the oracle must see an approved credit request before it will co-sign a draw. The owner wallet's Ed25519 signature over `Krexa credit request for <owner_pubkey>` proves ownership; pass `owner_signature` explicitly or set `KREXA_OWNER_SECRET_KEY` for the tool to sign internally. After this returns success, call `borrow_usdc` with the same amount + level.";
+    const DESCRIPTION: &'static str = "Submit a credit request for oracle review. This is the first step of borrowing — the oracle must see an approved credit request before it will co-sign a draw. The owner wallet's Ed25519 signature over `Krexa credit request for <owner_pubkey>` proves ownership; pass `owner_signature` explicitly or set `KREXA_OWNER_SECRET_KEY` for the tool to sign internally. After this returns success, call `borrow_usdc` with the same amount + level.";
 
     fn run(_app: &KrexaApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let api_key = auth::api_key()?;
@@ -248,17 +244,15 @@ impl DynAomiTool for BorrowUsdc {
     type App = KrexaApp;
     type Args = BorrowUsdcArgs;
     const NAME: &'static str = "krexa_borrow_usdc";
-    const DESCRIPTION: &'static str =
-        "Draw USDC against your Krexa credit line. The oracle verifies your score and CO-SIGNS a borrow transaction; this tool returns the resulting base64-encoded, partially-signed Solana transaction. The agent host MUST add the second signature and submit to Solana — this tool does NOT broadcast. Use check_credit_eligibility first to confirm `availableCredit ≥ amount`.";
+    const DESCRIPTION: &'static str = "Draw USDC against your Krexa credit line. The oracle verifies your score and CO-SIGNS a borrow transaction; this tool returns the resulting base64-encoded, partially-signed Solana transaction. The agent host MUST add the second signature and submit to Solana — this tool does NOT broadcast. Use check_credit_eligibility first to confirm `availableCredit ≥ amount`.";
 
     fn run(_app: &KrexaApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         // The progenitor-generated `credit_level` is `Option<NonZeroU64>`
         // because the spec sets minimum:1. Convert from a friendly u8.
         let credit_level = match args.credit_level {
-            Some(n) if (1..=4).contains(&n) => Some(
-                std::num::NonZeroU64::new(n as u64)
-                    .expect("non-zero by range check"),
-            ),
+            Some(n) if (1..=4).contains(&n) => {
+                Some(std::num::NonZeroU64::new(n as u64).expect("non-zero by range check"))
+            }
             Some(_) => return Err("[krexa] borrow_usdc: credit_level must be 1..=4".to_string()),
             None => None,
         };
@@ -316,8 +310,7 @@ impl DynAomiTool for PayApiCall {
     type App = KrexaApp;
     type Args = PayApiCallArgs;
     const NAME: &'static str = "krexa_pay_api_call";
-    const DESCRIPTION: &'static str =
-        "Build a Pay.sh payment transaction for an x402-priced API call. Probes the target URL, checks the budget and funding, and returns a base64 unsigned Solana tx (`paymentRequired=true, funded=true, transaction=...`). When the wallet is underfunded and `use_credit=true`, instead returns `autoCreditDraw` instructions to call borrow_usdc first — re-invoke this tool after the credit-draw lands. The agent host signs + submits the returned tx, then calls Pay.sh's confirm endpoint out-of-band.";
+    const DESCRIPTION: &'static str = "Build a Pay.sh payment transaction for an x402-priced API call. Probes the target URL, checks the budget and funding, and returns a base64 unsigned Solana tx (`paymentRequired=true, funded=true, transaction=...`). When the wallet is underfunded and `use_credit=true`, instead returns `autoCreditDraw` instructions to call borrow_usdc first — re-invoke this tool after the credit-draw lands. The agent host signs + submits the returned tx, then calls Pay.sh's confirm endpoint out-of-band.";
 
     fn run(_app: &KrexaApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let api_key = auth::api_key()?;
@@ -366,8 +359,7 @@ impl DynAomiTool for SetBudget {
     type App = KrexaApp;
     type Args = SetBudgetArgs;
     const NAME: &'static str = "krexa_set_budget";
-    const DESCRIPTION: &'static str =
-        "Update Pay.sh spending guardrails (daily / per-call / monthly caps, alert threshold, pause switch). All fields are optional — only the ones provided are updated. Returns the new budget state with current usage. The agent should call this once at startup, then adjust if the strategy expands or after large drawdowns.";
+    const DESCRIPTION: &'static str = "Update Pay.sh spending guardrails (daily / per-call / monthly caps, alert threshold, pause switch). All fields are optional — only the ones provided are updated. Returns the new budget state with current usage. The agent should call this once at startup, then adjust if the strategy expands or after large drawdowns.";
 
     fn run(_app: &KrexaApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let api_key = auth::api_key()?;
@@ -406,8 +398,7 @@ impl DynAomiTool for GetBalance {
     type App = KrexaApp;
     type Args = GetBalanceArgs;
     const NAME: &'static str = "krexa_get_balance";
-    const DESCRIPTION: &'static str =
-        "One-shot view of liquidity: Pay.sh wallet USDC balance, available credit (limit / used / remaining), total spendable, and frozen state. Cheaper than calling check_credit_eligibility + get_credit_line separately when you only need a go/no-go signal.";
+    const DESCRIPTION: &'static str = "One-shot view of liquidity: Pay.sh wallet USDC balance, available credit (limit / used / remaining), total spendable, and frozen state. Cheaper than calling check_credit_eligibility + get_credit_line separately when you only need a go/no-go signal.";
 
     fn run(_app: &KrexaApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let runtime = rt()?;
@@ -430,8 +421,7 @@ impl DynAomiTool for GetCreditLine {
     type App = KrexaApp;
     type Args = GetCreditLineArgs;
     const NAME: &'static str = "krexa_get_credit_line";
-    const DESCRIPTION: &'static str =
-        "Details on the agent's ACTIVE credit line: principal, accrued interest, total owed, annual rate (bps), `openedAt`, and `healthFactor` (bps; 15000 = 150%). Use to decide whether to repay, top up collateral, or pause new borrows. All amounts are USDC base units (6 decimals).";
+    const DESCRIPTION: &'static str = "Details on the agent's ACTIVE credit line: principal, accrued interest, total owed, annual rate (bps), `openedAt`, and `healthFactor` (bps; 15000 = 150%). Use to decide whether to repay, top up collateral, or pause new borrows. All amounts are USDC base units (6 decimals).";
 
     fn run(_app: &KrexaApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let runtime = rt()?;
@@ -459,8 +449,7 @@ impl DynAomiTool for SearchAgents {
     type App = KrexaApp;
     type Args = SearchAgentsArgs;
     const NAME: &'static str = "krexa_search_agents";
-    const DESCRIPTION: &'static str =
-        "Autocomplete-style search across Krexa's KYA registry. Returns up to 20 hits with `name`, `wallet`, `score`, and `trustTier`. Use when scouting counterparties or copy-trade targets — pair with lookup_agent for a fuller profile on a specific match.";
+    const DESCRIPTION: &'static str = "Autocomplete-style search across Krexa's KYA registry. Returns up to 20 hits with `name`, `wallet`, `score`, and `trustTier`. Use when scouting counterparties or copy-trade targets — pair with lookup_agent for a fuller profile on a specific match.";
 
     fn run(_app: &KrexaApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let runtime = rt()?;
@@ -483,8 +472,7 @@ impl DynAomiTool for LookupAgent {
     type App = KrexaApp;
     type Args = LookupAgentArgs;
     const NAME: &'static str = "krexa_lookup_agent";
-    const DESCRIPTION: &'static str =
-        "Get a quick KYA snapshot for ONE agent (by wallet, `.sol` domain, or name): score, trust tier, level, `onTimeRate`, `operatingDays`, `defaultCount`, `verified`. Designed for counterparty evaluation — cheaper than the full credential and rich enough to decide whether to copy-trade or extend trust.";
+    const DESCRIPTION: &'static str = "Get a quick KYA snapshot for ONE agent (by wallet, `.sol` domain, or name): score, trust tier, level, `onTimeRate`, `operatingDays`, `defaultCount`, `verified`. Designed for counterparty evaluation — cheaper than the full credential and rich enough to decide whether to copy-trade or extend trust.";
 
     fn run(_app: &KrexaApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
         let runtime = rt()?;
