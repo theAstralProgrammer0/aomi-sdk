@@ -664,7 +664,12 @@ impl DynAomiTool for ProxyCall {
         } else {
             format!("/{}", args.route)
         };
-        let url = format!("{}/solana/paysh/proxy/{}{}", base_url(), args.provider, route);
+        let url = format!(
+            "{}/solana/paysh/proxy/{}{}",
+            base_url(),
+            args.provider,
+            route
+        );
         let body_value = Value::Object(args.body);
 
         let runtime = rt()?;
@@ -681,14 +686,16 @@ impl DynAomiTool for ProxyCall {
                     .await
                     .map_err(|e| format!("send: {e}"))?;
                 let status = response.status();
-                let text = response.text().await.map_err(|e| format!("read body: {e}"))?;
+                let text = response
+                    .text()
+                    .await
+                    .map_err(|e| format!("read body: {e}"))?;
                 if !status.is_success() {
                     return Err(format!("upstream {status}: {text}"));
                 }
                 // Pass the upstream JSON through. Fall back to a
                 // string-shaped value if the body isn't JSON.
-                let parsed: Value =
-                    serde_json::from_str(&text).unwrap_or(Value::String(text));
+                let parsed: Value = serde_json::from_str(&text).unwrap_or(Value::String(text));
                 Ok(parsed)
             })
             .map_err(|e: String| format!("[krexa] proxy_call: {e}"))?;

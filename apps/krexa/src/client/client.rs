@@ -1,7 +1,7 @@
 #[allow(unused_imports)]
 pub use progenitor_client::{ByteStream, ClientInfo, Error, ResponseValue};
 #[allow(unused_imports)]
-use progenitor_client::{encode_path, ClientHooks, OperationInfo, RequestBuilderExt};
+use progenitor_client::{ClientHooks, OperationInfo, RequestBuilderExt, encode_path};
 /// Types used as operation parameters and responses.
 #[allow(clippy::all)]
 pub mod types {
@@ -11,18 +11,12 @@ pub mod types {
         pub struct ConversionError(::std::borrow::Cow<'static, str>);
         impl ::std::error::Error for ConversionError {}
         impl ::std::fmt::Display for ConversionError {
-            fn fmt(
-                &self,
-                f: &mut ::std::fmt::Formatter<'_>,
-            ) -> Result<(), ::std::fmt::Error> {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> Result<(), ::std::fmt::Error> {
                 ::std::fmt::Display::fmt(&self.0, f)
             }
         }
         impl ::std::fmt::Debug for ConversionError {
-            fn fmt(
-                &self,
-                f: &mut ::std::fmt::Formatter<'_>,
-            ) -> Result<(), ::std::fmt::Error> {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> Result<(), ::std::fmt::Error> {
                 ::std::fmt::Debug::fmt(&self.0, f)
             }
         }
@@ -305,8 +299,8 @@ pub mod types {
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub name: ::std::option::Option<::std::string::String>,
         /**Owner wallet pubkey (base58) — fee payer and authority. May
-be the same as `agent` for self-custodied agents.
-*/
+        be the same as `agent` for self-custodied agents.
+        */
         pub owner: ::std::string::String,
     }
     ///`DeployAgentResponse`
@@ -369,9 +363,9 @@ be the same as `agent` for self-custodied agents.
         #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
         pub steps: ::std::vec::Vec<::std::string::String>,
         /**Base64-encoded transaction with the oracle's KYA signature
-already attached. Null when `status == "exists"`. Caller
-adds the agent/owner signature(s) and submits.
-*/
+        already attached. Null when `status == "exists"`. Caller
+        adds the agent/owner signature(s) and submits.
+        */
         #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
         pub transaction: ::std::option::Option<::std::string::String>,
     }
@@ -413,7 +407,10 @@ adds the agent/owner signature(s) and submits.
     /// </details>
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct FaucetRequest {
-        #[serde(rename = "amountUsdc", default = "defaults::faucet_request_amount_usdc")]
+        #[serde(
+            rename = "amountUsdc",
+            default = "defaults::faucet_request_amount_usdc"
+        )]
         pub amount_usdc: f64,
         ///Solana address (base58)
         pub recipient: ::std::string::String,
@@ -907,14 +904,14 @@ adds the agent/owner signature(s) and submits.
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct InviteChallengeResponse {
         /**UTF-8 string to sign with the agent's Ed25519 keypair. Format
-is `"Krexa invite redemption: <code> for <wallet>"`.
-*/
+        is `"Krexa invite redemption: <code> for <wallet>"`.
+        */
         pub challenge: ::std::string::String,
     }
     /**Signed KYA credential with 7 sections. Inner shape is documented
-on the platform but not fully reified here — treat as a loose
-object until the Krexa team publishes a JSON Schema.
-*/
+    on the platform but not fully reified here — treat as a loose
+    object until the Krexa team publishes a JSON Schema.
+    */
     ///
     /// <details><summary>JSON schema</summary>
     ///
@@ -1334,14 +1331,12 @@ object until the Krexa team publishes a JSON Schema.
             &self.0
         }
     }
-    impl ::std::convert::From<PayshAutoCreditDraw>
-    for ::std::option::Option<PayshAutoCreditDrawInner> {
+    impl ::std::convert::From<PayshAutoCreditDraw> for ::std::option::Option<PayshAutoCreditDrawInner> {
         fn from(value: PayshAutoCreditDraw) -> Self {
             value.0
         }
     }
-    impl ::std::convert::From<::std::option::Option<PayshAutoCreditDrawInner>>
-    for PayshAutoCreditDraw {
+    impl ::std::convert::From<::std::option::Option<PayshAutoCreditDrawInner>> for PayshAutoCreditDraw {
         fn from(value: ::std::option::Option<PayshAutoCreditDrawInner>) -> Self {
             Self(value)
         }
@@ -2084,10 +2079,7 @@ object until the Krexa team publishes a JSON Schema.
             default,
             skip_serializing_if = ":: std :: collections :: HashMap::is_empty"
         )]
-        pub headers: ::std::collections::HashMap<
-            ::std::string::String,
-            ::std::string::String,
-        >,
+        pub headers: ::std::collections::HashMap<::std::string::String, ::std::string::String>,
         #[serde(
             rename = "maxPaymentUsdc",
             default,
@@ -2720,9 +2712,7 @@ object until the Krexa team publishes a JSON Schema.
     }
     impl ::std::str::FromStr for PayshOnboardRequestName {
         type Err = self::error::ConversionError;
-        fn from_str(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             if value.chars().count() > 32usize {
                 return Err("longer than 32 characters".into());
             }
@@ -2731,9 +2721,7 @@ object until the Krexa team publishes a JSON Schema.
     }
     impl ::std::convert::TryFrom<&str> for PayshOnboardRequestName {
         type Error = self::error::ConversionError;
-        fn try_from(
-            value: &str,
-        ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
             value.parse()
         }
     }
@@ -3114,8 +3102,8 @@ object until the Krexa team publishes a JSON Schema.
         ///Provider id (e.g. `openai`, `anthropic`).
         pub provider: ::std::string::String,
         /**Upstream route to quote against, including leading slash
-(e.g. `/v1/chat/completions`).
-*/
+        (e.g. `/v1/chat/completions`).
+        */
         pub route: ::std::string::String,
     }
     ///`PayshProxyQuoteResponse`
@@ -3152,8 +3140,8 @@ object until the Krexa team publishes a JSON Schema.
         )]
         pub pay_to: ::std::option::Option<::std::string::String>,
         /**Quoted price in USDC base units (6 decimals) as a string of
-digits — matches the format `borrow_usdc.amount` expects.
-*/
+        digits — matches the format `borrow_usdc.amount` expects.
+        */
         #[serde(
             rename = "priceBaseUnits",
             default,
@@ -3360,8 +3348,8 @@ digits — matches the format `borrow_usdc.amount` expects.
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct ProvisionKeyRequest {
         /**Base58-encoded Ed25519 signature over the literal message
-`Krexa API key provision for <wallet>`.
-*/
+        `Krexa API key provision for <wallet>`.
+        */
         pub signature: ::std::string::String,
         ///Solana wallet address (base58)
         pub wallet: ::std::string::String,
@@ -3390,7 +3378,9 @@ digits — matches the format `borrow_usdc.amount` expects.
     }
     impl ::std::default::Default for ProvisionKeyResponse {
         fn default() -> Self {
-            Self { key: Default::default() }
+            Self {
+                key: Default::default(),
+            }
         }
     }
     ///`RedeemInviteRequest`
@@ -3424,8 +3414,8 @@ digits — matches the format `borrow_usdc.amount` expects.
     pub struct RedeemInviteRequest {
         pub code: ::std::string::String,
         /**Base58-encoded Ed25519 signature over the challenge string
-from `/access/challenge`, signed with the agent's keypair.
-*/
+        from `/access/challenge`, signed with the agent's keypair.
+        */
         pub signature: ::std::string::String,
         pub wallet: ::std::string::String,
     }
@@ -3495,31 +3485,31 @@ from `/access/challenge`, signed with the agent's keypair.
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct RequestCreditRequest {
         /**Requested USDC amount in 6-decimal base units, as a string of
-digits. `"500000000"` means $500.
-*/
+        digits. `"500000000"` means $500.
+        */
         pub amount: ::std::string::String,
         ///Requested credit level (1-4). Capped by score.
         #[serde(rename = "creditLevel")]
         pub credit_level: ::std::num::NonZeroU64,
         /**Owner wallet pubkey (base58). For self-custodied agents this
-equals the agent pubkey; for delegated agents it is the
-controlling wallet.
-*/
+        equals the agent pubkey; for delegated agents it is the
+        controlling wallet.
+        */
         #[serde(rename = "ownerPubkey")]
         pub owner_pubkey: ::std::string::String,
         /**Base64-encoded Ed25519 signature of the **raw 32 bytes** of
-the agent's pubkey, signed with the owner's keypair.
-Reference: `nacl.sign.detached(agentPubkey.toBytes(),
-ownerKeypair.secretKey)` → base64.
-NOTE: not a challenge string, and base64 (not base58).
-*/
+        the agent's pubkey, signed with the owner's keypair.
+        Reference: `nacl.sign.detached(agentPubkey.toBytes(),
+        ownerKeypair.secretKey)` → base64.
+        NOTE: not a challenge string, and base64 (not base58).
+        */
         #[serde(rename = "ownerSignature")]
         pub owner_signature: ::std::string::String,
     }
     /**Score plus the 5 weighted components used to derive it. Field
-names follow the developer landing-page JS sample; the components
-block is `{ repayment, profit, behavior, usage, age }`.
-*/
+    names follow the developer landing-page JS sample; the components
+    block is `{ repayment, profit, behavior, usage, age }`.
+    */
     ///
     /// <details><summary>JSON schema</summary>
     ///
@@ -3841,9 +3831,7 @@ block is `{ repayment, profit, behavior, usage, age }`.
     /// </details>
     #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
     pub struct SearchKyaAgentsResponse {
-        pub results: ::std::vec::Vec<
-            ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-        >,
+        pub results: ::std::vec::Vec<::serde_json::Map<::std::string::String, ::serde_json::Value>>,
         pub success: bool,
     }
     ///`SignCreditRequest`
@@ -3892,8 +3880,8 @@ block is `{ repayment, profit, behavior, usage, age }`.
         #[serde(rename = "agentPubkey")]
         pub agent_pubkey: ::std::string::String,
         /**USDC lamports as a string of digits (e.g. `"500000000"` for
-$500). Sending a JSON number will fail validation.
-*/
+        $500). Sending a JSON number will fail validation.
+        */
         pub amount: ::std::string::String,
         #[serde(
             rename = "collateralValueUsdc",
@@ -4153,7 +4141,9 @@ impl Client {
         #[cfg(not(target_arch = "wasm32"))]
         let client = {
             let dur = ::std::time::Duration::from_secs(15u64);
-            reqwest::ClientBuilder::new().connect_timeout(dur).timeout(dur)
+            reqwest::ClientBuilder::new()
+                .connect_timeout(dur)
+                .timeout(dur)
         };
         #[cfg(target_arch = "wasm32")]
         let client = reqwest::ClientBuilder::new();
@@ -4191,25 +4181,24 @@ impl ClientHooks<()> for &Client {}
 impl Client {
     /**Get full KYA credential
 
-Returns the signed KYA credential with 7 sections: identity,
-principal, permissions, score, reputation, financial,
-attestation.
+    Returns the signed KYA credential with 7 sections: identity,
+    principal, permissions, score, reputation, financial,
+    attestation.
 
 
-Sends a `GET` request to `/kya/{input}`
+    Sends a `GET` request to `/kya/{input}`
 
-*/
+    */
     pub async fn get_kya_credential<'a>(
         &'a self,
         input: &'a str,
     ) -> Result<ResponseValue<types::KyaCredential>, Error<()>> {
-        let url = format!("{}/kya/{}", self.baseurl, encode_path(& input.to_string()),);
+        let url = format!("{}/kya/{}", self.baseurl, encode_path(&input.to_string()),);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -4234,24 +4223,25 @@ Sends a `GET` request to `/kya/{input}`
     }
     /**Quick credential check
 
-Minimal-field response intended for high-frequency checks.
+    Minimal-field response intended for high-frequency checks.
 
-Sends a `GET` request to `/kya/{input}/quick`
+    Sends a `GET` request to `/kya/{input}/quick`
 
-*/
+    */
     pub async fn get_kya_quick<'a>(
         &'a self,
         input: &'a str,
     ) -> Result<ResponseValue<types::GetKyaQuickResponse>, Error<()>> {
         let url = format!(
-            "{}/kya/{}/quick", self.baseurl, encode_path(& input.to_string()),
+            "{}/kya/{}/quick",
+            self.baseurl,
+            encode_path(&input.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -4276,24 +4266,23 @@ Sends a `GET` request to `/kya/{input}/quick`
     }
     /**Verify a KYA credential
 
-Verifies the credential's Ed25519 signature, expiry, and the
-issuer's trust status.
+    Verifies the credential's Ed25519 signature, expiry, and the
+    issuer's trust status.
 
 
-Sends a `POST` request to `/kya/verify`
+    Sends a `POST` request to `/kya/verify`
 
-*/
+    */
     pub async fn verify_kya_credential<'a>(
         &'a self,
         body: &'a types::KyaVerifyRequest,
     ) -> Result<ResponseValue<types::KyaVerifyResponse>, Error<()>> {
         let url = format!("{}/kya/verify", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -4319,22 +4308,21 @@ Sends a `POST` request to `/kya/verify`
     }
     /**Autocomplete search by wallet prefix or name
 
-Sends a `GET` request to `/kya/search`
+    Sends a `GET` request to `/kya/search`
 
-Arguments:
-- `q`: Wallet prefix or agent name fragment
-*/
+    Arguments:
+    - `q`: Wallet prefix or agent name fragment
+    */
     pub async fn search_kya_agents<'a>(
         &'a self,
         q: &'a str,
     ) -> Result<ResponseValue<types::SearchKyaAgentsResponse>, Error<()>> {
         let url = format!("{}/kya/search", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -4360,14 +4348,14 @@ Arguments:
     }
     /**Get Krexit Score for an agent
 
-Returns the Krexit Score (200-850) and its component breakdown.
-Unregistered wallets receive a `preview` score derived from
-wallet age, transaction count, and SOL balance.
+    Returns the Krexit Score (200-850) and its component breakdown.
+    Unregistered wallets receive a `preview` score derived from
+    wallet age, transaction count, and SOL balance.
 
 
-Sends a `GET` request to `/solana/score/{agent}`
+    Sends a `GET` request to `/solana/score/{agent}`
 
-*/
+    */
     pub async fn get_score<'a>(
         &'a self,
         agent: &'a str,
@@ -4376,14 +4364,15 @@ Sends a `GET` request to `/solana/score/{agent}`
         Error<()>,
     > {
         let url = format!(
-            "{}/solana/score/{}", self.baseurl, encode_path(& agent.to_string()),
+            "{}/solana/score/{}",
+            self.baseurl,
+            encode_path(&agent.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -4408,23 +4397,23 @@ Sends a `GET` request to `/solana/score/{agent}`
     }
     /**Credit eligibility check
 
-Sends a `GET` request to `/solana/credit/{agent}/eligibility`
+    Sends a `GET` request to `/solana/credit/{agent}/eligibility`
 
-*/
+    */
     pub async fn get_credit_eligibility<'a>(
         &'a self,
         agent: &'a str,
     ) -> Result<ResponseValue<types::GetCreditEligibilityResponse>, Error<()>> {
         let url = format!(
-            "{}/solana/credit/{}/eligibility", self.baseurl, encode_path(& agent
-            .to_string()),
+            "{}/solana/credit/{}/eligibility",
+            self.baseurl,
+            encode_path(&agent.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -4449,22 +4438,23 @@ Sends a `GET` request to `/solana/credit/{agent}/eligibility`
     }
     /**Active credit line details
 
-Sends a `GET` request to `/solana/credit/{agent}/line`
+    Sends a `GET` request to `/solana/credit/{agent}/line`
 
-*/
+    */
     pub async fn get_credit_line<'a>(
         &'a self,
         agent: &'a str,
     ) -> Result<ResponseValue<types::GetCreditLineResponse>, Error<()>> {
         let url = format!(
-            "{}/solana/credit/{}/line", self.baseurl, encode_path(& agent.to_string()),
+            "{}/solana/credit/{}/line",
+            self.baseurl,
+            encode_path(&agent.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -4489,26 +4479,26 @@ Sends a `GET` request to `/solana/credit/{agent}/line`
     }
     /**Submit a credit request for oracle review
 
-Creates a credit request that the oracle reviews before signing a
-borrow transaction. Confirmed by the Krexa team: the
-`ownerSignature` is the **base64 Ed25519 signature of the raw 32
-bytes of the agent's pubkey**, signed with the owner's keypair
-(NOT a challenge string, NOT base58).
+    Creates a credit request that the oracle reviews before signing a
+    borrow transaction. Confirmed by the Krexa team: the
+    `ownerSignature` is the **base64 Ed25519 signature of the raw 32
+    bytes of the agent's pubkey**, signed with the owner's keypair
+    (NOT a challenge string, NOT base58).
 
-Once the oracle approves (synchronously for level-appropriate
-scores), call `/solana/oracle/sign-credit` to draw the line.
+    Once the oracle approves (synchronously for level-appropriate
+    scores), call `/solana/oracle/sign-credit` to draw the line.
 
 
-Sends a `POST` request to `/solana/credit/{agent}/request`
+    Sends a `POST` request to `/solana/credit/{agent}/request`
 
-Arguments:
-- `agent`
-- `x_api_key`: `kx_`-prefixed key from `POST /access/provision-key` or
-`POST /solana/paysh/onboard`. Required on Pay.sh authenticated
-endpoints.
+    Arguments:
+    - `agent`
+    - `x_api_key`: `kx_`-prefixed key from `POST /access/provision-key` or
+    `POST /solana/paysh/onboard`. Required on Pay.sh authenticated
+    endpoints.
 
-- `body`
-*/
+    - `body`
+    */
     pub async fn request_credit<'a>(
         &'a self,
         agent: &'a str,
@@ -4519,15 +4509,15 @@ endpoints.
         Error<()>,
     > {
         let url = format!(
-            "{}/solana/credit/{}/request", self.baseurl, encode_path(& agent
-            .to_string()),
+            "{}/solana/credit/{}/request",
+            self.baseurl,
+            encode_path(&agent.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-API-Key", x_api_key.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -4554,28 +4544,28 @@ endpoints.
     }
     /**Detailed Krexit Score component breakdown
 
-Returns the score together with the 5 weighted components
-(repayment, profit, behavior, usage, age) and the credit level
-derived from the score.
+    Returns the score together with the 5 weighted components
+    (repayment, profit, behavior, usage, age) and the credit level
+    derived from the score.
 
 
-Sends a `GET` request to `/solana/credit/{agent}/score-breakdown`
+    Sends a `GET` request to `/solana/credit/{agent}/score-breakdown`
 
-*/
+    */
     pub async fn get_score_breakdown<'a>(
         &'a self,
         agent: &'a str,
     ) -> Result<ResponseValue<types::ScoreBreakdown>, Error<()>> {
         let url = format!(
-            "{}/solana/credit/{}/score-breakdown", self.baseurl, encode_path(& agent
-            .to_string()),
+            "{}/solana/credit/{}/score-breakdown",
+            self.baseurl,
+            encode_path(&agent.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -4600,21 +4590,21 @@ Sends a `GET` request to `/solana/credit/{agent}/score-breakdown`
     }
     /**Oracle co-sign a borrow transaction
 
-The oracle verifies the agent's score and co-signs the borrow
-transaction. The response transaction is base64-encoded and
-partially signed; the caller must add the agent or owner
-signature before submitting to Solana.
+    The oracle verifies the agent's score and co-signs the borrow
+    transaction. The response transaction is base64-encoded and
+    partially signed; the caller must add the agent or owner
+    signature before submitting to Solana.
 
 
-Sends a `POST` request to `/solana/oracle/sign-credit`
+    Sends a `POST` request to `/solana/oracle/sign-credit`
 
-Arguments:
-- `x_api_key`: `kx_`-prefixed key from `POST /access/provision-key` or
-`POST /solana/paysh/onboard`. Required on Pay.sh authenticated
-endpoints.
+    Arguments:
+    - `x_api_key`: `kx_`-prefixed key from `POST /access/provision-key` or
+    `POST /solana/paysh/onboard`. Required on Pay.sh authenticated
+    endpoints.
 
-- `body`
-*/
+    - `body`
+    */
     pub async fn sign_credit_transaction<'a>(
         &'a self,
         x_api_key: &'a str,
@@ -4622,11 +4612,10 @@ endpoints.
     ) -> Result<ResponseValue<types::SignCreditResponse>, Error<()>> {
         let url = format!("{}/solana/oracle/sign-credit", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-API-Key", x_api_key.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -4653,19 +4642,18 @@ endpoints.
     }
     /**Vault TVL, utilization, and tranche stats
 
-Sends a `GET` request to `/solana/vault/stats`
+    Sends a `GET` request to `/solana/vault/stats`
 
-*/
+    */
     pub async fn get_vault_stats<'a>(
         &'a self,
     ) -> Result<ResponseValue<types::VaultStats>, Error<()>> {
         let url = format!("{}/solana/vault/stats", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -4690,24 +4678,23 @@ Sends a `GET` request to `/solana/vault/stats`
     }
     /**Request test USDC (devnet only)
 
-Devnet-only. Disabled on mainnet-beta. Rate-limited to one call
-per 24 hours per recipient address.
+    Devnet-only. Disabled on mainnet-beta. Rate-limited to one call
+    per 24 hours per recipient address.
 
 
-Sends a `POST` request to `/solana/faucet/usdc`
+    Sends a `POST` request to `/solana/faucet/usdc`
 
-*/
+    */
     pub async fn request_faucet_usdc<'a>(
         &'a self,
         body: &'a types::FaucetRequest,
     ) -> Result<ResponseValue<types::FaucetResponse>, Error<()>> {
         let url = format!("{}/solana/faucet/usdc", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -4733,28 +4720,27 @@ Sends a `POST` request to `/solana/faucet/usdc`
     }
     /**Fetch the literal challenge string for invite redemption
 
-Returns the exact UTF-8 string the caller must sign with their
-**agent** keypair before submitting `POST /access/redeem`. The
-string is fully determined by `code` and `wallet`
-(`"Krexa invite redemption: <code> for <wallet>"`), but the
-backend is the source of truth — always fetch it rather than
-building locally.
+    Returns the exact UTF-8 string the caller must sign with their
+    **agent** keypair before submitting `POST /access/redeem`. The
+    string is fully determined by `code` and `wallet`
+    (`"Krexa invite redemption: <code> for <wallet>"`), but the
+    backend is the source of truth — always fetch it rather than
+    building locally.
 
 
-Sends a `POST` request to `/access/challenge`
+    Sends a `POST` request to `/access/challenge`
 
-*/
+    */
     pub async fn get_invite_challenge<'a>(
         &'a self,
         body: &'a types::InviteChallengeRequest,
     ) -> Result<ResponseValue<types::InviteChallengeResponse>, Error<()>> {
         let url = format!("{}/access/challenge", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -4780,29 +4766,28 @@ Sends a `POST` request to `/access/challenge`
     }
     /**Redeem an invite code with an agent-signed challenge
 
-Permanently binds an invite code to a Solana wallet (agent).
-One code per wallet. Once redeemed, the wallet is activated for
-all gated endpoints.
+    Permanently binds an invite code to a Solana wallet (agent).
+    One code per wallet. Once redeemed, the wallet is activated for
+    all gated endpoints.
 
-`signature` is the base58-encoded Ed25519 signature of the
-challenge returned by `/access/challenge`, signed with the
-agent's keypair.
+    `signature` is the base58-encoded Ed25519 signature of the
+    challenge returned by `/access/challenge`, signed with the
+    agent's keypair.
 
 
-Sends a `POST` request to `/access/redeem`
+    Sends a `POST` request to `/access/redeem`
 
-*/
+    */
     pub async fn redeem_invite<'a>(
         &'a self,
         body: &'a types::RedeemInviteRequest,
     ) -> Result<ResponseValue<types::RedeemInviteResponse>, Error<()>> {
         let url = format!("{}/access/redeem", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -4828,38 +4813,37 @@ Sends a `POST` request to `/access/redeem`
     }
     /**Build the on-chain agent-deploy transaction
 
-Builds an unsigned-by-caller transaction that performs three
-on-chain steps as one atomic submit:
-  1. `register_agent` on the registry program
-  2. `update_kya` at tier 1 (pre-signed by the oracle)
-  3. `create_wallet` (PDA wallet + USDC ATA)
+    Builds an unsigned-by-caller transaction that performs three
+    on-chain steps as one atomic submit:
+      1. `register_agent` on the registry program
+      2. `update_kya` at tier 1 (pre-signed by the oracle)
+      3. `create_wallet` (PDA wallet + USDC ATA)
 
-Idempotent: if the agent is already deployed, returns
-`{ "status": "exists" }` and `transaction: null`. Otherwise
-returns `{ "status": "ready", "transaction": "<base64 partial
-signed tx>" }` — the caller adds the agent + owner signatures
-(often the same keypair for self-custodied agents) and submits
-to Solana RPC.
+    Idempotent: if the agent is already deployed, returns
+    `{ "status": "exists" }` and `transaction: null`. Otherwise
+    returns `{ "status": "ready", "transaction": "<base64 partial
+    signed tx>" }` — the caller adds the agent + owner signatures
+    (often the same keypair for self-custodied agents) and submits
+    to Solana RPC.
 
-Requires the wallet to be funded with SOL (~0.01 SOL for rent on
-the three new accounts) and previously activated via
-`/access/redeem`.
+    Requires the wallet to be funded with SOL (~0.01 SOL for rent on
+    the three new accounts) and previously activated via
+    `/access/redeem`.
 
 
-Sends a `POST` request to `/agents/deploy`
+    Sends a `POST` request to `/agents/deploy`
 
-*/
+    */
     pub async fn deploy_agent<'a>(
         &'a self,
         body: &'a types::DeployAgentRequest,
     ) -> Result<ResponseValue<types::DeployAgentResponse>, Error<()>> {
         let url = format!("{}/agents/deploy", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -4885,27 +4869,26 @@ Sends a `POST` request to `/agents/deploy`
     }
     /**Provision an API key for a Solana wallet
 
-Self-service API key provisioning. The caller signs the message
-`Krexa API key provision for <wallet>` with their wallet
-keypair and posts the base58 signature here. The returned `kx_`
-key is then passed as `X-API-Key` on subsequent requests for
-the 60 req/min tier.
+    Self-service API key provisioning. The caller signs the message
+    `Krexa API key provision for <wallet>` with their wallet
+    keypair and posts the base58 signature here. The returned `kx_`
+    key is then passed as `X-API-Key` on subsequent requests for
+    the 60 req/min tier.
 
 
-Sends a `POST` request to `/access/provision-key`
+    Sends a `POST` request to `/access/provision-key`
 
-*/
+    */
     pub async fn provision_api_key<'a>(
         &'a self,
         body: &'a types::ProvisionKeyRequest,
     ) -> Result<ResponseValue<types::ProvisionKeyResponse>, Error<()>> {
         let url = format!("{}/access/provision-key", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -4931,25 +4914,24 @@ Sends a `POST` request to `/access/provision-key`
     }
     /**One-call agent onboarding
 
-Deploys an agent wallet, grants $500 L1 credit, and provisions an
-API key in a single call. Returns an unsigned transaction the
-owner must sign and submit.
+    Deploys an agent wallet, grants $500 L1 credit, and provisions an
+    API key in a single call. Returns an unsigned transaction the
+    owner must sign and submit.
 
 
-Sends a `POST` request to `/solana/paysh/onboard`
+    Sends a `POST` request to `/solana/paysh/onboard`
 
-*/
+    */
     pub async fn paysh_onboard<'a>(
         &'a self,
         body: &'a types::PayshOnboardRequest,
     ) -> Result<ResponseValue<types::PayshOnboardResponse>, Error<()>> {
         let url = format!("{}/solana/paysh/onboard", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -4975,20 +4957,20 @@ Sends a `POST` request to `/solana/paysh/onboard`
     }
     /**Full API call flow
 
-Probe the target URL for x402 pricing, check budget and funding,
-and build a USDC payment transaction.
+    Probe the target URL for x402 pricing, check budget and funding,
+    and build a USDC payment transaction.
 
 
-Sends a `POST` request to `/solana/paysh/{agent}/call`
+    Sends a `POST` request to `/solana/paysh/{agent}/call`
 
-Arguments:
-- `agent`
-- `x_api_key`: `kx_`-prefixed key from `POST /access/provision-key` or
-`POST /solana/paysh/onboard`. Required on Pay.sh authenticated
-endpoints.
+    Arguments:
+    - `agent`
+    - `x_api_key`: `kx_`-prefixed key from `POST /access/provision-key` or
+    `POST /solana/paysh/onboard`. Required on Pay.sh authenticated
+    endpoints.
 
-- `body`
-*/
+    - `body`
+    */
     pub async fn paysh_call<'a>(
         &'a self,
         agent: &'a str,
@@ -4996,14 +4978,15 @@ endpoints.
         body: &'a types::PayshCallRequest,
     ) -> Result<ResponseValue<types::PayshCallResponse>, Error<()>> {
         let url = format!(
-            "{}/solana/paysh/{}/call", self.baseurl, encode_path(& agent.to_string()),
+            "{}/solana/paysh/{}/call",
+            self.baseurl,
+            encode_path(&agent.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-API-Key", x_api_key.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -5030,16 +5013,16 @@ endpoints.
     }
     /**Probe URL for x402 pricing
 
-Sends a `POST` request to `/solana/paysh/{agent}/discover`
+    Sends a `POST` request to `/solana/paysh/{agent}/discover`
 
-Arguments:
-- `agent`
-- `x_api_key`: `kx_`-prefixed key from `POST /access/provision-key` or
-`POST /solana/paysh/onboard`. Required on Pay.sh authenticated
-endpoints.
+    Arguments:
+    - `agent`
+    - `x_api_key`: `kx_`-prefixed key from `POST /access/provision-key` or
+    `POST /solana/paysh/onboard`. Required on Pay.sh authenticated
+    endpoints.
 
-- `body`
-*/
+    - `body`
+    */
     pub async fn paysh_discover<'a>(
         &'a self,
         agent: &'a str,
@@ -5047,15 +5030,15 @@ endpoints.
         body: &'a types::PayshDiscoverRequest,
     ) -> Result<ResponseValue<types::PayshDiscoverResponse>, Error<()>> {
         let url = format!(
-            "{}/solana/paysh/{}/discover", self.baseurl, encode_path(& agent
-            .to_string()),
+            "{}/solana/paysh/{}/discover",
+            self.baseurl,
+            encode_path(&agent.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-API-Key", x_api_key.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -5082,22 +5065,23 @@ endpoints.
     }
     /**Wallet USDC balance and available credit
 
-Sends a `GET` request to `/solana/paysh/{agent}/balance`
+    Sends a `GET` request to `/solana/paysh/{agent}/balance`
 
-*/
+    */
     pub async fn paysh_balance<'a>(
         &'a self,
         agent: &'a str,
     ) -> Result<ResponseValue<types::PayshBalanceResponse>, Error<()>> {
         let url = format!(
-            "{}/solana/paysh/{}/balance", self.baseurl, encode_path(& agent.to_string()),
+            "{}/solana/paysh/{}/balance",
+            self.baseurl,
+            encode_path(&agent.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -5122,18 +5106,18 @@ Sends a `GET` request to `/solana/paysh/{agent}/balance`
     }
     /**Paginated spending history with analytics
 
-Sends a `GET` request to `/solana/paysh/{agent}/history`
+    Sends a `GET` request to `/solana/paysh/{agent}/history`
 
-Arguments:
-- `agent`
-- `domain`
-- `limit`
-- `page`
-- `x_api_key`: `kx_`-prefixed key from `POST /access/provision-key` or
-`POST /solana/paysh/onboard`. Required on Pay.sh authenticated
-endpoints.
+    Arguments:
+    - `agent`
+    - `domain`
+    - `limit`
+    - `page`
+    - `x_api_key`: `kx_`-prefixed key from `POST /access/provision-key` or
+    `POST /solana/paysh/onboard`. Required on Pay.sh authenticated
+    endpoints.
 
-*/
+    */
     pub async fn paysh_history<'a>(
         &'a self,
         agent: &'a str,
@@ -5143,14 +5127,15 @@ endpoints.
         x_api_key: &'a str,
     ) -> Result<ResponseValue<types::PayshHistory>, Error<()>> {
         let url = format!(
-            "{}/solana/paysh/{}/history", self.baseurl, encode_path(& agent.to_string()),
+            "{}/solana/paysh/{}/history",
+            self.baseurl,
+            encode_path(&agent.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-API-Key", x_api_key.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -5179,29 +5164,30 @@ endpoints.
     }
     /**Get current budget limits and usage
 
-Sends a `GET` request to `/solana/paysh/{agent}/budget`
+    Sends a `GET` request to `/solana/paysh/{agent}/budget`
 
-Arguments:
-- `agent`
-- `x_api_key`: `kx_`-prefixed key from `POST /access/provision-key` or
-`POST /solana/paysh/onboard`. Required on Pay.sh authenticated
-endpoints.
+    Arguments:
+    - `agent`
+    - `x_api_key`: `kx_`-prefixed key from `POST /access/provision-key` or
+    `POST /solana/paysh/onboard`. Required on Pay.sh authenticated
+    endpoints.
 
-*/
+    */
     pub async fn paysh_get_budget<'a>(
         &'a self,
         agent: &'a str,
         x_api_key: &'a str,
     ) -> Result<ResponseValue<types::PayshBudget>, Error<()>> {
         let url = format!(
-            "{}/solana/paysh/{}/budget", self.baseurl, encode_path(& agent.to_string()),
+            "{}/solana/paysh/{}/budget",
+            self.baseurl,
+            encode_path(&agent.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-API-Key", x_api_key.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -5227,18 +5213,18 @@ endpoints.
     }
     /**Update spending limits
 
-All fields are optional; only provided fields are updated.
+    All fields are optional; only provided fields are updated.
 
-Sends a `POST` request to `/solana/paysh/{agent}/budget`
+    Sends a `POST` request to `/solana/paysh/{agent}/budget`
 
-Arguments:
-- `agent`
-- `x_api_key`: `kx_`-prefixed key from `POST /access/provision-key` or
-`POST /solana/paysh/onboard`. Required on Pay.sh authenticated
-endpoints.
+    Arguments:
+    - `agent`
+    - `x_api_key`: `kx_`-prefixed key from `POST /access/provision-key` or
+    `POST /solana/paysh/onboard`. Required on Pay.sh authenticated
+    endpoints.
 
-- `body`
-*/
+    - `body`
+    */
     pub async fn paysh_set_budget<'a>(
         &'a self,
         agent: &'a str,
@@ -5246,14 +5232,15 @@ endpoints.
         body: &'a types::PayshBudgetUpdate,
     ) -> Result<ResponseValue<types::PayshBudget>, Error<()>> {
         let url = format!(
-            "{}/solana/paysh/{}/budget", self.baseurl, encode_path(& agent.to_string()),
+            "{}/solana/paysh/{}/budget",
+            self.baseurl,
+            encode_path(&agent.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-API-Key", x_api_key.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -5280,16 +5267,16 @@ endpoints.
     }
     /**Confirm a payment tx was submitted on-chain
 
-Sends a `POST` request to `/solana/paysh/{agent}/confirm`
+    Sends a `POST` request to `/solana/paysh/{agent}/confirm`
 
-Arguments:
-- `agent`
-- `x_api_key`: `kx_`-prefixed key from `POST /access/provision-key` or
-`POST /solana/paysh/onboard`. Required on Pay.sh authenticated
-endpoints.
+    Arguments:
+    - `agent`
+    - `x_api_key`: `kx_`-prefixed key from `POST /access/provision-key` or
+    `POST /solana/paysh/onboard`. Required on Pay.sh authenticated
+    endpoints.
 
-- `body`
-*/
+    - `body`
+    */
     pub async fn paysh_confirm<'a>(
         &'a self,
         agent: &'a str,
@@ -5297,14 +5284,15 @@ endpoints.
         body: &'a types::PayshConfirmRequest,
     ) -> Result<ResponseValue<types::PayshConfirmResponse>, Error<()>> {
         let url = format!(
-            "{}/solana/paysh/{}/confirm", self.baseurl, encode_path(& agent.to_string()),
+            "{}/solana/paysh/{}/confirm",
+            self.baseurl,
+            encode_path(&agent.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-API-Key", x_api_key.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -5331,24 +5319,24 @@ endpoints.
     }
     /**Offline cost estimate from the curated catalog
 
-Sends a `GET` request to `/solana/paysh/{agent}/estimate`
+    Sends a `GET` request to `/solana/paysh/{agent}/estimate`
 
-*/
+    */
     pub async fn paysh_estimate<'a>(
         &'a self,
         agent: &'a str,
         url: &'a str,
     ) -> Result<ResponseValue<types::PayshEstimate>, Error<()>> {
         let _url = format!(
-            "{}/solana/paysh/{}/estimate", self.baseurl, encode_path(& agent
-            .to_string()),
+            "{}/solana/paysh/{}/estimate",
+            self.baseurl,
+            encode_path(&agent.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -5374,29 +5362,30 @@ Sends a `GET` request to `/solana/paysh/{agent}/estimate`
     }
     /**Agent's score-based API access tier
 
-Sends a `GET` request to `/solana/paysh/{agent}/tier`
+    Sends a `GET` request to `/solana/paysh/{agent}/tier`
 
-Arguments:
-- `agent`
-- `x_api_key`: `kx_`-prefixed key from `POST /access/provision-key` or
-`POST /solana/paysh/onboard`. Required on Pay.sh authenticated
-endpoints.
+    Arguments:
+    - `agent`
+    - `x_api_key`: `kx_`-prefixed key from `POST /access/provision-key` or
+    `POST /solana/paysh/onboard`. Required on Pay.sh authenticated
+    endpoints.
 
-*/
+    */
     pub async fn paysh_tier<'a>(
         &'a self,
         agent: &'a str,
         x_api_key: &'a str,
     ) -> Result<ResponseValue<types::PayshTier>, Error<()>> {
         let url = format!(
-            "{}/solana/paysh/{}/tier", self.baseurl, encode_path(& agent.to_string()),
+            "{}/solana/paysh/{}/tier",
+            self.baseurl,
+            encode_path(&agent.to_string()),
         );
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-API-Key", x_api_key.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -5422,15 +5411,15 @@ endpoints.
     }
     /**List Pay.sh proxy providers with live pricing
 
-Returns the providers the Pay.sh proxy gateway can route to (e.g.
-OpenAI, Anthropic) along with per-route pricing and a
-`proxyAvailable: true` flag. Replaces the legacy `/paysh/catalog`
-endpoint, whose URLs were placeholders.
+    Returns the providers the Pay.sh proxy gateway can route to (e.g.
+    OpenAI, Anthropic) along with per-route pricing and a
+    `proxyAvailable: true` flag. Replaces the legacy `/paysh/catalog`
+    endpoint, whose URLs were placeholders.
 
 
-Sends a `GET` request to `/solana/paysh/proxy/providers`
+    Sends a `GET` request to `/solana/paysh/proxy/providers`
 
-*/
+    */
     pub async fn paysh_proxy_list_providers<'a>(
         &'a self,
     ) -> Result<
@@ -5439,11 +5428,10 @@ Sends a `GET` request to `/solana/paysh/proxy/providers`
     > {
         let url = format!("{}/solana/paysh/proxy/providers", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client
@@ -5468,24 +5456,24 @@ Sends a `GET` request to `/solana/paysh/proxy/providers`
     }
     /**Quote a proxy call (price + gateway wallet)
 
-Quote the USDC price for a `(provider, route)` pair, plus the
-gateway wallet the agent must transfer USDC to before the proxy
-call. Three-step flow:
+    Quote the USDC price for a `(provider, route)` pair, plus the
+    gateway wallet the agent must transfer USDC to before the proxy
+    call. Three-step flow:
 
-1. `payshProxyQuote` → `{ priceUsdc, payTo, priceBaseUnits }`
-2. Agent sends USDC to `payTo` on Solana, captures the tx signature
-3. `payshProxyCall` with `X-PAYMENT: <tx-sig>` + `X-AGENT-PUBKEY`
+    1. `payshProxyQuote` → `{ priceUsdc, payTo, priceBaseUnits }`
+    2. Agent sends USDC to `payTo` on Solana, captures the tx signature
+    3. `payshProxyCall` with `X-PAYMENT: <tx-sig>` + `X-AGENT-PUBKEY`
 
 
-Sends a `POST` request to `/solana/paysh/proxy/quote`
+    Sends a `POST` request to `/solana/paysh/proxy/quote`
 
-Arguments:
-- `x_api_key`: `kx_`-prefixed key from `POST /access/provision-key` or
-`POST /solana/paysh/onboard`. Required on Pay.sh authenticated
-endpoints.
+    Arguments:
+    - `x_api_key`: `kx_`-prefixed key from `POST /access/provision-key` or
+    `POST /solana/paysh/onboard`. Required on Pay.sh authenticated
+    endpoints.
 
-- `body`
-*/
+    - `body`
+    */
     pub async fn paysh_proxy_quote<'a>(
         &'a self,
         x_api_key: &'a str,
@@ -5493,11 +5481,10 @@ endpoints.
     ) -> Result<ResponseValue<types::PayshProxyQuoteResponse>, Error<()>> {
         let url = format!("{}/solana/paysh/proxy/quote", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(2usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         header_map.append("X-API-Key", x_api_key.to_string().try_into()?);
         #[allow(unused_mut)]
         let mut request = self
@@ -5524,9 +5511,9 @@ endpoints.
     }
     /**List Pay.sh curated APIs
 
-Sends a `GET` request to `/solana/paysh/catalog`
+    Sends a `GET` request to `/solana/paysh/catalog`
 
-*/
+    */
     pub async fn paysh_catalog<'a>(
         &'a self,
         category: Option<&'a str>,
@@ -5534,11 +5521,10 @@ Sends a `GET` request to `/solana/paysh/catalog`
     ) -> Result<ResponseValue<types::PayshCatalog>, Error<()>> {
         let url = format!("{}/solana/paysh/catalog", self.baseurl,);
         let mut header_map = ::reqwest::header::HeaderMap::with_capacity(1usize);
-        header_map
-            .append(
-                ::reqwest::header::HeaderName::from_static("api-version"),
-                ::reqwest::header::HeaderValue::from_static(Self::api_version()),
-            );
+        header_map.append(
+            ::reqwest::header::HeaderName::from_static("api-version"),
+            ::reqwest::header::HeaderValue::from_static(Self::api_version()),
+        );
         #[allow(unused_mut)]
         let mut request = self
             .client

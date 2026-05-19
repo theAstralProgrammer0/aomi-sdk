@@ -26,14 +26,12 @@
 //!
 //! Secrets resolve through `aomi_sdk::resolve_secret_value(ctx, ...)` —
 //! vault first, env-var fallback. Operators set:
-//!   - `KREXA_API_KEY`            (kx_...)
-//!   - `KREXA_AGENT_SECRET_KEY`   (base58 64-byte Solana keypair, used
-//!                                 for invite redemption — the agent
-//!                                 signs its own activation)
-//!   - `KREXA_OWNER_SECRET_KEY`   (base58 64-byte Solana keypair, used
-//!                                 for KYA ownerSignature — typically
-//!                                 the same key as the agent for
-//!                                 self-custodied agents)
+//!   - `KREXA_API_KEY` (`kx_...`)
+//!   - `KREXA_AGENT_SECRET_KEY` — base58 64-byte Solana keypair used for
+//!     invite redemption (the agent signs its own activation)
+//!   - `KREXA_OWNER_SECRET_KEY` — base58 64-byte Solana keypair used for
+//!     KYA `ownerSignature` (typically the same key as the agent for
+//!     self-custodied agents)
 
 use base64::Engine;
 
