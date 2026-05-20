@@ -18,6 +18,7 @@ exclude = [
     "apps/delta",
     "apps/dune",
     "apps/dydx",
+    "apps/fanforge",
     "apps/gmx",
     "apps/hyperliquid",
     "apps/kaito",
