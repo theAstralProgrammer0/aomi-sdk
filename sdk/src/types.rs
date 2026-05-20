@@ -50,6 +50,12 @@ pub struct DynToolCallCtx {
     /// Business/domain-specific runtime attributes copied from host context.
     #[serde(default)]
     pub state_attributes: Map<String, Value>,
+    /// Raw values for this app's declared secrets, resolved from the host
+    /// secret vault for the calling session's client_id. Tools read these
+    /// via [`resolve_secret_value`](crate::resolve_secret_value); they are
+    /// never logged, persisted, or echoed to the model.
+    #[serde(default)]
+    pub secrets: std::collections::HashMap<String, String>,
 }
 
 impl DynToolCallCtx {
@@ -129,6 +135,11 @@ pub struct DynManifest {
     /// The host injects these namespaces' tools alongside the plugin's own tools.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub namespaces: Option<Vec<String>>,
+    /// Per-app secret slots this plugin declares (see [`crate::Secret`]).
+    /// The host gates app load on every `required: true` slot being filled
+    /// in the user's vault, and surfaces this list in the settings UI.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub secrets: Option<Vec<crate::SecretSlot>>,
 }
 
 // ============================================================================
@@ -397,6 +408,13 @@ pub trait DynAomiApp: Clone + Default + Send + Sync + 'static {
         Some(vec!["evm-core".to_string()])
     }
 
+    /// Per-app secret slots this plugin needs. Default: none. Apps that
+    /// require external credentials override this (typically via the
+    /// `secrets = [...]` arm of `dyn_aomi_app!`).
+    fn secrets(&self) -> Option<Vec<crate::SecretSlot>> {
+        None
+    }
+
     /// Build the full [`DynManifest`] for host consumption.
     fn manifest(&self) -> DynManifest {
         DynManifest {
@@ -406,6 +424,7 @@ pub trait DynAomiApp: Clone + Default + Send + Sync + 'static {
             preamble: self.preamble().to_string(),
             tools: self.tools(),
             namespaces: self.namespaces(),
+            secrets: self.secrets(),
         }
     }
 }
@@ -631,6 +650,7 @@ mod tests {
                 tool_name: "echo".to_string(),
                 call_id: "call".to_string(),
                 state_attributes: Default::default(),
+                secrets: Default::default(),
             },
         )
         .unwrap();

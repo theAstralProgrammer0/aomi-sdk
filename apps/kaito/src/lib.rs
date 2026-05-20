@@ -71,6 +71,12 @@ trending, and check token mindshare.
 - Always cite sources/links when the response includes them.
 "##;
 
+const SECRET_API_KEY: Secret = Secret::new(
+    "KAITO_API_KEY",
+    "Kaito InfoFi API key for yapper scores and narratives.",
+    true,
+);
+
 dyn_aomi_app!(
     app = tool::KaitoApp,
     name = "kaito",
@@ -82,5 +88,6 @@ dyn_aomi_app!(
         tool::TrendingNarratives,
         tool::GetTokenMindshare,
     ],
+    secrets = [SECRET_API_KEY],
     namespaces = ["evm-core"]
 );

@@ -100,6 +100,17 @@ Cancel still needs a `limitless_cancel_order` tool (`POST /orders/cancel` + HMAC
 - Mention USD-denominated PnL with sign ("+$12.30").
 - For staged approvals, after `commit_txs` returns `pending_approval`, say "waiting for wallet approval" — never "submitted" or "broadcast" until you see a tx hash."##;
 
+const SECRET_API_KEY: Secret = Secret::new(
+    "LIMITLESS_API_KEY",
+    "Limitless CTF Exchange API key id (created at limitless.exchange → Settings → API Keys).",
+    true,
+);
+const SECRET_API_SECRET: Secret = Secret::new(
+    "LIMITLESS_API_SECRET",
+    "Limitless API secret, base64-encoded as shown in the dashboard.",
+    true,
+);
+
 dyn_aomi_app!(
     app = tool::LimitlessApp,
     name = "limitless",
@@ -116,5 +127,6 @@ dyn_aomi_app!(
         tool::BuildOrder,
         tool::SubmitOrder,
     ],
+    secrets = [SECRET_API_KEY, SECRET_API_SECRET],
     namespaces = ["evm-core"]
 );

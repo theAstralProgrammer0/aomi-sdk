@@ -65,6 +65,17 @@ challenge externally. The challenge format is
 `Krexa credit request for <owner_pubkey>` (best-guess pending Krexa
 team confirmation)."##;
 
+const SECRET_API_KEY: Secret = Secret::new(
+    "KREXA_API_KEY",
+    "Krexa Pay.sh API key (kx_-prefixed) for the X-API-Key header on authenticated endpoints.",
+    true,
+);
+const SECRET_OWNER_SECRET_KEY: Secret = Secret::new(
+    "KREXA_OWNER_SECRET_KEY",
+    "Base58-encoded 64-byte Solana keypair (owner secret) used to sign Krexa credit requests.",
+    false,
+);
+
 dyn_aomi_app!(
     app = tool::KrexaApp,
     name = "krexa",
@@ -87,5 +98,6 @@ dyn_aomi_app!(
         tool::SearchAgents,
         tool::LookupAgent,
     ],
+    secrets = [SECRET_API_KEY, SECRET_OWNER_SECRET_KEY],
     namespaces = ["solana-core"]
 );

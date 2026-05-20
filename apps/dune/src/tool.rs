@@ -51,8 +51,9 @@ fn rt() -> Result<tokio::runtime::Runtime, String> {
     tokio::runtime::Runtime::new().map_err(|e| format!("[dune] runtime: {e}"))
 }
 
-fn resolve_key(arg: Option<&str>) -> Result<String, String> {
+fn resolve_key(ctx: &DynToolCallCtx, arg: Option<&str>) -> Result<String, String> {
     resolve_secret_value(
+        ctx,
         arg,
         "DUNE_API_KEY",
         "[dune] missing api_key argument and DUNE_API_KEY env var",
@@ -148,8 +149,8 @@ impl DynAomiTool for RunQuery {
     const NAME: &'static str = "dune_run_query";
     const DESCRIPTION: &'static str = "Execute a saved Dune SQL query by its query ID, wait for it to finish, and return the result rows. Use this when the user names a Dune query (or query ID) and wants the up-to-date data. Polls execution status every 2 seconds until QUERY_STATE_COMPLETED, then fetches results in one tool call. Bounded by max_wait_seconds (default 60).";
 
-    fn run(_app: &DuneApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let api_key = resolve_key(args.api_key.as_deref())?;
+    fn run(_app: &DuneApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
+        let api_key = resolve_key(&ctx, args.api_key.as_deref())?;
         let max_wait = Duration::from_secs(args.max_wait_seconds.unwrap_or(DEFAULT_MAX_WAIT_SECS));
         let query_id = args.query_id;
         let query_parameters = args.query_parameters.clone();
@@ -203,8 +204,8 @@ impl DynAomiTool for RunSql {
     const NAME: &'static str = "dune_run_sql";
     const DESCRIPTION: &'static str = "Run an ad-hoc SQL query against Dune's catalog without needing to save it first. Wait for the execution to complete and return the result rows in one tool call. Use when the user gives you a SQL string (or asks an analytical question you can answer with one). Polls every 2 seconds until QUERY_STATE_COMPLETED. Bounded by max_wait_seconds (default 60).";
 
-    fn run(_app: &DuneApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let api_key = resolve_key(args.api_key.as_deref())?;
+    fn run(_app: &DuneApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
+        let api_key = resolve_key(&ctx, args.api_key.as_deref())?;
         let max_wait = Duration::from_secs(args.max_wait_seconds.unwrap_or(DEFAULT_MAX_WAIT_SECS));
         let perf = match args
             .performance
@@ -268,8 +269,8 @@ impl DynAomiTool for GetLatestResults {
     const NAME: &'static str = "dune_get_latest_results";
     const DESCRIPTION: &'static str = "Get the most recent cached results of a saved Dune query without re-executing it. Cheaper and faster than `dune_run_query` — prefer this when the user just wants to read a query whose schedule already keeps it fresh.";
 
-    fn run(_app: &DuneApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let api_key = resolve_key(args.api_key.as_deref())?;
+    fn run(_app: &DuneApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
+        let api_key = resolve_key(&ctx, args.api_key.as_deref())?;
         let runtime = rt()?;
         runtime.block_on(async move {
             let client = DuneClient::new(BASE_URL);
@@ -314,8 +315,8 @@ impl DynAomiTool for GetExecutionStatus {
     const NAME: &'static str = "dune_get_execution_status";
     const DESCRIPTION: &'static str = "Check the state of a Dune query execution by its execution_id. Returns one of QUERY_STATE_PENDING, QUERY_STATE_EXECUTING, QUERY_STATE_COMPLETED, QUERY_STATE_FAILED, QUERY_STATE_CANCELLED, plus timing/cost info. Only needed when inspecting an execution started elsewhere (e.g. one that timed out from `dune_run_query`); the run tools wait for completion themselves.";
 
-    fn run(_app: &DuneApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let api_key = resolve_key(args.api_key.as_deref())?;
+    fn run(_app: &DuneApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
+        let api_key = resolve_key(&ctx, args.api_key.as_deref())?;
         let runtime = rt()?;
         runtime.block_on(async move {
             let client = DuneClient::new(BASE_URL);
@@ -356,8 +357,8 @@ impl DynAomiTool for ListMyQueries {
     const NAME: &'static str = "dune_list_my_queries";
     const DESCRIPTION: &'static str = "List Dune SQL queries owned by the account tied to the API key. Returns IDs, names, and metadata you can pass to `dune_run_query` or `dune_get_latest_results`. Use when the user asks 'what queries do I have' or wants to discover their saved queries before running one.";
 
-    fn run(_app: &DuneApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let api_key = resolve_key(args.api_key.as_deref())?;
+    fn run(_app: &DuneApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
+        let api_key = resolve_key(&ctx, args.api_key.as_deref())?;
         let runtime = rt()?;
         runtime.block_on(async move {
             let client = DuneClient::new(BASE_URL);

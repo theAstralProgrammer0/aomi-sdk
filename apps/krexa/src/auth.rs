@@ -22,15 +22,19 @@
 /// from `POST /solana/paysh/onboard`.
 pub const API_KEY_ENV: &str = "KREXA_API_KEY";
 
-/// Read the API key from the env, returning a tool-shaped `Result` so the
-/// curated tool layer can propagate the error with `?`.
-pub fn api_key() -> Result<String, String> {
-    std::env::var(API_KEY_ENV).map_err(|_| {
-        format!(
+/// Resolve the API key from (in order) the per-app secret vault and the
+/// `KREXA_API_KEY` env var. Returning `Err` only when both miss, with the
+/// tool-shaped message the curated tool layer propagates with `?`.
+pub fn api_key(ctx: &aomi_sdk::DynToolCallCtx) -> Result<String, String> {
+    aomi_sdk::resolve_secret_value(
+        ctx,
+        None,
+        API_KEY_ENV,
+        &format!(
             "[krexa] {API_KEY_ENV} not set; Pay.sh authenticated endpoints \
              require an X-API-Key header (`kx_...`)."
-        )
-    })
+        ),
+    )
 }
 
 // ---------------------------------------------------------------------------
@@ -71,17 +75,23 @@ pub fn credit_request_challenge(owner_pubkey: &str) -> String {
 ///   - `KREXA_OWNER_SECRET_KEY` unset
 ///   - secret key not valid base58 or wrong length (expects 64 bytes —
 ///     the Solana keypair format, secret + public concatenated)
-pub fn sign_credit_request(owner_pubkey: &str) -> Result<String, String> {
+pub fn sign_credit_request(
+    ctx: &aomi_sdk::DynToolCallCtx,
+    owner_pubkey: &str,
+) -> Result<String, String> {
     use ed25519_dalek::{Signer, SigningKey};
 
-    let secret_b58 = std::env::var(OWNER_SECRET_ENV).map_err(|_| {
-        format!(
+    let secret_b58 = aomi_sdk::resolve_secret_value(
+        ctx,
+        None,
+        OWNER_SECRET_ENV,
+        &format!(
             "[krexa] {OWNER_SECRET_ENV} not set; credit_request needs the \
              owner wallet's secret key (base58-encoded 64-byte Solana \
              keypair). To sign externally, the challenge is:\n  {}",
             credit_request_challenge(owner_pubkey)
-        )
-    })?;
+        ),
+    )?;
 
     let bytes = bs58::decode(&secret_b58)
         .into_vec()

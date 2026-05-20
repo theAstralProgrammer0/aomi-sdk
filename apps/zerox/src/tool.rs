@@ -69,8 +69,9 @@ fn rt() -> Result<tokio::runtime::Runtime, String> {
     tokio::runtime::Runtime::new().map_err(|e| format!("[0x] runtime: {e}"))
 }
 
-fn resolve_key(arg: Option<&str>) -> Result<String, String> {
+fn resolve_key(ctx: &DynToolCallCtx, arg: Option<&str>) -> Result<String, String> {
     resolve_secret_value(
+        ctx,
         arg,
         "ZEROX_API_KEY",
         "[0x] missing api_key argument and ZEROX_API_KEY environment variable",
@@ -222,8 +223,8 @@ impl DynAomiTool for ZeroxGetPrice {
     const NAME: &'static str = "zerox_get_price";
     const DESCRIPTION: &'static str = "Use when the user asks for a 0x swap price (no signing). Returns expected `buyAmount` and routing for selling `amount` of `sell_token` for `buy_token`. Uses the AllowanceHolder pricing path so the quote reflects actual execution cost. No wallet signature required.";
 
-    fn run(_app: &ZeroxApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let api_key = resolve_key(args.api_key.as_deref())?;
+    fn run(_app: &ZeroxApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
+        let api_key = resolve_key(&ctx, args.api_key.as_deref())?;
         let (chain_name, chain_id) = get_chain_info(&args.chain)?;
         let sell_addr = get_token_address(chain_name, &args.sell_token)?;
         let buy_addr = get_token_address(chain_name, &args.buy_token)?;
@@ -287,9 +288,9 @@ impl DynAomiTool for ZeroxBuildSwap {
     fn run_with_routes(
         _app: &ZeroxApp,
         args: Self::Args,
-        _ctx: DynToolCallCtx,
+        ctx: DynToolCallCtx,
     ) -> Result<ToolReturn, String> {
-        let api_key = resolve_key(args.api_key.as_deref())?;
+        let api_key = resolve_key(&ctx, args.api_key.as_deref())?;
         let (chain_name, chain_id) = get_chain_info(&args.chain)?;
         let sell_addr = get_token_address(chain_name, &args.sell_token)?;
         let buy_addr = get_token_address(chain_name, &args.buy_token)?;
@@ -466,9 +467,9 @@ impl DynAomiTool for ZeroxGetGaslessQuote {
     fn run_with_routes(
         _app: &ZeroxApp,
         args: Self::Args,
-        _ctx: DynToolCallCtx,
+        ctx: DynToolCallCtx,
     ) -> Result<ToolReturn, String> {
-        let api_key = resolve_key(args.api_key.as_deref())?;
+        let api_key = resolve_key(&ctx, args.api_key.as_deref())?;
         let (chain_name, chain_id) = get_chain_info(&args.chain)?;
         let sell_addr = get_token_address(chain_name, &args.sell_token)?;
         let buy_addr = get_token_address(chain_name, &args.buy_token)?;
@@ -637,9 +638,9 @@ impl DynAomiTool for ZeroxSubmitGaslessSwap {
     fn run_with_routes(
         _app: &ZeroxApp,
         args: Self::Args,
-        _ctx: DynToolCallCtx,
+        ctx: DynToolCallCtx,
     ) -> Result<ToolReturn, String> {
-        let api_key = resolve_key(args.api_key.as_deref())?;
+        let api_key = resolve_key(&ctx, args.api_key.as_deref())?;
         let mut trade_map = match args.trade {
             Value::Object(m) => m,
             _ => return Err("[0x] `trade` must be a JSON object".to_string()),
@@ -748,8 +749,8 @@ impl DynAomiTool for ZeroxGetGaslessStatus {
     const NAME: &'static str = "zerox_get_gasless_status";
     const DESCRIPTION: &'static str = "Use to track a submitted gasless trade. Returns status that progresses pending -> succeeded -> confirmed. Confirmed means the on-chain settlement is finalized.";
 
-    fn run(_app: &ZeroxApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let api_key = resolve_key(args.api_key.as_deref())?;
+    fn run(_app: &ZeroxApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
+        let api_key = resolve_key(&ctx, args.api_key.as_deref())?;
         let client = make_client(&api_key)?;
         let runtime = rt()?;
         let trade_hash = args.trade_hash.clone();

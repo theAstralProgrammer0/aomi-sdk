@@ -48,15 +48,18 @@ fn rt() -> Result<tokio::runtime::Runtime, String> {
 }
 
 fn resolve_creds(
+    ctx: &DynToolCallCtx,
     api_key: Option<&str>,
     secret_key: Option<&str>,
 ) -> Result<(String, String), String> {
     let api = resolve_secret_value(
+        ctx,
         api_key,
         "BYBIT_API_KEY",
         "[bybit] missing api_key argument and BYBIT_API_KEY env var",
     )?;
     let sec = resolve_secret_value(
+        ctx,
         secret_key,
         "BYBIT_SECRET_KEY",
         "[bybit] missing secret_key argument and BYBIT_SECRET_KEY env var",
@@ -245,8 +248,9 @@ impl DynAomiTool for GetWalletBalance {
     const NAME: &'static str = "bybit_get_wallet_balance";
     const DESCRIPTION: &'static str = "Wallet equity and per-coin balance for the unified (UTA) or contract account. Use this for 'how much do I have' / 'what's my buying power' questions.";
 
-    fn run(_app: &BybitApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let (api_key, secret) = resolve_creds(args.api_key.as_deref(), args.secret_key.as_deref())?;
+    fn run(_app: &BybitApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
+        let (api_key, secret) =
+            resolve_creds(&ctx, args.api_key.as_deref(), args.secret_key.as_deref())?;
         let account_type = args.account_type.unwrap_or_else(|| "UNIFIED".to_string());
         let coin = args.coin;
         let runtime = rt()?;
@@ -307,8 +311,9 @@ impl DynAomiTool for GetPositions {
     const NAME: &'static str = "bybit_get_positions";
     const DESCRIPTION: &'static str = "Open perpetual or inverse derivative positions with size, avg price, unrealised PnL, leverage, and liquidation price. Use this for 'what positions do I have' / 'what's my PnL on X' questions. Requires category=linear or inverse — perps only, not spot.";
 
-    fn run(_app: &BybitApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let (api_key, secret) = resolve_creds(args.api_key.as_deref(), args.secret_key.as_deref())?;
+    fn run(_app: &BybitApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
+        let (api_key, secret) =
+            resolve_creds(&ctx, args.api_key.as_deref(), args.secret_key.as_deref())?;
         let category = args.category;
         let symbol = args.symbol;
         let settle_coin = args.settle_coin;
@@ -372,8 +377,9 @@ impl DynAomiTool for GetOpenOrders {
     const NAME: &'static str = "bybit_get_open_orders";
     const DESCRIPTION: &'static str = "Real-time list of unfilled / partially-filled orders. Use for 'what's still working' / 'do I have any resting orders'. For closed orders use bybit_get_order_history.";
 
-    fn run(_app: &BybitApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let (api_key, secret) = resolve_creds(args.api_key.as_deref(), args.secret_key.as_deref())?;
+    fn run(_app: &BybitApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
+        let (api_key, secret) =
+            resolve_creds(&ctx, args.api_key.as_deref(), args.secret_key.as_deref())?;
         let category = args.category;
         let symbol = args.symbol;
         let order_id = args.order_id;
@@ -440,8 +446,9 @@ impl DynAomiTool for GetOrderHistory {
     const NAME: &'static str = "bybit_get_order_history";
     const DESCRIPTION: &'static str = "Past orders that have been filled, cancelled, or rejected. Use for 'show me my recent trades' / 'did my last order go through' questions. For currently-working orders use bybit_get_open_orders.";
 
-    fn run(_app: &BybitApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let (api_key, secret) = resolve_creds(args.api_key.as_deref(), args.secret_key.as_deref())?;
+    fn run(_app: &BybitApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
+        let (api_key, secret) =
+            resolve_creds(&ctx, args.api_key.as_deref(), args.secret_key.as_deref())?;
         let category = args.category;
         let symbol = args.symbol;
         let order_id = args.order_id;
@@ -517,8 +524,9 @@ impl DynAomiTool for PlaceLimitOrder {
     const NAME: &'static str = "bybit_place_limit_order";
     const DESCRIPTION: &'static str = "Place a Limit Buy/Sell at an explicit price. Returns the orderId. Use this when the user names a price; for instant fills use bybit_place_market_order instead. For derivatives, set reduce_only=true to close-only.";
 
-    fn run(_app: &BybitApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let (api_key, secret) = resolve_creds(args.api_key.as_deref(), args.secret_key.as_deref())?;
+    fn run(_app: &BybitApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
+        let (api_key, secret) =
+            resolve_creds(&ctx, args.api_key.as_deref(), args.secret_key.as_deref())?;
         let body = CreateOrderRequest {
             category: args.category,
             order_link_id: None,
@@ -582,8 +590,9 @@ impl DynAomiTool for PlaceMarketOrder {
     const NAME: &'static str = "bybit_place_market_order";
     const DESCRIPTION: &'static str = "Place a Market Buy/Sell that fills immediately at the best available price. Returns the orderId. Use only when the user explicitly wants instant execution; otherwise prefer bybit_place_limit_order so the user controls the price.";
 
-    fn run(_app: &BybitApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let (api_key, secret) = resolve_creds(args.api_key.as_deref(), args.secret_key.as_deref())?;
+    fn run(_app: &BybitApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
+        let (api_key, secret) =
+            resolve_creds(&ctx, args.api_key.as_deref(), args.secret_key.as_deref())?;
         let body = CreateOrderRequest {
             category: args.category,
             order_link_id: None,
@@ -641,8 +650,9 @@ impl DynAomiTool for CancelOrder {
     const NAME: &'static str = "bybit_cancel_order";
     const DESCRIPTION: &'static str = "Cancel a single open order by orderId. Idempotent on the server (re-cancelling an already-closed order returns an error). Use after place-order if the user changes their mind, or after get_open_orders to clean up.";
 
-    fn run(_app: &BybitApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let (api_key, secret) = resolve_creds(args.api_key.as_deref(), args.secret_key.as_deref())?;
+    fn run(_app: &BybitApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
+        let (api_key, secret) =
+            resolve_creds(&ctx, args.api_key.as_deref(), args.secret_key.as_deref())?;
         let body = CancelOrderRequest {
             category: args.category,
             order_id: args.order_id,
@@ -700,11 +710,12 @@ impl DynAomiTool for AmendOrder {
     const NAME: &'static str = "bybit_amend_order";
     const DESCRIPTION: &'static str = "Modify the quantity and/or price of an open order without cancelling. Provide at least one of qty/price. Cheaper than cancel+replace because it preserves queue position when the price doesn't change.";
 
-    fn run(_app: &BybitApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
+    fn run(_app: &BybitApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
         if args.qty.is_none() && args.price.is_none() {
             return Err("[bybit] amend_order: provide at least one of qty or price".to_string());
         }
-        let (api_key, secret) = resolve_creds(args.api_key.as_deref(), args.secret_key.as_deref())?;
+        let (api_key, secret) =
+            resolve_creds(&ctx, args.api_key.as_deref(), args.secret_key.as_deref())?;
         let body = AmendOrderRequest {
             category: args.category,
             order_id: args.order_id,
@@ -761,8 +772,9 @@ impl DynAomiTool for SetLeverage {
     const NAME: &'static str = "bybit_set_leverage";
     const DESCRIPTION: &'static str = "Set per-symbol leverage (separate buy and sell legs). Call this BEFORE opening a perp position when the user wants leverage other than the account default. category must be linear or inverse — has no meaning for spot.";
 
-    fn run(_app: &BybitApp, args: Self::Args, _ctx: DynToolCallCtx) -> Result<Value, String> {
-        let (api_key, secret) = resolve_creds(args.api_key.as_deref(), args.secret_key.as_deref())?;
+    fn run(_app: &BybitApp, args: Self::Args, ctx: DynToolCallCtx) -> Result<Value, String> {
+        let (api_key, secret) =
+            resolve_creds(&ctx, args.api_key.as_deref(), args.secret_key.as_deref())?;
         let body = SetLeverageRequest {
             buy_leverage: args.buy_leverage,
             category: args.category,

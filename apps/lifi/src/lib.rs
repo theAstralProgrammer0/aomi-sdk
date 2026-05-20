@@ -46,6 +46,15 @@ LI.FI swap calldata routes through the LI.FI router. The router address is on ma
 ## Formatting
 - Quote responses: render `fromAmount` -> `toAmount` in human units, plus fee USD and estimated duration (seconds)."#;
 
+// FIXME: switch to ctx.secrets — currently `make_client` in tool.rs reads
+// LIFI_API_KEY directly from env::var. The Secret declaration below still
+// makes the manifest carry the slot info so the FE gate works.
+const SECRET_API_KEY: Secret = Secret::new(
+    "LIFI_API_KEY",
+    "LI.FI API key for elevated rate limits; quoting and status work unauthenticated.",
+    false,
+);
+
 dyn_aomi_app!(
     app = tool::LifiApp,
     name = "lifi",
@@ -59,5 +68,6 @@ dyn_aomi_app!(
         tool::LifiListChains,
         tool::LifiListTokens,
     ],
+    secrets = [SECRET_API_KEY],
     namespaces = ["evm-core"]
 );
